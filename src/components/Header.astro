@@ -6,6 +6,7 @@ const links = [
   { href: "/parta", label: "Parta" },
   { href: "/open-studio", label: "Open studio" },
   { href: "/obchod", label: "Obchod" },
+  { href: "/dizajn", label: "Dizajn" },
   { href: "/o-nas", label: "O nás" },
 ];
 
@@ -19,15 +20,15 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
         <span class="logo-word font-serif text-[12px] font-medium" style="font-variation-settings: 'opsz' 48;">{"OŘECHOVÁ".split("").map(l => <span>{l}</span>)}</span>
         <span class="logo-word font-serif text-[22px] font-medium" style="font-variation-settings: 'opsz' 48;">{"HLÍNA".split("").map(l => <span>{l}</span>)}</span>
       </a>
-      <span class="mono-meta hidden sm:inline">Ateliér keramiky · Luční 235, Ořech</span>
+      <span class="mono-meta hidden xl:inline">Ateliér keramiky · Luční 235, Ořech</span>
     </div>
 
-    <nav class="hidden md:flex items-center gap-5 lg:gap-6">
+    <nav class="hidden lg:flex items-center gap-5 xl:gap-6">
       {links.map((l) => (
         <a
           href={l.href}
           aria-current={path === l.href ? "page" : undefined}
-          class={`text-[15px] hover:text-terracotta transition-colors ${
+          class={`text-[15px] whitespace-nowrap hover:text-terracotta transition-colors ${
             path === l.href ? "text-terracotta font-medium" : ""
           }`}
         >
@@ -38,7 +39,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 
     <button
       id="menu-toggle"
-      class="md:hidden text-espresso p-2"
+      class="lg:hidden text-espresso p-2"
       aria-label="Otevřít menu"
       aria-controls="mobile-menu"
       aria-expanded="false"
@@ -53,7 +54,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 
 <div
   id="mobile-menu"
-  class="hidden md:hidden bg-cream border-b border-espresso/10"
+  class="hidden lg:hidden bg-cream border-b border-espresso/10"
 >
   <nav class="container-x flex flex-col gap-3 py-4">
     {links.map((l) => (
