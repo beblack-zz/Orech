@@ -4,6 +4,7 @@ import Layout from "../layouts/Layout.astro";
 import oNas from "../images/o-nas.png";
 import Kapka from "../components/characters/Kapka.astro";
 import Pecinka from "../components/characters/Pecinka.astro";
+import Bublina from "../components/characters/Bublina.astro";
 
 const team = [
   {
@@ -71,7 +72,7 @@ const milestones = [
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
       <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Náš tým</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[760px]">
         {team.map((t) => (
           <div>
             <div class="bg-[#D9C3A3] rounded-xl aspect-square flex items-center justify-center mb-4">
@@ -85,10 +86,15 @@ const milestones = [
             <p class="text-stone text-[15px] leading-[1.7]">{t.bio}</p>
           </div>
         ))}
-        <div class="hidden lg:flex items-end justify-center">
-          <Kapka size={220} class="pointer-events-none" />
-        </div>
       </div>
+
+      <Bublina
+        name="Kapka"
+        text="Já jsem tady spíš omylem. Ale nikomu to neříkej."
+        class="mt-10 justify-center"
+      >
+        <Kapka />
+      </Bublina>
     </div>
   </section>
 
