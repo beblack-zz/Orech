@@ -1,29 +1,32 @@
 ---
+import Vazicka from "./characters/Vazicka.astro";
 ---
 
 <section class="relative py-12 md:py-16">
   <div class="container-x md:grid md:grid-cols-[1.15fr_1fr] md:gap-8 md:items-center relative">
-    <span class="mono-meta hidden md:inline-block absolute right-0 top-0">Po–Pá · 09→18</span>
-    <div class="fade-up">
+    <div class="fade-up relative">
       <h1 class="hero-title text-espresso text-[42px] md:text-[58px] lg:text-[68px] mb-5 md:mb-6">
         Uč se keramiku<br />tam, kde má hlína <span class="serif-italic-terracotta">čas.</span>
       </h1>
       <p class="text-[15px] md:text-[16px] text-stone leading-[1.7] max-w-lg mb-8">
         Malý ateliér v Ořechu — kurzy pro začátečníky i pokročilé, open studio pro volnou tvorbu a keramika, kterou si odneseš domů.
       </p>
-      <div class="flex flex-wrap gap-2.5 items-center">
-        <a
-          href="/kurzy"
-          class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
-        >
-          Vybrat kurz <span aria-hidden="true">→</span>
-        </a>
-        <a
-          href="/open-studio"
-          class="inline-flex items-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-espresso hover:text-cream transition-colors"
-        >
-          Zjistit open studio
-        </a>
+      <div class="flex items-center mt-4 lg:mt-10">
+        <Vazicka size={250} class="hidden lg:block pointer-events-none flex-shrink-0 -mr-[100px] relative z-[2]" />
+        <div class="flex flex-wrap gap-2.5 items-center relative z-[1]">
+          <a
+            href="/kurzy"
+            class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
+          >
+            Vybrat kurz <span aria-hidden="true">→</span>
+          </a>
+          <a
+            href="/open-studio"
+            class="inline-flex items-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-espresso hover:text-cream transition-colors"
+          >
+            Zjistit open studio
+          </a>
+        </div>
       </div>
     </div>
 
@@ -69,7 +72,7 @@
           />
         </path>
       </svg>
-      <span class="absolute bottom-3 left-3.5 font-mono text-[10px] text-stone tracking-wider">Přijď si sednout ke kruhu</span>
+      <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 font-mono text-[10px] text-peri tracking-wider whitespace-nowrap">Přijď si sednout ke kruhu</span>
     </div>
   </div>
 </section>

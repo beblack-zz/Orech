@@ -1,5 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Kapka from "../components/characters/Kapka.astro";
+import Pecinka from "../components/characters/Pecinka.astro";
+import Stripek from "../components/characters/Stripek.astro";
+import Vazicka from "../components/characters/Vazicka.astro";
+import Hlinka from "../components/characters/Hlinka.astro";
+
+const characters = [
+  { Component: Kapka, name: "Kapka", tagline: "utekla ze štětce" },
+  { Component: Pecinka, name: "Pecinka", tagline: "teplá a připravená" },
+  { Component: Stripek, name: "Střípek", tagline: "prasklý, ale nevzdává" },
+  { Component: Vazicka, name: "Vázička", tagline: "elegantní a voňavá" },
+  { Component: Hlinka, name: "Hlínka", tagline: "čeká, až z ní něco bude" },
+];
 
 const colors = [
   { name: "Espresso", hex: "#3A2E28", light: true },
@@ -122,6 +135,24 @@ const fonts = [
         </div>
       </div>
 
+      <!-- Postavičky -->
+      <div class="mb-16">
+        <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-5">Postavičky</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+          {characters.map(({ Component, name, tagline }) => (
+            <div class="flex flex-col items-center gap-3 group">
+              <div class="transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:scale-[1.03]">
+                <Component size={140} />
+              </div>
+              <div class="text-center">
+                <span class="block text-[13px] font-medium text-espresso">{name}</span>
+                <span class="text-[11px] text-stone">{tagline}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <!-- Principy -->
       <div>
         <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-5">Principy</h3>
@@ -140,7 +171,7 @@ const fonts = [
           </div>
         </div>
       </div>
-      <span class="mono-meta absolute bottom-0 right-0 md:right-8 lg:right-12">Vizuální identita</span>
+      <span class="mono-meta block text-right mt-8">Vizuální identita</span>
     </div>
   </section>
 </Layout>

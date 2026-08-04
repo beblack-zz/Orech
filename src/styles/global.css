@@ -94,39 +94,101 @@
   }
 }
 
+/* ——— Postavičky ——— */
+
 @keyframes breathe {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.04); }
 }
 
-.wheel-disc {
-  animation: breathe 4s ease-in-out infinite;
-  transform-origin: 200px 200px;
+@keyframes char-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
 }
+
+@keyframes char-sway {
+  0%, 100% { transform: rotate(-1.5deg); }
+  50%      { transform: rotate(1.5deg); }
+}
+
+@keyframes char-wobble {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  30%      { transform: rotate(-2.5deg) translateY(-2px); }
+  70%      { transform: rotate(2deg) translateY(-1px); }
+}
+
+@keyframes zzz-float {
+  0%   { opacity: 0;    transform: translate(0, 4px); }
+  20%  { opacity: 0.4;  }
+  100% { opacity: 0;    transform: translate(12px, -26px); }
+}
+
+/* Pecinka dýchá */
+.char-breathe { animation: breathe 4.5s ease-in-out infinite; transform-origin: 50% 88%; }
+/* Kapka poskakuje */
+.char-bob     { animation: char-bob 3.4s ease-in-out infinite; }
+/* Vázička se kolébá */
+.char-sway    { animation: char-sway 6s ease-in-out infinite; transform-origin: 50% 90%; }
+/* Střípek se viklá */
+.char-wobble  { animation: char-wobble 5s ease-in-out infinite; transform-origin: 50% 85%; }
+
+/* Hlínčino „z z z“ stoupá vzhůru */
+.zzz   { animation: zzz-float 3.6s ease-out infinite; }
+.zzz-2 { animation-delay: 0.4s; }
+.zzz-3 { animation-delay: 0.8s; }
 
 @media (prefers-reduced-motion: reduce) {
-  .wheel-disc {
+  .char-breathe,
+  .char-bob,
+  .char-sway,
+  .char-wobble,
+  .zzz {
     animation: none;
   }
+  /* Bez animace zůstanou „z“ staticky rozprostřená jako dřív */
+  .zzz-1 { opacity: 0.35; }
+  .zzz-2 { opacity: 0.25; transform: translate(6px, -11px); }
+  .zzz-3 { opacity: 0.15; transform: translate(12px, -21px); }
 }
 
-.fade-up {
+/* ——— Odkrývání sekcí ——— */
+/* Schováváme jen když je JS k dispozici, jinak by web zůstal prázdný. */
+
+.js .fade-up {
   opacity: 0;
   transform: translateY(24px);
   transition: opacity 0.7s ease-out, transform 0.7s ease-out;
 }
 
-.fade-up.in-view {
+.js .fade-up.in-view {
   opacity: 1;
   transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fade-up {
+  .js .fade-up {
     opacity: 1;
     transform: none;
     transition: none;
   }
+}
+
+.pricing-card {
+  box-shadow: 0 1px 3px rgba(58, 46, 40, 0.06), 0 8px 24px rgba(58, 46, 40, 0.04);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pricing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(58, 46, 40, 0.08), 0 16px 40px rgba(58, 46, 40, 0.08);
+}
+
+.pricing-card--featured {
+  box-shadow: 0 4px 12px rgba(58, 46, 40, 0.1), 0 20px 48px rgba(58, 46, 40, 0.12);
+}
+
+.pricing-card--featured:hover {
+  box-shadow: 0 8px 20px rgba(58, 46, 40, 0.12), 0 28px 56px rgba(58, 46, 40, 0.16);
 }
 
 .logo-word {

@@ -23,21 +23,13 @@ const links = [
       {links.map((l) => (
         <a href={l.href} class="text-[13px] hover:text-terracotta transition-colors">{l.label}</a>
       ))}
-      <span class="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-stone">
-        <span class="w-1.5 h-1.5 rounded-full bg-peri"></span>OTEVŘENO
-      </span>
-      <a
-        href="/kurzy"
-        class="bg-espresso text-cream px-4 py-2 rounded-full text-[12px] font-medium hover:bg-clay transition-colors"
-      >
-        Rezervovat
-      </a>
     </nav>
 
     <button
       id="menu-toggle"
       class="md:hidden text-espresso p-2"
       aria-label="Otevřít menu"
+      aria-controls="mobile-menu"
       aria-expanded="false"
     >
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -66,10 +58,26 @@ const links = [
 </div>
 
 <script>
-  const toggle = document.getElementById("menu-toggle");
-  const menu = document.getElementById("mobile-menu");
-  toggle?.addEventListener("click", () => {
-    const open = menu?.classList.toggle("hidden");
-    toggle.setAttribute("aria-expanded", open ? "false" : "true");
-  });
+  // Musí se navázat znovu po každé navigaci — ClientRouter vymění DOM,
+  // ale modulový skript prohlížeč podruhé nespustí.
+  const bindMenu = () => {
+    const toggle = document.getElementById("menu-toggle");
+    const menu = document.getElementById("mobile-menu");
+    if (!toggle || !menu || toggle.dataset.bound) return;
+    toggle.dataset.bound = "1";
+
+    const setOpen = (open: boolean) => {
+      menu.classList.toggle("hidden", !open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "Zavřít menu" : "Otevřít menu");
+    };
+
+    toggle.addEventListener("click", () => setOpen(menu.classList.contains("hidden")));
+    for (const link of menu.querySelectorAll("a")) {
+      link.addEventListener("click", () => setOpen(false));
+    }
+  };
+
+  bindMenu();
+  document.addEventListener("astro:page-load", bindMenu);
 </script>

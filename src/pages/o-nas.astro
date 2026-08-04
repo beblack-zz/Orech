@@ -1,5 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Kapka from "../components/characters/Kapka.astro";
+import Pecinka from "../components/characters/Pecinka.astro";
 
 const team = [
   {
@@ -15,7 +17,10 @@ const team = [
 ];
 
 const milestones = [
-  { year: "2026", text: "Otevíráme ateliér — 3 kruhy, 1 pec, 2 stoly, 0 studentů (zatím)" },
+  { year: "2026", month: "Únor", text: "Otevíráme ateliér — 3 kruhy, 1 pec, 2 stoly, 0 studentů (zatím)" },
+  { year: "2026", month: "Březen", text: "První kurz vyprodán do 48 hodin. Přidáváme druhý termín." },
+  { year: "2026", month: "Duben", text: "Spouštíme open studio — 6 míst, každý den jiná hlína." },
+  { year: "2026", month: "Červen", text: "Přes 200 lidí prošlo ateliérem. Pec pracuje bez přestávky." },
 ];
 ---
 
@@ -36,14 +41,19 @@ const milestones = [
           <p class="text-stone text-[14px] leading-[1.75]">
             Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a mlčet u hlíny.
           </p>
-          <p class="font-hand text-[28px] text-terracotta leading-none mt-6">— Jiřík & Renča</p>
-          <p class="font-mono text-[10px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+          <div class="flex items-center gap-4 mt-6">
+            <Pecinka size={230} class="pointer-events-none flex-shrink-0" />
+            <div>
+              <p class="font-hand text-[28px] text-clay leading-none">— Jiřík & Renča</p>
+              <p class="font-mono text-[10px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+            </div>
+          </div>
         </div>
         <div class="rounded-xl aspect-[3/4] overflow-hidden mt-8 md:mt-0">
           <img src="/o-nas.png" alt="Ateliér Ořechová hlína" class="w-full h-full object-cover" />
         </div>
       </div>
-      <span class="mono-meta absolute bottom-0 right-0 md:right-8 lg:right-12">Est. 2026 · 2 lektoři · 3 kruhy</span>
+      <span class="mono-meta block text-right mt-6">Est. 2026 · 2 lektoři · 3 kruhy</span>
     </div>
   </section>
 
@@ -64,6 +74,9 @@ const milestones = [
             <p class="text-stone text-[13px] leading-[1.7]">{t.bio}</p>
           </div>
         ))}
+        <div class="hidden lg:flex items-end justify-center">
+          <Kapka size={220} class="pointer-events-none" />
+        </div>
       </div>
     </div>
   </section>
@@ -72,9 +85,10 @@ const milestones = [
     <div class="container-x">
       <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h3>
       <div class="max-w-[600px]">
+        <span class="font-serif text-[32px] font-medium block mb-3 text-terracotta" style="font-variation-settings: 'opsz' 72;">2026</span>
         {milestones.map((m) => (
           <div class="flex gap-4 py-3 border-b border-espresso/8 last:border-b-0">
-            <span class="font-serif text-[20px] font-medium w-[60px] flex-shrink-0" style="font-variation-settings: 'opsz' 72;">{m.year}</span>
+            <span class="font-mono text-[11px] text-terracotta uppercase tracking-wider w-[70px] flex-shrink-0 pt-0.5">{m.month}</span>
             <p class="text-stone text-[14px] leading-[1.6]">{m.text}</p>
           </div>
         ))}
@@ -88,12 +102,14 @@ const milestones = [
       <p class="text-stone text-[14px] leading-[1.75] mb-6">
         Luční 235, Ořech. Ateliér je otevřený Po–Pá 9–18, v sobotu 10–14. Stavíme i&nbsp;na&nbsp;kafe.
       </p>
-      <a
-        href="mailto:ahoj@orechahlina.cz"
-        class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
-      >
-        Napsat nám <span aria-hidden="true">→</span>
-      </a>
+      <div class="flex items-center justify-center gap-0">
+        <a
+          href="mailto:ahoj@orechovahlina.cz"
+          class="relative z-[1] inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
+        >
+          Napsat nám <span aria-hidden="true">→</span>
+        </a>
+      </div>
     </div>
   </section>
 </Layout>

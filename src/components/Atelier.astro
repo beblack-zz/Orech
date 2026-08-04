@@ -1,5 +1,6 @@
 ---
 import SectionHead from "./SectionHead.astro";
+import Pecinka from "./characters/Pecinka.astro";
 ---
 
 <section class="bg-cream-warm py-14 relative fade-up">
@@ -20,8 +21,13 @@ import SectionHead from "./SectionHead.astro";
         <p class="text-stone text-[14px] leading-[1.75]">
           Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a mlčet u hlíny.
         </p>
-        <p class="font-hand text-[28px] text-terracotta leading-none mt-6">— Jiřík &amp; Renča</p>
-        <p class="font-mono text-[10px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+        <div class="flex items-center gap-4 mt-6">
+          <Pecinka size={230} class="pointer-events-none flex-shrink-0" />
+          <div>
+            <p class="font-hand text-[28px] text-clay leading-none">— Jiřík &amp; Renča</p>
+            <p class="font-mono text-[10px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+          </div>
+        </div>
       </div>
       <div class="rounded-xl aspect-[3/4] overflow-hidden">
         <img src="/o-atelieru.png" alt="Jiřík a Renča v ateliéru" class="w-full h-full object-cover" />

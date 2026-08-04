@@ -1,0 +1,18 @@
+---
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+---
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={`char-bob ${cls}`} aria-hidden="true">
+  <path d="M90 38 Q60 85 56 108 Q52 132 72 146 Q82 152 90 152 Q98 152 108 146 Q128 132 124 108 Q120 85 90 38 Z" fill="#6366F1"/>
+  <ellipse cx="76" cy="100" rx="8" ry="14" fill="#818cf8" opacity="0.35" transform="rotate(-15 76 100)"/>
+  <path d="M76 108 Q79 104 82 108" stroke="#F4EBDD" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M98 108 Q101 104 104 108" stroke="#F4EBDD" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M83 120 Q90 126 97 120" stroke="#F4EBDD" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <circle cx="72" cy="116" r="5" fill="#4f46e5" opacity="0.4"/>
+  <circle cx="108" cy="116" r="5" fill="#4f46e5" opacity="0.4"/>
+  <ellipse cx="52" cy="118" rx="7" ry="5" fill="#6366F1"/>
+  <ellipse cx="128" cy="118" rx="7" ry="5" fill="#6366F1"/>
+  <ellipse cx="80" cy="154" rx="8" ry="4" fill="#4f46e5"/>
+  <ellipse cx="100" cy="154" rx="8" ry="4" fill="#4f46e5"/>
+  <ellipse cx="90" cy="160" rx="22" ry="5" fill="#6366F1" opacity="0.15"/>
+</svg>

@@ -1,5 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Kapka from "../components/characters/Kapka.astro";
+import Hlinka from "../components/characters/Hlinka.astro";
+import Bublina from "../components/characters/Bublina.astro";
 
 const pricing = [
   { name: "Jednorázový vstup", price: "350 Kč / 3 hod", desc: "Přijď, kdy chceš. Hlína a nástroje v ceně, glazování +120 Kč." },
@@ -34,35 +37,50 @@ const rules = [
           <img src="/open-studio.png" alt="Open studio — kruhy a pracovní stoly" class="w-full h-full object-cover" />
         </div>
       </div>
-      <span class="mono-meta absolute bottom-0 right-0 md:right-8 lg:right-12">Pro pokročilé · 6 míst</span>
+      <span class="mono-meta block text-right mt-6">Pro pokročilé · 6 míst</span>
     </div>
   </section>
 
-  <section class="bg-white py-14 fade-up">
-    <div class="container-x">
-      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Ceník</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+  <section class="py-20 md:py-28 fade-up">
+    <div class="container-x text-center">
+      <h3 class="font-mono text-[11px] tracking-[0.15em] text-stone uppercase mb-3">Ceník</h3>
+      <div class="flex items-center justify-center gap-0 mb-14">
+        <p class="font-serif text-[28px] md:text-[36px] text-espresso font-medium" style="font-variation-settings: 'opsz' 48;">
+          Vyber si, jak chceš tvořit.
+        </p>
+        <Kapka size={240} class="hidden lg:block pointer-events-none flex-shrink-0 -ml-[80px] relative z-[2]" />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-6 max-w-[960px] mx-auto items-stretch">
         {pricing.map((p) => (
-          <div class={`rounded-xl p-5 border relative ${p.badge ? "border-espresso bg-cream" : "border-espresso/10 bg-white"}`}>
+          <div class={`pricing-card group relative rounded-2xl text-center flex flex-col ${p.badge ? "pricing-card--featured bg-espresso text-cream sm:-my-3 sm:py-10 p-7" : "bg-white p-7"}`}>
             {p.badge && (
-              <span class="absolute -top-2 left-3.5 bg-mustard text-espresso font-mono text-[10px] font-medium px-2.5 py-1 rounded-full tracking-wider">
+              <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-peri text-cream font-mono text-[10px] font-semibold px-3.5 py-1 rounded-full tracking-wider whitespace-nowrap">
                 {p.badge}
               </span>
             )}
-            <h4 class="font-serif text-[18px] font-medium mb-1" style="font-variation-settings: 'opsz' 48;">{p.name}</h4>
-            <p class="font-serif text-[22px] text-terracotta font-medium mb-2">{p.price}</p>
-            <p class="text-[12px] text-stone leading-[1.6]">{p.desc}</p>
+            <h4 class="font-serif text-[17px] font-medium mb-4 pt-2" style="font-variation-settings: 'opsz' 48;">{p.name}</h4>
+            <p class={`font-serif text-[32px] md:text-[36px] font-medium mb-4 leading-none ${p.badge ? "text-terracotta" : "text-terracotta"}`}>{p.price}</p>
+            <div class={`w-8 h-px mx-auto mb-4 ${p.badge ? "bg-cream/25" : "bg-espresso/10"}`}></div>
+            <p class={`text-[13px] leading-[1.7] ${p.badge ? "text-cream/70" : "text-stone"}`}>{p.desc}</p>
           </div>
         ))}
       </div>
+
+      <Bublina
+        name="Hlínka"
+        text="Zatím jsem jenom hrouda."
+        class="mt-14 justify-center"
+      >
+        <Hlinka />
+      </Bublina>
     </div>
   </section>
 
   <section class="py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Otevírací hodiny</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-14">
         <div>
+          <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-4">Otevírací hodiny</h3>
           <div class="border-t border-espresso/10 pt-4 space-y-2">
             <div class="flex justify-between text-[14px]">
               <span>Pondělí – Pátek</span>
@@ -93,19 +111,21 @@ const rules = [
 
       <div class="bg-cream-warm rounded-xl p-8 text-center max-w-[480px] mx-auto">
         <p class="font-serif italic text-[18px] text-espresso mb-4">Chceš si rezervovat slot?</p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href="mailto:ahoj@orechahlina.cz"
-            class="inline-flex items-center justify-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
-          >
-            Napsat e-mail
-          </a>
-          <a
-            href="tel:+420777000000"
-            class="inline-flex items-center justify-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-espresso hover:text-cream transition-colors"
-          >
-            Zavolat
-          </a>
+        <div class="flex items-center justify-center gap-0">
+          <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a
+              href="mailto:ahoj@orechovahlina.cz"
+              class="inline-flex items-center justify-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
+            >
+              ahoj@orechovahlina.cz
+            </a>
+            <a
+              href="tel:+420777000000"
+              class="inline-flex items-center justify-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-espresso hover:text-cream transition-colors"
+            >
+              +420 777 000 000
+            </a>
+          </div>
         </div>
       </div>
     </div>
