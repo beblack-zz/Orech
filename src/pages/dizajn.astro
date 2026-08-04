@@ -1,18 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Kapka from "../components/characters/Kapka.astro";
-import Pecinka from "../components/characters/Pecinka.astro";
-import Stripek from "../components/characters/Stripek.astro";
-import Vazicka from "../components/characters/Vazicka.astro";
-import Hlinka from "../components/characters/Hlinka.astro";
-
-const characters = [
-  { Component: Kapka, name: "Kapka", tagline: "utekla ze štětce" },
-  { Component: Pecinka, name: "Pecinka", tagline: "teplá a připravená" },
-  { Component: Stripek, name: "Střípek", tagline: "prasklý, ale nevzdává" },
-  { Component: Vazicka, name: "Vázička", tagline: "elegantní a voňavá" },
-  { Component: Hlinka, name: "Hlínka", tagline: "čeká, až z ní něco bude" },
-];
+import Postavicka from "../components/characters/Postavicka.astro";
+import { parta } from "../data/parta";
 
 const colors = [
   { name: "Espresso", hex: "#3A2E28", light: true },
@@ -41,14 +30,14 @@ const fonts = [
         <h1 class="hero-title text-espresso text-[36px] md:text-[48px] lg:text-[58px] mb-5">
           Mood <span class="serif-italic-terracotta">board.</span>
         </h1>
-        <p class="text-stone text-[14px] leading-[1.75]">
+        <p class="text-stone text-[16px] leading-[1.75]">
           Teplé tóny, přírodní materiály, klid ateliéru. Vizuální jazyk Ořechové hlíny vychází z hlíny, dřeva a světla, co padá do dílny odpoledne.
         </p>
       </div>
 
       <!-- Paleta barev -->
       <div class="mb-16">
-        <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-5">Paleta barev</h3>
+        <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-5">Paleta barev</h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
           {colors.map((c) => (
             <div class="group">
@@ -57,13 +46,13 @@ const fonts = [
                 style={`background:${c.hex};`}
               >
                 <span
-                  class="font-mono text-[10px] tracking-wider opacity-70"
+                  class="font-mono text-[12px] tracking-wider opacity-70"
                   style={`color:${c.light ? '#F4EBDD' : '#3A2E28'};`}
                 >
                   {c.hex}
                 </span>
               </div>
-              <p class="text-[12px] text-stone mt-1.5 text-center">{c.name}</p>
+              <p class="text-[14px] text-stone mt-1.5 text-center">{c.name}</p>
             </div>
           ))}
         </div>
@@ -71,11 +60,11 @@ const fonts = [
 
       <!-- Typografie -->
       <div class="mb-16">
-        <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-5">Typografie</h3>
+        <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-5">Typografie</h3>
         <div class="space-y-0 border-t border-espresso/10">
           {fonts.map((f) => (
             <div class="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] items-baseline gap-4 py-5 border-b border-espresso/8">
-              <span class="font-mono text-[10px] tracking-wider text-stone uppercase">{f.role}</span>
+              <span class="font-mono text-[12px] tracking-wider text-stone uppercase">{f.role}</span>
               <div>
                 <p
                   class:list={[
@@ -87,7 +76,7 @@ const fonts = [
                 >
                   {f.sample}
                 </p>
-                <p class="font-mono text-[10px] text-stone/60 mt-1">{f.name}{f.style === "italic" ? " Italic" : ""} · {f.weight}</p>
+                <p class="font-mono text-[12px] text-stone mt-1">{f.name}{f.style === "italic" ? " Italic" : ""} · {f.weight}</p>
               </div>
             </div>
           ))}
@@ -96,7 +85,7 @@ const fonts = [
 
       <!-- Mood -->
       <div class="mb-16">
-        <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-5">Nálada</h3>
+        <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-5">Nálada</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div class="bg-espresso rounded-lg aspect-[3/4] flex flex-col items-center justify-center p-6 text-center">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" class="mb-4 opacity-60">
@@ -104,7 +93,7 @@ const fonts = [
               <circle cx="24" cy="24" r="8" fill="#C87E4E" opacity="0.7" />
             </svg>
             <span class="font-serif italic text-cream text-[18px]">Teplo</span>
-            <span class="font-mono text-[9px] text-cream/50 mt-1 tracking-wider">ZEMITÉ TÓNY</span>
+            <span class="font-mono text-[12px] text-cream/75 mt-1 tracking-wider">ZEMITÉ TÓNY</span>
           </div>
           <div class="bg-terracotta rounded-lg aspect-[3/4] flex flex-col items-center justify-center p-6 text-center">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" class="mb-4 opacity-60">
@@ -113,7 +102,7 @@ const fonts = [
               <path d="M6 24 Q24 24 42 24" stroke="#F4EBDD" stroke-width="1" />
             </svg>
             <span class="font-serif italic text-cream text-[18px]">Řemeslo</span>
-            <span class="font-mono text-[9px] text-cream/50 mt-1 tracking-wider">RUČNÍ PRÁCE</span>
+            <span class="font-mono text-[12px] text-cream/75 mt-1 tracking-wider">RUČNÍ PRÁCE</span>
           </div>
           <div class="bg-stone rounded-lg aspect-[3/4] flex flex-col items-center justify-center p-6 text-center">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" class="mb-4 opacity-60">
@@ -122,7 +111,7 @@ const fonts = [
               <line x1="24" y1="10" x2="24" y2="38" stroke="#F4EBDD" stroke-width="0.5" opacity="0.5" />
             </svg>
             <span class="font-serif italic text-cream text-[18px]">Jednoduchost</span>
-            <span class="font-mono text-[9px] text-cream/50 mt-1 tracking-wider">ČISTÝ DESIGN</span>
+            <span class="font-mono text-[12px] text-cream/75 mt-1 tracking-wider">ČISTÝ DESIGN</span>
           </div>
           <div class="bg-cream-warm rounded-lg aspect-[3/4] flex flex-col items-center justify-center p-6 text-center border border-espresso/8">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" class="mb-4 opacity-40">
@@ -130,44 +119,47 @@ const fonts = [
               <path d="M14 18 Q14 10 24 10 Q34 10 34 18 Q36 30 32 38 Q28 42 24 42 Q20 42 16 38 Q12 30 14 18 Z" fill="none" stroke="#3A2E28" stroke-width="1" />
             </svg>
             <span class="font-serif italic text-espresso text-[18px]">Hlína</span>
-            <span class="font-mono text-[9px] text-stone/50 mt-1 tracking-wider">MATERIÁL</span>
+            <span class="font-mono text-[12px] text-stone mt-1 tracking-wider">MATERIÁL</span>
           </div>
         </div>
       </div>
 
       <!-- Postavičky -->
       <div class="mb-16">
-        <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-5">Postavičky</h3>
+        <div class="flex items-baseline justify-between gap-4 mb-5">
+          <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase">Postavičky</h3>
+          <a href="/parta" class="mono-meta hover:text-terracotta">Seznam se s partou →</a>
+        </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-          {characters.map(({ Component, name, tagline }) => (
-            <div class="flex flex-col items-center gap-3 group">
+          {parta.map((p) => (
+            <a href={`/parta#${p.id}`} class="flex flex-col items-center gap-3 group">
               <div class="transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:scale-[1.03]">
-                <Component size={140} />
+                <Postavicka id={p.id} size={140} />
               </div>
               <div class="text-center">
-                <span class="block text-[13px] font-medium text-espresso">{name}</span>
-                <span class="text-[11px] text-stone">{tagline}</span>
+                <span class="block text-[15px] font-medium text-espresso group-hover:text-terracotta transition-colors">{p.name}</span>
+                <span class="text-[12px] text-stone">{p.tagline}</span>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
 
       <!-- Principy -->
       <div>
-        <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-5">Principy</h3>
+        <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-5">Principy</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <div class="border-t border-espresso/10 pt-4">
             <p class="font-serif italic text-[18px] text-espresso mb-1.5">Méně dokonalosti</p>
-            <p class="text-stone text-[13px] leading-[1.7]">Ručně dělaná keramika není o&nbsp;přesnosti. Stejně tak design — drobné nerovnosti dodávají charakter.</p>
+            <p class="text-stone text-[15px] leading-[1.7]">Ručně dělaná keramika není o&nbsp;přesnosti. Stejně tak design — drobné nerovnosti dodávají charakter.</p>
           </div>
           <div class="border-t border-espresso/10 pt-4">
             <p class="font-serif italic text-[18px] text-espresso mb-1.5">Teplé a zemité</p>
-            <p class="text-stone text-[13px] leading-[1.7]">Barvy vycházejí z&nbsp;přírodních materiálů — hlíny, dřeva, glazury. Žádné křiklavé tóny.</p>
+            <p class="text-stone text-[15px] leading-[1.7]">Barvy vycházejí z&nbsp;přírodních materiálů — hlíny, dřeva, glazury. Žádné křiklavé tóny.</p>
           </div>
           <div class="border-t border-espresso/10 pt-4">
             <p class="font-serif italic text-[18px] text-espresso mb-1.5">Prostor k dýchání</p>
-            <p class="text-stone text-[13px] leading-[1.7]">Hodně bílého místa, klidná typografie. Web má působit jako odpolední ticho v&nbsp;dílně.</p>
+            <p class="text-stone text-[15px] leading-[1.7]">Hodně bílého místa, klidná typografie. Web má působit jako odpolední ticho v&nbsp;dílně.</p>
           </div>
         </div>
       </div>

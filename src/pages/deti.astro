@@ -1,0 +1,212 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
+import Bublina from "../components/characters/Bublina.astro";
+
+const programy = [
+  {
+    name: "Rodinná dílna",
+    price: "890 Kč / rodina",
+    meta: "sobota · 2 hodiny · od 6 let",
+    desc: "Modelujete spolu, bez kruhu. Zvířátka, misky, cokoli vás napadne. Každý si odnese vlastní výtvor.",
+    postava: "hlinka" as const,
+  },
+  {
+    name: "Dětská oslava",
+    price: "od 3 500 Kč",
+    meta: "8–12 dětí · 2,5 hodiny · od 4 let",
+    desc: "Celý ateliér jen pro vás. Tvoření, hry s hlínou a stůl, kam si můžete přinést dort a pití.",
+    postava: "stripek" as const,
+    badge: "Novinka",
+  },
+  {
+    name: "Školy a školky",
+    price: "180 Kč / dítě",
+    meta: "všední dny dopoledne · skupiny do 25 dětí",
+    desc: "Dopolední dílna na objednávku. Přizpůsobíme téma tomu, co zrovna ve třídě probíráte.",
+    postava: "pecinka" as const,
+  },
+  {
+    name: "Příměstský tábor",
+    price: "3 900 Kč / týden",
+    meta: "prázdniny · po–pá 8:30–16:00 · od 7 let",
+    desc: "Pět dní u hlíny. Kruh, modelování, glazování a na konci výstava pro rodiče.",
+    postava: "kapka" as const,
+  },
+];
+
+const kroky = [
+  { n: "01", title: "Ozveš se nám", text: "Napiš nebo zavolej, domluvíme termín. U oslav a škol se hodí ozvat pár týdnů dopředu." },
+  { n: "02", title: "Přijdete tvořit", text: "Zástěry, hlínu i nástroje máme. Stačí oblečení, kterému nevadí, že se ušpiní." },
+  { n: "03", title: "Pecinka to vypálí", text: "Výrobky musí uschnout a dvakrát projít pecí. Trvá to dva až tři týdny." },
+  { n: "04", title: "Vyzvednete si to", text: "Ozveme se, až bude hotovo. Pak už si to odnesete domů — natrvalo." },
+];
+
+const faq = [
+  {
+    q: "Od kolika let to má smysl?",
+    a: "Na rodinnou dílnu bereme děti od 6 let, na oslavu od 4 let s rodičem. Kruh většina dětí zvládne zhruba od 8 let — do té doby modelujeme rukama, což je stejná zábava.",
+  },
+  {
+    q: "Musím zůstat s dítětem?",
+    a: "U rodinné dílny tvoříte spolu, to je celý smysl. U oslavy a tábora si můžeš dát kafe vedle nebo přijet až pro hotové dítě.",
+  },
+  {
+    q: "Umaže se?",
+    a: "Ano, a docela pořádně. Zástěry máme, ale vezmi oblečení, kterému hlína nevadí. Vypere se to úplně normálně.",
+  },
+  {
+    q: "Kdy si výrobek odneseme?",
+    a: "Ne hned. Hlína musí uschnout a projít dvěma výpaly — dohromady dva až tři týdny. Napíšeme ti, jakmile bude hotovo.",
+  },
+  {
+    q: "Dá se z toho pak jíst a pít?",
+    a: "Ano. Používáme glazury, které jsou zdravotně nezávadné. Hotové kousky snesou myčku i mikrovlnku.",
+  },
+  {
+    q: "Co když dítě něco rozbije?",
+    a: "Tak se to stane a nic se neděje. Zeptej se Střípka — je z toho ten nejlepší kamarád, kterého tady máme.",
+  },
+];
+---
+
+<Layout
+  title="Pro děti — Ořechová hlína"
+  description="Rodinné dílny, dětské oslavy, programy pro školy a příměstský tábor. Keramika pro děti od 4 let v Ořechu u Prahy."
+>
+  <section class="py-14 md:py-16 fade-up">
+    <div class="container-x">
+      <div class="md:grid md:grid-cols-[1.1fr_1fr] md:gap-10 md:items-center">
+        <div>
+          <span class="mono-meta block mb-4">Pro děti a rodiny</span>
+          <h1 class="hero-title text-espresso text-[42px] md:text-[54px] lg:text-[62px] mb-5">
+            Zamaž si ruce.<br />My to tady <span class="serif-italic-terracotta">vydržíme.</span>
+          </h1>
+          <p class="text-stone text-[17px] leading-[1.7] max-w-[52ch] mb-7">
+            Hlína je jediný materiál, u kterého se dá dělat nepořádek a ještě za to dostaneš pochvalu.
+            U nás si děti můžou zkusit kruh, modelování i glazování — a odnesou si něco, co jim vydrží roky.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a
+              href="#programy"
+              class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
+            >
+              Co nabízíme <span aria-hidden="true">→</span>
+            </a>
+            <a
+              href="/parta"
+              class="inline-flex items-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso hover:text-cream transition-colors"
+            >
+              Seznam se s partou
+            </a>
+          </div>
+        </div>
+
+        <div class="flex justify-center md:justify-end mt-10 md:mt-0">
+          <Bublina name="Hlínka" text="Neboj se mě zmáčknout. Mně to nevadí." side="right">
+            <Postavicka id="hlinka" />
+          </Bublina>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Programy -->
+  <section id="programy" class="bg-white py-14 fade-up">
+    <div class="container-x">
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-7">Co u nás děti zažijí</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+        {programy.map((p) => (
+          <div class="relative bg-cream-warm rounded-2xl border border-espresso/10 p-6 sm:p-7 flex gap-4 sm:gap-5 items-start">
+            {p.badge && (
+              <span class="absolute -top-2.5 left-6 bg-peri text-cream font-mono text-[12px] font-medium px-3 py-1 rounded-full tracking-wider">
+                {p.badge}
+              </span>
+            )}
+            <Postavicka id={p.postava} size={104} class="w-[68px] sm:w-[92px] h-auto flex-shrink-0 pointer-events-none" />
+            <div class="flex-1">
+              <h3 class="font-serif text-[22px] font-medium leading-tight mb-1" style="font-variation-settings: 'opsz' 48;">
+                {p.name}
+              </h3>
+              <p class="font-mono text-[12px] text-stone tracking-wider mb-3">{p.meta}</p>
+              <p class="text-stone text-[15px] leading-[1.65] mb-4">{p.desc}</p>
+              <p class="font-serif text-[19px] font-medium text-terracotta">{p.price}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p class="text-stone text-[15px] leading-[1.7] mt-7 max-w-[62ch]">
+        Termíny rodinných dílen najdeš mezi <a href="/kurzy" class="text-terracotta underline underline-offset-2">kurzy</a>.
+        Oslavy, školy a tábory domlouváme individuálně — napiš nám, co potřebuješ.
+      </p>
+    </div>
+  </section>
+
+  <!-- Jak to probíhá -->
+  <section class="py-14 fade-up">
+    <div class="container-x">
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-7">Jak to probíhá</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {kroky.map((k) => (
+          <div class="border-t border-espresso/15 pt-4">
+            <span class="font-mono text-[12px] text-terracotta tracking-wider">{k.n}</span>
+            <h3 class="font-serif italic text-[19px] text-espresso mt-1 mb-2">{k.title}</h3>
+            <p class="text-stone text-[15px] leading-[1.7]">{k.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ pro rodiče -->
+  <section class="bg-cream-warm py-14 fade-up">
+    <div class="container-x">
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-7">Na co se rodiče ptají</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-7">
+        {faq.map((f) => (
+          <div class="border-t border-espresso/15 pt-4">
+            <h3 class="font-serif italic text-[19px] text-espresso mb-2">{f.q}</h3>
+            <p class="text-stone text-[15px] leading-[1.7]">{f.a}</p>
+          </div>
+        ))}
+      </div>
+
+      <Bublina
+        name="Střípek"
+        text="Rozbít něco není konec světa. Věř mi, já to zkoušel."
+        class="mt-11 justify-center"
+      >
+        <Postavicka id="stripek" />
+      </Bublina>
+    </div>
+  </section>
+
+  <!-- Kontakt -->
+  <section class="py-14 fade-up">
+    <div class="container-x text-center max-w-[600px] mx-auto">
+      <p class="font-serif italic text-[24px] text-espresso mb-3">Domluvíme se?</p>
+      <p class="text-stone text-[16px] leading-[1.7] mb-7">
+        Napiš nám, kolik dětí, jak staré a kdy se vám to hodí. Ozveme se do druhého dne.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center mb-8">
+        <a
+          href="mailto:ahoj@orechovahlina.cz"
+          class="inline-flex items-center justify-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
+        >
+          ahoj@orechovahlina.cz
+        </a>
+        <a
+          href="tel:+420777000000"
+          class="inline-flex items-center justify-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso hover:text-cream transition-colors"
+        >
+          +420 777 000 000
+        </a>
+      </div>
+      <p class="text-stone text-[15px] leading-[1.7]">
+        Sháníš dárek? Máme <a href="/kurzy#poukaz" class="text-terracotta underline underline-offset-2">dárkové poukazy</a> na kurzy i dílny.
+      </p>
+    </div>
+  </section>
+</Layout>

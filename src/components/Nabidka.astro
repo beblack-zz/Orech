@@ -45,14 +45,14 @@ const offers = [
       {offers.map((o) => (
         <div class={`bg-white rounded-xl p-5 border ${o.featured ? "border-espresso" : "border-espresso/10"} relative`}>
           {o.badge && (
-            <span class="absolute -top-2 left-3.5 bg-peri text-cream font-mono text-[10px] font-medium px-2.5 py-1 rounded-full tracking-wider">
+            <span class="absolute -top-2 left-3.5 bg-peri text-cream font-mono text-[12px] font-medium px-2.5 py-1 rounded-full tracking-wider">
               {o.badge}
             </span>
           )}
-          <div class="font-mono text-[10px] text-stone tracking-wider mb-3.5">{o.idx}</div>
+          <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{o.idx}</div>
           <h3 class="font-serif text-[20px] font-medium mb-1.5" style="font-variation-settings: 'opsz' 48;">{o.name}</h3>
-          <p class="text-[12px] leading-[1.55] text-stone mb-4 min-h-[54px]">{o.desc}</p>
-          <a href={o.link} class="text-[12px] font-medium">
+          <p class="text-[14px] leading-[1.55] text-stone mb-4 min-h-[54px]">{o.desc}</p>
+          <a href={o.link} class="text-[14px] font-medium">
             {o.linkText} <span class="text-terracotta">→</span>
           </a>
         </div>

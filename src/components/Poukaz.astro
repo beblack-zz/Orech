@@ -1,0 +1,138 @@
+---
+import Postavicka from "./characters/Postavicka.astro";
+import type { PostavaId } from "../data/parta";
+
+interface Props {
+  /** Hodnota vytištěná na poukazu */
+  hodnota?: string;
+  /** Kdo je na „portrétu“ */
+  postava?: PostavaId;
+  class?: string;
+}
+
+const { hodnota = "1 500", postava = "vazicka", class: cls = "" } = Astro.props;
+
+// Vlastní id pro SVG pattern, aby se dva poukazy na stránce nepraly
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<div class={`poukaz relative w-full max-w-[640px] ${cls}`}>
+  <div class="poukaz-telo relative rounded-xl border-2 border-espresso bg-cream-warm overflow-hidden">
+    <!-- Gilošový podtisk -->
+    <svg
+      class="absolute inset-0 w-full h-full pointer-events-none"
+      aria-hidden="true"
+      preserveAspectRatio="none"
+      viewBox="0 0 640 300"
+    >
+      <defs>
+        <pattern id={`vlnky-${uid}`} width="34" height="26" patternUnits="userSpaceOnUse">
+          <path d="M0 9 Q8.5 0 17 9 T34 9" fill="none" stroke="#3A2E28" stroke-width="0.7" opacity="0.16" />
+          <path d="M0 20 Q8.5 11 17 20 T34 20" fill="none" stroke="#C87E4E" stroke-width="0.7" opacity="0.2" />
+        </pattern>
+        <radialGradient id={`rozeta-${uid}`}>
+          <stop offset="0%" stop-color="#C87E4E" stop-opacity="0.22" />
+          <stop offset="100%" stop-color="#C87E4E" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="640" height="300" fill={`url(#vlnky-${uid})`} />
+      <circle cx="320" cy="150" r="120" fill={`url(#rozeta-${uid})`} />
+      <g fill="none" stroke="#3A2E28" stroke-width="0.6" opacity="0.14">
+        <circle cx="320" cy="150" r="118" />
+        <circle cx="320" cy="150" r="104" />
+        <circle cx="320" cy="150" r="90" />
+      </g>
+    </svg>
+
+    <!-- Vnitřní linka rámečku -->
+    <div class="absolute inset-[9px] rounded-lg border border-espresso/30 pointer-events-none"></div>
+
+    <div class="relative px-6 py-6 sm:px-9 sm:py-8">
+      <div class="flex items-start justify-between gap-4 mb-5 sm:mb-7">
+        <div>
+          <p class="font-mono text-[11px] sm:text-[12px] tracking-[0.22em] uppercase text-stone mb-2">
+            Dárkový poukaz
+          </p>
+          <p class="font-serif text-[26px] sm:text-[34px] font-medium leading-none text-espresso" style="font-variation-settings: 'opsz' 72;">
+            Ořechová hlína
+          </p>
+          <p class="font-hand text-[21px] sm:text-[24px] text-clay leading-none mt-1.5">
+            ateliér keramiky, Ořech
+          </p>
+        </div>
+
+        <div class="text-right flex-shrink-0">
+          <p class="font-serif text-[34px] sm:text-[46px] font-medium leading-none text-terracotta" style="font-variation-settings: 'opsz' 96;">
+            {hodnota}
+          </p>
+          <p class="font-mono text-[12px] tracking-[0.2em] uppercase text-stone mt-1">Korun</p>
+        </div>
+      </div>
+
+      <div class="flex items-end justify-between gap-5">
+        <div class="max-w-[62%]">
+          <p class="text-espresso text-[15px] sm:text-[16px] leading-[1.6] mb-4">
+            Platí na kurz, workshop i open studio. Vybrat si můžeš, co chceš — a kdy chceš.
+          </p>
+          <div class="border-t border-espresso/25 pt-2 inline-block min-w-[180px]">
+            <p class="font-hand text-[21px] text-espresso leading-none">Jiřík &amp; Renča</p>
+            <p class="font-mono text-[12px] tracking-wider uppercase text-stone mt-1">Podpis</p>
+          </div>
+        </div>
+
+        <!-- „Portrét“ v oválném rámečku -->
+        <div class="relative flex-shrink-0">
+          <div class="poukaz-portret rounded-full border border-espresso/30 bg-cream/70 flex items-end justify-center overflow-hidden">
+            <Postavicka id={postava} size={132} class="w-[86px] sm:w-[118px] h-auto" />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-4 mt-5 pt-3 border-t border-espresso/15">
+        <span class="font-mono text-[12px] tracking-[0.15em] uppercase text-stone">
+          Platnost 12 měsíců
+        </span>
+        <span class="font-mono text-[12px] tracking-[0.15em] text-stone">
+          Č. OH–2026–0001
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Jemné nadzvednutí jako u papírové bankovky */
+  .poukaz-telo {
+    box-shadow:
+      0 2px 6px rgba(58, 46, 40, 0.08),
+      0 14px 34px rgba(58, 46, 40, 0.1);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .poukaz:hover .poukaz-telo {
+    transform: translateY(-4px) rotate(-0.5deg);
+    box-shadow:
+      0 6px 14px rgba(58, 46, 40, 0.1),
+      0 24px 52px rgba(58, 46, 40, 0.14);
+  }
+
+  .poukaz-portret {
+    width: 104px;
+    height: 104px;
+  }
+
+  @media (min-width: 640px) {
+    .poukaz-portret {
+      width: 136px;
+      height: 136px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .poukaz-telo,
+    .poukaz:hover .poukaz-telo {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>

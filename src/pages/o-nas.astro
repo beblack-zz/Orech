@@ -35,17 +35,17 @@ const milestones = [
           <p class="font-serif italic text-[20px] md:text-[24px] text-espresso leading-[1.35] font-normal mb-4">
             Začínáme v roce 2026 s jednou pecí, dvěma stoly, třemi kruhy a spoustou nadšení. Malý ateliér v Ořechu, kde má hlína čas a každá chyba svůj tvar.
           </p>
-          <p class="text-stone text-[14px] leading-[1.75] mb-3.5">
+          <p class="text-stone text-[16px] leading-[1.75] mb-3.5">
             Náš přístup je jednoduchý — méně dokonalosti, víc radosti. Nemusíš umět nic, nemusíš plánovat, co vyrobíš. Sedneš si ke kruhu, začneš točit a dál to už půjde samo.
           </p>
-          <p class="text-stone text-[14px] leading-[1.75]">
+          <p class="text-stone text-[16px] leading-[1.75]">
             Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a mlčet u hlíny.
           </p>
           <div class="flex items-center gap-4 mt-6">
             <Pecinka size={230} class="pointer-events-none flex-shrink-0" />
             <div>
               <p class="font-hand text-[28px] text-clay leading-none">— Jiřík & Renča</p>
-              <p class="font-mono text-[10px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+              <p class="font-mono text-[12px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
             </div>
           </div>
         </div>
@@ -59,7 +59,7 @@ const milestones = [
 
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Náš tým</h3>
+      <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Náš tým</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {team.map((t) => (
           <div>
@@ -70,8 +70,8 @@ const milestones = [
               </svg>
             </div>
             <h4 class="font-serif text-[18px] font-medium mb-0.5">{t.name}</h4>
-            <p class="font-mono text-[10px] text-stone tracking-wider uppercase mb-2">{t.role}</p>
-            <p class="text-stone text-[13px] leading-[1.7]">{t.bio}</p>
+            <p class="font-mono text-[12px] text-stone tracking-wider uppercase mb-2">{t.role}</p>
+            <p class="text-stone text-[15px] leading-[1.7]">{t.bio}</p>
           </div>
         ))}
         <div class="hidden lg:flex items-end justify-center">
@@ -83,13 +83,13 @@ const milestones = [
 
   <section class="py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h3>
+      <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h3>
       <div class="max-w-[600px]">
         <span class="font-serif text-[32px] font-medium block mb-3 text-terracotta" style="font-variation-settings: 'opsz' 72;">2026</span>
         {milestones.map((m) => (
           <div class="flex gap-4 py-3 border-b border-espresso/8 last:border-b-0">
-            <span class="font-mono text-[11px] text-terracotta uppercase tracking-wider w-[70px] flex-shrink-0 pt-0.5">{m.month}</span>
-            <p class="text-stone text-[14px] leading-[1.6]">{m.text}</p>
+            <span class="font-mono text-[12px] text-terracotta uppercase tracking-wider w-[70px] flex-shrink-0 pt-0.5">{m.month}</span>
+            <p class="text-stone text-[16px] leading-[1.6]">{m.text}</p>
           </div>
         ))}
       </div>
@@ -99,13 +99,13 @@ const milestones = [
   <section class="bg-cream-warm py-14 fade-up">
     <div class="container-x text-center max-w-[480px] mx-auto">
       <p class="font-serif italic text-[22px] text-espresso mb-2">Přijď se podívat</p>
-      <p class="text-stone text-[14px] leading-[1.75] mb-6">
+      <p class="text-stone text-[16px] leading-[1.75] mb-6">
         Luční 235, Ořech. Ateliér je otevřený Po–Pá 9–18, v sobotu 10–14. Stavíme i&nbsp;na&nbsp;kafe.
       </p>
       <div class="flex items-center justify-center gap-0">
         <a
           href="mailto:ahoj@orechovahlina.cz"
-          class="relative z-[1] inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
+          class="relative z-[1] inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
         >
           Napsat nám <span aria-hidden="true">→</span>
         </a>

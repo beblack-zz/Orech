@@ -1,0 +1,28 @@
+---
+import type { PostavaId } from "../../data/parta";
+import Kapka from "./Kapka.astro";
+import Pecinka from "./Pecinka.astro";
+import Stripek from "./Stripek.astro";
+import Vazicka from "./Vazicka.astro";
+import Hlinka from "./Hlinka.astro";
+
+interface Props {
+  id: PostavaId;
+  size?: number;
+  class?: string;
+}
+
+const { id, size = 140, class: cls = "" } = Astro.props;
+
+const map = {
+  kapka: Kapka,
+  pecinka: Pecinka,
+  stripek: Stripek,
+  vazicka: Vazicka,
+  hlinka: Hlinka,
+};
+
+const Component = map[id];
+---
+
+<Component size={size} class={cls} />
