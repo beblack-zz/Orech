@@ -1,0 +1,107 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const items = [
+  { name: "Miska Jaro", price: "640 Kč", tag: "Novinka", tagKind: "new", shape: "bowl", author: "Jiřík", glaze: "Matná bílá" },
+  { name: "Váza úzká", price: "1 240 Kč", shape: "vase", author: "Renča", glaze: "Železitá hnědá" },
+  { name: "Hrnek Ranní", price: "480 Kč", shape: "mug", author: "Jiřík", glaze: "Celadon" },
+  { name: "Talíř plochý", price: "720 Kč", tag: "Poslední kus", tagKind: "last", shape: "plate", author: "Jiřík", glaze: "Popelová šedá" },
+  { name: "Miska hluboká", price: "580 Kč", shape: "bowl", author: "Renča", glaze: "Tenmoku" },
+  { name: "Hrnek Večerní", price: "520 Kč", tag: "Novinka", tagKind: "new", shape: "mug", author: "Jiřík", glaze: "Matná bílá" },
+  { name: "Váza široká", price: "1 680 Kč", shape: "vase", author: "Renča", glaze: "Shino" },
+  { name: "Talíř dezertní", price: "540 Kč", shape: "plate", author: "Jiřík", glaze: "Celadon" },
+];
+---
+
+<Layout title="Obchod — Ořechová hlína" description="Ručně dělaná keramika od našich lektorů. Malé série, žádné dva stejné kusy.">
+  <section class="py-14 fade-up">
+    <div class="container-x relative">
+      <div class="max-w-[720px] mb-12">
+        <h1 class="hero-title text-espresso text-[36px] md:text-[48px] lg:text-[58px] mb-5">
+          Z našich <span class="serif-italic-terracotta">rukou.</span>
+        </h1>
+        <p class="text-stone text-[14px] leading-[1.75]">
+          Každý kus je točený na kruhu, ručně glazovaný a vypálený v naší peci. Malé série — když se něco vyprodá, příště bude jiné.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {items.map((it) => (
+          <div class="bg-white rounded-xl overflow-hidden border border-espresso/8 relative group">
+            {it.tag && (
+              <span class={`absolute top-2.5 left-2.5 font-mono text-[9px] font-medium px-2 py-0.5 rounded-full tracking-wider uppercase z-10 ${
+                it.tagKind === "new" ? "bg-mustard text-espresso" : "bg-clay text-cream"
+              }`}>
+                {it.tag}
+              </span>
+            )}
+            <div class="aspect-square bg-[#E8D7BF] flex items-center justify-center group-hover:bg-[#DFC8AA] transition-colors">
+              {it.shape === "bowl" && (
+                <svg width="80" height="80" viewBox="0 0 90 90" fill="none" aria-hidden="true">
+                  <path d="M15 40 Q15 30 45 30 Q75 30 75 40 L72 78 Q72 84 45 84 Q18 84 18 78 Z" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                  <ellipse cx="45" cy="32" rx="30" ry="4" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                </svg>
+              )}
+              {it.shape === "vase" && (
+                <svg width="80" height="80" viewBox="0 0 90 90" fill="none" aria-hidden="true">
+                  <path d="M30 30 Q30 20 45 20 Q60 20 60 30 Q65 55 55 75 Q50 85 45 85 Q40 85 35 75 Q25 55 30 30 Z" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                  <ellipse cx="45" cy="22" rx="15" ry="3" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                </svg>
+              )}
+              {it.shape === "mug" && (
+                <svg width="80" height="80" viewBox="0 0 90 90" fill="none" aria-hidden="true">
+                  <path d="M25 35 Q25 28 45 28 Q65 28 65 35 L63 78 Q63 84 45 84 Q27 84 27 78 Z" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                  <ellipse cx="45" cy="30" rx="20" ry="3" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                  <path d="M65 44 Q80 44 80 55 Q80 66 65 66" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                </svg>
+              )}
+              {it.shape === "plate" && (
+                <svg width="80" height="80" viewBox="0 0 90 90" fill="none" aria-hidden="true">
+                  <ellipse cx="45" cy="70" rx="35" ry="6" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                  <path d="M10 65 Q10 45 45 45 Q80 45 80 65 Q80 76 45 76 Q10 76 10 65 Z" fill="none" stroke="#3A2E28" stroke-width="1.5"/>
+                </svg>
+              )}
+            </div>
+            <div class="p-3">
+              <p class="font-serif text-[14px] font-medium m-0 mb-0.5">{it.name}</p>
+              <p class="font-mono text-[10px] text-stone/60 mb-1">{it.author} · {it.glaze}</p>
+              <p class="font-mono text-[12px] text-espresso font-medium">{it.price}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <span class="mono-meta absolute bottom-0 right-0 md:right-8 lg:right-12">Obchod · 8 kusů</span>
+    </div>
+  </section>
+
+  <section class="bg-cream-warm py-14 fade-up">
+    <div class="container-x">
+      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Jak nakoupit</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="border-t border-espresso/10 pt-4">
+          <span class="font-mono text-[10px] text-stone/50 tracking-wider">01</span>
+          <p class="font-serif italic text-[17px] text-espresso mb-1.5 mt-1">Vyber si</p>
+          <p class="text-stone text-[13px] leading-[1.7]">Prohlédni si, co máme. Každý kus je originál — co vidíš, to dostaneš.</p>
+        </div>
+        <div class="border-t border-espresso/10 pt-4">
+          <span class="font-mono text-[10px] text-stone/50 tracking-wider">02</span>
+          <p class="font-serif italic text-[17px] text-espresso mb-1.5 mt-1">Napiš nám</p>
+          <p class="text-stone text-[13px] leading-[1.7]">Pošli mail s názvem kousku. Potvrdíme dostupnost a domluvíme platbu.</p>
+        </div>
+        <div class="border-t border-espresso/10 pt-4">
+          <span class="font-mono text-[10px] text-stone/50 tracking-wider">03</span>
+          <p class="font-serif italic text-[17px] text-espresso mb-1.5 mt-1">Vyzvedni nebo pošleme</p>
+          <p class="text-stone text-[13px] leading-[1.7]">Osobní odběr v ateliéru nebo posíláme Zásilkovnou po celém Česku.</p>
+        </div>
+      </div>
+      <div class="mt-8 text-center">
+        <a
+          href="mailto:ahoj@orechahlina.cz"
+          class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
+        >
+          Objednat <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

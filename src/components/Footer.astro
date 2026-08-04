@@ -1,0 +1,39 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="bg-espresso text-cream mt-16">
+  <div class="container-x py-10 md:py-12">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
+      <div class="col-span-2 md:col-span-1">
+        <div class="mb-3 bg-stone text-cream px-4 py-2.5 rounded-xl inline-flex flex-col leading-none gap-1">
+          <span class="logo-word font-serif text-[11px] font-medium" style="font-variation-settings: 'opsz' 48;">{"OŘECHOVÁ".split("").map(l => <span>{l}</span>)}</span>
+          <span class="logo-word font-serif text-[20px] font-medium" style="font-variation-settings: 'opsz' 48;">{"HLÍNA".split("").map(l => <span>{l}</span>)}</span>
+        </div>
+        <p class="font-hand text-[20px] text-cream/85 mt-1.5">— ateliér keramiky, od 2026.</p>
+      </div>
+      <div>
+        <h5 class="font-serif text-[15px] font-medium mb-3">Kontakt</h5>
+        <a href="mailto:ahoj@orechahlina.cz" class="block text-[12px] text-cream/70 hover:text-terracotta leading-[1.7]">ahoj@orechahlina.cz</a>
+        <a href="tel:+420777000000" class="block text-[12px] text-cream/70 hover:text-terracotta leading-[1.7]">+420 777 000 000</a>
+        <a href="#" class="block text-[12px] text-cream/70 hover:text-terracotta leading-[1.7]">Instagram</a>
+      </div>
+      <div>
+        <h5 class="font-serif text-[15px] font-medium mb-3">Kde nás najdeš</h5>
+        <p class="text-[12px] text-cream/70 leading-[1.7]">Luční 235<br />252 25 Ořech</p>
+      </div>
+      <div>
+        <h5 class="font-serif text-[15px] font-medium mb-3">Otevřeno</h5>
+        <p class="text-[12px] text-cream/70 leading-[1.7]">
+          Po–Pá · 09:00–18:00<br />
+          So · 10:00–14:00<br />
+          Ne · zavřeno
+        </p>
+      </div>
+    </div>
+    <div class="border-t border-cream/15 pt-4 flex flex-col md:flex-row md:justify-between gap-2 font-mono text-[10px] text-cream/50 tracking-wider">
+      <span>© {year} Ořechová hlína · IČ 00000000</span>
+      <span>vypáleno v Ořechu</span>
+    </div>
+  </div>
+</footer>

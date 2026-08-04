@@ -1,0 +1,99 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const team = [
+  {
+    name: "Jiřík",
+    role: "Zakladatel · Lektor",
+    bio: "U kruhu od střední, ateliér otevřel v roce 2019. Učí začátečníky i pokročilé, specializuje se na točení a glazury.",
+  },
+  {
+    name: "Renča",
+    role: "Zakladatelka · Lektorka",
+    bio: "Výtvarná duše ateliéru. Vede workshopy, rodinné dílny a stará se o to, aby se každý cítil jako doma.",
+  },
+];
+
+const milestones = [
+  { year: "2026", text: "Otevíráme ateliér — 3 kruhy, 1 pec, 2 stoly, 0 studentů (zatím)" },
+];
+---
+
+<Layout title="O nás — Ořechová hlína" description="Malý ateliér keramiky v Ořechu. Dva lektoři, tři kruhy a spousta lidí, co se u nás naučili milovat hlínu.">
+  <section class="py-14 fade-up">
+    <div class="container-x relative">
+      <div class="md:grid md:grid-cols-[1.15fr_1fr] md:gap-12 md:items-center">
+        <div>
+          <h1 class="hero-title text-espresso text-[36px] md:text-[48px] lg:text-[58px] mb-5">
+            O <span class="serif-italic-terracotta">ateliéru.</span>
+          </h1>
+          <p class="font-serif italic text-[20px] md:text-[24px] text-espresso leading-[1.35] font-normal mb-4">
+            Začínáme v roce 2026 s jednou pecí, dvěma stoly, třemi kruhy a spoustou nadšení. Malý ateliér v Ořechu, kde má hlína čas a každá chyba svůj tvar.
+          </p>
+          <p class="text-stone text-[14px] leading-[1.75] mb-3.5">
+            Náš přístup je jednoduchý — méně dokonalosti, víc radosti. Nemusíš umět nic, nemusíš plánovat, co vyrobíš. Sedneš si ke kruhu, začneš točit a dál to už půjde samo.
+          </p>
+          <p class="text-stone text-[14px] leading-[1.75]">
+            Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a mlčet u hlíny.
+          </p>
+          <p class="font-hand text-[28px] text-terracotta leading-none mt-6">— Jiřík & Renča</p>
+          <p class="font-mono text-[10px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+        </div>
+        <div class="rounded-xl aspect-[3/4] overflow-hidden mt-8 md:mt-0">
+          <img src="/o-nas.png" alt="Ateliér Ořechová hlína" class="w-full h-full object-cover" />
+        </div>
+      </div>
+      <span class="mono-meta absolute bottom-0 right-0 md:right-8 lg:right-12">Est. 2026 · 2 lektoři · 3 kruhy</span>
+    </div>
+  </section>
+
+  <section class="bg-white py-14 fade-up">
+    <div class="container-x">
+      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Náš tým</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {team.map((t) => (
+          <div>
+            <div class="bg-[#D9C3A3] rounded-xl aspect-square flex items-center justify-center mb-4">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+                <circle cx="40" cy="30" r="14" fill="none" stroke="#3A2E28" stroke-width="1.5" />
+                <path d="M16 72 Q16 50 40 50 Q64 50 64 72" fill="none" stroke="#3A2E28" stroke-width="1.5" />
+              </svg>
+            </div>
+            <h4 class="font-serif text-[18px] font-medium mb-0.5">{t.name}</h4>
+            <p class="font-mono text-[10px] text-stone tracking-wider uppercase mb-2">{t.role}</p>
+            <p class="text-stone text-[13px] leading-[1.7]">{t.bio}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-14 fade-up">
+    <div class="container-x">
+      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h3>
+      <div class="max-w-[600px]">
+        {milestones.map((m) => (
+          <div class="flex gap-4 py-3 border-b border-espresso/8 last:border-b-0">
+            <span class="font-serif text-[20px] font-medium w-[60px] flex-shrink-0" style="font-variation-settings: 'opsz' 72;">{m.year}</span>
+            <p class="text-stone text-[14px] leading-[1.6]">{m.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-cream-warm py-14 fade-up">
+    <div class="container-x text-center max-w-[480px] mx-auto">
+      <p class="font-serif italic text-[22px] text-espresso mb-2">Přijď se podívat</p>
+      <p class="text-stone text-[14px] leading-[1.75] mb-6">
+        Luční 235, Ořech. Ateliér je otevřený Po–Pá 9–18, v sobotu 10–14. Stavíme i&nbsp;na&nbsp;kafe.
+      </p>
+      <a
+        href="mailto:ahoj@orechahlina.cz"
+        class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
+      >
+        Napsat nám <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+</Layout>

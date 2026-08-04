@@ -1,0 +1,62 @@
+---
+import SectionHead from "./SectionHead.astro";
+
+const offers = [
+  {
+    idx: "3 hodiny",
+    name: "Workshopy",
+    desc: "Jednorázové zážitkové kurzy. Ideální na dárek nebo teambuilding.",
+    link: "/kurzy",
+    linkText: "Vybrat termín",
+    featured: false,
+  },
+  {
+    idx: "4–8 lekcí",
+    name: "Kurzy",
+    desc: "Vícedenní cykly pro začátečníky i pokročilé. Kruh, technika, glazování.",
+    link: "/kurzy",
+    linkText: "Prohlédnout kurzy",
+    featured: true,
+    badge: "Nejoblíbenější",
+  },
+  {
+    idx: "na hodiny",
+    name: "Open studio",
+    desc: "Rezervuj si čas u kruhu bez instruktora. Členství i jednorázový vstup.",
+    link: "/open-studio",
+    linkText: "Zjistit více",
+    featured: false,
+  },
+  {
+    idx: "malé série",
+    name: "Obchod",
+    desc: "Keramika od nás i našich lektorů. Malé série, žádné dva stejné.",
+    link: "/obchod",
+    linkText: "Do obchodu",
+    featured: false,
+  },
+];
+---
+
+<section class="py-14 relative fade-up">
+  <div class="container-x">
+    <SectionHead title="Co u nás" italic="najdeš" meta="Katalog" />
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {offers.map((o) => (
+        <div class={`bg-white rounded-xl p-5 border ${o.featured ? "border-espresso" : "border-espresso/10"} relative`}>
+          {o.badge && (
+            <span class="absolute -top-2 left-3.5 bg-mustard text-espresso font-mono text-[10px] font-medium px-2.5 py-1 rounded-full tracking-wider">
+              {o.badge}
+            </span>
+          )}
+          <div class="font-mono text-[10px] text-stone tracking-wider mb-3.5">{o.idx}</div>
+          <h3 class="font-serif text-[20px] font-medium mb-1.5" style="font-variation-settings: 'opsz' 48;">{o.name}</h3>
+          <p class="text-[12px] leading-[1.55] text-stone mb-4 min-h-[54px]">{o.desc}</p>
+          <a href={o.link} class="text-[12px] font-medium">
+            {o.linkText} <span class="text-terracotta">→</span>
+          </a>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

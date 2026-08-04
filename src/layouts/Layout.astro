@@ -1,0 +1,57 @@
+---
+import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Ořechová hlína — ateliér keramiky, Ořech",
+  description = "Malý ateliér v Praze. Kurzy keramiky pro začátečníky i pokročilé, open studio a prodej ručně dělané keramiky.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      const setupObserver = () => {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("in-view");
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { threshold: 0.15, rootMargin: "0px 0px -60px 0px" }
+        );
+        for (const el of document.querySelectorAll(".fade-up:not(.in-view)")) {
+          io.observe(el);
+        }
+      };
+
+      setupObserver();
+      document.addEventListener("astro:page-load", setupObserver);
+    </script>
+  </body>
+</html>

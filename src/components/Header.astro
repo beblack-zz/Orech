@@ -1,0 +1,75 @@
+---
+const links = [
+  { href: "/", label: "Úvod" },
+  { href: "/kurzy", label: "Kurzy" },
+  { href: "/open-studio", label: "Open studio" },
+  { href: "/obchod", label: "Obchod" },
+  { href: "/dizajn", label: "Dizajn" },
+  { href: "/o-nas", label: "O nás" },
+];
+---
+
+<header class="border-b border-espresso/10">
+  <div class="container-x flex items-center justify-between py-4">
+    <div class="flex items-center gap-3">
+      <a href="/" class="bg-stone text-cream px-4 py-2.5 rounded-xl inline-flex flex-col leading-none gap-1 hover:bg-espresso transition-colors">
+        <span class="logo-word font-serif text-[12px] font-medium" style="font-variation-settings: 'opsz' 48;">{"OŘECHOVÁ".split("").map(l => <span>{l}</span>)}</span>
+        <span class="logo-word font-serif text-[22px] font-medium" style="font-variation-settings: 'opsz' 48;">{"HLÍNA".split("").map(l => <span>{l}</span>)}</span>
+      </a>
+      <span class="mono-meta hidden sm:inline">Ateliér keramiky · Luční 235, Ořech</span>
+    </div>
+
+    <nav class="hidden md:flex items-center gap-6">
+      {links.map((l) => (
+        <a href={l.href} class="text-[13px] hover:text-terracotta transition-colors">{l.label}</a>
+      ))}
+      <span class="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-stone">
+        <span class="w-1.5 h-1.5 rounded-full bg-peri"></span>OTEVŘENO
+      </span>
+      <a
+        href="/kurzy"
+        class="bg-espresso text-cream px-4 py-2 rounded-full text-[12px] font-medium hover:bg-clay transition-colors"
+      >
+        Rezervovat
+      </a>
+    </nav>
+
+    <button
+      id="menu-toggle"
+      class="md:hidden text-espresso p-2"
+      aria-label="Otevřít menu"
+      aria-expanded="false"
+    >
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5">
+        <line x1="3" y1="7" x2="19" y2="7" />
+        <line x1="3" y1="15" x2="19" y2="15" />
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div
+  id="mobile-menu"
+  class="hidden md:hidden bg-cream border-b border-espresso/10"
+>
+  <nav class="container-x flex flex-col gap-3 py-4">
+    {links.map((l) => (
+      <a href={l.href} class="text-[15px] py-1">{l.label}</a>
+    ))}
+    <a
+      href="/kurzy"
+      class="bg-espresso text-cream px-4 py-2.5 rounded-full text-[13px] font-medium text-center mt-2"
+    >
+      Rezervovat
+    </a>
+  </nav>
+</div>
+
+<script>
+  const toggle = document.getElementById("menu-toggle");
+  const menu = document.getElementById("mobile-menu");
+  toggle?.addEventListener("click", () => {
+    const open = menu?.classList.toggle("hidden");
+    toggle.setAttribute("aria-expanded", open ? "false" : "true");
+  });
+</script>
