@@ -1,5 +1,7 @@
 ---
+import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
+import openStudio from "../images/open-studio.png";
 import Kapka from "../components/characters/Kapka.astro";
 import Hlinka from "../components/characters/Hlinka.astro";
 import Bublina from "../components/characters/Bublina.astro";
@@ -34,7 +36,16 @@ const rules = [
           </p>
         </div>
         <div class="rounded-xl aspect-[4/3] overflow-hidden">
-          <img src="/open-studio.png" alt="Open studio — kruhy a pracovní stoly" class="w-full h-full object-cover" />
+          <Image
+            src={openStudio}
+            alt="Open studio — kruhy a pracovní stoly"
+            widths={[400, 600, 900]}
+            sizes="(min-width: 768px) 42vw, 90vw"
+            format="webp"
+            loading="eager"
+            fetchpriority="high"
+            class="w-full h-full object-cover"
+          />
         </div>
       </div>
       <span class="mono-meta block text-right mt-6">Pro pokročilé · 6 míst</span>

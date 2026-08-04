@@ -1,5 +1,7 @@
 ---
+import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
+import oNas from "../images/o-nas.png";
 import Kapka from "../components/characters/Kapka.astro";
 import Pecinka from "../components/characters/Pecinka.astro";
 
@@ -7,7 +9,7 @@ const team = [
   {
     name: "Jiřík",
     role: "Zakladatel · Lektor",
-    bio: "U kruhu od střední, ateliér otevřel v roce 2019. Učí začátečníky i pokročilé, specializuje se na točení a glazury.",
+    bio: "U kruhu od střední, ateliér otevřel v roce 2026. Učí začátečníky i pokročilé, specializuje se na točení a glazury.",
   },
   {
     name: "Renča",
@@ -50,7 +52,16 @@ const milestones = [
           </div>
         </div>
         <div class="rounded-xl aspect-[3/4] overflow-hidden mt-8 md:mt-0">
-          <img src="/o-nas.png" alt="Ateliér Ořechová hlína" class="w-full h-full object-cover" />
+          <Image
+            src={oNas}
+            alt="Ateliér Ořechová hlína"
+            widths={[400, 600, 900]}
+            sizes="(min-width: 768px) 42vw, 90vw"
+            format="webp"
+            loading="eager"
+            fetchpriority="high"
+            class="w-full h-full object-cover"
+          />
         </div>
       </div>
       <span class="mono-meta block text-right mt-6">Est. 2026 · 2 lektoři · 3 kruhy</span>

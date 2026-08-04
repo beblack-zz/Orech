@@ -1,6 +1,8 @@
 ---
+import { Image } from "astro:assets";
 import SectionHead from "./SectionHead.astro";
 import Pecinka from "./characters/Pecinka.astro";
+import oAtelieru from "../images/o-atelieru.png";
 ---
 
 <section class="bg-cream-warm py-14 relative fade-up">
@@ -30,7 +32,14 @@ import Pecinka from "./characters/Pecinka.astro";
         </div>
       </div>
       <div class="rounded-xl aspect-[3/4] overflow-hidden">
-        <img src="/o-atelieru.png" alt="Jiřík a Renča v ateliéru" class="w-full h-full object-cover" />
+        <Image
+          src={oAtelieru}
+          alt="Jiřík a Renča v ateliéru"
+          widths={[400, 600, 900]}
+          sizes="(min-width: 768px) 42vw, 90vw"
+          format="webp"
+          class="w-full h-full object-cover"
+        />
       </div>
     </div>
   </div>

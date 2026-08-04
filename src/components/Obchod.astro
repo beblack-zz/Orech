@@ -1,18 +1,17 @@
 ---
 import SectionHead from "./SectionHead.astro";
 import ProduktTvar from "./ProduktTvar.astro";
+import { produkty } from "../data/obchod";
+import { pocetKusu } from "../data/pocty";
 
-const items = [
-  { name: "Miska Jaro", price: "640 Kč", tag: "Novinka", tagKind: "new", shape: "bowl" },
-  { name: "Váza úzká", price: "1 240 Kč", shape: "vase" },
-  { name: "Hrnek Ranní", price: "480 Kč", shape: "mug" },
-  { name: "Talíř plochý", price: "720 Kč", tag: "Poslední kus", tagKind: "last", shape: "plate" },
-];
+// Homepage ukazuje ochutnávku, celý sortiment je na /obchod
+const items = produkty.slice(0, 4);
+
 ---
 
 <section class="py-14 relative fade-up">
   <div class="container-x">
-    <SectionHead title="Z našich" italic="rukou" meta="Obchod · 48 kusů" metaLink="/obchod" metaLinkText="Zobrazit vše" />
+    <SectionHead title="Z našich" italic="rukou" meta={`Obchod · ${pocetKusu(produkty.length)}`} metaLink="/obchod" metaLinkText="Zobrazit vše" />
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       {items.map((it) => (
         <a href="/obchod" class="bg-white rounded-xl border border-espresso/8 relative group">
@@ -24,7 +23,7 @@ const items = [
             </span>
           )}
           <div class="aspect-square bg-[#E8D7BF] flex items-center justify-center group-hover:bg-[#DFC8AA] transition-colors rounded-t-xl overflow-hidden">
-            <ProduktTvar shape={it.shape as any} />
+            <ProduktTvar shape={it.shape} />
           </div>
           <div class="p-3">
             <p class="font-serif text-[16px] font-medium m-0 mb-0.5">{it.name}</p>
