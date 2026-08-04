@@ -101,9 +101,31 @@
   50% { transform: scale(1.04); }
 }
 
-@keyframes char-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-7px); }
+/*
+ * Kapka skáče se squash & stretch — před odrazem se přikrčí, ve vzduchu
+ * se protáhne, při dopadu splácne. Poslední třetina cyklu je klid,
+ * aby to neskákalo pořád dokola bez oddechu.
+ */
+@keyframes kapka-skok {
+  0%,  4%   { transform: translateY(0)     scale(1, 1); }
+  10%       { transform: translateY(0)     scale(1.14, 0.86); }
+  20%       { transform: translateY(-18px) scale(0.9, 1.14); }
+  32%       { transform: translateY(-26px) scale(1, 1); }
+  44%       { transform: translateY(-18px) scale(0.93, 1.09); }
+  52%       { transform: translateY(0)     scale(1.18, 0.82); }
+  60%       { transform: translateY(-7px)  scale(0.97, 1.05); }
+  68%       { transform: translateY(0)     scale(1.06, 0.94); }
+  74%, 100% { transform: translateY(0)     scale(1, 1); }
+}
+
+/* Stín zůstává na zemi a jen se zmenšuje, jak Kapka stoupá */
+@keyframes kapka-stin {
+  0%,  4%   { transform: scale(1);    opacity: 0.15; }
+  10%       { transform: scale(1.08); opacity: 0.18; }
+  32%       { transform: scale(0.72); opacity: 0.07; }
+  52%       { transform: scale(1.1);  opacity: 0.19; }
+  60%       { transform: scale(0.9);  opacity: 0.12; }
+  68%, 100% { transform: scale(1);    opacity: 0.15; }
 }
 
 @keyframes char-sway {
@@ -123,10 +145,28 @@
   100% { opacity: 0;    transform: translate(12px, -26px); }
 }
 
+@keyframes plamen-blik {
+  0%, 100% { opacity: 0.15; }
+  45%      { opacity: 1; }
+  60%      { opacity: 0.55; }
+  75%      { opacity: 0.9; }
+}
+
+@keyframes kour-stoupa {
+  0%   { opacity: 0;    transform: translate(0, 3px); }
+  18%  { opacity: 0.3;  }
+  100% { opacity: 0;    transform: translate(11px, -30px); }
+}
+
 /* Pecinka dýchá */
 .char-breathe { animation: breathe 4.5s ease-in-out infinite; transform-origin: 50% 88%; }
-/* Kapka poskakuje */
-.char-bob     { animation: char-bob 3.4s ease-in-out infinite; }
+/*
+ * Kapka skáče. Transform-origin je v uživatelských jednotkách viewBoxu,
+ * tj. bod dopadu — procenta by tady potřebovala transform-box.
+ * linear je schválně: zrychlení má na starost rozestup klíčových snímků.
+ */
+.kapka-telo { animation: kapka-skok 2.8s linear infinite; transform-origin: 90px 158px; }
+.kapka-stin { animation: kapka-stin 2.8s linear infinite; transform-origin: 90px 160px; }
 /* Vázička se kolébá */
 .char-sway    { animation: char-sway 6s ease-in-out infinite; transform-origin: 50% 90%; }
 /* Střípek se viklá */
@@ -137,18 +177,38 @@
 .zzz-2 { animation-delay: 0.4s; }
 .zzz-3 { animation-delay: 0.8s; }
 
+/* Oheň v Pecince. Každý plamen má jiné tempo, jinak by to pulzovalo unisono. */
+.plamen   { animation: plamen-blik 1.3s ease-in-out infinite; }
+.plamen-2 { animation-duration: 0.9s; animation-delay: 0.15s; }
+.plamen-3 { animation-duration: 1.7s; animation-delay: 0.4s; }
+
+/* Kouř z komína — stejný princip jako Hlínčino „z z z“ */
+.kour   { animation: kour-stoupa 4s ease-out infinite; }
+.kour-2 { animation-delay: 0.6s; }
+.kour-3 { animation-delay: 1.2s; }
+
 @media (prefers-reduced-motion: reduce) {
   .char-breathe,
-  .char-bob,
+  .kapka-telo,
+  .kapka-stin,
   .char-sway,
   .char-wobble,
-  .zzz {
+  .zzz,
+  .plamen,
+  .kour {
     animation: none;
   }
   /* Bez animace zůstanou „z“ staticky rozprostřená jako dřív */
   .zzz-1 { opacity: 0.35; }
   .zzz-2 { opacity: 0.25; transform: translate(6px, -11px); }
   .zzz-3 { opacity: 0.15; transform: translate(12px, -21px); }
+  /* Totéž pro oheň a kouř — původní statická podoba */
+  .plamen-1 { opacity: 1; }
+  .plamen-2 { opacity: 0.7; }
+  .plamen-3 { opacity: 0.6; }
+  .kour-1 { opacity: 0.25; }
+  .kour-2 { opacity: 0.18; transform: translate(5px, -8px); }
+  .kour-3 { opacity: 0.12; transform: translate(3px, -16px); }
 }
 
 /* ——— Odkrývání sekcí ——— */
