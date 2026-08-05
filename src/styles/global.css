@@ -47,6 +47,22 @@
     color: inherit;
     text-decoration: none;
   }
+
+  /*
+   * Bez tohohle nemá klávesnice na webu žádnou stopu — odkazy nemají
+   * podtržení a prohlížečový outline se na kulatých tlačítkách ztrácí.
+   * :where() drží specificitu na nule, aby to šlo kdykoli přebít.
+   */
+  :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-peri);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
+  /* Na tmavém podkladu by periwinkle proti espressu zaniklo */
+  :where(footer, .bg-espresso) :where(a, button, [tabindex]):focus-visible {
+    outline-color: var(--color-cream);
+  }
 }
 
 @utility hero-title {

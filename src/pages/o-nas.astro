@@ -19,11 +19,18 @@ const team = [
   },
 ];
 
+/**
+ * Milníky se dopisují ručně — je to historie, ne data.
+ * Poslední řádek drž vždycky u aktuálního měsíce, ať timeline nekončí
+ * někde vzadu a nevypadá to, že ateliér mezitím zavřel.
+ */
 const milestones = [
-  { year: "2026", month: "Únor", text: "Otevíráme ateliér — 3 kruhy, 1 pec, 2 stoly, 0 studentů (zatím)" },
+  { year: "2026", month: "Únor", text: "Otevíráme ateliér — 3 kruhy, 1 pec, 2 stoly, 0 studentů (zatím)." },
   { year: "2026", month: "Březen", text: "První kurz vyprodán do 48 hodin. Přidáváme druhý termín." },
   { year: "2026", month: "Duben", text: "Spouštíme open studio — 6 míst, každý den jiná hlína." },
   { year: "2026", month: "Červen", text: "Přes 200 lidí prošlo ateliérem. Pec pracuje bez přestávky." },
+  { year: "2026", month: "Červenec", text: "První příměstský tábor. Pět dní, dvacet dětí, jeden drak v životní velikosti." },
+  { year: "2026", month: "Srpen", text: "Vypisujeme podzimní termíny a otevíráme dětské oslavy." },
 ];
 ---
 
@@ -71,7 +78,7 @@ const milestones = [
 
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Náš tým</h3>
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Náš tým</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[760px]">
         {team.map((t) => (
           <div>
@@ -81,7 +88,7 @@ const milestones = [
                 <path d="M16 72 Q16 50 40 50 Q64 50 64 72" fill="none" stroke="#3A2E28" stroke-width="1.5" />
               </svg>
             </div>
-            <h4 class="font-serif text-[18px] font-medium mb-0.5">{t.name}</h4>
+            <h3 class="font-serif text-[18px] font-medium mb-0.5">{t.name}</h3>
             <p class="font-mono text-[12px] text-stone tracking-wider uppercase mb-2">{t.role}</p>
             <p class="text-stone text-[15px] leading-[1.7]">{t.bio}</p>
           </div>
@@ -100,7 +107,7 @@ const milestones = [
 
   <section class="py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h3>
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h2>
       <div class="max-w-[600px]">
         <span class="font-serif text-[32px] font-medium block mb-3 text-terracotta" style="font-variation-settings: 'opsz' 72;">2026</span>
         {milestones.map((m) => (

@@ -35,7 +35,7 @@ const faq = [
 
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Nejbližší termíny</h3>
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Nejbližší termíny</h2>
       {courses.length === 0 && (
         <p class="text-stone text-[16px] leading-[1.7] max-w-[52ch]">
           Zrovna teď nemáme vypsaný žádný volný termín. Chystáme další —
@@ -51,7 +51,7 @@ const faq = [
               <span class="block font-mono text-[12px] text-stone mt-1 tracking-wider uppercase font-normal">{mesic(c.date)}</span>
             </div>
             <div>
-              <h4 class="font-serif text-[17px] md:text-[19px] font-medium mb-1 leading-tight">{c.title}</h4>
+              <h3 class="font-serif text-[17px] md:text-[19px] font-medium mb-1 leading-tight">{c.title}</h3>
               <p class="text-[14px] text-stone mb-2">{popisKurzu(c)}</p>
               <p class="text-[15px] text-stone leading-[1.6]">{c.desc}</p>
             </div>
@@ -96,11 +96,11 @@ const faq = [
 
   <section class="py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Časté otázky</h3>
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Časté otázky</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {faq.map((f) => (
           <div class="border-t border-espresso/10 pt-4">
-            <p class="font-serif italic text-[17px] text-espresso mb-1.5">{f.q}</p>
+            <h3 class="font-serif italic text-[17px] text-espresso mb-1.5">{f.q}</h3>
             <p class="text-stone text-[15px] leading-[1.7]">{f.a}</p>
           </div>
         ))}

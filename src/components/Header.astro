@@ -35,6 +35,13 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
           {l.label}
         </a>
       ))}
+
+      <a
+        href="/kurzy#rezervace"
+        class="bg-espresso text-cream px-5 py-2.5 rounded-full text-[14px] font-medium whitespace-nowrap hover:bg-clay transition-colors"
+      >
+        Rezervovat
+      </a>
     </nav>
 
     <button
@@ -67,7 +74,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
       </a>
     ))}
     <a
-      href="/kurzy"
+      href="/kurzy#rezervace"
       class="bg-espresso text-cream px-4 py-2.5 rounded-full text-[15px] font-medium text-center mt-2"
     >
       Rezervovat
