@@ -41,11 +41,14 @@ const stav = "font-medium underline decoration-2 underline-offset-[6px] decorati
           href={l.href}
           aria-current={jeTu(l.href) ? "page" : undefined}
           class={`text-[15px] whitespace-nowrap transition-colors ${
-            l.accent ? "text-peri-deep hover:text-peri" : "hover:text-terracotta"
+            l.accent ? "parta-odkaz text-peri-deep hover:text-peri" : "hover:text-terracotta"
           } ${jeTu(l.href) ? stav : ""}`}
         >
           {l.accent && (
-            <span class="inline-block w-[6px] h-[6px] rounded-full bg-peri mr-1.5 align-baseline" aria-hidden="true"></span>
+            <span class="inline-flex items-baseline gap-[3px] mr-1.5" aria-hidden="true">
+              <span class="tecka inline-block w-[6px] h-[6px] rounded-full bg-peri"></span>
+              <span class="tecka tecka-2 inline-block w-[6px] h-[6px] rounded-full bg-clay"></span>
+            </span>
           )}
           {l.label}
         </a>
@@ -83,10 +86,13 @@ const stav = "font-medium underline decoration-2 underline-offset-[6px] decorati
       <a
         href={l.href}
         aria-current={jeTu(l.href) ? "page" : undefined}
-        class={`text-[15px] py-1 ${l.accent ? "text-peri-deep" : ""} ${jeTu(l.href) ? stav : ""}`}
+        class={`text-[15px] py-1 ${l.accent ? "parta-odkaz text-peri-deep" : ""} ${jeTu(l.href) ? stav : ""}`}
       >
         {l.accent && (
-          <span class="inline-block w-[6px] h-[6px] rounded-full bg-peri mr-1.5 align-baseline" aria-hidden="true"></span>
+          <span class="inline-flex items-baseline gap-[3px] mr-1.5" aria-hidden="true">
+            <span class="tecka inline-block w-[6px] h-[6px] rounded-full bg-peri"></span>
+            <span class="tecka tecka-2 inline-block w-[6px] h-[6px] rounded-full bg-clay"></span>
+          </span>
         )}
         {l.label}
       </a>

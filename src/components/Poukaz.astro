@@ -14,11 +14,22 @@ const { hodnota = "1 500", postava = "vazicka", class: cls = "" } = Astro.props;
 
 // Vlastní id pro SVG pattern, aby se dva poukazy na stránce nepraly
 const uid = Math.random().toString(36).slice(2, 8);
+
+// Kruh jako v heru na titulce: dva plné prstence a jeden čárkovaný.
+// Kreslí se do vlastní čtvercové vrstvy (viewBox 100×100 v boxu se
+// stejnou šířkou i výškou), aby to byly opravdu kružnice — podkladové
+// SVG s polevou se roztahuje přes preserveAspectRatio="none" a udělalo
+// by z nich vejce.
+const prsteny = [
+  { r: 36, w: 0.5, dash: "3 2.6", opacity: 0.34 },
+  { r: 29, w: 2.3, dash: undefined, opacity: 0.2 },
+  { r: 21.5, w: 2.3, dash: undefined, opacity: 0.2 },
+];
 ---
 
 <div class={`poukaz relative w-full max-w-[640px] ${cls}`}>
   <div class="poukaz-telo relative rounded-xl border-2 border-espresso bg-cream-warm overflow-hidden">
-    <!-- Gilošový podtisk -->
+    <!-- Poleva přes režnou hlínu: stopa kruhu, odkap, zatékání -->
     <svg
       class="absolute inset-0 w-full h-full pointer-events-none"
       aria-hidden="true"
@@ -26,69 +37,118 @@ const uid = Math.random().toString(36).slice(2, 8);
       viewBox="0 0 640 300"
     >
       <defs>
-        <pattern id={`vlnky-${uid}`} width="34" height="26" patternUnits="userSpaceOnUse">
-          <path d="M0 9 Q8.5 0 17 9 T34 9" fill="none" stroke="#3A2E28" stroke-width="0.7" opacity="0.16" />
-          <path d="M0 20 Q8.5 11 17 20 T34 20" fill="none" stroke="#C87E4E" stroke-width="0.7" opacity="0.2" />
-        </pattern>
-        <radialGradient id={`rozeta-${uid}`}>
-          <stop offset="0%" stop-color="#C87E4E" stop-opacity="0.22" />
+        {/* Poleva sahá jen k „patce“ — dole zůstane pruh nezaglazované hlíny */}
+        <clipPath id={`poleva-${uid}`}>
+          <path
+            d="M0 0 H640 V246 Q628 244 620 252 Q612 260 604 250 Q590 244 574 247
+               Q548 252 522 246 Q496 240 470 245 Q452 249 442 262 Q434 272 426 259
+               Q418 247 400 246 Q368 244 336 249 Q312 253 300 266 Q292 275 284 262
+               Q276 250 258 248 Q222 244 186 250 Q160 254 142 248 Q120 241 104 250
+               Q92 257 84 249 Q70 236 46 243 Q22 250 0 244 Z"
+          />
+        </clipPath>
+        {/* Tmavá železitá poleva. Nahoře je tenká a „trhá se“ do rezava,
+            dolů houstne a v klínu u patky je skoro černá. */}
+        <linearGradient id={`zateceni-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#7A4B2E" stop-opacity="0.97" />
+          <stop offset="10%" stop-color="#4E382C" stop-opacity="0.98" />
+          <stop offset="60%" stop-color="#37291F" stop-opacity="0.99" />
+          <stop offset="100%" stop-color="#1F1611" stop-opacity="1" />
+        </linearGradient>
+        {/* Mokrý lesk od okna na vypouklé stěně */}
+        <radialGradient id={`lesk-${uid}`} cx="0.34" cy="0.22" r="0.6">
+          <stop offset="0%" stop-color="#E8B440" stop-opacity="0.2" />
+          <stop offset="60%" stop-color="#C87E4E" stop-opacity="0.06" />
           <stop offset="100%" stop-color="#C87E4E" stop-opacity="0" />
         </radialGradient>
       </defs>
-      <rect width="640" height="300" fill={`url(#vlnky-${uid})`} />
-      <circle cx="320" cy="150" r="120" fill={`url(#rozeta-${uid})`} />
-      <g fill="none" stroke="#3A2E28" stroke-width="0.6" opacity="0.14">
-        <circle cx="320" cy="150" r="118" />
-        <circle cx="320" cy="150" r="104" />
-        <circle cx="320" cy="150" r="90" />
+
+      <g clip-path={`url(#poleva-${uid})`}>
+        <rect width="640" height="300" fill={`url(#zateceni-${uid})`} />
+        <rect width="640" height="300" fill={`url(#lesk-${uid})`} />
       </g>
+
+      {/* Hrana polevy — v klínu u patky nejtmavší, s rezavým lemem */}
+      <path
+        d="M0 244 Q22 250 46 243 Q70 236 84 249 Q92 257 104 250 Q120 241 142 248
+           Q160 254 186 250 Q222 244 258 248 Q276 250 284 262 Q292 275 300 266
+           Q312 253 336 249 Q368 244 400 246 Q418 247 426 259 Q434 272 442 262
+           Q452 249 470 245 Q496 240 522 246 Q548 252 574 247 Q590 244 604 250
+           Q612 260 620 252 Q628 244 640 246"
+        fill="none"
+        stroke="#C87E4E"
+        stroke-width="2.2"
+        opacity="0.55"
+        stroke-linecap="round"
+      />
     </svg>
 
+    <!-- Kruh z titulky, utopený v polevě. Vlastní čtvercová vrstva kvůli
+         kružnicím; posun z osy, ať to není terč. -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+      <div class="h-full aspect-square -translate-x-[5%] -translate-y-[3%]">
+        <svg viewBox="0 0 100 100" class="w-full h-full">
+          {prsteny.map((p) => (
+            <circle
+              cx="50"
+              cy="50"
+              r={p.r}
+              fill="none"
+              stroke="#E8B440"
+              stroke-width={p.w}
+              stroke-dasharray={p.dash}
+              opacity={p.opacity}
+            />
+          ))}
+        </svg>
+      </div>
+    </div>
+
     <!-- Vnitřní linka rámečku -->
-    <div class="absolute inset-[9px] rounded-lg border border-espresso/30 pointer-events-none"></div>
+    <div class="absolute inset-[9px] rounded-lg border border-cream/20 pointer-events-none"></div>
 
     <div class="relative px-6 py-6 sm:px-9 sm:py-8">
       <div class="flex items-start justify-between gap-4 mb-5 sm:mb-7">
         <div>
-          <p class="font-mono text-[11px] sm:text-[12px] tracking-[0.22em] uppercase text-stone mb-2">
+          <p class="font-mono text-[11px] sm:text-[12px] tracking-[0.22em] uppercase text-cream/55 mb-2">
             Dárkový poukaz
           </p>
-          <p class="font-serif text-[26px] sm:text-[34px] font-medium leading-none text-espresso" style="font-variation-settings: 'opsz' 72;">
+          <p class="font-serif text-[26px] sm:text-[34px] font-medium leading-none text-cream" style="font-variation-settings: 'opsz' 72;">
             Ořechová hlína
           </p>
-          <p class="font-hand text-[21px] sm:text-[24px] text-clay leading-none mt-1.5">
+          <p class="font-hand text-[21px] sm:text-[24px] text-terracotta leading-none mt-1.5">
             ateliér keramiky, Ořech
           </p>
         </div>
 
         <div class="text-right flex-shrink-0">
-          <p class="font-serif text-[34px] sm:text-[46px] font-medium leading-none text-terracotta" style="font-variation-settings: 'opsz' 96;">
+          <p class="font-serif text-[34px] sm:text-[46px] font-medium leading-none text-peri" style="font-variation-settings: 'opsz' 96;">
             {hodnota}
           </p>
-          <p class="font-mono text-[12px] tracking-[0.2em] uppercase text-stone mt-1">Korun</p>
+          <p class="font-mono text-[12px] tracking-[0.2em] uppercase text-cream/55 mt-1">Korun</p>
         </div>
       </div>
 
       <div class="flex items-end justify-between gap-5">
         <div class="max-w-[62%]">
-          <p class="text-espresso text-[15px] sm:text-[16px] leading-[1.6] mb-4">
+          <p class="text-cream/85 text-[15px] sm:text-[16px] leading-[1.6] mb-4">
             Platí na kurz, workshop i open studio. Vybrat si můžeš, co chceš — a kdy chceš.
           </p>
-          <div class="border-t border-espresso/25 pt-2 inline-block min-w-[180px]">
-            <p class="font-hand text-[21px] text-espresso leading-none">Jiřík &amp; Renča</p>
-            <p class="font-mono text-[12px] tracking-wider uppercase text-stone mt-1">Podpis</p>
+          <div class="border-t border-cream/25 pt-2 inline-block min-w-[180px]">
+            <p class="font-hand text-[21px] text-cream leading-none">Jiřík &amp; Renča</p>
+            <p class="font-mono text-[12px] tracking-wider uppercase text-cream/55 mt-1">Podpis</p>
           </div>
         </div>
 
-        <!-- „Portrét“ v oválném rámečku -->
+        <!-- „Portrét“ jako otisknutá hrnčířská značka -->
         <div class="relative flex-shrink-0">
-          <div class="poukaz-portret rounded-full border border-espresso/30 bg-cream/70 flex items-end justify-center overflow-hidden">
+          <div class="poukaz-portret rounded-full flex items-end justify-center overflow-hidden">
             <Postavicka id={postava} size={132} class="w-[86px] sm:w-[118px] h-auto" />
           </div>
         </div>
       </div>
 
-      <div class="flex items-center justify-between gap-4 mt-5 pt-3 border-t border-espresso/15">
+      <div class="flex items-center justify-between gap-4 mt-6 pt-3">
         <span class="font-mono text-[12px] tracking-[0.15em] uppercase text-stone">
           Platnost 12 měsíců
         </span>
@@ -101,12 +161,36 @@ const uid = Math.random().toString(36).slice(2, 8);
 </div>
 
 <style>
-  /* Jemné nadzvednutí jako u papírové bankovky */
+  /* Jemné nadzvednutí — hmotnější než papír, je to střep */
   .poukaz-telo {
     box-shadow:
       0 2px 6px rgba(58, 46, 40, 0.08),
       0 14px 34px rgba(58, 46, 40, 0.1);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Šamot a železité tečky v hlíně. Vlastní vrstva, aby je neroztáhl
+     preserveAspectRatio="none" na podkladovém SVG. */
+  .poukaz-telo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 12% 22%, #E8D5B8 0 1.1px, transparent 1.6px),
+      radial-gradient(circle at 71% 9%, #1A120E 0 0.9px, transparent 1.4px),
+      radial-gradient(circle at 34% 63%, #E8B440 0 1.2px, transparent 1.7px),
+      radial-gradient(circle at 88% 47%, #C9B79A 0 0.8px, transparent 1.3px),
+      radial-gradient(circle at 55% 84%, #1A120E 0 1px, transparent 1.5px),
+      radial-gradient(circle at 23% 91%, #E8D5B8 0 0.9px, transparent 1.4px),
+      radial-gradient(circle at 94% 76%, #C87E4E 0 1.1px, transparent 1.6px),
+      radial-gradient(circle at 46% 34%, #C9B79A 0 0.85px, transparent 1.35px);
+    background-size: 97px 83px, 131px 109px, 113px 97px, 89px 127px,
+      143px 91px, 101px 117px, 121px 103px, 79px 139px;
+    opacity: 0.5;
+    /* overlay, ne multiply — světlé zrno musí vystoupit v tmavé polevě
+       a tmavé zase ve světlé hlíně u patky */
+    mix-blend-mode: overlay;
   }
 
   .poukaz:hover .poukaz-telo {
@@ -116,9 +200,17 @@ const uid = Math.random().toString(36).slice(2, 8);
       0 24px 52px rgba(58, 46, 40, 0.14);
   }
 
+  /* Otisk razítka do měkké hlíny: prohlubeň, tedy stín nahoře
+     a světlá hrana dole — opak vystouplého tlačítka. */
   .poukaz-portret {
     width: 104px;
     height: 104px;
+    /* V prohlubni se poleva sbírá, takže je tam tmavší než okolo */
+    background: rgba(0, 0, 0, 0.26);
+    box-shadow:
+      inset 0 3px 6px rgba(0, 0, 0, 0.55),
+      inset 0 -1px 2px rgba(232, 180, 64, 0.28),
+      0 1px 0 rgba(232, 180, 64, 0.16);
   }
 
   @media (min-width: 640px) {

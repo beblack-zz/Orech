@@ -1,4 +1,13 @@
-export type PostavaId = "kapka" | "pecinka" | "stripek" | "vazicka" | "hlinka";
+export type PostavaId =
+  | "kapka"
+  | "pecinka"
+  | "stripek"
+  | "vazicka"
+  | "hlinka"
+  | "bublinka"
+  | "kachlik"
+  | "cedulka"
+  | "samotka";
 
 export interface Postava {
   id: PostavaId;
@@ -56,5 +65,41 @@ export const parta: Postava[] = [
     oblibene: "Kopretiny a rovná záda",
     replika: "Rovně sedět, rovně točit. A dýchat — na to se často zapomíná.",
     tint: "#C87E4E",
+  },
+  {
+    id: "bublinka",
+    name: "Bublinka",
+    tagline: "tváří se nevinně, ale v peci ji nechceš",
+    bio: "Jediná raubířka v partě. Schová se v hlíně, počká si na výpal a pak práskne. Přesně proto se hlína před točením tak dlouho hněte — aby ji nikdo nenašel až v peci.",
+    oblibene: "Schovávaná a ticho před výpalem",
+    replika: "Já tam nejsem. Fakt. Klidně to dej do pece.",
+    tint: "#3A2E28",
+  },
+  {
+    id: "kachlik",
+    name: "Kachlík",
+    tagline: "rovný podle pravítka a pyšný na to",
+    bio: "Jediný v partě, komu se povedlo být dokonale rovný. Připomíná to při každé příležitosti a nenaklonil se od výpalu ani o stupeň. Teda skoro.",
+    oblibene: "Pravítko a pravé úhly",
+    replika: "Čtyři strany, čtyři pravé úhly. Zkus to taky.",
+    tint: "#C87E4E",
+  },
+  {
+    id: "cedulka",
+    name: "Cedulka",
+    tagline: "aby sis to poznal",
+    bio: "Dva týdny na polici vypadají všechny misky stejně. Cedulka je jediná, kdo si pamatuje, čí je která — a proto si na ni každý dává pozor.",
+    oblibene: "Tužka a rovné písmo",
+    replika: "Napiš se na mě. Za dva týdny mi poděkuješ.",
+    tint: "#6B5D4F",
+  },
+  {
+    id: "samotka",
+    name: "Šamotka",
+    tagline: "leží v ohni a nestěžuje si",
+    bio: "Police uvnitř pece. Snese skoro tisíc stupňů, drží na sobě všechny cizí hrnky a nikdo jí za to nikdy nepoděkuje.",
+    oblibene: "Klid a vysoké teploty",
+    replika: "Zvládnu to. Vždycky to zvládnu.",
+    tint: "#E8B440",
   },
 ];

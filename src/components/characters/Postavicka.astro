@@ -5,6 +5,10 @@ import Pecinka from "./Pecinka.astro";
 import Stripek from "./Stripek.astro";
 import Vazicka from "./Vazicka.astro";
 import Hlinka from "./Hlinka.astro";
+import Bublinka from "./Bublinka.astro";
+import Kachlik from "./Kachlik.astro";
+import Cedulka from "./Cedulka.astro";
+import Samotka from "./Samotka.astro";
 
 interface Props {
   id: PostavaId;
@@ -20,6 +24,10 @@ const map = {
   stripek: Stripek,
   vazicka: Vazicka,
   hlinka: Hlinka,
+  bublinka: Bublinka,
+  kachlik: Kachlik,
+  cedulka: Cedulka,
+  samotka: Samotka,
 };
 
 const Component = map[id];

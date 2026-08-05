@@ -1,0 +1,18 @@
+---
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+---
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <ellipse cx="90" cy="154" rx="26" ry="5" fill="#3A2E28" opacity="0.12"/>
+  {/* Houpe se z horního konce provázku, ne ze středu */}
+  <g class="cedulka-telo">
+    <path d="M90 22 Q80 40 90 56" stroke="#6B5D4F" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M62 52 L118 52 Q124 52 124 58 L124 134 Q124 140 118 140 L62 140 Q56 140 56 134 L56 58 Q56 52 62 52 Z" fill="#EFE3D0" stroke="#6B5D4F" stroke-width="1.5"/>
+    <circle cx="90" cy="64" r="4" fill="none" stroke="#6B5D4F" stroke-width="1.5"/>
+    <path d="M68 118 L112 118" stroke="#C87E4E" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+    <path d="M68 127 L98 127" stroke="#C87E4E" stroke-width="2.5" stroke-linecap="round" opacity="0.38"/>
+    <path d="M76 88 Q80 83 84 88" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M96 88 Q100 83 104 88" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M83 99 Q90 105 97 99" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>
