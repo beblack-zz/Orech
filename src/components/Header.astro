@@ -1,9 +1,16 @@
 ---
+/**
+ * `accent` označuje položku, která má v menu schválně vyčnívat.
+ * Pravidlo, na kterém to stojí: barva nese identitu (co ta položka je),
+ * tvar nese stav (kde právě jsi). Proto má Parta modrou s tečkou a
+ * aktivní stránka podtržení — jinak by se obarvená položka četla jako
+ * „tady jsi“ a lidi by na ni přestali klikat.
+ */
 const links = [
   { href: "/", label: "Úvod" },
   { href: "/kurzy", label: "Kurzy" },
   { href: "/deti", label: "Pro děti" },
-  { href: "/parta", label: "Parta" },
+  { href: "/parta", label: "Parta", accent: true },
   { href: "/open-studio", label: "Open studio" },
   { href: "/obchod", label: "Obchod" },
   { href: "/dizajn", label: "Dizajn" },
@@ -11,6 +18,11 @@ const links = [
 ];
 
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+const jeTu = (href: string) => path === href;
+
+// Aktivní = podtržení, ne barva
+const stav = "font-medium underline decoration-2 underline-offset-[6px] decoration-terracotta";
 ---
 
 <header class="border-b border-espresso/10">
@@ -27,11 +39,14 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
       {links.map((l) => (
         <a
           href={l.href}
-          aria-current={path === l.href ? "page" : undefined}
-          class={`text-[15px] whitespace-nowrap hover:text-terracotta transition-colors ${
-            path === l.href ? "text-terracotta font-medium" : ""
-          }`}
+          aria-current={jeTu(l.href) ? "page" : undefined}
+          class={`text-[15px] whitespace-nowrap transition-colors ${
+            l.accent ? "text-peri-deep hover:text-peri" : "hover:text-terracotta"
+          } ${jeTu(l.href) ? stav : ""}`}
         >
+          {l.accent && (
+            <span class="inline-block w-[6px] h-[6px] rounded-full bg-peri mr-1.5 align-baseline" aria-hidden="true"></span>
+          )}
           {l.label}
         </a>
       ))}
@@ -67,9 +82,12 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
     {links.map((l) => (
       <a
         href={l.href}
-        aria-current={path === l.href ? "page" : undefined}
-        class={`text-[15px] py-1 ${path === l.href ? "text-terracotta font-medium" : ""}`}
+        aria-current={jeTu(l.href) ? "page" : undefined}
+        class={`text-[15px] py-1 ${l.accent ? "text-peri-deep" : ""} ${jeTu(l.href) ? stav : ""}`}
       >
+        {l.accent && (
+          <span class="inline-block w-[6px] h-[6px] rounded-full bg-peri mr-1.5 align-baseline" aria-hidden="true"></span>
+        )}
         {l.label}
       </a>
     ))}
