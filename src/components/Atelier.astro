@@ -1,5 +1,8 @@
 ---
+import { Image } from "astro:assets";
 import SectionHead from "./SectionHead.astro";
+import Pecinka from "./characters/Pecinka.astro";
+import oAtelieru from "../images/o-atelieru.png";
 ---
 
 <section class="bg-cream-warm py-14 relative fade-up">
@@ -14,17 +17,29 @@ import SectionHead from "./SectionHead.astro";
         <p class="font-serif italic text-[20px] md:text-[24px] text-espresso leading-[1.35] font-normal mb-4">
           Začínáme v roce 2026 s jednou pecí, dvěma stoly, třemi kruhy a spoustou nadšení. Malý ateliér v Ořechu, kde má hlína čas a každá chyba svůj tvar.
         </p>
-        <p class="text-stone text-[14px] leading-[1.75] mb-3.5">
+        <p class="text-stone text-[16px] leading-[1.75] mb-3.5">
           Náš přístup je jednoduchý — méně dokonalosti, víc radosti. Nemusíš umět nic, nemusíš plánovat, co vyrobíš. Sedneš si ke kruhu, začneš točit a dál to už půjde samo.
         </p>
-        <p class="text-stone text-[14px] leading-[1.75]">
+        <p class="text-stone text-[16px] leading-[1.75]">
           Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a mlčet u hlíny.
         </p>
-        <p class="font-hand text-[28px] text-terracotta leading-none mt-6">— Jiřík &amp; Renča</p>
-        <p class="font-mono text-[10px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+        <div class="flex items-center gap-4 mt-6">
+          <Pecinka size={230} class="pointer-events-none flex-shrink-0" />
+          <div>
+            <p class="font-hand text-[28px] text-clay leading-none">— Jiřík &amp; Renča</p>
+            <p class="font-mono text-[12px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+          </div>
+        </div>
       </div>
       <div class="rounded-xl aspect-[3/4] overflow-hidden">
-        <img src="/o-atelieru.png" alt="Jiřík a Renča v ateliéru" class="w-full h-full object-cover" />
+        <Image
+          src={oAtelieru}
+          alt="Jiřík a Renča v ateliéru"
+          widths={[400, 600, 900]}
+          sizes="(min-width: 768px) 42vw, 90vw"
+          format="webp"
+          class="w-full h-full object-cover"
+        />
       </div>
     </div>
   </div>

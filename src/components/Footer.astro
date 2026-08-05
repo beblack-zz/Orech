@@ -1,10 +1,14 @@
 ---
+import Hlinka from "./characters/Hlinka.astro";
 const year = new Date().getFullYear();
 ---
 
-<footer class="bg-espresso text-cream mt-16">
+<footer class="bg-espresso text-cream mt-16 relative">
   <div class="container-x py-10 md:py-12">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8 relative">
+      <div class="absolute -top-[64px] right-0 lg:-top-[157px] lg:left-3/4 lg:right-auto lg:-translate-x-1/2 pointer-events-none z-10">
+        <Hlinka size={200} class="w-[80px] lg:w-[200px] h-auto" />
+      </div>
       <div class="col-span-2 md:col-span-1">
         <div class="mb-3 bg-stone text-cream px-4 py-2.5 rounded-xl inline-flex flex-col leading-none gap-1">
           <span class="logo-word font-serif text-[11px] font-medium" style="font-variation-settings: 'opsz' 48;">{"OŘECHOVÁ".split("").map(l => <span>{l}</span>)}</span>
@@ -13,25 +17,32 @@ const year = new Date().getFullYear();
         <p class="font-hand text-[20px] text-cream/85 mt-1.5">— ateliér keramiky, od 2026.</p>
       </div>
       <div>
-        <h5 class="font-serif text-[15px] font-medium mb-3">Kontakt</h5>
-        <a href="mailto:ahoj@orechahlina.cz" class="block text-[12px] text-cream/70 hover:text-terracotta leading-[1.7]">ahoj@orechahlina.cz</a>
-        <a href="tel:+420777000000" class="block text-[12px] text-cream/70 hover:text-terracotta leading-[1.7]">+420 777 000 000</a>
-        <a href="#" class="block text-[12px] text-cream/70 hover:text-terracotta leading-[1.7]">Instagram</a>
-      </div>
-      <div>
         <h5 class="font-serif text-[15px] font-medium mb-3">Kde nás najdeš</h5>
-        <p class="text-[12px] text-cream/70 leading-[1.7]">Luční 235<br />252 25 Ořech</p>
+        <p class="text-[14px] text-cream/85 leading-[1.7]">Luční 235<br />252 25 Ořech</p>
       </div>
       <div>
         <h5 class="font-serif text-[15px] font-medium mb-3">Otevřeno</h5>
-        <p class="text-[12px] text-cream/70 leading-[1.7]">
+        <p class="text-[14px] text-cream/85 leading-[1.7]">
           Po–Pá · 09:00–18:00<br />
           So · 10:00–14:00<br />
           Ne · zavřeno
         </p>
       </div>
+      <div class="md:justify-self-end">
+        <h5 class="font-serif text-[15px] font-medium mb-3">Kontakt</h5>
+        <a href="mailto:ahoj@orechovahlina.cz" class="block text-[14px] text-cream/85 hover:text-terracotta leading-[1.7]">ahoj@orechovahlina.cz</a>
+        <a href="tel:+420777000000" class="block text-[14px] text-cream/85 hover:text-terracotta leading-[1.7]">+420 777 000 000</a>
+        <a href="#" class="block text-[14px] text-cream/85 hover:text-terracotta leading-[1.7]">Instagram</a>
+      </div>
     </div>
-    <div class="border-t border-cream/15 pt-4 flex flex-col md:flex-row md:justify-between gap-2 font-mono text-[10px] text-cream/50 tracking-wider">
+    <div class="border-t border-cream/15 pt-4 pb-3 flex flex-wrap gap-x-5 gap-y-1.5">
+      <a href="/deti" class="text-[14px] text-cream/85 hover:text-terracotta">Pro děti</a>
+      <a href="/parta" class="text-[14px] text-cream/85 hover:text-terracotta">Parta</a>
+      <a href="/kurzy#poukaz" class="text-[14px] text-cream/85 hover:text-terracotta">Dárkový poukaz</a>
+      <a href="/o-nas" class="text-[14px] text-cream/85 hover:text-terracotta">O nás</a>
+      <a href="/dizajn" class="text-[14px] text-cream/85 hover:text-terracotta">Dizajn</a>
+    </div>
+    <div class="border-t border-cream/15 pt-4 flex flex-col md:flex-row md:justify-between gap-2 font-mono text-[12px] text-cream/75 tracking-wider">
       <span>© {year} Ořechová hlína · IČ 00000000</span>
       <span>vypáleno v Ořechu</span>
     </div>

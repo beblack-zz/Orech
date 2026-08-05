@@ -1,0 +1,64 @@
+---
+interface Props {
+  /** Jméno postavičky pod replikou */
+  name: string;
+  /** Co postavička říká */
+  text: string;
+  /** Na které straně stojí postavička */
+  side?: "left" | "right";
+  class?: string;
+}
+
+const { name, text, side = "left", class: cls = "" } = Astro.props;
+---
+
+<div
+  class={`bublina-wrap flex items-center gap-3 sm:gap-4 ${side === "right" ? "flex-row-reverse" : ""} ${cls}`}
+>
+  <div class="bublina-char flex-shrink-0 pointer-events-none">
+    <slot />
+  </div>
+  <div
+    class={`bublina relative bg-white border border-espresso/10 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 max-w-[200px] sm:max-w-[290px] ${
+      side === "right" ? "bublina--right" : "bublina--left"
+    }`}
+  >
+    <p class="font-hand text-[20px] sm:text-[23px] leading-[1.25] text-espresso">{text}</p>
+    <p class="font-mono text-[12px] tracking-wider uppercase text-stone mt-2">— {name}</p>
+  </div>
+</div>
+
+<style>
+  .bublina-char :global(svg) {
+    width: 96px;
+    height: auto;
+  }
+
+  @media (min-width: 640px) {
+    .bublina-char :global(svg) {
+      width: 132px;
+    }
+  }
+
+  /* Ocásek bubliny — otočený čtvereček se dvěma okraji */
+  .bublina::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-left: 1px solid rgba(58, 46, 40, 0.1);
+    border-bottom: 1px solid rgba(58, 46, 40, 0.1);
+  }
+
+  .bublina--left::before {
+    left: -7px;
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .bublina--right::before {
+    right: -7px;
+    transform: translateY(-50%) rotate(-135deg);
+  }
+</style>

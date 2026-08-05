@@ -1,0 +1,59 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
+
+const kam = [
+  { href: "/kurzy", label: "Kurzy a termíny" },
+  { href: "/deti", label: "Pro děti" },
+  { href: "/open-studio", label: "Open studio" },
+  { href: "/obchod", label: "Obchod" },
+  { href: "/parta", label: "Parta" },
+  { href: "/o-nas", label: "O nás" },
+];
+---
+
+<Layout
+  title="Tahle stránka se rozbila — Ořechová hlína"
+  description="Stránka, kterou hledáš, tady není. Zkus některou z ostatních."
+>
+  <section class="py-20 md:py-28 fade-up">
+    <div class="container-x">
+      <div class="max-w-[640px] mx-auto text-center">
+        <Postavicka id="stripek" size={200} class="w-[150px] sm:w-[200px] h-auto mx-auto mb-6" />
+
+        <span class="mono-meta block mb-4">Chyba 404</span>
+
+        <h1 class="hero-title text-espresso text-[38px] md:text-[50px] mb-5">
+          Tahle stránka se <span class="serif-italic-terracotta">rozbila.</span>
+        </h1>
+
+        <p class="text-stone text-[17px] leading-[1.7] mb-3">
+          Nic hrozného — u nás se rozbíjí často a skoro vždycky z toho nakonec něco je.
+          Adresa, na kterou jsi klikl, ale tady opravdu není.
+        </p>
+
+        <p class="font-hand text-[24px] text-clay mb-9">
+          — Střípek, odborník na rozbité věci
+        </p>
+
+        <nav aria-label="Kam dál" class="flex flex-wrap justify-center gap-2.5 mb-9">
+          {kam.map((k) => (
+            <a
+              href={k.href}
+              class="inline-flex items-center bg-white border border-espresso/15 px-5 py-2.5 rounded-full text-[15px] hover:border-espresso hover:text-terracotta transition-colors"
+            >
+              {k.label}
+            </a>
+          ))}
+        </nav>
+
+        <a
+          href="/"
+          class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
+        >
+          Zpátky na úvod <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

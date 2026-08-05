@@ -1,0 +1,37 @@
+---
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+---
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={`char-sway ${cls}`} aria-hidden="true">
+  <path d="M78 55 Q72 55 70 62 Q64 80 60 100 Q56 120 66 135 Q76 148 90 148 Q104 148 114 135 Q124 120 120 100 Q116 80 110 62 Q108 55 102 55 Z" fill="#EFE3D0" stroke="#6B5D4F" stroke-width="1.5"/>
+  <path d="M78 55 Q78 48 84 46 Q90 44 96 46 Q102 48 102 55" fill="#EFE3D0" stroke="#6B5D4F" stroke-width="1.5"/>
+  <path d="M80 90 Q83 86 86 90" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M96 90 Q99 86 102 90" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M85 102 Q90 107 95 102" stroke="#3A2E28" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <circle cx="90" cy="38" r="5" fill="#C87E4E"/>
+  <circle cx="84" cy="34" r="4" fill="#E8B440"/>
+  <circle cx="96" cy="34" r="4" fill="#B84A2B"/>
+  <line x1="90" y1="43" x2="90" y2="46" stroke="#6B5D4F" stroke-width="1.2"/>
+  {/*
+    Jiskřičky po stranách vázy — dvě vlevo nahoře, dvě vpravo dole.
+    Úhlopříčka rámuje postavičku a nechává kytky nahoře volné.
+    Hvězdička je nakreslená kolem počátku a umístěná až transformem
+    skupiny — díky tomu se CSS scale/rotate točí kolem jejího středu
+    a nepotřebuje transform-box.
+  */}
+  <g transform="translate(59 57)">
+    <path class="jiskra jiskra-1" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#E8B440"/>
+  </g>
+  <g transform="translate(55 74) scale(0.62)">
+    <path class="jiskra jiskra-3" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#C87E4E"/>
+  </g>
+  <g transform="translate(133 122) scale(0.9)">
+    <path class="jiskra jiskra-2" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#E8B440"/>
+  </g>
+  <g transform="translate(122 139) scale(0.6)">
+    <path class="jiskra jiskra-4" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#C87E4E"/>
+  </g>
+  <path d="M68 115 Q79 110 90 115 Q101 110 112 115" stroke="#6366F1" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M70 122 Q80 118 90 122 Q100 118 110 122" stroke="#6366F1" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.35"/>
+  <ellipse cx="90" cy="152" rx="16" ry="4" fill="#6B5D4F" opacity="0.2"/>
+</svg>

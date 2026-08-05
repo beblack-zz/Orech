@@ -1,0 +1,121 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
+import { parta } from "../data/parta";
+---
+
+<Layout
+  title="Parta — Ořechová hlína"
+  description="Hlínka, Kapka, Pecinka, Střípek a Vázička. Pět postaviček, co bydlí v našem ateliéru."
+>
+  <section class="py-14 md:py-16 fade-up">
+    <div class="container-x">
+      <div class="max-w-[640px]">
+        <h1 class="hero-title text-espresso text-[42px] md:text-[56px] lg:text-[64px] mb-5">
+          Seznam se s <span class="serif-italic-terracotta">partou.</span>
+        </h1>
+        <p class="text-stone text-[17px] leading-[1.7]">
+          V ateliéru s námi bydlí pět postaviček. Každá tady dělá něco jiného a každá ti umí něco poradit.
+          Až přijdeš, zkus je najít — schovávají se po celém webu.
+        </p>
+      </div>
+
+      <!-- Řada postaviček -->
+      <div class="flex flex-wrap justify-center items-end gap-2 sm:gap-6 mt-10 md:mt-12">
+        {parta.map((p) => (
+          <a
+            href={`#${p.id}`}
+            class="group flex flex-col items-center gap-1.5"
+            aria-label={`Přeskočit na ${p.name}`}
+          >
+            <Postavicka
+              id={p.id}
+              size={120}
+              class="w-[74px] sm:w-[112px] h-auto transition-transform duration-300 group-hover:-translate-y-2"
+            />
+            <span class="font-mono text-[12px] tracking-wider uppercase text-stone group-hover:text-terracotta transition-colors">
+              {p.name}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Profily -->
+  <section class="bg-white py-14 fade-up">
+    <div class="container-x">
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-8">Kdo je kdo</h2>
+
+      <div class="space-y-5 md:space-y-6">
+        {parta.map((p, i) => (
+          <article
+            id={p.id}
+            class={`postava-karta relative rounded-2xl border border-espresso/10 overflow-hidden flex flex-col gap-5 p-6 sm:p-8 md:gap-10 md:items-center ${
+              i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+            }`}
+          >
+            <span
+              class="absolute inset-0 pointer-events-none"
+              style={`background:${p.tint}; opacity:0.09;`}
+              aria-hidden="true"
+            ></span>
+
+            <div class="relative flex justify-center flex-shrink-0">
+              <Postavicka id={p.id} size={190} class="w-[150px] sm:w-[190px] h-auto" />
+            </div>
+
+            <div class="relative flex-1">
+              <h3 class="font-serif text-[28px] md:text-[34px] font-medium leading-none mb-1.5" style="font-variation-settings: 'opsz' 72;">
+                {p.name}
+              </h3>
+              <p class="font-hand text-[24px] text-clay leading-none mb-4">{p.tagline}</p>
+
+              <p class="text-stone text-[16px] leading-[1.7] mb-5 max-w-[52ch]">{p.bio}</p>
+
+              <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-5">
+                <span class="font-mono text-[12px] tracking-wider uppercase text-stone">
+                  Má ráda: <span class="text-espresso">{p.oblibene}</span>
+                </span>
+              </div>
+
+              <blockquote class="border-l-2 border-terracotta pl-4">
+                <p class="font-hand text-[23px] text-espresso leading-[1.3]">„{p.replika}“</p>
+              </blockquote>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-14 fade-up">
+    <div class="container-x text-center max-w-[560px] mx-auto">
+      <p class="font-serif italic text-[24px] text-espresso mb-3">Chceš je poznat naživo?</p>
+      <p class="text-stone text-[16px] leading-[1.7] mb-7">
+        Pecinka topí každý týden a Hlínka na tebe čeká na stole. Přijď si zkusit, jaké to je,
+        když se ti hlína točí pod rukama.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a
+          href="/deti"
+          class="inline-flex items-center justify-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
+        >
+          Co děláme pro děti <span aria-hidden="true">→</span>
+        </a>
+        <a
+          href="/kurzy"
+          class="inline-flex items-center justify-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso hover:text-cream transition-colors"
+        >
+          Vybrat kurz
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .postava-karta {
+    scroll-margin-top: 2rem;
+  }
+</style>

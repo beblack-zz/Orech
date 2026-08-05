@@ -1,11 +1,16 @@
 ---
+import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
+import oNas from "../images/o-nas.png";
+import Kapka from "../components/characters/Kapka.astro";
+import Pecinka from "../components/characters/Pecinka.astro";
+import Bublina from "../components/characters/Bublina.astro";
 
 const team = [
   {
     name: "Jiřík",
     role: "Zakladatel · Lektor",
-    bio: "U kruhu od střední, ateliér otevřel v roce 2019. Učí začátečníky i pokročilé, specializuje se na točení a glazury.",
+    bio: "U kruhu od střední, ateliér otevřel v roce 2026. Učí začátečníky i pokročilé, specializuje se na točení a glazury.",
   },
   {
     name: "Renča",
@@ -14,8 +19,18 @@ const team = [
   },
 ];
 
+/**
+ * Milníky se dopisují ručně — je to historie, ne data.
+ * Poslední řádek drž vždycky u aktuálního měsíce, ať timeline nekončí
+ * někde vzadu a nevypadá to, že ateliér mezitím zavřel.
+ */
 const milestones = [
-  { year: "2026", text: "Otevíráme ateliér — 3 kruhy, 1 pec, 2 stoly, 0 studentů (zatím)" },
+  { year: "2026", month: "Únor", text: "Otevíráme ateliér — 3 kruhy, 1 pec, 2 stoly, 0 studentů (zatím)." },
+  { year: "2026", month: "Březen", text: "První kurz vyprodán do 48 hodin. Přidáváme druhý termín." },
+  { year: "2026", month: "Duben", text: "Spouštíme open studio — 6 míst, každý den jiná hlína." },
+  { year: "2026", month: "Červen", text: "Přes 200 lidí prošlo ateliérem. Pec pracuje bez přestávky." },
+  { year: "2026", month: "Červenec", text: "První příměstský tábor. Pět dní, dvacet dětí, jeden drak v životní velikosti." },
+  { year: "2026", month: "Srpen", text: "Vypisujeme podzimní termíny a otevíráme dětské oslavy." },
 ];
 ---
 
@@ -30,27 +45,41 @@ const milestones = [
           <p class="font-serif italic text-[20px] md:text-[24px] text-espresso leading-[1.35] font-normal mb-4">
             Začínáme v roce 2026 s jednou pecí, dvěma stoly, třemi kruhy a spoustou nadšení. Malý ateliér v Ořechu, kde má hlína čas a každá chyba svůj tvar.
           </p>
-          <p class="text-stone text-[14px] leading-[1.75] mb-3.5">
+          <p class="text-stone text-[16px] leading-[1.75] mb-3.5">
             Náš přístup je jednoduchý — méně dokonalosti, víc radosti. Nemusíš umět nic, nemusíš plánovat, co vyrobíš. Sedneš si ke kruhu, začneš točit a dál to už půjde samo.
           </p>
-          <p class="text-stone text-[14px] leading-[1.75]">
+          <p class="text-stone text-[16px] leading-[1.75]">
             Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a mlčet u hlíny.
           </p>
-          <p class="font-hand text-[28px] text-terracotta leading-none mt-6">— Jiřík & Renča</p>
-          <p class="font-mono text-[10px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+          <div class="flex items-center gap-4 mt-6">
+            <Pecinka size={230} class="pointer-events-none flex-shrink-0" />
+            <div>
+              <p class="font-hand text-[28px] text-clay leading-none">— Jiřík & Renča</p>
+              <p class="font-mono text-[12px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
+            </div>
+          </div>
         </div>
         <div class="rounded-xl aspect-[3/4] overflow-hidden mt-8 md:mt-0">
-          <img src="/o-nas.png" alt="Ateliér Ořechová hlína" class="w-full h-full object-cover" />
+          <Image
+            src={oNas}
+            alt="Ateliér Ořechová hlína"
+            widths={[400, 600, 900]}
+            sizes="(min-width: 768px) 42vw, 90vw"
+            format="webp"
+            loading="eager"
+            fetchpriority="high"
+            class="w-full h-full object-cover"
+          />
         </div>
       </div>
-      <span class="mono-meta absolute bottom-0 right-0 md:right-8 lg:right-12">Est. 2026 · 2 lektoři · 3 kruhy</span>
+      <span class="mono-meta block text-right mt-6">Est. 2026 · 2 lektoři · 3 kruhy</span>
     </div>
   </section>
 
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Náš tým</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Náš tým</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[760px]">
         {team.map((t) => (
           <div>
             <div class="bg-[#D9C3A3] rounded-xl aspect-square flex items-center justify-center mb-4">
@@ -59,23 +88,32 @@ const milestones = [
                 <path d="M16 72 Q16 50 40 50 Q64 50 64 72" fill="none" stroke="#3A2E28" stroke-width="1.5" />
               </svg>
             </div>
-            <h4 class="font-serif text-[18px] font-medium mb-0.5">{t.name}</h4>
-            <p class="font-mono text-[10px] text-stone tracking-wider uppercase mb-2">{t.role}</p>
-            <p class="text-stone text-[13px] leading-[1.7]">{t.bio}</p>
+            <h3 class="font-serif text-[18px] font-medium mb-0.5">{t.name}</h3>
+            <p class="font-mono text-[12px] text-stone tracking-wider uppercase mb-2">{t.role}</p>
+            <p class="text-stone text-[15px] leading-[1.7]">{t.bio}</p>
           </div>
         ))}
       </div>
+
+      <Bublina
+        name="Kapka"
+        text="Já jsem tady spíš omylem. Ale nikomu to neříkej."
+        class="mt-10 justify-center"
+      >
+        <Kapka />
+      </Bublina>
     </div>
   </section>
 
   <section class="py-14 fade-up">
     <div class="container-x">
-      <h3 class="font-mono text-[11px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h3>
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h2>
       <div class="max-w-[600px]">
+        <span class="font-serif text-[32px] font-medium block mb-3 text-terracotta" style="font-variation-settings: 'opsz' 72;">2026</span>
         {milestones.map((m) => (
           <div class="flex gap-4 py-3 border-b border-espresso/8 last:border-b-0">
-            <span class="font-serif text-[20px] font-medium w-[60px] flex-shrink-0" style="font-variation-settings: 'opsz' 72;">{m.year}</span>
-            <p class="text-stone text-[14px] leading-[1.6]">{m.text}</p>
+            <span class="font-mono text-[12px] text-terracotta uppercase tracking-wider w-[70px] flex-shrink-0 pt-0.5">{m.month}</span>
+            <p class="text-stone text-[16px] leading-[1.6]">{m.text}</p>
           </div>
         ))}
       </div>
@@ -85,15 +123,17 @@ const milestones = [
   <section class="bg-cream-warm py-14 fade-up">
     <div class="container-x text-center max-w-[480px] mx-auto">
       <p class="font-serif italic text-[22px] text-espresso mb-2">Přijď se podívat</p>
-      <p class="text-stone text-[14px] leading-[1.75] mb-6">
+      <p class="text-stone text-[16px] leading-[1.75] mb-6">
         Luční 235, Ořech. Ateliér je otevřený Po–Pá 9–18, v sobotu 10–14. Stavíme i&nbsp;na&nbsp;kafe.
       </p>
-      <a
-        href="mailto:ahoj@orechahlina.cz"
-        class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[13px] font-medium hover:bg-clay transition-colors"
-      >
-        Napsat nám <span aria-hidden="true">→</span>
-      </a>
+      <div class="flex items-center justify-center gap-0">
+        <a
+          href="mailto:ahoj@orechovahlina.cz"
+          class="relative z-[1] inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
+        >
+          Napsat nám <span aria-hidden="true">→</span>
+        </a>
+      </div>
     </div>
   </section>
 </Layout>

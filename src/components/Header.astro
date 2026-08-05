@@ -1,12 +1,28 @@
 ---
+/**
+ * `accent` označuje položku, která má v menu schválně vyčnívat.
+ * Pravidlo, na kterém to stojí: barva nese identitu (co ta položka je),
+ * tvar nese stav (kde právě jsi). Proto má Parta modrou s tečkou a
+ * aktivní stránka podtržení — jinak by se obarvená položka četla jako
+ * „tady jsi“ a lidi by na ni přestali klikat.
+ */
 const links = [
   { href: "/", label: "Úvod" },
   { href: "/kurzy", label: "Kurzy" },
+  { href: "/deti", label: "Pro děti" },
+  { href: "/parta", label: "Parta", accent: true },
   { href: "/open-studio", label: "Open studio" },
   { href: "/obchod", label: "Obchod" },
   { href: "/dizajn", label: "Dizajn" },
   { href: "/o-nas", label: "O nás" },
 ];
+
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+const jeTu = (href: string) => path === href;
+
+// Aktivní = podtržení, ne barva
+const stav = "font-medium underline decoration-2 underline-offset-[6px] decoration-terracotta";
 ---
 
 <header class="border-b border-espresso/10">
@@ -16,19 +32,31 @@ const links = [
         <span class="logo-word font-serif text-[12px] font-medium" style="font-variation-settings: 'opsz' 48;">{"OŘECHOVÁ".split("").map(l => <span>{l}</span>)}</span>
         <span class="logo-word font-serif text-[22px] font-medium" style="font-variation-settings: 'opsz' 48;">{"HLÍNA".split("").map(l => <span>{l}</span>)}</span>
       </a>
-      <span class="mono-meta hidden sm:inline">Ateliér keramiky · Luční 235, Ořech</span>
+      <span class="mono-meta hidden xl:inline">Ateliér keramiky · Luční 235, Ořech</span>
     </div>
 
-    <nav class="hidden md:flex items-center gap-6">
+    <nav class="hidden lg:flex items-center gap-5 xl:gap-6">
       {links.map((l) => (
-        <a href={l.href} class="text-[13px] hover:text-terracotta transition-colors">{l.label}</a>
+        <a
+          href={l.href}
+          aria-current={jeTu(l.href) ? "page" : undefined}
+          class={`text-[15px] whitespace-nowrap transition-colors ${
+            l.accent ? "parta-odkaz text-peri-deep hover:text-peri" : "hover:text-terracotta"
+          } ${jeTu(l.href) ? stav : ""}`}
+        >
+          {l.accent && (
+            <span class="inline-flex items-baseline gap-[3px] mr-1.5" aria-hidden="true">
+              <span class="tecka inline-block w-[6px] h-[6px] rounded-full bg-peri"></span>
+              <span class="tecka tecka-2 inline-block w-[6px] h-[6px] rounded-full bg-clay"></span>
+            </span>
+          )}
+          {l.label}
+        </a>
       ))}
-      <span class="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-stone">
-        <span class="w-1.5 h-1.5 rounded-full bg-peri"></span>OTEVŘENO
-      </span>
+
       <a
-        href="/kurzy"
-        class="bg-espresso text-cream px-4 py-2 rounded-full text-[12px] font-medium hover:bg-clay transition-colors"
+        href="/kurzy#rezervace"
+        class="bg-espresso text-cream px-5 py-2.5 rounded-full text-[14px] font-medium whitespace-nowrap hover:bg-clay transition-colors"
       >
         Rezervovat
       </a>
@@ -36,8 +64,9 @@ const links = [
 
     <button
       id="menu-toggle"
-      class="md:hidden text-espresso p-2"
+      class="lg:hidden text-espresso p-2"
       aria-label="Otevřít menu"
+      aria-controls="mobile-menu"
       aria-expanded="false"
     >
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -50,15 +79,27 @@ const links = [
 
 <div
   id="mobile-menu"
-  class="hidden md:hidden bg-cream border-b border-espresso/10"
+  class="hidden lg:hidden bg-cream border-b border-espresso/10"
 >
   <nav class="container-x flex flex-col gap-3 py-4">
     {links.map((l) => (
-      <a href={l.href} class="text-[15px] py-1">{l.label}</a>
+      <a
+        href={l.href}
+        aria-current={jeTu(l.href) ? "page" : undefined}
+        class={`text-[15px] py-1 ${l.accent ? "parta-odkaz text-peri-deep" : ""} ${jeTu(l.href) ? stav : ""}`}
+      >
+        {l.accent && (
+          <span class="inline-flex items-baseline gap-[3px] mr-1.5" aria-hidden="true">
+            <span class="tecka inline-block w-[6px] h-[6px] rounded-full bg-peri"></span>
+            <span class="tecka tecka-2 inline-block w-[6px] h-[6px] rounded-full bg-clay"></span>
+          </span>
+        )}
+        {l.label}
+      </a>
     ))}
     <a
-      href="/kurzy"
-      class="bg-espresso text-cream px-4 py-2.5 rounded-full text-[13px] font-medium text-center mt-2"
+      href="/kurzy#rezervace"
+      class="bg-espresso text-cream px-4 py-2.5 rounded-full text-[15px] font-medium text-center mt-2"
     >
       Rezervovat
     </a>
@@ -66,10 +107,26 @@ const links = [
 </div>
 
 <script>
-  const toggle = document.getElementById("menu-toggle");
-  const menu = document.getElementById("mobile-menu");
-  toggle?.addEventListener("click", () => {
-    const open = menu?.classList.toggle("hidden");
-    toggle.setAttribute("aria-expanded", open ? "false" : "true");
-  });
+  // Musí se navázat znovu po každé navigaci — ClientRouter vymění DOM,
+  // ale modulový skript prohlížeč podruhé nespustí.
+  const bindMenu = () => {
+    const toggle = document.getElementById("menu-toggle");
+    const menu = document.getElementById("mobile-menu");
+    if (!toggle || !menu || toggle.dataset.bound) return;
+    toggle.dataset.bound = "1";
+
+    const setOpen = (open: boolean) => {
+      menu.classList.toggle("hidden", !open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "Zavřít menu" : "Otevřít menu");
+    };
+
+    toggle.addEventListener("click", () => setOpen(menu.classList.contains("hidden")));
+    for (const link of menu.querySelectorAll("a")) {
+      link.addEventListener("click", () => setOpen(false));
+    }
+  };
+
+  bindMenu();
+  document.addEventListener("astro:page-load", bindMenu);
 </script>
