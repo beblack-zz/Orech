@@ -1,6 +1,7 @@
 ---
 import SectionHead from "./SectionHead.astro";
-import { kurzy, den, mesic, popisKurzu, sezona } from "../data/kurzy";
+import Poznamka from "./Poznamka.astro";
+import { kurzy, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat, sezona } from "../data/kurzy";
 import { pocetKurzu } from "../data/pocty";
 
 // Homepage ukazuje jen nejbližší čtyři, celý seznam je na /kurzy
@@ -22,9 +23,12 @@ const courses = kurzy.slice(0, 4);
         <a href="/kurzy" class="text-terracotta underline underline-offset-2">Napiš nám</a> a dáme ti vědět, jakmile budou venku.
       </p>
     )}
-    <div>
+    <div class="relative">
+      <Poznamka align="right" class="absolute -top-3 right-0">
+        Tak sem se mýlil, todle je teď nejslabší část. I jeden platný kurz za měsíc je lepší než žádný.
+      </Poznamka>
       {courses.map((c) => (
-        <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto_auto_auto] items-center gap-4 md:gap-5 py-4 border-b border-espresso/10 last:border-b-0">
+        <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto] items-center gap-4 md:gap-5 py-4 border-b border-espresso/10 last:border-b-0">
           <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
             {den(c.date)}
             <span class="block font-mono text-[12px] text-stone mt-1 tracking-wider uppercase font-normal">{mesic(c.date)}</span>
@@ -37,32 +41,39 @@ const courses = kurzy.slice(0, 4);
             c.state === "urgent" ? "text-clay font-medium" :
             c.state === "full" ? "text-stone line-through" : "text-stone"
           }`}>
-            {c.state === "urgent" && <span aria-hidden="true">● </span>}{c.capacity}
+            {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
           </div>
-          <div class="font-serif text-[16px] font-medium hidden md:block">{c.price}</div>
-          {c.state === "full" ? (
-            <a href="/kurzy" class="bg-transparent text-stone border border-espresso/20 px-4 py-2 rounded-full text-[12px] font-medium hidden md:inline-block">
-              Náhradník
-            </a>
-          ) : (
-            <a href="/kurzy" class="bg-espresso text-cream px-4 py-2 rounded-full text-[12px] font-medium hover:bg-clay transition-colors hidden md:inline-block">
-              Rezervovat
+          {/* Ve fázi „připravujeme“ není co nabídnout — logika zůstává pro chvíli, kdy se zápis otevře */}
+          {c.state !== "pripravujeme" && (
+            <a
+              href="/kurzy"
+              class={`px-4 py-2 rounded-full text-[12px] font-medium hidden md:inline-block ${
+                lzeRezervovat(c)
+                  ? "bg-espresso text-cream hover:bg-clay transition-colors"
+                  : "bg-transparent text-stone border border-espresso/20"
+              }`}
+            >
+              {tlacitkoPopis(c)}
             </a>
           )}
           <div class="col-span-2 flex items-center justify-between md:hidden pt-1">
             <div class={`font-mono text-[12px] ${
               c.state === "urgent" ? "text-clay font-medium" :
-              c.state === "full" ? "text-stone line-through" : "text-stone"
+              c.state === "full" ? "text-stone line-through" :
+              c.state === "pripravujeme" ? "text-stone/70 italic" : "text-stone"
             }`}>
-              {c.state === "urgent" && <span aria-hidden="true">● </span>}{c.capacity} · <span class="text-espresso font-serif">{c.price}</span>
+              {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
             </div>
-            {c.state === "full" ? (
-              <a href="/kurzy" class="bg-transparent text-stone border border-espresso/20 px-3 py-1.5 rounded-full text-[12px] font-medium">
-                Náhradník
-              </a>
-            ) : (
-              <a href="/kurzy" class="bg-espresso text-cream px-3 py-1.5 rounded-full text-[12px] font-medium">
-                Rezervovat
+            {c.state !== "pripravujeme" && (
+              <a
+                href="/kurzy"
+                class={`px-3 py-1.5 rounded-full text-[12px] font-medium ${
+                  lzeRezervovat(c)
+                    ? "bg-espresso text-cream"
+                    : "bg-transparent text-stone border border-espresso/20"
+                }`}
+              >
+                {tlacitkoPopis(c)}
               </a>
             )}
           </div>

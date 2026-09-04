@@ -6,14 +6,18 @@
  * aktivní stránka podtržení — jinak by se obarvená položka četla jako
  * „tady jsi“ a lidi by na ni přestali klikat.
  */
-const links = [
+/** `skrtnuto` je pracovní značka — položka je na odpis, ale zatím visí v menu. */
+type Odkaz = { href: string; label: string; accent?: boolean; skrtnuto?: boolean };
+
+const links: Odkaz[] = [
   { href: "/", label: "Úvod" },
   { href: "/kurzy", label: "Kurzy" },
-  { href: "/deti", label: "Pro děti" },
+  { href: "/deti", label: "Pro děti", skrtnuto: true },
   { href: "/parta", label: "Parta", accent: true },
   { href: "/open-studio", label: "Open studio" },
   { href: "/obchod", label: "Obchod" },
-  { href: "/dizajn", label: "Dizajn" },
+  { href: "/dizajn", label: "Dizajn", skrtnuto: true },
+  { href: "/dizajn-2", label: "Dizajn 2.0" },
   { href: "/o-nas", label: "O nás" },
 ];
 
@@ -23,6 +27,9 @@ const jeTu = (href: string) => path === href;
 
 // Aktivní = podtržení, ne barva
 const stav = "font-medium underline decoration-2 underline-offset-[6px] decoration-terracotta";
+
+// Škrt je jediná červená v menu — clay je z palety nejblíž červené
+const skrt = "line-through decoration-2 decoration-clay";
 ---
 
 <header class="border-b border-espresso/10">
@@ -32,7 +39,7 @@ const stav = "font-medium underline decoration-2 underline-offset-[6px] decorati
         <span class="logo-word font-serif text-[12px] font-medium" style="font-variation-settings: 'opsz' 48;">{"OŘECHOVÁ".split("").map(l => <span>{l}</span>)}</span>
         <span class="logo-word font-serif text-[22px] font-medium" style="font-variation-settings: 'opsz' 48;">{"HLÍNA".split("").map(l => <span>{l}</span>)}</span>
       </a>
-      <span class="mono-meta hidden xl:inline">Ateliér keramiky · Luční 235, Ořech</span>
+      <span class="mono-meta hidden xl:inline">Keramická dílna · Luční 235, Ořech</span>
     </div>
 
     <nav class="hidden lg:flex items-center gap-5 xl:gap-6">
@@ -42,7 +49,7 @@ const stav = "font-medium underline decoration-2 underline-offset-[6px] decorati
           aria-current={jeTu(l.href) ? "page" : undefined}
           class={`text-[15px] whitespace-nowrap transition-colors ${
             l.accent ? "parta-odkaz text-peri-deep hover:text-peri" : "hover:text-terracotta"
-          } ${jeTu(l.href) ? stav : ""}`}
+          } ${jeTu(l.href) ? stav : ""} ${l.skrtnuto ? skrt : ""}`}
         >
           {l.accent && (
             <span class="inline-flex items-baseline gap-[3px] mr-1.5" aria-hidden="true">
@@ -86,7 +93,7 @@ const stav = "font-medium underline decoration-2 underline-offset-[6px] decorati
       <a
         href={l.href}
         aria-current={jeTu(l.href) ? "page" : undefined}
-        class={`text-[15px] py-1 ${l.accent ? "parta-odkaz text-peri-deep" : ""} ${jeTu(l.href) ? stav : ""}`}
+        class={`text-[15px] py-1 ${l.accent ? "parta-odkaz text-peri-deep" : ""} ${jeTu(l.href) ? stav : ""} ${l.skrtnuto ? skrt : ""}`}
       >
         {l.accent && (
           <span class="inline-flex items-baseline gap-[3px] mr-1.5" aria-hidden="true">

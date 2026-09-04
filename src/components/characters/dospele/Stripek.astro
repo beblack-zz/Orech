@@ -1,0 +1,49 @@
+---
+import { uid } from "./uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+// Postavička se na stránce kreslí víckrát — id uvnitř SVG musí být pokaždé jiná
+const u = uid();
+---
+{/*
+  STYL: TUŠOVÝ TAH
+  Miska je jeden tah štětcem — proto to nejsou stroke, ale vyplněné
+  plochy, které se uprostřed rozšíří a na koncích ztenčí. Odtržený
+  konec tahu a suché cákance dělají zbytek. Vpravo dole červená pečeť.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <linearGradient id={`${u}-zlato`} x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#F0D68A"/>
+      <stop offset="0.45" stop-color="#C9962C"/>
+      <stop offset="1" stop-color="#E8C46A"/>
+    </linearGradient>
+  </defs>
+
+  {/* Tah zvenku dolů a zase nahoru: tenký – tlustý – tenký */}
+  <path d="M46 80 C48 122 66 152 90 152 C114 152 132 122 134 80 L127 81 C125 118 110 143 90 143 C70 143 55 118 53 81 Z" fill="#2A231E"/>
+
+  {/* Odtržený konec — štětec došel */}
+  <path d="M133 74 C133.6 77 133.4 79.4 133 81 L127.4 81.6 C127.8 79 128 76.6 128 74.4 Z" fill="#2A231E" opacity="0.55"/>
+  <circle cx="136" cy="70" r="1.4" fill="#2A231E" opacity="0.4"/>
+  <circle cx="43" cy="72" r="1.1" fill="#2A231E" opacity="0.35"/>
+
+  {/* Okraj: jeden rychlý oblouk, taky s náběhem a doběhem */}
+  <path d="M50 78 C64 90 116 90 130 78 C116 96 64 96 50 78 Z" fill="#2A231E" opacity="0.85"/>
+
+  {/* Zlatý šev — stejná logika tahu, jen zlatem */}
+  <path d="M100 84 L91 106 L101 121 L94 150 L89.4 148.6 L95.6 121.6 L86 106.4 L95.4 83.4 Z" fill={`url(#${u}-zlato)`}/>
+  <path d="M91 106 L78 115 L80 118.6 L92.6 109.4 Z" fill={`url(#${u}-zlato)`}/>
+
+  {/* Tvář je taky tah, ne čára — dva srpky tlusté uprostřed a špičaté na koncích */}
+  <g class="tvar" fill="#2A231E">
+    <path d="M67 113 C71 107 78 106 82 109 C77 108.4 71.5 110 67 113 Z"/>
+    <path d="M113 113 C109 107 102 106 98 109 C103 108.4 108.5 110 113 113 Z"/>
+    <path d="M84 127 C88 131 92 131 96 127 C92 129.6 88 129.6 84 127 Z"/>
+  </g>
+
+  {/* Pečeť tiskaře */}
+  <rect x="128" y="122" width="24" height="24" rx="2" fill="#B84A2B"/>
+  <path d="M134 129 L146 129 M140 129 L140 140 M134 140 L146 140" stroke="#F4EBDD" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,44 @@
+---
+import { uid } from "./uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+// Postavička se na stránce kreslí víckrát — id uvnitř SVG musí být pokaždé jiná
+const u = uid();
+---
+{/*
+  STYL: BAUHAUS
+  Žádný přechod, žádný obrys, žádný stín — jen kruh, čtverec a trojúhelník
+  v plných barvách. Kachlík je jediný v partě, kdo je sám o sobě
+  geometrický tvar, takže tenhle styl na něm sedí bez násilí.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <clipPath id={`${u}-orez`}>
+      <rect x="44" y="46" width="92" height="92"/>
+    </clipPath>
+  </defs>
+
+  <rect x="44" y="46" width="92" height="92" fill="#B84A2B"/>
+
+  <g clip-path={`url(#${u}-orez)`}>
+    {/* Čtvrtkruh v rohu */}
+    <path d="M136 46 L136 100 A54 54 0 0 0 82 46 Z" fill="#E8B440"/>
+    {/* Půlkruh u spodní hrany */}
+    <path d="M44 138 A34 34 0 0 1 112 138 Z" fill="#6366F1"/>
+    {/* Trojúhelník */}
+    <path d="M44 46 L84 138 L44 138 Z" fill="#3A2E28"/>
+  </g>
+
+  {/* Tvář ze stejné zásoby tvarů jako zbytek: dva kruhy a půlkruh, nic jiného */}
+  <g class="tvar" fill="#F4EBDD" clip-path={`url(#${u}-orez)`}>
+    <circle cx="84" cy="72" r="6"/>
+    <circle cx="106" cy="72" r="6"/>
+    <path d="M83 88 A12 12 0 0 1 107 88 Z"/>
+  </g>
+
+  {/* Vodorovný pás přes kompozici — deliberate asymetrie */}
+  <rect x="26" y="106" width="128" height="7" fill="#3A2E28"/>
+  <circle cx="136" cy="109.5" r="11" fill="#F4EBDD"/>
+  <circle cx="136" cy="109.5" r="5" fill="#B84A2B"/>
+</svg>

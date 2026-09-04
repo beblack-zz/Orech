@@ -1,0 +1,748 @@
+---
+import Nahled from "../../layouts/Nahled.astro";
+---
+
+<Nahled
+  title="Risotisk Ořechové hlíny"
+  fonts="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Archivo+Black&family=JetBrains+Mono:wght@400;500&display=swap"
+>
+  <style is:global>
+  /*
+    Jednobarevný svět schválně: nátisk je papírový, tmavý režim by byl
+    protimluv. Všechny barvy jsou proto napsané natvrdo z tokenů, aby
+    stránka držela na jakémkoli podkladu hostitele.
+  */
+  :root {
+    --papir:     #F2E9D8;
+    --modra:     #3B3AC4;  /* Federal Blue */
+    --oranzova:  #D4522A;  /* Orange */
+    --zluta:     #E8B440;  /* Yellow */
+    --pretisk:   #35262F;  /* co vznikne, když se modrá s oranžovou potkají */
+
+    --posun-x: 6px;
+    --posun-y: 5px;
+
+    --sirka: 1180px;
+    --okraj: clamp(20px, 5vw, 64px);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papir);
+    color: var(--pretisk);
+    font-family: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Zrno papíru přes celý arch. Turbulence je jediný levný způsob,
+     jak dostat do CSS nepravidelnost, kterou má neklížený papír. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.5;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='z'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23z)' opacity='0.32'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- soutisk: každý velký nadpis jde dvakrát ---------- */
+
+  .dvojtisk { position: relative; display: inline-block; }
+  .dvojtisk .vrstva { display: block; mix-blend-mode: multiply; }
+  .dvojtisk .spodni {
+    position: absolute;
+    left: 0; top: 0;
+    color: var(--oranzova);
+    transform: translate(var(--posun-x), var(--posun-y));
+    user-select: none;
+  }
+  .dvojtisk .vrchni { position: relative; color: var(--modra); }
+
+  /* ---------- rastr ---------- */
+
+  .rastr {
+    background-image: radial-gradient(circle, currentColor 33%, transparent 34%);
+    background-size: 6px 6px;
+    mix-blend-mode: multiply;
+  }
+  .rastr-jemny { background-size: 9px 9px; }
+
+  /* ---------- arch ---------- */
+
+  .arch {
+    max-width: var(--sirka);
+    margin: 0 auto;
+    padding: 0 var(--okraj);
+  }
+
+  .znacka {
+    position: absolute;
+    width: 22px; height: 22px;
+    color: var(--modra);
+    opacity: 0.75;
+  }
+  .znacka-lh { top: 14px; left: 14px; }
+  .znacka-ph { top: 14px; right: 14px; }
+
+  .linka { border: 0; border-top: 3px solid var(--pretisk); margin: 0; }
+  .linka-tenka { border-top-width: 1px; }
+
+  /* ---------- typografie ---------- */
+
+  h1, h2, h3 {
+    font-family: "Archivo Black", "Archivo", system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    margin: 0;
+    line-height: 0.94;
+  }
+
+  .stitek {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--modra);
+  }
+
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  p { margin: 0; }
+  .text { max-width: 62ch; }
+
+  a { color: inherit; }
+
+  :where(a, button):focus-visible {
+    outline: 3px solid var(--oranzova);
+    outline-offset: 3px;
+  }
+
+  /* ---------- hlavička ---------- */
+
+  header { position: relative; padding-top: 42px; }
+
+  .hlavicka {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px 28px;
+    padding-bottom: 16px;
+  }
+
+  .logo {
+    display: inline-block;
+    background: var(--pretisk);
+    color: var(--papir);
+    padding: 10px 14px 12px;
+    font-family: "Archivo Black", sans-serif;
+    line-height: 0.88;
+    letter-spacing: -0.02em;
+  }
+  .logo .maly { display: block; font-size: 12px; letter-spacing: 0.06em; }
+  .logo .velky { display: block; font-size: 27px; }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 20px;
+    font-size: 15px;
+  }
+  nav a { text-decoration: none; }
+  nav a:hover { color: var(--oranzova); }
+  nav .skrtnuto { text-decoration: line-through 2px var(--oranzova); opacity: 0.75; }
+  nav .parta { color: var(--modra); font-weight: 600; }
+
+  .tlacitko {
+    display: inline-block;
+    background: var(--modra);
+    color: var(--papir);
+    text-decoration: none;
+    padding: 9px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    mix-blend-mode: multiply;
+  }
+  .tlacitko:hover { background: var(--pretisk); }
+
+  .tlacitko-obrys {
+    display: inline-block;
+    border: 2px solid var(--pretisk);
+    color: var(--pretisk);
+    text-decoration: none;
+    padding: 11px 20px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .tlacitko-obrys:hover { background: var(--zluta); }
+
+  .tlacitko-velke { padding: 13px 24px; font-size: 15px; }
+
+  /* ---------- hero ---------- */
+
+  .hero {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(28px, 5vw, 64px);
+    align-items: center;
+    padding: clamp(38px, 6vw, 72px) 0;
+  }
+
+  .hero h1 { font-size: clamp(44px, 7.4vw, 92px); }
+
+  .hero .uvod { margin-top: 26px; font-size: 18px; }
+
+  .akce { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+
+  .kruh-obal { position: relative; }
+  .kruh-popis {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+  }
+
+  /* ---------- ink blok ---------- */
+
+  .blok {
+    position: relative;
+    background: var(--modra);
+    color: var(--papir);
+    padding: clamp(26px, 4vw, 44px);
+    overflow: hidden;
+  }
+  .blok .rastr-vrstva {
+    position: absolute;
+    inset: 0;
+    color: var(--pretisk);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .blok > * { position: relative; }
+  .blok h2 { font-size: clamp(30px, 4.4vw, 46px); color: var(--papir); }
+  .blok .stitek { color: var(--zluta); }
+
+  /* ---------- sekce ---------- */
+
+  section { padding: clamp(46px, 6vw, 78px) 0; }
+
+  .hlava-sekce {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin-bottom: 30px;
+  }
+  .hlava-sekce h2 { font-size: clamp(28px, 4vw, 44px); }
+
+  /* ---------- karty nabídky ---------- */
+
+  .karty {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 3px solid var(--pretisk);
+  }
+  .karta {
+    padding: 24px 20px 22px;
+    border-right: 3px solid var(--pretisk);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+  .karta:last-child { border-right: 0; }
+  .karta h3 { font-size: 24px; }
+  .karta p { font-size: 15px; line-height: 1.5; }
+  .karta .odkaz {
+    margin-top: auto;
+    padding-top: 14px;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+  }
+  .karta .odkaz:hover { color: var(--oranzova); }
+
+  .karta-vybrana { background: var(--zluta); }
+  .odznak {
+    position: absolute;
+    top: -3px; right: -3px;
+    background: var(--oranzova);
+    color: var(--papir);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    mix-blend-mode: multiply;
+  }
+
+  /* ---------- termíny ---------- */
+
+  .termin {
+    display: grid;
+    grid-template-columns: 84px 1fr auto;
+    gap: 22px;
+    align-items: start;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--pretisk);
+  }
+  .termin:last-child { border-bottom: 0; }
+
+  .datum {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 40px;
+    line-height: 0.82;
+    color: var(--oranzova);
+    mix-blend-mode: multiply;
+    font-variant-numeric: tabular-nums;
+  }
+  .datum .mesic {
+    display: block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--pretisk);
+    margin-top: 7px;
+  }
+  .termin h3 { font-size: 19px; line-height: 1.15; margin-bottom: 5px; }
+  .termin .format { font-size: 14px; }
+  .termin .popis { font-size: 15px; margin-top: 6px; max-width: 56ch; }
+
+  .stav {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border: 2px solid var(--modra);
+    color: var(--modra);
+    padding: 5px 10px;
+    white-space: nowrap;
+    mix-blend-mode: multiply;
+  }
+
+  /* ---------- parta ---------- */
+
+  .parta-rada {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 14px;
+    align-items: end;
+  }
+  .parta-rada figure { margin: 0; text-align: center; }
+  .parta-rada figcaption {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* ---------- o dílně ---------- */
+
+  .o-dilne { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
+  .o-dilne h2 { font-size: clamp(30px, 4.6vw, 52px); }
+  .o-dilne p { margin-top: 20px; font-size: 17px; }
+
+  /* ---------- patička ---------- */
+
+  footer { background: var(--pretisk); color: var(--papir); padding: 46px 0 30px; margin-top: 30px; }
+  footer .stitek { color: var(--zluta); }
+  footer h2 { font-size: clamp(28px, 4.6vw, 52px); color: var(--papir); }
+  footer .rucne { font-family: "Archivo", sans-serif; font-style: italic; font-size: 19px; margin-top: 10px; opacity: 0.9; }
+
+  .klin { display: flex; margin-top: 34px; border: 1px solid rgba(242,233,216,0.35); }
+  .klin span { flex: 1; height: 26px; }
+  .klin span:nth-child(1) { background: var(--modra); }
+  .klin span:nth-child(2) { background: var(--oranzova); }
+  .klin span:nth-child(3) { background: var(--zluta); }
+  .klin span:nth-child(4) { background: var(--pretisk); border-left: 1px solid rgba(242,233,216,0.35); }
+  .klin span:nth-child(5) { background: var(--papir); }
+
+  .tiraz {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 26px;
+    justify-content: space-between;
+    margin-top: 14px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  /* ---------- responzivita ---------- */
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .karty { grid-template-columns: repeat(2, 1fr); }
+    .karta:nth-child(2) { border-right: 0; }
+    .karta:nth-child(1), .karta:nth-child(2) { border-bottom: 3px solid var(--pretisk); }
+    .o-dilne { grid-template-columns: 1fr; }
+    .parta-rada { grid-template-columns: repeat(5, 1fr); gap: 18px 10px; }
+  }
+
+  @media (max-width: 620px) {
+    :root { --posun-x: 4px; --posun-y: 3px; }
+    .karty { grid-template-columns: 1fr; }
+    .karta { border-right: 0; border-bottom: 3px solid var(--pretisk); }
+    .karta:last-child { border-bottom: 0; }
+    .termin { grid-template-columns: 64px 1fr; }
+    .termin .stav { grid-column: 2; justify-self: start; }
+    .parta-rada { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<header>
+  <svg class="znacka znacka-lh" viewBox="0 0 22 22" aria-hidden="true">
+    <path d="M11 0v22M0 11h22" stroke="currentColor" stroke-width="1" fill="none"/>
+    <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1" fill="none"/>
+  </svg>
+  <svg class="znacka znacka-ph" viewBox="0 0 22 22" aria-hidden="true">
+    <path d="M11 0v22M0 11h22" stroke="currentColor" stroke-width="1" fill="none"/>
+    <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1" fill="none"/>
+  </svg>
+
+  <div class="arch">
+    <div class="hlavicka">
+      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <a href="#" class="logo" style="text-decoration:none;">
+          <span class="maly">OŘECHOVÁ</span>
+          <span class="velky">HLÍNA</span>
+        </a>
+        <span class="stitek">Keramická dílna · Luční 235, Ořech</span>
+      </div>
+      <nav>
+        <a href="#">Úvod</a>
+        <a href="#">Kurzy</a>
+        <a href="#" class="skrtnuto">Pro děti</a>
+        <a href="#" class="parta">Parta</a>
+        <a href="#">Open studio</a>
+        <a href="#">Obchod</a>
+        <a href="#" class="skrtnuto">Dizajn</a>
+        <a href="#">O nás</a>
+        <a href="#" class="tlacitko">Rezervovat</a>
+      </nav>
+    </div>
+  </div>
+  <hr class="linka">
+</header>
+
+<main>
+  <div class="arch">
+    <div class="hero">
+      <div>
+        <h1 class="dvojtisk">
+          <span class="vrstva spodni" aria-hidden="true">Uč se keramiku tam, kde má hlína čas.</span>
+          <span class="vrstva vrchni">Uč se keramiku tam, kde má hlína čas.</span>
+        </h1>
+        <p class="uvod text">
+          Malá dílna v Ořechu — kurzy pro začátečníky i pokročilé, open studio
+          pro volnou tvorbu a keramika, kterou si odneseš domů.
+        </p>
+        <div class="akce">
+          <a href="#" class="tlacitko tlacitko-velke">Vybrat kurz →</a>
+          <a href="#" class="tlacitko-obrys">Zjistit open studio</a>
+        </div>
+      </div>
+
+      <div class="kruh-obal">
+        <!-- Soustředné kruhy: modrá deska, oranžová o kus vedle, v překryvu tmavne -->
+        <svg viewBox="0 0 400 430" style="width:100%; height:auto; display:block;" role="img" aria-label="Soustředné kruhy kolem hroudy hlíny">
+          <g style="mix-blend-mode:multiply;">
+            <circle cx="206" cy="196" r="186" fill="none" stroke="#D4522A" stroke-width="2" stroke-dasharray="9 8"/>
+            <circle cx="206" cy="196" r="152" fill="none" stroke="#D4522A" stroke-width="13"/>
+            <circle cx="206" cy="196" r="112" fill="none" stroke="#D4522A" stroke-width="13"/>
+            <path d="M200 122 C246 120 282 152 278 198 C274 244 244 274 200 274 C158 274 124 244 124 198 C124 154 154 124 200 122 Z" fill="#D4522A"/>
+          </g>
+          <g style="mix-blend-mode:multiply;">
+            <circle cx="200" cy="200" r="186" fill="none" stroke="#3B3AC4" stroke-width="2" stroke-dasharray="9 8"/>
+            <circle cx="200" cy="200" r="152" fill="none" stroke="#3B3AC4" stroke-width="13"/>
+            <circle cx="200" cy="200" r="112" fill="none" stroke="#3B3AC4" stroke-width="13"/>
+          </g>
+          <text x="200" y="418" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="1.6" fill="#3B3AC4">Přijď si sednout ke kruhu</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <hr class="linka">
+
+  <!-- Den otevřených dveří -->
+  <section>
+    <div class="arch">
+      <div class="blok">
+        <div class="rastr rastr-vrstva" aria-hidden="true"></div>
+        <span class="stitek">10. 9. · 10–16</span>
+        <h2 style="margin-top:10px;">Den otevřených dveří</h2>
+        <p class="text" style="margin-top:14px; color:var(--papir); opacity:0.92;">
+          Přijď se podívat, jak dílna funguje zevnitř. Uvidíš točení na kruhu,
+          nahlédneš do pece a osaháš si hlínu, i kdybys ji v ruce nikdy neměl.
+          Ptát se můžeš na cokoliv.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Katalog -->
+  <section style="padding-top:0;">
+    <div class="arch">
+      <div class="hlava-sekce">
+        <h2 class="dvojtisk">
+          <span class="vrstva spodni" aria-hidden="true">Co u nás najdeš</span>
+          <span class="vrstva vrchni">Co u nás najdeš</span>
+        </h2>
+        <span class="stitek">Katalog</span>
+      </div>
+
+      <div class="karty">
+        <div class="karta">
+          <span class="stitek">3 hodiny</span>
+          <h3>Workshopy</h3>
+          <p>Jednorázové zážitkové kurzy. Ideální na dárek nebo teambuilding.</p>
+          <a href="#" class="odkaz">Vybrat termín →</a>
+        </div>
+        <div class="karta">
+          <span class="stitek">4–8 lekcí</span>
+          <h3>Kurzy</h3>
+          <p>Vícedenní cykly pro začátečníky i pokročilé. Kruh, technika, glazování.</p>
+          <a href="#" class="odkaz">Prohlédnout kurzy →</a>
+        </div>
+        <div class="karta karta-vybrana">
+          <span class="odznak">Nejoblíbenější</span>
+          <span class="stitek">na hodiny</span>
+          <h3>Open studio</h3>
+          <p>Rezervuj si čas u kruhu bez instruktora. Členství i jednorázový vstup.</p>
+          <a href="#" class="odkaz">Zjistit více →</a>
+        </div>
+        <div class="karta">
+          <span class="stitek">malé série</span>
+          <h3>Obchod</h3>
+          <p>Keramika od nás i našich lektorů. Malé série, žádné dva stejné.</p>
+          <a href="#" class="odkaz">Do obchodu →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="linka">
+
+  <!-- Termíny -->
+  <section>
+    <div class="arch">
+      <div class="hlava-sekce">
+        <h2 class="dvojtisk">
+          <span class="vrstva spodni" aria-hidden="true">Nejbližší termíny</span>
+          <span class="vrstva vrchni">Nejbližší termíny</span>
+        </h2>
+        <span class="stitek">Podzim 2026 · 4 kurzy</span>
+      </div>
+
+      <div class="termin">
+        <div class="datum">04<span class="mesic">LIS</span></div>
+        <div>
+          <h3>Kurz kruhu pro začátečníky</h3>
+          <p class="format mono">4 lekce · středy 18:00 · Jiřík</p>
+          <p class="popis">Naučíš se základy točení na kruhu — centrovat, vytahovat, tvarovat. Čtyři večery, vlastní tempo.</p>
+        </div>
+        <span class="stav">Připravujeme</span>
+      </div>
+
+      <div class="termin">
+        <div class="datum">14<span class="mesic">LIS</span></div>
+        <div>
+          <h3>Víkendový workshop — mísy &amp; talíře</h3>
+          <p class="format mono">2 dny · so–ne 10:00 · Renča</p>
+          <p class="popis">Dva dny u kruhu zaměřené na ploché tvary. Glazování v ceně, hotové kousky vyzvedneš za 2 týdny.</p>
+        </div>
+        <span class="stav">Připravujeme</span>
+      </div>
+
+      <div class="termin">
+        <div class="datum">21<span class="mesic">LIS</span></div>
+        <div>
+          <h3>Glazování — pokročilý seminář</h3>
+          <p class="format mono">1 den · sobota 09:00 · Jiřík</p>
+          <p class="popis">Teorie i praxe glazur — oxidace, redukce, vrstvení. Pro ty, kdo už mají za sebou pár výpalů.</p>
+        </div>
+        <span class="stav">Připravujeme</span>
+      </div>
+
+      <div class="termin">
+        <div class="datum">28<span class="mesic">LIS</span></div>
+        <div>
+          <h3>Kurz kruhu — pokročilí</h3>
+          <p class="format mono">6 lekcí · soboty 10:00 · Renča</p>
+          <p class="popis">Víčka, džbány, sady. Pro ty, kdo zvládají základy a chtějí se posunout dál.</p>
+        </div>
+        <span class="stav">Připravujeme</span>
+      </div>
+    </div>
+  </section>
+
+  <hr class="linka">
+
+  <!-- O dílně -->
+  <section>
+    <div class="arch">
+      <div class="o-dilne">
+        <div>
+          <h2 class="dvojtisk">
+            <span class="vrstva spodni" aria-hidden="true">O dílně</span>
+            <span class="vrstva vrchni">O dílně</span>
+          </h2>
+          <p class="text">
+            Začínáme v roce 2026 s jednou pecí, dvěma stoly, třemi kruhy a spoustou
+            nadšení. Malá dílna v Ořechu, kde má hlína čas a každá chyba svůj tvar.
+          </p>
+          <p class="text" style="margin-top:16px;">
+            Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé,
+            začátečníky i pro pokročilé, kteří chtějí posunout, co už umí.
+          </p>
+        </div>
+
+        <!-- Pec v řezu: teplota je jediné číslo, které o téhle dílně něco říká -->
+        <div>
+          <svg viewBox="0 0 380 300" style="width:100%; height:auto; display:block;" role="img" aria-label="Pec v řezu, výpal na 1000 °C">
+            <g style="mix-blend-mode:multiply;">
+              <rect x="66" y="44" width="234" height="216" fill="#D4522A"/>
+            </g>
+            <g style="mix-blend-mode:multiply;">
+              <rect x="58" y="36" width="234" height="216" fill="none" stroke="#3B3AC4" stroke-width="4"/>
+              <rect x="88" y="86" width="174" height="140" fill="none" stroke="#3B3AC4" stroke-width="4"/>
+              <path d="M175 36 V16 h44 v20" fill="none" stroke="#3B3AC4" stroke-width="4"/>
+              <path d="M88 132 h174 M88 178 h174" stroke="#3B3AC4" stroke-width="3"/>
+              <ellipse cx="130" cy="112" rx="22" ry="8" fill="none" stroke="#3B3AC4" stroke-width="3"/>
+              <ellipse cx="212" cy="158" rx="22" ry="8" fill="none" stroke="#3B3AC4" stroke-width="3"/>
+              <ellipse cx="146" cy="204" rx="22" ry="8" fill="none" stroke="#3B3AC4" stroke-width="3"/>
+              <path d="M58 274 h234" stroke="#3B3AC4" stroke-width="2"/>
+              <path d="M58 268 v12 M292 268 v12" stroke="#3B3AC4" stroke-width="2"/>
+              <text x="175" y="292" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="1.4" fill="#3B3AC4">1000 °C · 2 týdny do vyzvednutí</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="linka">
+
+  <!-- Parta -->
+  <section>
+    <div class="arch">
+      <div class="hlava-sekce">
+        <h2 class="dvojtisk">
+          <span class="vrstva spodni" aria-hidden="true">Parta</span>
+          <span class="vrstva vrchni">Parta</span>
+        </h2>
+        <span class="stitek">9 postaviček · schovávají se po celém webu</span>
+      </div>
+
+      <div class="parta-rada">
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <circle cx="54" cy="52" r="38" fill="#D4522A" style="mix-blend-mode:multiply;"/>
+            <circle cx="48" cy="46" r="38" fill="#3B3AC4" style="mix-blend-mode:multiply;"/>
+            <rect x="8" y="90" width="84" height="12" fill="#3B3AC4" style="mix-blend-mode:multiply;"/>
+          </svg>
+          <figcaption>Hlínka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M56 12 C36 46 28 62 28 74 C28 90 40 100 56 100 C72 100 84 90 84 74 C84 62 76 46 56 12 Z" fill="#D4522A" style="mix-blend-mode:multiply;"/>
+            <path d="M50 6 C30 40 22 56 22 68 C22 84 34 94 50 94 C66 94 78 84 78 68 C78 56 70 40 50 6 Z" fill="#3B3AC4" style="mix-blend-mode:multiply;"/>
+          </svg>
+          <figcaption>Kapka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <rect x="22" y="30" width="62" height="72" rx="8" fill="#D4522A" style="mix-blend-mode:multiply;"/>
+            <rect x="16" y="24" width="62" height="72" rx="8" fill="none" stroke="#3B3AC4" stroke-width="6" style="mix-blend-mode:multiply;"/>
+            <rect x="30" y="48" width="34" height="34" fill="#3B3AC4" style="mix-blend-mode:multiply;"/>
+            <path d="M56 24 V8 h16 v16" fill="none" stroke="#3B3AC4" stroke-width="6" style="mix-blend-mode:multiply;"/>
+          </svg>
+          <figcaption>Pecinka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M22 42 C24 74 38 96 56 96 C74 96 88 74 90 42 Z" fill="#D4522A" style="mix-blend-mode:multiply;"/>
+            <path d="M16 36 C18 68 32 90 50 90 C68 90 82 68 84 36 Z" fill="#3B3AC4" style="mix-blend-mode:multiply;"/>
+            <path d="M56 34 L46 60 L58 78 L50 92" fill="none" stroke="#E8B440" stroke-width="5"/>
+          </svg>
+          <figcaption>Střípek</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M44 20 L42 34 C28 46 24 68 28 84 C32 96 42 102 54 102 C66 102 76 96 80 84 C84 68 80 46 66 34 L64 20 Z" fill="#D4522A" style="mix-blend-mode:multiply;"/>
+            <path d="M38 14 L36 28 C22 40 18 62 22 78 C26 90 36 96 48 96 C60 96 70 90 74 78 C78 62 74 40 60 28 L58 14 Z" fill="none" stroke="#3B3AC4" stroke-width="6" style="mix-blend-mode:multiply;"/>
+          </svg>
+          <figcaption>Vázička</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <circle cx="56" cy="56" r="36" fill="#E8B440" style="mix-blend-mode:multiply;"/>
+            <circle cx="48" cy="50" r="36" fill="none" stroke="#3B3AC4" stroke-width="6" style="mix-blend-mode:multiply;"/>
+          </svg>
+          <figcaption>Bublinka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <rect x="26" y="26" width="64" height="64" fill="#D4522A" style="mix-blend-mode:multiply;"/>
+            <rect x="18" y="18" width="64" height="64" fill="none" stroke="#3B3AC4" stroke-width="6" style="mix-blend-mode:multiply;"/>
+          </svg>
+          <figcaption>Kachlík</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <rect x="30" y="26" width="52" height="76" fill="#D4522A" style="mix-blend-mode:multiply;"/>
+            <rect x="24" y="20" width="52" height="76" fill="none" stroke="#3B3AC4" stroke-width="6" style="mix-blend-mode:multiply;"/>
+            <circle cx="50" cy="36" r="6" fill="none" stroke="#3B3AC4" stroke-width="4"/>
+            <path d="M34 70 h32 M34 80 h20" stroke="#E8B440" stroke-width="5"/>
+            <path d="M50 20 C40 10 44 4 50 2" fill="none" stroke="#3B3AC4" stroke-width="4"/>
+          </svg>
+          <figcaption>Cedulka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 110" aria-hidden="true" style="width:100%;height:auto;">
+            <rect x="14" y="48" width="80" height="30" fill="#D4522A" style="mix-blend-mode:multiply;"/>
+            <rect x="6" y="42" width="80" height="30" fill="none" stroke="#3B3AC4" stroke-width="6" style="mix-blend-mode:multiply;"/>
+            <path d="M14 88 h64 M22 98 h48" stroke="#E8B440" stroke-width="5"/>
+          </svg>
+          <figcaption>Šamotka</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="arch">
+    <span class="stitek">Ořech u Prahy</span>
+    <h2 style="margin-top:12px;">Přijď si zkusit,<br>jak se hlína točí.</h2>
+    <p class="rucne">— keramická dílna, od 2026.</p>
+
+    <!-- Barevný klín a tiráž jako na skutečném nátisku -->
+    <div class="klin" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="tiraz mono">
+      <span>Federal Blue + Orange + Yellow</span>
+      <span>Soutisk 6 × 5 px</span>
+      <span>Rastr 6 px · 100 lpi</span>
+      <span>Náklad 1 / 1</span>
+    </div>
+  </div>
+</footer>
+</Nahled>

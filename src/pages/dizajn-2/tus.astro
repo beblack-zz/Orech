@@ -1,0 +1,642 @@
+---
+import Nahled from "../../layouts/Nahled.astro";
+---
+
+<Nahled
+  title="Ořechová hlína tuší"
+  fonts="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Newsreader:opsz,wght@6..72,200;6..72,300;6..72,400&family=JetBrains+Mono:wght@300;400&display=swap"
+>
+  <style is:global>
+  /*
+    Jeden vizuální svět, schválně. Tuš na papíře nemá tmavý režim —
+    proto žádné @media prefers-color-scheme, ale všechny barvy napsané
+    z tokenů, aby stránka držela na jakémkoli podkladu hostitele.
+  */
+  :root {
+    --papir:    #F4F0E6;   /* ruční papír, chladnější a bledší než krém webu */
+    --tus:      #23211D;   /* sumi nikdy není černá, je hnědočerná */
+    --tus-2:    rgba(35, 33, 29, 0.62);
+    --tus-3:    rgba(35, 33, 29, 0.38);
+    --tus-4:    rgba(35, 33, 29, 0.14);
+    --pecet:    #B03A22;   /* rumělka, jediná barva na celé stránce */
+    --zlato:    #B8912F;   /* kintsugi — použité přesně dvakrát */
+
+    --sirka: 940px;
+    --okraj: clamp(22px, 6vw, 80px);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papir);
+    color: var(--tus);
+    font-family: "Newsreader", Georgia, "Times New Roman", serif;
+    font-weight: 300;
+    font-size: 17px;
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Vlákna ručního papíru. Velmi slabě — má se to spíš tušit než vidět. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 40;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7 0.04' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23v)' opacity='0.22'/%3E%3C/svg%3E");
+  }
+
+  .list { max-width: var(--sirka); margin: 0 auto; padding: 0 var(--okraj); }
+
+  /* ---------- typografie ---------- */
+
+  h1, h2, h3 { margin: 0; font-weight: 300; text-wrap: balance; }
+
+  h1, .veliky {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 300;
+    line-height: 1.02;
+    letter-spacing: -0.012em;
+  }
+
+  .stitek {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--tus-3);
+  }
+
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 300; }
+
+  p { margin: 0; max-width: 60ch; }
+  a { color: inherit; text-decoration: none; }
+
+  :where(a, button):focus-visible {
+    outline: 1px solid var(--pecet);
+    outline-offset: 6px;
+  }
+
+  /* ---------- hlavička ---------- */
+
+  header { padding: 40px 0 0; }
+
+  .hlavicka {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px 32px;
+  }
+
+  .znak {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 21px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    padding-right: 0;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 26px;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--tus-2);
+  }
+  nav a:hover { color: var(--tus); }
+  nav .skrtnuto { text-decoration: line-through 1px var(--pecet); color: var(--tus-3); }
+  nav .zvyrazneno { color: var(--tus); }
+
+  /* ---------- hero ---------- */
+
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: clamp(30px, 5vw, 70px);
+    align-items: center;
+    padding: clamp(48px, 9vw, 118px) 0 clamp(40px, 7vw, 96px);
+  }
+
+  .hero h1 { font-size: clamp(46px, 8vw, 104px); }
+  .hero h1 em { font-style: italic; color: var(--tus-2); }
+
+  .hero .uvod {
+    margin-top: clamp(24px, 3vw, 38px);
+    font-size: 18px;
+    color: var(--tus-2);
+    max-width: 44ch;
+  }
+
+  .odkazy { display: flex; flex-wrap: wrap; gap: 12px 34px; margin-top: 38px; }
+
+  .odkaz-tah {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--tus-3);
+  }
+  .odkaz-tah:hover { border-bottom-color: var(--pecet); color: var(--pecet); }
+
+  .enso-obal { position: relative; }
+  .enso-popis {
+    display: block;
+    text-align: center;
+    margin-top: 6px;
+    color: var(--tus-3);
+  }
+
+  /* kresba jedním tahem */
+  .tah-odkryv {
+    stroke-dasharray: 100 100;
+    stroke-dashoffset: 100;
+    animation: kresli 1.6s cubic-bezier(0.32, 0, 0.2, 1) forwards;
+  }
+  @keyframes kresli { to { stroke-dashoffset: 0; } }
+
+  /* ---------- oddělovač ---------- */
+
+  .delic { display: block; width: 100%; height: 14px; margin: 0; color: var(--tus-4); }
+
+  /* ---------- sekce ---------- */
+
+  section { padding: clamp(52px, 8vw, 104px) 0; }
+
+  .hlava {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin-bottom: clamp(30px, 4vw, 52px);
+  }
+  .hlava h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(30px, 4.4vw, 46px); }
+
+  /* ---------- den otevřených dveří ---------- */
+
+  .udalost {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: clamp(24px, 5vw, 62px);
+    align-items: center;
+    padding: clamp(28px, 4vw, 46px) 0;
+    border-top: 1px solid var(--tus-4);
+    border-bottom: 1px solid var(--tus-4);
+  }
+  .udalost .den {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(58px, 11vw, 116px);
+    line-height: 0.8;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .udalost .den small { display: block; font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.2em; color: var(--tus-3); margin-top: 16px; }
+  .udalost h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(28px, 3.8vw, 44px); margin-bottom: 12px; }
+  .udalost p { color: var(--tus-2); }
+
+  /* ---------- nabídka ---------- */
+
+  .polozka {
+    display: grid;
+    grid-template-columns: 150px 1fr auto;
+    gap: 10px 34px;
+    align-items: baseline;
+    padding: 26px 0;
+    border-bottom: 1px solid var(--tus-4);
+  }
+  .polozka:first-of-type { border-top: 1px solid var(--tus-4); }
+  .polozka h3 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 30px; }
+  .polozka p { color: var(--tus-2); font-size: 16px; }
+  .polozka .sipka { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.14em; color: var(--tus-3); }
+  .polozka:hover .sipka { color: var(--pecet); }
+  .polozka .peceti { color: var(--pecet); }
+
+  /* ---------- termíny ---------- */
+
+  .termin {
+    display: grid;
+    grid-template-columns: 150px 1fr auto;
+    gap: 10px 34px;
+    align-items: baseline;
+    padding: 26px 0;
+    border-bottom: 1px solid var(--tus-4);
+  }
+  .termin:first-of-type { border-top: 1px solid var(--tus-4); }
+  .termin .kdy {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 34px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .termin .kdy span { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--tus-3); margin-left: 8px; }
+  .termin h3 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 26px; margin-bottom: 4px; }
+  .termin .popis { color: var(--tus-2); font-size: 16px; margin-top: 8px; }
+  .termin .stav {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--tus-3);
+    white-space: nowrap;
+  }
+
+  /* ---------- o dílně ---------- */
+
+  .o-dilne { display: grid; grid-template-columns: 1fr 340px; gap: clamp(28px, 5vw, 72px); align-items: center; }
+  .o-dilne h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(34px, 5.4vw, 62px); margin-bottom: 26px; }
+  .o-dilne p { color: var(--tus-2); }
+  .o-dilne p + p { margin-top: 18px; }
+
+  /* ---------- parta ---------- */
+
+  .parta { display: grid; grid-template-columns: repeat(9, 1fr); gap: 22px 12px; align-items: end; }
+  .parta figure { margin: 0; text-align: center; }
+  .parta figcaption {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tus-3);
+    margin-top: 12px;
+  }
+
+  /* ---------- závěr ---------- */
+
+  .zaver { text-align: center; padding: clamp(64px, 10vw, 130px) 0 clamp(40px, 6vw, 74px); }
+  .zaver h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(36px, 6vw, 76px); margin-bottom: 26px; }
+  .zaver p { margin: 0 auto; color: var(--tus-2); }
+
+  footer { padding: 0 0 56px; }
+  .tiraz {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 30px;
+    padding-top: 26px;
+    border-top: 1px solid var(--tus-4);
+    color: var(--tus-3);
+  }
+
+  /* ---------- responzivita ---------- */
+
+  @media (max-width: 880px) {
+    .hero { grid-template-columns: 1fr; }
+    .enso-obal { max-width: 340px; margin: 0 auto; }
+    .o-dilne { grid-template-columns: 1fr; }
+    .parta { grid-template-columns: repeat(5, 1fr); }
+    .polozka, .termin { grid-template-columns: 1fr auto; }
+    .polozka h3, .termin .kdy { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 560px) {
+    .udalost { grid-template-columns: 1fr; }
+    .parta { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tah-odkryv { animation: none; stroke-dashoffset: 0; }
+  }
+</style>
+
+<header>
+  <div class="list">
+    <div class="hlavicka">
+      <a href="#" class="znak">Ořechová hlína</a>
+      <nav>
+        <a href="#" class="zvyrazneno">Úvod</a>
+        <a href="#">Kurzy</a>
+        <a href="#" class="skrtnuto">Pro děti</a>
+        <a href="#">Parta</a>
+        <a href="#">Open studio</a>
+        <a href="#">Obchod</a>
+        <a href="#" class="skrtnuto">Dizajn</a>
+        <a href="#">O nás</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="list">
+    <div class="hero">
+      <div>
+        <p class="stitek">Keramická dílna · Luční 235, Ořech</p>
+        <h1 style="margin-top:26px;">Uč se keramiku tam,<br>kde má hlína <em>čas.</em></h1>
+        <p class="uvod">
+          Malá dílna v Ořechu — kurzy pro začátečníky i pokročilé, open studio
+          pro volnou tvorbu a keramika, kterou si odneseš domů.
+        </p>
+        <div class="odkazy">
+          <a href="#" class="odkaz-tah">Vybrat kurz</a>
+          <a href="#" class="odkaz-tah">Zjistit open studio</a>
+          <a href="#" class="odkaz-tah">Rezervovat</a>
+        </div>
+      </div>
+
+      <div class="enso-obal">
+        <!--
+          Enso: kruh nakreslený jedním tahem. Pro hrnčířskou dílnu je to
+          dvojznačné schválně — je to zároveň hrnčířský kruh.
+          Tři oblouky přes sebe dělají to, co štětec: tah se v tlaku rozšíří
+          a na konci ztenčí. Maska ho odkrývá po dráze, takže se kreslí.
+        -->
+        <svg viewBox="0 0 400 470" style="width:100%;height:auto;display:block;" role="img" aria-label="Kruh nakreslený jedním tahem štětce">
+          <defs>
+            <mask id="odkryv">
+              <path d="M 200 60 A 140 140 0 1 1 85 120" fill="none" stroke="#fff"
+                    stroke-width="52" stroke-linecap="round"
+                    pathLength="100" class="tah-odkryv"/>
+            </mask>
+          </defs>
+
+          <g mask="url(#odkryv)" fill="none" stroke="#23211D" stroke-linecap="round">
+            <path d="M 200 60 A 140 140 0 1 1 85 120" stroke-width="8" pathLength="100"/>
+            <path d="M 200 60 A 140 140 0 1 1 85 120" stroke-width="21" pathLength="100" stroke-dasharray="0 10 66 100"/>
+            <path d="M 200 60 A 140 140 0 1 1 85 120" stroke-width="31" pathLength="100" stroke-dasharray="0 26 32 100"/>
+            <!-- suchý štětec: papír prosvítá skrz nejtlustší část -->
+            <path d="M 200 60 A 140 140 0 1 1 85 120" stroke="#F4F0E6" stroke-width="3" pathLength="100" stroke-dasharray="0 34 7 4 5 100" opacity="0.75"/>
+            <path d="M 200 60 A 140 140 0 1 1 85 120" stroke="#F4F0E6" stroke-width="2" pathLength="100" stroke-dasharray="0 47 9 100" opacity="0.6"/>
+          </g>
+
+          <!-- Pečeť: jediná barva na celé stránce -->
+          <g transform="translate(296 336) rotate(-4)">
+            <rect width="52" height="52" rx="2" fill="#B03A22"/>
+            <g stroke="#F4F0E6" stroke-width="3.4" stroke-linecap="round" fill="none">
+              <path d="M13 15 h26 M26 15 v22 M13 37 h26"/>
+              <path d="M13 26 h8 M31 26 h8"/>
+            </g>
+          </g>
+
+          <text x="200" y="452" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2.6" fill="rgba(35,33,29,0.38)">PŘIJĎ SI SEDNOUT KE KRUHU</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="list">
+    <svg class="delic" viewBox="0 0 900 14" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 8 C120 3 300 2 470 5 C640 8 790 10 900 6 C790 14 640 13 470 11 C300 9 120 11 0 8 Z" fill="currentColor"/>
+    </svg>
+  </div>
+
+  <!-- Den otevřených dveří -->
+  <section>
+    <div class="list">
+      <div class="udalost">
+        <div class="den">10.9.<small>10—16</small></div>
+        <div>
+          <h2>Den otevřených dveří</h2>
+          <p>
+            Přijď se podívat, jak dílna funguje zevnitř. Uvidíš točení na kruhu,
+            nahlédneš do pece a osaháš si hlínu, i kdybys ji v ruce nikdy neměl.
+            Ptát se můžeš na cokoliv.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Katalog -->
+  <section style="padding-top:0;">
+    <div class="list">
+      <div class="hlava">
+        <h2>Co u nás najdeš</h2>
+        <span class="stitek">Katalog</span>
+      </div>
+
+      <a href="#" class="polozka">
+        <h3>Workshopy</h3>
+        <div>
+          <p>Jednorázové zážitkové kurzy. Ideální na dárek nebo teambuilding.</p>
+          <p class="stitek" style="margin-top:8px;">3 hodiny</p>
+        </div>
+        <span class="sipka">Vybrat termín →</span>
+      </a>
+
+      <a href="#" class="polozka">
+        <h3>Kurzy</h3>
+        <div>
+          <p>Vícedenní cykly pro začátečníky i pokročilé. Kruh, technika, glazování.</p>
+          <p class="stitek" style="margin-top:8px;">4—8 lekcí</p>
+        </div>
+        <span class="sipka">Prohlédnout kurzy →</span>
+      </a>
+
+      <a href="#" class="polozka">
+        <h3>Open studio</h3>
+        <div>
+          <p>Rezervuj si čas u kruhu bez instruktora. Členství i jednorázový vstup.</p>
+          <p class="stitek" style="margin-top:8px;">na hodiny <span class="peceti">· nejoblíbenější</span></p>
+        </div>
+        <span class="sipka">Zjistit více →</span>
+      </a>
+
+      <a href="#" class="polozka">
+        <h3>Obchod</h3>
+        <div>
+          <p>Keramika od nás i našich lektorů. Malé série, žádné dva stejné.</p>
+          <p class="stitek" style="margin-top:8px;">malé série</p>
+        </div>
+        <span class="sipka">Do obchodu →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Termíny -->
+  <section style="padding-top:0;">
+    <div class="list">
+      <div class="hlava">
+        <h2>Nejbližší termíny</h2>
+        <span class="stitek">Podzim 2026 · 4 kurzy</span>
+      </div>
+
+      <div class="termin">
+        <div class="kdy">04<span>LIS</span></div>
+        <div>
+          <h3>Kurz kruhu pro začátečníky</h3>
+          <p class="stitek">4 lekce · středy 18:00 · Jiřík</p>
+          <p class="popis">Naučíš se základy točení na kruhu — centrovat, vytahovat, tvarovat. Čtyři večery, vlastní tempo.</p>
+        </div>
+        <span class="stav">Připravujeme</span>
+      </div>
+
+      <div class="termin">
+        <div class="kdy">14<span>LIS</span></div>
+        <div>
+          <h3>Víkendový workshop — mísy a talíře</h3>
+          <p class="stitek">2 dny · so—ne 10:00 · Renča</p>
+          <p class="popis">Dva dny u kruhu zaměřené na ploché tvary. Glazování v ceně, hotové kousky vyzvedneš za 2 týdny.</p>
+        </div>
+        <span class="stav">Připravujeme</span>
+      </div>
+
+      <div class="termin">
+        <div class="kdy">21<span>LIS</span></div>
+        <div>
+          <h3>Glazování — pokročilý seminář</h3>
+          <p class="stitek">1 den · sobota 09:00 · Jiřík</p>
+          <p class="popis">Teorie i praxe glazur — oxidace, redukce, vrstvení. Pro ty, kdo už mají za sebou pár výpalů.</p>
+        </div>
+        <span class="stav">Připravujeme</span>
+      </div>
+
+      <div class="termin">
+        <div class="kdy">28<span>LIS</span></div>
+        <div>
+          <h3>Kurz kruhu — pokročilí</h3>
+          <p class="stitek">6 lekcí · soboty 10:00 · Renča</p>
+          <p class="popis">Víčka, džbány, sady. Pro ty, kdo zvládají základy a chtějí se posunout dál.</p>
+        </div>
+        <span class="stav">Připravujeme</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="list">
+    <svg class="delic" viewBox="0 0 900 14" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 6 C140 11 320 12 500 9 C660 6 800 4 900 8 C800 2 660 1 500 4 C320 7 140 10 0 6 Z" fill="currentColor"/>
+    </svg>
+  </div>
+
+  <!-- O dílně -->
+  <section>
+    <div class="list">
+      <div class="o-dilne">
+        <div>
+          <h2>O dílně</h2>
+          <p>
+            Začínáme v roce 2026 s jednou pecí, dvěma stoly, třemi kruhy a spoustou
+            nadšení. Malá dílna v Ořechu, kde má hlína čas a každá chyba svůj tvar.
+          </p>
+          <p>
+            Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé,
+            začátečníky i pro pokročilé, kteří chtějí posunout, co už umí.
+          </p>
+          <p class="stitek" style="margin-top:30px;">1 pec · 2 lektoři · 3 kruhy</p>
+        </div>
+
+        <!-- Kintsugi: jediné zlato na stránce. Rozbitá miska je tu argument, ne dekorace. -->
+        <div>
+          <svg viewBox="0 0 340 300" style="width:100%;height:auto;display:block;" role="img" aria-label="Miska se zlatě spravenou prasklinou">
+            <path d="M52 108 C56 190 96 250 170 250 C244 250 284 190 288 108 L268 110 C264 180 232 232 170 232 C108 232 76 180 72 110 Z" fill="#23211D"/>
+            <path d="M46 104 C90 128 250 128 294 104 C250 148 90 148 46 104 Z" fill="#23211D" opacity="0.9"/>
+            <path d="M196 116 L176 158 L200 190 L184 250 L173 246 L188 190 L165 158 L189 114 Z" fill="#B8912F"/>
+            <path d="M176 158 L146 178 L151 188 L181 165 Z" fill="#B8912F"/>
+            <text x="170" y="286" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2.2" fill="rgba(35,33,29,0.38)">KAŽDÁ CHYBA SVŮJ TVAR</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Parta -->
+  <section style="padding-top:0;">
+    <div class="list">
+      <div class="hlava">
+        <h2>Parta</h2>
+        <span class="stitek">9 postaviček · schovávají se po celém webu</span>
+      </div>
+
+      <div class="parta">
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M18 62 C18 34 32 18 46 18 C62 18 74 34 74 62 C74 74 62 82 46 82 C30 82 18 74 18 62 Z" fill="#23211D"/>
+            <path d="M10 90 C30 84 62 84 82 90 C62 96 30 96 10 90 Z" fill="#23211D" opacity="0.55"/>
+          </svg>
+          <figcaption>Hlínka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M46 12 C30 44 22 60 22 70 C22 82 33 90 46 90 C59 90 70 82 70 70 C70 60 62 44 46 12 Z" fill="#23211D"/>
+          </svg>
+          <figcaption>Kapka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M20 30 C20 26 22 24 26 24 L66 24 C70 24 72 26 72 30 L72 84 C72 88 70 90 66 90 L26 90 C22 90 20 88 20 84 Z" fill="#23211D"/>
+            <path d="M32 48 h28 v26 h-28 Z" fill="#F4F0E6"/>
+            <path d="M56 24 V10 h12 v14" fill="none" stroke="#23211D" stroke-width="6"/>
+          </svg>
+          <figcaption>Pecinka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M16 38 C19 68 30 88 46 88 C62 88 73 68 76 38 L66 40 C63 62 57 78 46 78 C35 78 29 62 26 40 Z" fill="#23211D"/>
+            <path d="M13 36 C28 44 64 44 79 36 C64 50 28 50 13 36 Z" fill="#23211D" opacity="0.9"/>
+            <path d="M53 42 L44 58 L54 70 L48 88 L44 86 L50 70 L40 58 L49 41 Z" fill="#B8912F"/>
+          </svg>
+          <figcaption>Střípek</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M38 14 L37 30 C24 42 20 62 24 76 C28 86 36 92 46 92 C56 92 64 86 68 76 C72 62 68 42 55 30 L54 14 Z" fill="#23211D"/>
+            <path d="M34 14 h24" stroke="#23211D" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+          <figcaption>Vázička</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <circle cx="46" cy="54" r="32" fill="none" stroke="#23211D" stroke-width="7"/>
+            <circle cx="34" cy="42" r="6" fill="#23211D" opacity="0.3"/>
+          </svg>
+          <figcaption>Bublinka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M18 26 h56 v56 h-56 Z" fill="#23211D"/>
+            <path d="M30 38 h32 v32 h-32 Z" fill="#F4F0E6"/>
+          </svg>
+          <figcaption>Kachlík</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M28 26 h34 v62 h-34 Z" fill="#23211D"/>
+            <circle cx="45" cy="38" r="5" fill="#F4F0E6"/>
+            <path d="M34 64 h22 M34 74 h14" stroke="#F4F0E6" stroke-width="4" stroke-linecap="round"/>
+            <path d="M45 26 C36 16 40 8 45 6" fill="none" stroke="#23211D" stroke-width="4"/>
+          </svg>
+          <figcaption>Cedulka</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 90 100" aria-hidden="true" style="width:100%;height:auto;">
+            <path d="M8 48 h74 v22 h-74 Z" fill="#23211D"/>
+            <path d="M16 82 C32 76 58 76 74 82 C58 88 32 88 16 82 Z" fill="#23211D" opacity="0.4"/>
+          </svg>
+          <figcaption>Šamotka</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <div class="list">
+    <div class="zaver">
+      <h2>Přijď si zkusit,<br>jak se hlína točí.</h2>
+      <p>Pecinka topí každý týden a Hlínka na tebe čeká na stole.</p>
+      <div class="odkazy" style="justify-content:center;">
+        <a href="#" class="odkaz-tah">Vybrat kurz</a>
+        <a href="#" class="odkaz-tah">Napsat nám</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="list">
+    <div class="tiraz mono">
+      <span>Ořechová hlína · keramická dílna, od 2026</span>
+      <span>Luční 235, Ořech u Prahy</span>
+      <span>Výpal 1000 °C · 2 týdny do vyzvednutí</span>
+    </div>
+  </div>
+</footer>
+</Nahled>

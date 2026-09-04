@@ -2,7 +2,8 @@
 interface Props {
   title: string;
   italic: string;
-  meta: string;
+  /** Nepovinná — bez ní zůstane nadpis sám, žádný prázdný span */
+  meta?: string;
   metaLink?: string;
   metaLinkText?: string;
 }
@@ -14,7 +15,7 @@ const { title, italic, meta, metaLink, metaLinkText } = Astro.props;
     {title} <em class="italic font-normal text-terracotta">{italic}</em>
   </h2>
   <div class="flex gap-4 items-center flex-shrink-0">
-    <span class="mono-meta hidden sm:inline">{meta}</span>
+    {meta && <span class="mono-meta hidden sm:inline">{meta}</span>}
     {metaLink && (
       <a href={metaLink} class="mono-meta hover:text-terracotta">{metaLinkText} →</a>
     )}

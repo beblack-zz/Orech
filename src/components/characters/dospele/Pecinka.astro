@@ -1,0 +1,67 @@
+---
+import { uid } from "./uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+// Postavička se na stránce kreslí víckrát — id uvnitř SVG musí být pokaždé jiná
+const u = uid();
+---
+{/*
+  STYL: VÝKRES
+  Pec je stroj, tak ji kreslíme jako stroj. Jedna tloušťka čáry na obrys,
+  tenčí na kóty, osa čerchovaně, řez šrafou. Terakota jen na kótu.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <pattern id={`${u}-srafa`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#3A2E28" stroke-width="0.9" opacity="0.55"/>
+    </pattern>
+    <pattern id={`${u}-mrizka`} width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M10 0 L0 0 L0 10" stroke="#6B5D4F" stroke-width="0.5" opacity="0.28" fill="none"/>
+    </pattern>
+  </defs>
+
+  <rect x="14" y="14" width="152" height="152" fill={`url(#${u}-mrizka)`}/>
+
+  {/* Osa souměrnosti */}
+  <path d="M90 20 L90 160" stroke="#3A2E28" stroke-width="0.7" stroke-dasharray="10 3 2 3" opacity="0.6"/>
+
+  {/* Stěna v řezu */}
+  <path d="M48 54 L48 146 L60 146 L60 54 Z" fill={`url(#${u}-srafa)`}/>
+  <path d="M120 54 L120 146 L132 146 L132 54 Z" fill={`url(#${u}-srafa)`}/>
+
+  <rect x="48" y="54" width="84" height="92" rx="10" stroke="#3A2E28" stroke-width="1.6" fill="none"/>
+  <rect x="60" y="66" width="60" height="68" stroke="#3A2E28" stroke-width="1.2" fill="none"/>
+  <rect x="66" y="86" width="48" height="42" rx="4" stroke="#3A2E28" stroke-width="1.2" fill="none"/>
+  <path d="M107 54 L107 30 L127 30 L127 54" stroke="#3A2E28" stroke-width="1.6" fill="none"/>
+
+  {/* Odkaz na dvířka */}
+  <path d="M114 107 L146 96" stroke="#3A2E28" stroke-width="0.7"/>
+  <circle cx="114" cy="107" r="1.6" fill="#3A2E28"/>
+  <path d="M139 92 L152 92" stroke="#3A2E28" stroke-width="0.7"/>
+
+  {/* Oči jako díry ve výkresu — kroužek se středovým křížkem, jak se značí vrtání */}
+  <g class="tvar">
+    <circle cx="78" cy="74" r="4.2" stroke="#3A2E28" stroke-width="1.2" fill="none"/>
+    <path d="M78 68.5 L78 79.5 M72.5 74 L83.5 74" stroke="#3A2E28" stroke-width="0.6"/>
+    <circle cx="102" cy="74" r="4.2" stroke="#3A2E28" stroke-width="1.2" fill="none"/>
+    <path d="M102 68.5 L102 79.5 M96.5 74 L107.5 74" stroke="#3A2E28" stroke-width="0.6"/>
+    <path d="M80 82 A14 14 0 0 1 100 82" stroke="#3A2E28" stroke-width="1.2" fill="none"/>
+  </g>
+
+  {/* Kóta šířky */}
+  <path d="M48 158 L132 158" stroke="#B84A2B" stroke-width="0.9"/>
+  <path d="M48 154 L48 162 M132 154 L132 162" stroke="#B84A2B" stroke-width="0.9"/>
+  <path d="M48 158 L55 155.6 L55 160.4 Z" fill="#B84A2B"/>
+  <path d="M132 158 L125 155.6 L125 160.4 Z" fill="#B84A2B"/>
+  <rect x="80" y="152" width="20" height="12" fill="#F4EBDD"/>
+  <text x="90" y="161" text-anchor="middle" font-family="ui-monospace, monospace" font-size="9" fill="#B84A2B">840</text>
+
+  {/* Kóta výšky */}
+  <path d="M28 30 L28 146" stroke="#3A2E28" stroke-width="0.7" opacity="0.7"/>
+  <path d="M24 30 L32 30 M24 146 L32 146" stroke="#3A2E28" stroke-width="0.7" opacity="0.7"/>
+
+  {/* Rádius rohu */}
+  <path d="M58 44 L70 58" stroke="#3A2E28" stroke-width="0.6" opacity="0.7"/>
+  <text x="52" y="42" font-family="ui-monospace, monospace" font-size="8" fill="#3A2E28" opacity="0.8">R10</text>
+</svg>

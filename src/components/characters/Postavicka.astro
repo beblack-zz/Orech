@@ -10,15 +10,37 @@ import Kachlik from "./Kachlik.astro";
 import Cedulka from "./Cedulka.astro";
 import Samotka from "./Samotka.astro";
 
+import KapkaD from "./dospele/Kapka.astro";
+import PecinkaD from "./dospele/Pecinka.astro";
+import StripekD from "./dospele/Stripek.astro";
+import VazickaD from "./dospele/Vazicka.astro";
+import HlinkaD from "./dospele/Hlinka.astro";
+import BublinkaD from "./dospele/Bublinka.astro";
+import KachlikD from "./dospele/Kachlik.astro";
+import CedulkaD from "./dospele/Cedulka.astro";
+import SamotkaD from "./dospele/Samotka.astro";
+
+/**
+ * `hrava`        — původní parta, jak ji zná dětská část webu
+ * `bez-tvare`    — stejné kresby, jen se schová skupina .tvar (viz global.css)
+ * `dospela`      — vzorník devíti technik, bez tváře
+ * `dospela-tvar` — ty samé kresby s tváří
+ *
+ * Dospělé varianty jedou z jedněch souborů; liší se jen tím, jestli se
+ * skupina .tvar schová. Dvě sady souborů by se stejně rozešly.
+ */
+export type PostavickaVarianta = "hrava" | "bez-tvare" | "dospela" | "dospela-tvar";
+
 interface Props {
   id: PostavaId;
   size?: number;
+  varianta?: PostavickaVarianta;
   class?: string;
 }
 
-const { id, size = 140, class: cls = "" } = Astro.props;
+const { id, size = 140, varianta = "hrava", class: cls = "" } = Astro.props;
 
-const map = {
+const hrave = {
   kapka: Kapka,
   pecinka: Pecinka,
   stripek: Stripek,
@@ -30,7 +52,23 @@ const map = {
   samotka: Samotka,
 };
 
-const Component = map[id];
+const dospele = {
+  kapka: KapkaD,
+  pecinka: PecinkaD,
+  stripek: StripekD,
+  vazicka: VazickaD,
+  hlinka: HlinkaD,
+  bublinka: BublinkaD,
+  kachlik: KachlikD,
+  cedulka: CedulkaD,
+  samotka: SamotkaD,
+};
+
+const jeDospela = varianta === "dospela" || varianta === "dospela-tvar";
+const Component = jeDospela ? dospele[id] : hrave[id];
+
+const bezTvare = varianta === "bez-tvare" || varianta === "dospela";
+const tridy = bezTvare ? `bez-tvare ${cls}` : cls;
 ---
 
-<Component size={size} class={cls} />
+<Component size={size} class={tridy} />

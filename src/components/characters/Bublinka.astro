@@ -8,11 +8,13 @@ const { class: cls = "", size = 64 } = Astro.props;
   <g class="bublinka-telo">
     <circle cx="90" cy="96" r="46" fill="#EFE3D0" stroke="#6B5D4F" stroke-width="1.5"/>
     <ellipse cx="71" cy="76" rx="13" ry="8" fill="#F4EBDD" opacity="0.9" transform="rotate(-35 71 76)"/>
-    <path d="M74 94 Q78 89 82 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-    <path d="M98 94 Q102 89 106 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-    {/* Zvlněný úsměv místo obloučku — jako jediná v partě není úplně hodná */}
-    <path d="M79 110 Q85 116 90 110 Q95 104 101 110" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none"/>
-    <circle cx="69" cy="108" r="5" fill="#C87E4E" opacity="0.35"/>
-    <circle cx="111" cy="108" r="5" fill="#C87E4E" opacity="0.35"/>
+    <g class="tvar">
+      <path d="M74 94 Q78 89 82 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <path d="M98 94 Q102 89 106 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      {/* Zvlněný úsměv místo obloučku — jako jediná v partě není úplně hodná */}
+      <path d="M79 110 Q85 116 90 110 Q95 104 101 110" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <circle cx="69" cy="108" r="5" fill="#C87E4E" opacity="0.35"/>
+      <circle cx="111" cy="108" r="5" fill="#C87E4E" opacity="0.35"/>
+    </g>
   </g>
 </svg>

@@ -1,0 +1,33 @@
+---
+import ProduktTvar from "./ProduktTvar.astro";
+import type { Produkt } from "../data/obchod";
+
+/** Jedna dlaždice zboží. Bez ceny (naše tvorba) se řádek s cenou vynechá. */
+interface Props {
+  item: Produkt;
+  /** Tmavá varianta — spodek karty v espressu. Používá ji „Naše tvorba“. */
+  tmava?: boolean;
+}
+
+const { item, tmava = false } = Astro.props;
+---
+
+<div class:list={["rounded-xl border relative group", tmava ? "bg-espresso border-espresso" : "bg-white border-espresso/8"]}>
+  {item.tag && (
+    <span class={`absolute -top-2 left-3 font-mono text-[12px] font-medium px-2.5 py-0.5 rounded-full tracking-wider uppercase z-10 ${
+      item.tagKind === "new" ? "bg-mustard text-espresso" : "bg-clay text-cream"
+    }`}>
+      {item.tag}
+    </span>
+  )}
+  <div class="aspect-square bg-[#E8D7BF] flex items-center justify-center group-hover:bg-[#DFC8AA] transition-colors rounded-t-xl overflow-hidden">
+    <ProduktTvar shape={item.shape} />
+  </div>
+  <div class="p-3 rounded-b-xl">
+    <p class:list={["font-serif text-[16px] font-medium m-0 mb-0.5", tmava && "text-cream"]}>{item.name}</p>
+    <p class:list={["font-mono text-[12px] mb-1", tmava ? "text-cream/65" : "text-stone"]}>{item.author} · {item.glaze}</p>
+    {item.price && (
+      <p class="font-mono text-[14px] text-espresso font-medium">{item.price}</p>
+    )}
+  </div>
+</div>

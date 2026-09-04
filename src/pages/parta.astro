@@ -1,12 +1,27 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
+import Poznamka from "../components/Poznamka.astro";
 import { parta } from "../data/parta";
+import type { PostavaId } from "../data/parta";
+
+/** Vzorník technik. Každá postavička drží jednu — až padne volba, sjednotí se. */
+const styly: Record<PostavaId, string> = {
+  hlinka: "Linoryt",
+  kapka: "Risograf",
+  pecinka: "Výkres",
+  stripek: "Tušový tah",
+  vazicka: "Art deco",
+  bublinka: "Glazura",
+  kachlik: "Bauhaus",
+  cedulka: "Vystřižený papír",
+  samotka: "Mědirytina",
+};
 ---
 
 <Layout
   title="Parta — Ořechová hlína"
-  description="Hlínka, Kapka, Pecinka, Střípek a Vázička. Pět postaviček, co bydlí v našem ateliéru."
+  description="Hlínka, Kapka, Pecinka, Střípek a Vázička. Pět postaviček, co bydlí v naší dílně."
 >
   <section class="py-14 md:py-16 fade-up">
     <div class="container-x">
@@ -15,12 +30,12 @@ import { parta } from "../data/parta";
           Seznam se s <span class="serif-italic-terracotta">partou.</span>
         </h1>
         <p class="text-stone text-[17px] leading-[1.7]">
-          V ateliéru s námi bydlí pět postaviček. Každá tady dělá něco jiného a každá ti umí něco poradit.
+          V dílně s námi bydlí pět postaviček. Každá tady dělá něco jiného a každá ti umí něco poradit.
           Až přijdeš, zkus je najít — schovávají se po celém webu.
         </p>
       </div>
 
-      <!-- Řada postaviček -->
+      <!-- Řada postaviček — zároveň rozcestník na profily níž -->
       <div class="flex flex-wrap justify-center items-end gap-2 sm:gap-6 mt-10 md:mt-12">
         {parta.map((p) => (
           <a
@@ -38,6 +53,103 @@ import { parta } from "../data/parta";
             </span>
           </a>
         ))}
+      </div>
+    </div>
+  </section>
+
+  <!--
+    Dvě další podoby té samé party. Bez jmen — jména nese první řada,
+    tady by se jen třikrát opakovala.
+  -->
+  <section class="pb-14 md:pb-16 fade-up">
+    <div class="container-x space-y-12 md:space-y-14">
+      <div class="relative">
+        <Poznamka class="absolute top-0.5 -left-5 md:-left-7">
+          Bez tvářiček to sice vypadá dospěle, ale pojem „parta“ ztrácí na významu — nemáš se s kým kamarádit.
+        </Poznamka>
+        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-1">Bez tváře</h2>
+        <p class="text-stone/80 text-[14px] leading-[1.6] mb-6 max-w-[46ch]">
+          Ty samé kresby, jen bez očí a pusy. Zůstane z nich tvar — hrouda, kapka, pec.
+        </p>
+        <div class="flex flex-wrap justify-center items-end gap-2 sm:gap-6">
+          {parta.map((p) => (
+            <Postavicka
+              id={p.id}
+              size={120}
+              varianta="bez-tvare"
+              class="w-[74px] sm:w-[112px] h-auto"
+            />
+          ))}
+        </div>
+      </div>
+
+      <div class="relative">
+        <Poznamka class="absolute top-0.5 -left-5 md:-left-7">
+          Jakoby… Mona Lisa? Tady jsem vypustil Krakena, ale mix všech stylů
+          by nám dovolil namíchat prvky z Dizajnu 2.0 do celého webu — to by
+          vypadalo WOW!
+        </Poznamka>
+        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-1">Dospělá verze — devět stylů</h2>
+        <p class="text-stone/80 text-[14px] leading-[1.6] mb-6 max-w-[52ch]">
+          Každá postavička je nakreslená jinou technikou, žádná nemá tvář.
+          Není to hotová sada — je to vzorník. Vyber si číslo a celá parta
+          se překreslí do něj.
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {parta.map((p, i) => (
+            <div class="rounded-xl border border-espresso/10 bg-white/40 p-4 flex flex-col items-center text-center">
+              <Postavicka
+                id={p.id}
+                size={140}
+                varianta="dospela"
+                class="w-[104px] h-auto"
+              />
+              <span class="font-mono text-[11px] tracking-wider uppercase text-terracotta mt-3">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span class="font-mono text-[11px] tracking-wider uppercase text-espresso mt-0.5">
+                {styly[p.id]}
+              </span>
+              <span class="font-mono text-[10px] tracking-wider uppercase text-stone/60 mt-0.5">
+                {p.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="relative">
+        <Poznamka class="absolute top-0.5 -left-5 md:-left-7">
+          Ubereme z Mona Lisa efektu tak 30 %, ale máme Partu zpátky.
+          Tvářičky se můžou vyladit.
+        </Poznamka>
+        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-1">Ty samé styly — s tváří</h2>
+        <p class="text-stone/80 text-[14px] leading-[1.6] mb-6 max-w-[52ch]">
+          Stejná devítka, jen jsem každé dokreslil oči a pusu technikou toho
+          stylu — rydlem, vykrytím, kroužkem s křížkem, tahem štětce.
+          Porovnej řádek s řádkem: některé techniky tvář unesou, jiné se s ní perou.
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {parta.map((p, i) => (
+            <div class="rounded-xl border border-espresso/10 bg-white/40 p-4 flex flex-col items-center text-center">
+              <Postavicka
+                id={p.id}
+                size={140}
+                varianta="dospela-tvar"
+                class="w-[104px] h-auto"
+              />
+              <span class="font-mono text-[11px] tracking-wider uppercase text-terracotta mt-3">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span class="font-mono text-[11px] tracking-wider uppercase text-espresso mt-0.5">
+                {styly[p.id]}
+              </span>
+              <span class="font-mono text-[10px] tracking-wider uppercase text-stone/60 mt-0.5">
+                {p.name}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   </section>
@@ -99,7 +211,7 @@ import { parta } from "../data/parta";
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a
           href="/deti"
-          class="inline-flex items-center justify-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
+          class="inline-flex items-center justify-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
         >
           Co děláme pro děti <span aria-hidden="true">→</span>
         </a>

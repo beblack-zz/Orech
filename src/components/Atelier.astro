@@ -1,21 +1,27 @@
 ---
 import { Image } from "astro:assets";
 import SectionHead from "./SectionHead.astro";
+import Poznamka from "./Poznamka.astro";
 import Pecinka from "./characters/Pecinka.astro";
 import oAtelieru from "../images/o-atelieru.png";
 ---
 
 <section class="bg-cream-warm py-14 relative fade-up">
   <div class="container-x relative">
-    <span
-      class="absolute -top-2 right-0 font-serif font-medium text-[140px] md:text-[200px] text-espresso opacity-[0.07] leading-[0.85] tracking-tighter pointer-events-none select-none"
-      aria-hidden="true"
-    >2026</span>
-    <SectionHead title="O" italic="ateliéru" meta="Est. 2026 · 2 lektoři · 3 kruhy" />
+    <div class="absolute -top-2 right-0">
+      <span
+        class="block font-serif font-medium text-[140px] md:text-[200px] text-espresso opacity-[0.07] leading-[0.85] tracking-tighter pointer-events-none select-none"
+        aria-hidden="true"
+      >2026</span>
+      <Poznamka align="right" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+        Informace je hned vlevo, takže mi přišlo lepší to odebrat. Teď je to čistější a bez duplicit.
+      </Poznamka>
+    </div>
+    <SectionHead title="O" italic="dílně" />
     <div class="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] gap-8 md:gap-12 items-center">
       <div>
         <p class="font-serif italic text-[20px] md:text-[24px] text-espresso leading-[1.35] font-normal mb-4">
-          Začínáme v roce 2026 s jednou pecí, dvěma stoly, třemi kruhy a spoustou nadšení. Malý ateliér v Ořechu, kde má hlína čas a každá chyba svůj tvar.
+          Začínáme v roce 2026 s jednou pecí, dvěma stoly, třemi kruhy a spoustou nadšení. Malá dílna v Ořechu, kde má hlína čas a každá chyba svůj tvar.
         </p>
         <p class="text-stone text-[16px] leading-[1.75] mb-3.5">
           Náš přístup je jednoduchý — méně dokonalosti, víc radosti. Nemusíš umět nic, nemusíš plánovat, co vyrobíš. Sedneš si ke kruhu, začneš točit a dál to už půjde samo.
@@ -34,7 +40,7 @@ import oAtelieru from "../images/o-atelieru.png";
       <div class="rounded-xl aspect-[3/4] overflow-hidden">
         <Image
           src={oAtelieru}
-          alt="Jiřík a Renča v ateliéru"
+          alt="Jiřík a Renča v dílně"
           widths={[400, 600, 900]}
           sizes="(min-width: 768px) 42vw, 90vw"
           format="webp"

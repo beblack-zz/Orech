@@ -1,8 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Vazicka from "../components/characters/Vazicka.astro";
-import ProduktTvar from "../components/ProduktTvar.astro";
-import { produkty as items } from "../data/obchod";
+import ProduktKarta from "../components/ProduktKarta.astro";
+import Poznamka from "../components/Poznamka.astro";
+import { produkty as items, tvorba } from "../data/obchod";
 import { pocetKusu } from "../data/pocty";
 import Pecinka from "../components/characters/Pecinka.astro";
 import Bublina from "../components/characters/Bublina.astro";
@@ -15,10 +16,10 @@ import Bublina from "../components/characters/Bublina.astro";
       <div class="md:grid md:grid-cols-[1.15fr_1fr] md:gap-12 md:items-center mb-12">
         <div>
           <h1 class="hero-title text-espresso text-[36px] md:text-[48px] lg:text-[58px] mb-5">
-            Z našich <span class="serif-italic-terracotta">rukou.</span>
+            Ručně, kus po <span class="serif-italic-terracotta">kuse.</span>
           </h1>
           <p class="text-stone text-[16px] leading-[1.75]">
-            Každý kus je točený na kruhu, ručně glazovaný a vypálený v naší peci. Malé série — když se něco vyprodá, příště bude jiné.
+            Všechno je točené na kruhu, ručně glazované a vypálené v peci. Něco vzniklo u nás v dílně, něco od tvůrců, které máme rádi — někdy až z Japonska. Malé série: když se něco vyprodá, příště bude jiné.
           </p>
         </div>
         <div class="flex justify-center md:justify-end mt-8 md:mt-0">
@@ -32,28 +33,37 @@ import Bublina from "../components/characters/Bublina.astro";
         </div>
       </div>
 
+      <div class="flex items-center gap-2 mb-6 border-t border-espresso/10 pt-4">
+        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase">Obchod</h2>
+        <Poznamka>
+          Tady můžem prodávat výrobky, co nakoupíme + cena.
+        </Poznamka>
+      </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {items.map((it) => (
-          <div class="bg-white rounded-xl border border-espresso/8 relative group">
-            {it.tag && (
-              <span class={`absolute -top-2 left-3 font-mono text-[12px] font-medium px-2.5 py-0.5 rounded-full tracking-wider uppercase z-10 ${
-                it.tagKind === "new" ? "bg-mustard text-espresso" : "bg-clay text-cream"
-              }`}>
-                {it.tag}
-              </span>
-            )}
-            <div class="aspect-square bg-[#E8D7BF] flex items-center justify-center group-hover:bg-[#DFC8AA] transition-colors rounded-t-xl overflow-hidden">
-              <ProduktTvar shape={it.shape} />
-            </div>
-            <div class="p-3">
-              <p class="font-serif text-[16px] font-medium m-0 mb-0.5">{it.name}</p>
-              <p class="font-mono text-[12px] text-stone mb-1">{it.author} · {it.glaze}</p>
-              <p class="font-mono text-[14px] text-espresso font-medium">{it.price}</p>
-            </div>
-          </div>
-        ))}
+        {items.map((it) => <ProduktKarta item={it} />)}
       </div>
       <span class="mono-meta block text-right mt-5">Obchod · {pocetKusu(items.length)}</span>
+    </div>
+  </section>
+
+  <!--
+    Druhá mřížka je galerie, ne nabídka: naši vlastní tvorbu oficiálně
+    neprodáváme, takže tu nesmí být cena ani nic, co zní jako objednávka.
+  -->
+  <section class="pb-14 fade-up">
+    <div class="container-x">
+      <div class="flex items-center gap-2 mb-6 border-t-2 border-espresso pt-4">
+        <h2 class="font-mono text-[12px] tracking-wider text-espresso uppercase">Naše tvorba</h2>
+        <Poznamka>
+          Tady můžem „prodávat“ naši tvorbu bez ceny. Není to ideální, ale
+          když bude někdo něco chtít, napíše mail nebo zavolá — a tam už je
+          prostor to vysvětlit.
+        </Poznamka>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {tvorba.map((it) => <ProduktKarta item={it} tmava />)}
+      </div>
+      <span class="mono-meta block text-right mt-5">Naše tvorba · {pocetKusu(tvorba.length)}</span>
     </div>
   </section>
 
@@ -74,14 +84,14 @@ import Bublina from "../components/characters/Bublina.astro";
         <div class="border-t border-espresso/10 pt-4">
           <span class="font-mono text-[12px] text-stone tracking-wider">03</span>
           <h3 class="font-serif italic text-[17px] text-espresso mb-1.5 mt-1">Vyzvedni nebo pošleme</h3>
-          <p class="text-stone text-[15px] leading-[1.7]">Osobní odběr v ateliéru nebo posíláme Zásilkovnou po celém Česku.</p>
+          <p class="text-stone text-[15px] leading-[1.7]">Osobní odběr v dílně nebo posíláme Zásilkovnou po celém Česku.</p>
         </div>
       </div>
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-0">
         <Vazicka size={240} class="w-[96px] lg:w-[240px] h-auto pointer-events-none flex-shrink-0 lg:-mr-[100px] relative z-[2]" />
         <a
           href="mailto:ahoj@orechovahlina.cz"
-          class="relative z-[1] inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
+          class="relative z-[1] inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
         >
           Objednat <span aria-hidden="true">→</span>
         </a>

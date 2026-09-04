@@ -1,0 +1,58 @@
+---
+import { uid } from "./uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+// Postavička se na stránce kreslí víckrát — id uvnitř SVG musí být pokaždé jiná
+const u = uid();
+---
+{/*
+  STYL: VYKRESLENÁ GLAZURA
+  Jediný styl v řadě, který se snaží o skutečné světlo. Bublina je uvnitř
+  dutá, takže má průhledný střed, svítící okraj (tam světlo prochází
+  stěnou nakoso) a kaustiku na protilehlé stěně.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <radialGradient id={`${u}-telo`} cx="0.36" cy="0.3" r="0.72">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.5"/>
+      <stop offset="0.5" stop-color="#F4EBDD" stop-opacity="0.06"/>
+      <stop offset="0.82" stop-color="#C9B79A" stop-opacity="0.32"/>
+      <stop offset="0.96" stop-color="#FFFDF7" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFFDF7" stop-opacity="0.3"/>
+    </radialGradient>
+    <radialGradient id={`${u}-odlesk`} cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id={`${u}-stin`}>
+      <stop offset="0" stop-color="#3A2E28" stop-opacity="0.22"/>
+      <stop offset="0.5" stop-color="#3A2E28" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#3A2E28" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  {/* Slabší stín než u ostatních — bublina skoro nic neváží */}
+  <ellipse cx="94" cy="154" rx="38" ry="8" fill={`url(#${u}-stin)`}/>
+
+  <circle cx="90" cy="100" r="45" fill={`url(#${u}-telo)`}/>
+  <circle cx="90" cy="100" r="45" stroke="#B7A184" stroke-width="1.1" opacity="0.55" fill="none"/>
+
+  {/* Měkký odlesk a v něm ostrý bod */}
+  <ellipse cx="68" cy="76" rx="17" ry="12" fill={`url(#${u}-odlesk)`} transform="rotate(-35 68 76)"/>
+  <ellipse cx="66" cy="74" rx="6" ry="3.6" fill="#FFFFFF" opacity="0.92" transform="rotate(-35 66 74)"/>
+  <circle cx="80" cy="64" r="2.2" fill="#FFFFFF" opacity="0.7"/>
+
+  {/* Kaustika: světlo prošlo skrz a sbírá se na protilehlé stěně */}
+  <path d="M104 134 C116 130 126 118 128 106" stroke="#FFFDF7" stroke-width="3.4" opacity="0.75" fill="none" stroke-linecap="round"/>
+
+  {/* Vrypy do glazury: tmavá rýha a pod ní světlá hrana řezu */}
+  <g class="tvar" fill="none" stroke-linecap="round">
+    <path d="M76 98 C79.5 93 83.5 93 87 98" stroke="#4A3B33" stroke-width="2.4" opacity="0.68"/>
+    <path d="M76.5 100 C80 95.5 83.5 95.5 86.5 100" stroke="#FFFDF7" stroke-width="1.1" opacity="0.5"/>
+    <path d="M99 98 C102.5 93 106.5 93 110 98" stroke="#4A3B33" stroke-width="2.4" opacity="0.68"/>
+    <path d="M99.5 100 C103 95.5 106.5 95.5 109.5 100" stroke="#FFFDF7" stroke-width="1.1" opacity="0.5"/>
+    {/* Zvlněná pusa — jediná v partě, kdo není úplně hodný */}
+    <path d="M78 118 C84 122 96 114 103 116" stroke="#4A3B33" stroke-width="2.2" opacity="0.68"/>
+  </g>
+</svg>

@@ -1,0 +1,59 @@
+---
+import { uid } from "./uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+// Postavička se na stránce kreslí víckrát — id uvnitř SVG musí být pokaždé jiná
+const u = uid();
+---
+{/*
+  STYL: RISOGRAF
+  Dvě soutiskové barvy, každá plochá, posunuté proti sobě. V překryvu
+  se násobí do třetí barvy — to dělá mix-blend-mode. Stínování není
+  přechod, ale hrubý rastr, jak to riso opravdu tiskne.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <path id={`${u}-tvar`} d="M90 28 C69 72 57 99 57 117 C57 136 71 150 90 150 C109 150 123 136 123 117 C123 99 111 72 90 28 Z"/>
+    <clipPath id={`${u}-orez`}>
+      <use href={`#${u}-tvar`}/>
+    </clipPath>
+    <pattern id={`${u}-rastr`} width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="3.5" cy="3.5" r="2.1" fill="#3A2E28"/>
+    </pattern>
+    <pattern id={`${u}-rastr-jemny`} width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="3.5" cy="3.5" r="1.1" fill="#3A2E28"/>
+    </pattern>
+  </defs>
+
+  {/* Druhý průchod tiskem, ujetý doprava nahoru */}
+  <use href={`#${u}-tvar`} fill="#B84A2B" opacity="0.85" transform="translate(6 -5)" style="mix-blend-mode:multiply"/>
+  <use href={`#${u}-tvar`} fill="#6366F1" opacity="0.9" style="mix-blend-mode:multiply"/>
+
+  {/* Rastr místo stínu — hustý dole, řídký nad ním */}
+  <g clip-path={`url(#${u}-orez)`} opacity="0.42">
+    <rect x="40" y="118" width="100" height="40" fill={`url(#${u}-rastr)`}/>
+    <rect x="40" y="98" width="100" height="20" fill={`url(#${u}-rastr-jemny)`}/>
+  </g>
+
+  {/* Vykrytý odlesk — v risu se světlo netiskne, jen se vynechá */}
+  <g clip-path={`url(#${u}-orez)`}>
+    <ellipse cx="73" cy="94" rx="7" ry="17" fill="#F4EBDD" transform="rotate(-18 73 94)"/>
+  </g>
+
+  {/* Tvář je vykrytá do papíru, ne natištěná — a druhá barva jí ujela stejně jako tvaru */}
+  <g class="tvar" clip-path={`url(#${u}-orez)`}>
+    <g fill="none" stroke="#B84A2B" stroke-width="3" opacity="0.55" stroke-linecap="round" transform="translate(3 -2.5)" style="mix-blend-mode:multiply">
+      <path d="M78 114 C81 109 85 109 88 114"/>
+      <path d="M98 114 C101 109 105 109 108 114"/>
+    </g>
+    <g fill="none" stroke="#F4EBDD" stroke-width="3" stroke-linecap="round">
+      <path d="M78 114 C81 109 85 109 88 114"/>
+      <path d="M98 114 C101 109 105 109 108 114"/>
+      <path d="M84 128 C88 133 98 133 102 128"/>
+    </g>
+  </g>
+
+  {/* Stín je taky jen plocha druhé barvy, ne přechod */}
+  <ellipse cx="96" cy="157" rx="30" ry="6" fill="#B84A2B" opacity="0.35" style="mix-blend-mode:multiply"/>
+</svg>

@@ -1,5 +1,6 @@
 ---
 import SectionHead from "./SectionHead.astro";
+import Poznamka from "./Poznamka.astro";
 
 const offers = [
   {
@@ -16,8 +17,7 @@ const offers = [
     desc: "Vícedenní cykly pro začátečníky i pokročilé. Kruh, technika, glazování.",
     link: "/kurzy",
     linkText: "Prohlédnout kurzy",
-    featured: true,
-    badge: "Nejoblíbenější",
+    featured: false,
   },
   {
     idx: "na hodiny",
@@ -25,7 +25,8 @@ const offers = [
     desc: "Rezervuj si čas u kruhu bez instruktora. Členství i jednorázový vstup.",
     link: "/open-studio",
     linkText: "Zjistit více",
-    featured: false,
+    featured: true,
+    badge: "Nejoblíbenější",
   },
   {
     idx: "malé série",
@@ -36,12 +37,34 @@ const offers = [
     featured: false,
   },
 ];
+
+/*
+ * Široký blok nad čtveřicí. Není to pátá položka katalogu, ale událost
+ * s datem, proto jde přes celou šířku a má větší písmo — hierarchii nese
+ * velikost, ne barva, aby to nesoupeřilo s odznakem „Nejoblíbenější“.
+ */
+const den = {
+  idx: "10. 9. · 10–16",
+  name: "Den otevřených dveří",
+  desc: "Přijď se podívat, jak dílna funguje zevnitř. Uvidíš točení na kruhu, nahlédneš do pece a osaháš si hlínu, i kdybys ji v ruce nikdy neměl. Ptát se můžeš na cokoliv.",
+};
 ---
 
 <section class="py-14 relative fade-up">
   <div class="container-x">
     <SectionHead title="Co u nás" italic="najdeš" meta="Katalog" />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="sm:col-span-2 lg:col-span-4 bg-white rounded-xl border border-espresso/10 p-6 md:p-8 relative">
+        <Poznamka align="right" class="absolute top-3 right-3">
+          Pokud to budeš chtít na webu, tak bych to vymazlil.
+        </Poznamka>
+        <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{den.idx}</div>
+        <h3 class="font-serif text-[26px] md:text-[32px] font-medium leading-tight mb-2" style="font-variation-settings: 'opsz' 72;">
+          {den.name}
+        </h3>
+        <p class="text-[15px] leading-[1.6] text-stone max-w-[62ch]">{den.desc}</p>
+      </div>
+
       {offers.map((o) => (
         <div class={`bg-white rounded-xl p-5 border ${o.featured ? "border-espresso" : "border-espresso/10"} relative`}>
           {o.badge && (

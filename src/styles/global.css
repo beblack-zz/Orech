@@ -256,6 +256,12 @@
 .cedulka-telo  { animation: cedulka-houpani 4s ease-in-out infinite; transform-origin: 90px 24px; }
 .samotka-zar   { animation: samotka-zar 4.5s ease-in-out infinite; transform-origin: 90px 134px; }
 
+/*
+ * Varianta bez tváře. Kresby zůstávají stejné, jen se schová skupina .tvar,
+ * kterou má každá postavička kolem očí, pusy a tvářiček.
+ */
+.bez-tvare .tvar { display: none; }
+
 /* Jiskřičky Vázičky — každá má jiné tempo i start, ať neblikají jako semafor */
 .jiskra   { animation: jiskra-blik 2.6s ease-in-out infinite; }
 .jiskra-2 { animation-duration: 3.1s; animation-delay: 0.9s; }
@@ -353,3 +359,149 @@
   width: 100%;
 }
 
+/* ——— Poznámky pro klienta ——— */
+/* Vidí je každý, kdo je na webu. Schovat jde přepínačem vlevo dole. */
+/*
+ * Červená schválně není z palety webu — poznámky nejsou součást dizajnu,
+ * mají z něj čouhat. Odstín je ztlumený, aby vedle espressa nekřičel,
+ * a drží 5:1 s krémovým číslem uvnitř.
+ */
+
+:root {
+  --pozn-cervena: #C41F1F;
+}
+
+/*
+ * Celý blok je ve vrstvě `components`, aby tailwindí utility (vrstva
+ * `utilities`, tedy později) mohly tečku umístit. Nezavrstvené CSS by
+ * je přebilo bez ohledu na specificitu a `.absolute` by nefungovalo.
+ */
+@layer components {
+  .poznamka {
+    display: inline-flex;
+    counter-increment: pozn;
+    vertical-align: super;
+  }
+
+  html.poznamky-vyp .poznamka {
+    display: none;
+  }
+
+  /* Nulová specificita, aby šlo tečku posadit tailwindím .absolute */
+  :where(.poznamka) {
+    position: relative;
+    z-index: 40;
+  }
+
+  body {
+    counter-reset: pozn;
+  }
+
+  .poznamka-dot {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: var(--pozn-cervena);
+    color: var(--color-cream);
+    border: 3px solid var(--color-cream);
+    box-shadow: 0 3px 12px rgba(58, 46, 40, 0.25);
+    font-family: var(--font-mono);
+    font-size: 20px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease-out;
+  }
+
+  .poznamka-dot::before {
+    content: counter(pozn);
+  }
+
+  .poznamka-dot:hover {
+    transform: scale(1.15);
+  }
+
+  .poznamka-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .poznamka-bublina {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: -6px;
+    width: min(280px, 72vw);
+    padding: 12px 14px;
+    background: var(--color-white);
+    color: var(--color-espresso);
+    border: 1px solid rgba(58, 46, 40, 0.12);
+    border-left: 3px solid var(--pozn-cervena);
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(58, 46, 40, 0.16);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-align: left;
+    text-transform: none;
+    vertical-align: baseline;
+  }
+
+  .poznamka[data-align="right"] .poznamka-bublina {
+    left: auto;
+    right: -6px;
+  }
+
+  .poznamka.otevreno .poznamka-bublina {
+    display: block;
+  }
+
+  /* Plovoucí přepínač na schování poznámek */
+  .poznamky-panel {
+    display: flex;
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 60;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--color-espresso);
+    color: var(--color-cream);
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(58, 46, 40, 0.25);
+  }
+
+  .poznamky-panel::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--pozn-cervena);
+  }
+
+  html.poznamky-vyp .poznamky-panel::before {
+    background: var(--color-stone);
+  }
+
+  @media print {
+    .poznamka,
+    .poznamky-panel {
+      display: none !important;
+    }
+  }
+}

@@ -1,0 +1,70 @@
+---
+import { uid } from "./uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+// Postavička se na stránce kreslí víckrát — id uvnitř SVG musí být pokaždé jiná
+const u = uid();
+---
+{/*
+  STYL: ART DECO
+  Přísná osová souměrnost, tmavý plný tvar a do něj tenká zlatá intarzie —
+  vějíř na břiše, dvojlinka v pase, stupňovitý límec na hrdle. Za vázou
+  zlatý kruh, který ji rámuje.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <linearGradient id={`${u}-zlato`} x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#F2DC9E"/>
+      <stop offset="0.5" stop-color="#C9962C"/>
+      <stop offset="1" stop-color="#EBCE78"/>
+    </linearGradient>
+    <path id={`${u}-telo`} d="M78 42 L76 64 C58 80 51 106 55 124 C59 144 72 154 90 154 C108 154 121 144 125 124 C129 106 122 80 104 64 L102 42 Z"/>
+    <clipPath id={`${u}-orez`}>
+      <use href={`#${u}-telo`}/>
+    </clipPath>
+  </defs>
+
+  {/* Rámující kruh a dvě vodorovné linky — deco to má rádo souměrné */}
+  <circle cx="90" cy="100" r="56" stroke={`url(#${u}-zlato)`} stroke-width="1" opacity="0.55" fill="none"/>
+  <path d="M8 100 L30 100 M150 100 L172 100" stroke={`url(#${u}-zlato)`} stroke-width="1.4" opacity="0.7"/>
+
+  <use href={`#${u}-telo`} fill="#33291F"/>
+
+  <g clip-path={`url(#${u}-orez)`}>
+    {/* Vějíř: paprsky z paty do oblouku */}
+    <g stroke={`url(#${u}-zlato)`} stroke-width="1.1" opacity="0.9">
+      <path d="M90 154 L90 96"/>
+      <path d="M90 154 L74 100"/>
+      <path d="M90 154 L106 100"/>
+      <path d="M90 154 L60 112"/>
+      <path d="M90 154 L120 112"/>
+      <path d="M90 154 L52 128"/>
+      <path d="M90 154 L128 128"/>
+    </g>
+    <path d="M52 128 C58 104 72 94 90 94 C108 94 122 104 128 128" stroke={`url(#${u}-zlato)`} stroke-width="1.6" fill="none"/>
+
+    {/* Dvojlinka v pase */}
+    <path d="M40 84 L140 84" stroke={`url(#${u}-zlato)`} stroke-width="1.8"/>
+    <path d="M40 89 L140 89" stroke={`url(#${u}-zlato)`} stroke-width="0.9"/>
+
+    {/* Stupňovitý límec */}
+    <path d="M60 58 L120 58 M64 52 L116 52 M68 46 L112 46" stroke={`url(#${u}-zlato)`} stroke-width="1.1" opacity="0.85"/>
+  </g>
+
+  <use href={`#${u}-telo`} stroke={`url(#${u}-zlato)`} stroke-width="1.6" fill="none"/>
+
+  {/* Tvář drží osovou souměrnost jako zbytek intarzie: dvě půldiskové oči a stupňovitá pusa */}
+  <g class="tvar" fill={`url(#${u}-zlato)`}>
+    <path d="M74 70 A5 5 0 0 0 84 70 Z"/>
+    <path d="M96 70 A5 5 0 0 0 106 70 Z"/>
+  </g>
+  <path class="tvar" d="M82 78 L86 82 L94 82 L98 78" stroke={`url(#${u}-zlato)`} stroke-width="1.4" fill="none" stroke-linejoin="round"/>
+
+  {/* Ústí a geometrická květina místo stébla */}
+  <path d="M76 42 L104 42" stroke={`url(#${u}-zlato)`} stroke-width="2" stroke-linecap="round"/>
+  <path d="M99 40 L112 22" stroke={`url(#${u}-zlato)`} stroke-width="1.2"/>
+  <circle cx="114" cy="19" r="6" stroke={`url(#${u}-zlato)`} stroke-width="1.2" fill="none"/>
+  <circle cx="114" cy="19" r="2.4" fill={`url(#${u}-zlato)`}/>
+  <path d="M108 13 L120 25 M120 13 L108 25" stroke={`url(#${u}-zlato)`} stroke-width="0.8" opacity="0.7"/>
+</svg>

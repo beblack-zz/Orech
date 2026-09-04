@@ -1,0 +1,31 @@
+---
+/**
+ * Holý layout pro náhledy vizuálních směrů (/dizajn-2/*).
+ *
+ * Schválně nepoužívá Layout.astro — tyhle stránky nahrazují i hlavičku
+ * a patičku webu, takže by je site chrome jen mátl. Načítají se do rámu
+ * na /dizajn-2, kde je izolace stylů to hlavní, oč jde.
+ */
+interface Props {
+  title: string;
+  /** URL Google Fonts pro daný směr — každý má vlastní písma. */
+  fonts?: string;
+}
+
+const { title, fonts } = Astro.props;
+---
+
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    {fonts && <link rel="stylesheet" href={fonts} />}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

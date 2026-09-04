@@ -1,0 +1,70 @@
+---
+import { uid } from "./uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+// Postavička se na stránce kreslí víckrát — id uvnitř SVG musí být pokaždé jiná
+const u = uid();
+---
+{/*
+  STYL: LINORYT
+  Obraz je plocha tiskové barvy a světlo jsou vyryté drážky, kterými
+  prosvítá papír — proto jsou světlé tahy v barvě pozadí (#F4EBDD).
+  Terakotový blok je schválně o kus vedle, jako špatný soutisk.
+
+  Kulatost dělá vějíř drážek rovnoběžný s terminátorem: nejširší u světla
+  vlevo nahoře, ke stínu se ztenčují až zmizí. Vpravo dole jeden tenký
+  srpek odraženého světla od kotouče — bez něj by koule byla placka.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    {/* Ručně řezaná hrana: pár skoro rovných úseků místo hladkého kruhu */}
+    <path id={`${u}-koule`} d="M89 55 L101 56 C119 59 134 76 135 98 C136 122 117 144 91 145 C65 146 45 127 44 102 C43 78 61 59 82 56 Z"/>
+    <clipPath id={`${u}-orez`}>
+      <use href={`#${u}-koule`}/>
+    </clipPath>
+  </defs>
+
+  {/* Druhá deska, natištěná o chlup mimo */}
+  <use href={`#${u}-koule`} fill="#B84A2B" opacity="0.5" transform="translate(-3.5 2.5)"/>
+
+  {/* Hlavní deska */}
+  <use href={`#${u}-koule`} fill="#3A2E28"/>
+
+  <g clip-path={`url(#${u}-orez)`} stroke="#F4EBDD" fill="none" stroke-linecap="round">
+    {/* Vějíř drážek — každá další užší, jak se blíží ke stínu */}
+    <path d="M76 62 C61 73 52 90 53 108" stroke-width="4.4"/>
+    <path d="M87 64 C70 77 60 96 61 116" stroke-width="3"/>
+    <path d="M97 68 C80 82 70 102 72 123" stroke-width="1.9"/>
+    <path d="M106 74 C90 89 81 109 84 130" stroke-width="1.1"/>
+    <path d="M114 82 C100 97 93 115 96 136" stroke-width="0.65"/>
+
+    {/* Srpek světla odraženého od kotouče zpátky na spodní hranu */}
+    <path d="M131 110 C129 127 117 140 101 144" stroke-width="1.3"/>
+
+    {/* Krátké seky napříč vějířem — stopa po prstech */}
+    <path d="M66 84 L79 76" stroke-width="1.5"/>
+    <path d="M60 100 L72 93" stroke-width="1.2"/>
+    <path d="M92 78 L101 72" stroke-width="0.9"/>
+  </g>
+
+  {/* Zrno v hlíně: vyseknuté body */}
+  <g clip-path={`url(#${u}-orez)`} fill="#F4EBDD">
+    <circle cx="106" cy="96" r="1.3"/>
+    <circle cx="93" cy="112" r="1"/>
+    <circle cx="115" cy="120" r="0.8"/>
+    <circle cx="78" cy="128" r="0.9"/>
+  </g>
+
+  {/* Tvář je taky rydlo, jen širší než stínové drážky, aby je přebila */}
+  <g class="tvar" clip-path={`url(#${u}-orez)`} stroke="#F4EBDD" fill="none" stroke-linecap="round">
+    <path d="M76 100 C79.5 94 84.5 94 88 100" stroke-width="3.2"/>
+    <path d="M96 100 C99.5 94 104.5 94 108 100" stroke-width="3.2"/>
+    <path d="M82 116 C87 122 97 122 102 116" stroke-width="2.6"/>
+  </g>
+
+  {/* Kotouč: plný blok se dvěma řezy, přetiskuje spodek koule */}
+  <path d="M46 141 L134 141 L134 150 C134 155 114 158 90 158 C66 158 46 155 46 150 Z" fill="#3A2E28"/>
+  <path d="M52 148 L128 148" stroke="#F4EBDD" stroke-width="1.6"/>
+  <path d="M60 153 L120 153" stroke="#F4EBDD" stroke-width="1"/>
+</svg>

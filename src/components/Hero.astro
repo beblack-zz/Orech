@@ -1,5 +1,6 @@
 ---
 import Vazicka from "./characters/Vazicka.astro";
+import Poznamka from "./Poznamka.astro";
 ---
 
 <section class="relative py-12 md:py-16">
@@ -9,17 +10,20 @@ import Vazicka from "./characters/Vazicka.astro";
         Uč se keramiku<br />tam, kde má hlína <span class="serif-italic-terracotta">čas.</span>
       </h1>
       <p class="text-[15px] md:text-[16px] text-stone leading-[1.7] max-w-lg mb-8">
-        Malý ateliér v Ořechu — kurzy pro začátečníky i pokročilé, open studio pro volnou tvorbu a keramika, kterou si odneseš domů.
+        Malá dílna v Ořechu — kurzy pro začátečníky i pokročilé, open studio pro volnou tvorbu a keramika, kterou si odneseš domů.
       </p>
       <div class="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-0 mt-6 lg:mt-10">
         <Vazicka size={250} class="w-[96px] lg:w-[250px] h-auto pointer-events-none flex-shrink-0 lg:-mr-[100px] relative z-[2]" />
         <div class="flex flex-wrap gap-2.5 items-center relative z-[1]">
-          <a
-            href="/kurzy"
-            class="inline-flex items-center gap-2 bg-terracotta text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-clay transition-colors"
-          >
-            Vybrat kurz <span aria-hidden="true">→</span>
-          </a>
+          <span class="relative inline-flex">
+            <a
+              href="/kurzy"
+              class="inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
+            >
+              Vybrat kurz <span aria-hidden="true">→</span>
+            </a>
+            <Poznamka class="absolute -top-1.5 -right-1.5">not good</Poznamka>
+          </span>
           <a
             href="/open-studio"
             class="inline-flex items-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso hover:text-cream transition-colors"
@@ -31,11 +35,14 @@ import Vazicka from "./characters/Vazicka.astro";
     </div>
 
     <div class="relative aspect-square max-w-[520px] mx-auto w-full mt-10 md:mt-0 fade-up flex items-center justify-center">
+      <Poznamka align="right" class="absolute top-0 right-0 md:top-2 md:right-2">
+        Nové barvy rozbíjí celý dizajn, takže by se musel předělat zbytek. Což můžem — jen abys věděla, že todle je nuda.
+      </Poznamka>
       <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-        <circle cx="200" cy="200" r="188" fill="none" stroke="#6366F1" stroke-width="1.5" stroke-dasharray="7 6" class="dash-ring" />
-        <circle cx="200" cy="200" r="155" fill="none" stroke="#6366F1" stroke-width="8" />
-        <circle cx="200" cy="200" r="115" fill="none" stroke="#6366F1" stroke-width="8" />
-        <path fill="#C87E4E" class="clay-blob">
+        <circle cx="200" cy="200" r="188" fill="none" stroke="#3A2E28" stroke-width="1.5" stroke-dasharray="7 6" class="dash-ring" />
+        <circle cx="200" cy="200" r="155" fill="none" stroke="#3A2E28" stroke-width="8" />
+        <circle cx="200" cy="200" r="115" fill="none" stroke="#3A2E28" stroke-width="8" />
+        <path fill="#6B5D4F" class="clay-blob">
           <animate
             attributeName="d"
             dur="12s"
@@ -52,7 +59,7 @@ import Vazicka from "./characters/Vazicka.astro";
           />
         </path>
       </svg>
-      <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 font-mono text-[12px] text-peri tracking-wider whitespace-nowrap">Přijď si sednout ke kruhu</span>
+      <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 font-mono text-[12px] text-espresso tracking-wider whitespace-nowrap">Přijď si sednout ke kruhu</span>
     </div>
   </div>
 </section>

@@ -1,0 +1,245 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Poznamka from "../../components/Poznamka.astro";
+
+/**
+ * Přepínač vizuálních směrů.
+ *
+ * Náhledy jedou v <iframe>, ne vložené do stránky. Každý směr má vlastní
+ * `:root` tokeny, `body` pozadí a zrno přes celý viewport — v jednom
+ * dokumentu by se navzájem přebily. Rám je taky jediný způsob, jak
+ * poctivě zkusit mobilní šířku.
+ *
+ * Záložka „Současný“ míří na „/“, tedy na skutečnou úvodní stránku,
+ * ne na její kopii. Kopie by se dřív nebo později rozešla s originálem.
+ */
+const smery = [
+  {
+    id: "soucasny",
+    nazev: "Současný",
+    url: "/",
+    popis: "To, co na webu běží teď. Krémová, terakota, Fraunces.",
+  },
+  {
+    id: "risograf",
+    nazev: "Risograf",
+    url: "/dizajn-2/risograf",
+    popis:
+      "Dvě tiskové barvy a papír, žádná šedá. Soutisk je schválně mimo — modrá s oranžovou dají v překryvu skoro přesně espresso značky.",
+  },
+  {
+    id: "tus",
+    nazev: "Tušový tah",
+    url: "/dizajn-2/tus",
+    popis:
+      "Tuš na papíře, jedna rumělková pečeť a zlato použité dvakrát. Enso v hlavičce je zároveň hrnčířský kruh.",
+  },
+  {
+    id: "linoryt",
+    nazev: "Linoryt",
+    url: "/dizajn-2/linoryt",
+    popis:
+      "Plocha barvy a světlo jsou vyryté drážky. Nadpisy jsou plné ink bloky s vysekaným textem, druhá deska je natištěná o kus vedle.",
+  },
+  {
+    id: "vykres",
+    nazev: "Výkres",
+    url: "/dizajn-2/vykres",
+    popis:
+      "Celá stránka je jeden technický list — milimetrový podklad, rámeček archu, kóty a dole rohové razítko. Karty nahradily tabulky, protože výkres kartu nezná.",
+  },
+  {
+    id: "art-deco",
+    nazev: "Art deco",
+    url: "/dizajn-2/art-deco",
+    popis:
+      "Tmavý podklad a tenká zlatá intarzie. Všechno souměrné podle osy — deco asymetrii nezná. Zlato nese linku, nikdy plochu.",
+  },
+  {
+    id: "glazura",
+    nazev: "Glazura",
+    url: "/dizajn-2/glazura",
+    popis:
+      "Jediný směr se skutečným světlem — jedno slunce vlevo nahoře, hloubka přes přechody, odlesk a měkký stín. Nejblíž tomu, co web má dneska, jen hmotnější.",
+  },
+  {
+    id: "bauhaus",
+    nazev: "Bauhaus",
+    url: "/dizajn-2/bauhaus",
+    popis:
+      "Kruh, čtverec, trojúhelník a tři základní barvy. Žádný přechod, stín ani zaoblený roh — kromě kruhu, který je celý.",
+  },
+  {
+    id: "papir",
+    nazev: "Vystřižený papír",
+    url: "/dizajn-2/papir",
+    popis:
+      "Hloubka nevzniká stínováním, ale odstupem vrstev. Okraje jsou natržené a nic nesedí přesně na osu — ruka nestřihá podle pravítka.",
+  },
+  {
+    id: "medirytina",
+    nazev: "Mědirytina",
+    url: "/dizajn-2/medirytina",
+    popis:
+      "Žádná plocha není vybarvená, tón dělá jen hustota šrafy. Sázeno jako katalogový list — dvě kolony, číslované tabule, popisky kurzívou.",
+  },
+];
+---
+
+<Layout
+  title="Dizajn 2.0 — Ořechová hlína"
+  description="Přepínač vizuálních směrů webu Ořechová hlína — současný, risograf a tušový tah vedle sebe."
+>
+  <section class="py-10 md:py-14 fade-up">
+    <div class="container-x">
+      <div class="max-w-[640px]">
+        <h1 class="hero-title text-espresso text-[38px] md:text-[50px] lg:text-[58px] mb-5">
+          Dizajn <span class="serif-italic-terracotta">2.0</span>
+        </h1>
+        <p class="text-stone text-[17px] leading-[1.7]">
+          Tři podoby té samé úvodní stránky. Přepni si mezi nimi a porovnej, co
+          každý směr s obsahem udělá — co unese, a co mu vezme.
+        </p>
+      </div>
+
+      <!--
+        Poznámka sedí nad přepínačem, ne v něm — do role="tablist" patří
+        jen záložky, nic jiného.
+      -->
+      <div class="flex items-center mt-8">
+        <Poznamka>
+          Pár nových stylů. Žádný není lepší, ale jednotlivě obsahují prvky,
+          které bychom dokázali zakombinovat.
+        </Poznamka>
+      </div>
+
+      <!-- Přepínač -->
+      <div class="flex flex-wrap items-center gap-2 mt-3" role="tablist" aria-label="Vizuální směry">
+        {smery.map((s, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`zalozka-${s.id}`}
+            data-smer={s.id}
+            data-url={s.url}
+            data-popis={s.popis}
+            aria-selected={i === 0 ? "true" : "false"}
+            aria-controls="nahled-ram"
+            class="zalozka px-5 py-2.5 rounded-full text-[15px] font-medium border border-espresso/20 text-espresso transition-colors hover:border-espresso/50"
+          >
+            {s.nazev}
+          </button>
+        ))}
+
+        <span class="grow"></span>
+
+        <div class="flex items-center gap-2" role="group" aria-label="Šířka náhledu">
+          {[
+            { id: "desktop", nazev: "Desktop" },
+            { id: "mobil", nazev: "Mobil" },
+          ].map((z, i) => (
+            <button
+              type="button"
+              data-sirka={z.id}
+              aria-pressed={i === 0 ? "true" : "false"}
+              class="sirka font-mono text-[12px] tracking-wider uppercase px-3.5 py-2 rounded-full border border-espresso/20 text-stone transition-colors hover:border-espresso/50"
+            >
+              {z.nazev}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Popis vybraného směru -->
+      <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 mt-5 pb-4 border-b border-espresso/10">
+        <p id="popis-smeru" class="text-stone text-[15px] leading-[1.6] max-w-[70ch]">
+          {smery[0].popis}
+        </p>
+        <a
+          id="odkaz-samostatne"
+          href={smery[0].url}
+          target="_blank"
+          rel="noopener"
+          class="font-mono text-[12px] tracking-wider uppercase text-stone hover:text-terracotta transition-colors whitespace-nowrap"
+        >
+          Otevřít samostatně ↗
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Náhled -->
+  <section class="pb-14 fade-up">
+    <div class="container-x">
+      <div id="ram-obal" class="mx-auto transition-[max-width] duration-300 ease-out">
+        <iframe
+          id="nahled-ram"
+          src="/"
+          title="Náhled vizuálního směru"
+          role="tabpanel"
+          aria-labelledby="zalozka-soucasny"
+          loading="lazy"
+          class="w-full h-[78vh] min-h-[520px] bg-white rounded-xl border border-espresso/15"
+        ></iframe>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* Aktivní záložka je plná, ne jen obtažená — obrys sám by se pral s hover stavem */
+  .zalozka[aria-selected="true"] {
+    background: var(--color-espresso);
+    border-color: var(--color-espresso);
+    color: var(--color-cream);
+  }
+  .sirka[aria-pressed="true"] {
+    background: var(--color-espresso);
+    border-color: var(--color-espresso);
+    color: var(--color-cream);
+  }
+</style>
+
+<script>
+  // Musí se navázat znovu po každé navigaci — ClientRouter vymění DOM.
+  const bindPrepinac = () => {
+    const ram = document.getElementById("nahled-ram") as HTMLIFrameElement | null;
+    const obal = document.getElementById("ram-obal");
+    const popis = document.getElementById("popis-smeru");
+    const odkaz = document.getElementById("odkaz-samostatne") as HTMLAnchorElement | null;
+    if (!ram || !obal || !popis || !odkaz || ram.dataset.bound) return;
+    ram.dataset.bound = "1";
+
+    const zalozky = Array.from(document.querySelectorAll<HTMLButtonElement>(".zalozka"));
+    const sirky = Array.from(document.querySelectorAll<HTMLButtonElement>(".sirka"));
+
+    // Popisy drží data-atributy na tlačítkách, ať se text nemusí psát dvakrát
+    const popisy = new Map<string, string>();
+    for (const z of zalozky) {
+      const p = z.getAttribute("data-popis");
+      if (p) popisy.set(z.dataset.smer!, p);
+    }
+
+    for (const z of zalozky) {
+      z.addEventListener("click", () => {
+        for (const j of zalozky) j.setAttribute("aria-selected", String(j === z));
+        const url = z.dataset.url!;
+        ram.src = url;
+        ram.setAttribute("aria-labelledby", z.id);
+        odkaz.href = url;
+        const p = popisy.get(z.dataset.smer!);
+        if (p) popis.textContent = p;
+      });
+    }
+
+    for (const s of sirky) {
+      s.addEventListener("click", () => {
+        for (const j of sirky) j.setAttribute("aria-pressed", String(j === s));
+        obal.style.maxWidth = s.dataset.sirka === "mobil" ? "420px" : "";
+      });
+    }
+  };
+
+  bindPrepinac();
+  document.addEventListener("astro:page-load", bindPrepinac);
+</script>

@@ -1,7 +1,11 @@
-export type StavKurzu = "open" | "urgent" | "full";
+/** `pripravujeme` = termín je vypsaný, ale zápis ještě neběží. */
+export type StavKurzu = "pripravujeme" | "open" | "urgent" | "full";
 
 export interface Kurz {
-  /** Datum konání. Pozor: měsíce jsou od 0, takže 8 = září. */
+  /**
+   * Datum konání. Pozor: měsíce jsou od 0, takže 10 = listopad.
+   * Musí padnout na den v týdnu, který slibuje `format` („středy“, „soboty“).
+   */
   date: Date;
   title: string;
   /** Rozsah a čas, např. „4 lekce · středy 18:00“ */
@@ -9,7 +13,8 @@ export interface Kurz {
   lektor: string;
   capacity: string;
   state: StavKurzu;
-  price: string;
+  /** Nepovinná — dokud se zápis neotevře, cena se nikde neukazuje. */
+  price?: string;
   desc: string;
 }
 
@@ -23,64 +28,40 @@ export interface Kurz {
  */
 const vsechnyKurzy: Kurz[] = [
   {
-    date: new Date(2026, 8, 16),
+    date: new Date(2026, 10, 4), // středa — sedí na „středy 18:00“
     title: "Kurz kruhu pro začátečníky",
     format: "4 lekce · středy 18:00",
     lektor: "Jiřík",
     capacity: "6 / 8 míst",
-    state: "open",
-    price: "3 800 Kč",
+    state: "pripravujeme",
     desc: "Naučíš se základy točení na kruhu — centrovat, vytahovat, tvarovat. Čtyři večery, vlastní tempo.",
   },
   {
-    date: new Date(2026, 8, 26),
+    date: new Date(2026, 10, 14), // sobota
     title: "Víkendový workshop — mísy & talíře",
     format: "2 dny · so–ne 10:00",
     lektor: "Renča",
     capacity: "poslední místo",
-    state: "urgent",
-    price: "2 400 Kč",
+    state: "pripravujeme",
     desc: "Dva dny u kruhu zaměřené na ploché tvary. Glazování v ceně, hotové kousky vyzvedneš za 2 týdny.",
   },
   {
-    date: new Date(2026, 9, 10),
+    date: new Date(2026, 10, 21), // sobota
     title: "Glazování — pokročilý seminář",
     format: "1 den · sobota 09:00",
     lektor: "Jiřík",
     capacity: "obsazeno",
-    state: "full",
-    price: "1 900 Kč",
+    state: "pripravujeme",
     desc: "Teorie i praxe glazur — oxidace, redukce, vrstvení. Pro ty, kdo už mají za sebou pár výpalů.",
   },
   {
-    date: new Date(2026, 9, 17),
-    title: "Rodinná dílna — děti od 6 let",
-    format: "1 den · sobota 14:00",
-    lektor: "Renča",
-    capacity: "4 / 10 míst",
-    state: "open",
-    price: "890 Kč / rodina",
-    desc: "Modelování bez kruhu, vhodné pro děti i rodiče. Každý si odnese vlastní výtvor.",
-  },
-  {
-    date: new Date(2026, 9, 24),
+    date: new Date(2026, 10, 28), // sobota — sedí na „soboty 10:00“
     title: "Kurz kruhu — pokročilí",
     format: "6 lekcí · soboty 10:00",
     lektor: "Renča",
     capacity: "3 / 6 míst",
-    state: "open",
-    price: "5 200 Kč",
+    state: "pripravujeme",
     desc: "Víčka, džbány, sady. Pro ty, kdo zvládají základy a chtějí se posunout dál.",
-  },
-  {
-    date: new Date(2026, 10, 7),
-    title: "Zážitkový workshop pro páry",
-    format: "1 den · sobota 16:00",
-    lektor: "Jiřík",
-    capacity: "5 / 6 párů",
-    state: "open",
-    price: "1 600 Kč / pár",
-    desc: "Společné točení, dvě hodiny u kruhu, víno v ceně. Ideální dárek.",
   },
 ];
 
@@ -99,6 +80,20 @@ export const mesic = (d: Date) => MESICE[d.getMonth()];
 
 /** „4 lekce · středy 18:00 · Jiřík“ */
 export const popisKurzu = (k: Kurz) => `${k.format} · ${k.lektor}`;
+
+/**
+ * Co se u termínu ukáže místo počtu míst. Ve fázi „připravujeme“ zůstává
+ * `capacity` v datech nedotčené — až se zápis otevře, stačí přepnout `state`
+ * zpátky a obsazenost se vrátí sama.
+ */
+export const stavPopis = (k: Kurz) => (k.state === "pripravujeme" ? "připravujeme" : k.capacity);
+
+/** Popisek tlačítka u termínu. */
+export const tlacitkoPopis = (k: Kurz) =>
+  k.state === "pripravujeme" ? "Dám vědět" : k.state === "full" ? "Náhradník" : "Rezervovat";
+
+/** Plné tmavé tlačítko patří jen tam, kde se dá zapsat hned. */
+export const lzeRezervovat = (k: Kurz) => k.state === "open" || k.state === "urgent";
 
 /**
  * Sezóna podle prvního nadcházejícího termínu — aby v hlavičce
