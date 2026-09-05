@@ -4,6 +4,13 @@
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/jetbrains-mono";
 @import "@fontsource/caveat/400.css";
+/*
+  Yuji Syuku jen v latince. Celý balík veze i japonské subsety (3,5 MB
+  proti 56 kB latinky) a ty tu nemá co dělat — písmo nese jen wordmark.
+*/
+@import "@fontsource/yuji-syuku/latin-400.css";
+@import "@fontsource/yuji-mai/latin-400.css";
+@import "@fontsource/yuji-boku/latin-400.css";
 @import "@fontsource/caveat/500.css";
 
 @theme {
@@ -22,6 +29,13 @@
   --font-serif: "Fraunces Variable", "Fraunces", serif;
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-hand: "Caveat", cursive;
+  /*
+    Štětec. Nemá háčky ani kroužek (chybí ř, č, ě, ů, ň, ď, ť), takže
+    smí nést jen "JIRO SAKU" — na české slovo se použít nedá.
+  */
+  --font-stetec: "Yuji Syuku", "Fraunces Variable", serif;
+  --font-stetec-mai: "Yuji Mai", "Fraunces Variable", serif;
+  --font-stetec-boku: "Yuji Boku", "Fraunces Variable", serif;
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 }
 

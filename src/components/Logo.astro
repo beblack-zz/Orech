@@ -1,0 +1,213 @@
+---
+import { uid } from "./characters/dospele/uid";
+
+/**
+ * Značka JIRO SAKU.
+ *
+ * Otisk pečeti: kotouč hlíny s vlysem větve sakury. Kruh není přesný —
+ * je vedený od ruky, protože razítko vtlačené do hlíny nikdy nesedne
+ * dokola stejně. To je jediné, co značku drží u keramiky; kdyby byl
+ * kruh vektorově čistý, čte se to jako japonská vlajka.
+ *
+ * Nápis není v SVG, ale skutečný text ve Fraunces — kvůli přístupnosti,
+ * hintingu a tomu, že se dá vybrat a najít.
+ */
+interface Props {
+  /** `lockup` = značka nad nápisem, `radek` = vedle sebe (hlavička), `znak` = jen kotouč */
+  varianta?: "lockup" | "radek" | "znak";
+  /** Šířka kotouče v px. Pod 96 px se kreslí prostší verze — viz `prosty`. */
+  size?: number;
+  tema?: "svetle" | "tmave";
+  /**
+   * `stetec` sází nápis do Yuji Syuku. Jen pro "JIRO SAKU" — písmo nemá
+   * háčky, takže české slovo by se v něm rozpadlo na fallback.
+   */
+  pismo?: "serif" | "stetec" | "stetec-mai" | "stetec-boku";
+  class?: string;
+}
+
+const { varianta = "lockup", size = 220, tema = "svetle", pismo = "stetec", class: cls = "" } = Astro.props;
+const u = uid();
+
+const jeTmave = tema === "tmave";
+// Na espressu se větev v espressu ztratí všude, kde přeteče mimo kotouč
+const linka = jeTmave ? "#F4EBDD" : "#3A2E28";
+/*
+  Obrysy plátků a tyčinky zůstávají tmavé v obou tématech. Plátek je vždycky
+  světlý a leží buď na kotouči, nebo na tmavém podkladu — se světlým obrysem
+  by se květy slily do bílých skvrn a tyčinky by zmizely úplně.
+*/
+const kresba = "#3A2E28";
+const platek = jeTmave ? "#F4EBDD" : "#FFFDF8";
+const slovoBarva = jeTmave ? "#F4EBDD" : "#3A2E28";
+
+/**
+ * Osm květů a tři úponky se pod ~96 px slijí do skvrny. Malá značka proto
+ * není zmenšená velká, ale vlastní kresba: jeden květ, jeden tah větve.
+ */
+const prosty = size < 96;
+
+const jenZnak = varianta === "znak";
+const vRadku = varianta === "radek";
+
+// Nápis se měří od kotouče, ne od kontejneru — jinak se poměr rozejde
+const jeStetec = pismo !== "serif";
+const rodina = {
+  "stetec": "var(--font-stetec)",
+  "stetec-mai": "var(--font-stetec-mai)",
+  "stetec-boku": "var(--font-stetec-boku)",
+}[pismo];
+// Yuji Syuku má menší x-výšku než Fraunces — bez přidání by nápis pod kotoučem zdrobněl
+const podil = vRadku ? 0.46 : 0.135;
+const velikostPisma = Math.round(size * podil * (jeStetec ? 1.16 : 1));
+
+/*
+  Kresba nesahá až ke spodní hraně viewBoxu — pod kotoučem zbývá zhruba
+  17 % výšky prázdna. Optická mezera pod značkou je proto vždycky větší
+  než ta nastavená. Nápis se o kus toho prázdna vytáhne nahoru.
+*/
+const dotahNahoru = varianta === "lockup" ? Math.round(size * -0.12) : 0;
+---
+
+<div
+  class={`logo-jiro ${vRadku ? "logo-jiro--radek" : "logo-jiro--sloupec"} ${cls}`}
+  role={jenZnak ? "img" : undefined}
+  aria-label={jenZnak ? "JIRO SAKU" : undefined}
+>
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 320 320"
+    fill="none"
+    class="logo-jiro__znak"
+    aria-hidden="true"
+  >
+    <defs>
+      {/* Květ se kreslí jednou a pak už jen sází — pět plátků otočených po 72° */}
+      <g id={`${u}-kvet`}>
+        <g fill={platek} stroke={kresba} stroke-width="1.7" stroke-linejoin="round">
+          <path d="M0,0 C-7,-7 -11,-17 -6,-24 C-4,-27 -2,-24 0,-24 C2,-24 4,-27 6,-24 C11,-17 7,-7 0,0 Z" />
+          <path d="M0,0 C-7,-7 -11,-17 -6,-24 C-4,-27 -2,-24 0,-24 C2,-24 4,-27 6,-24 C11,-17 7,-7 0,0 Z" transform="rotate(72)" />
+          <path d="M0,0 C-7,-7 -11,-17 -6,-24 C-4,-27 -2,-24 0,-24 C2,-24 4,-27 6,-24 C11,-17 7,-7 0,0 Z" transform="rotate(144)" />
+          <path d="M0,0 C-7,-7 -11,-17 -6,-24 C-4,-27 -2,-24 0,-24 C2,-24 4,-27 6,-24 C11,-17 7,-7 0,0 Z" transform="rotate(216)" />
+          <path d="M0,0 C-7,-7 -11,-17 -6,-24 C-4,-27 -2,-24 0,-24 C2,-24 4,-27 6,-24 C11,-17 7,-7 0,0 Z" transform="rotate(288)" />
+        </g>
+        {/* Tyčinky: pět tahů ven a na konci prašník */}
+        <g stroke={kresba} stroke-width="1.2" stroke-linecap="round">
+          <path d="M0,-2 L0,-9" />
+          <path d="M0,-2 L6,-6" transform="rotate(72)" />
+          <path d="M0,-2 L6,-6" transform="rotate(200)" />
+          <path d="M0,-2 L-6,-6" transform="rotate(140)" />
+          <path d="M0,-2 L-6,-6" transform="rotate(290)" />
+        </g>
+        <circle cx="0" cy="0" r="3.2" fill="#E8B440" />
+      </g>
+
+      {/* Poupě: zavřený kalich, dvě špičky ven */}
+      <g id={`${u}-poupe`}>
+        <path
+          d="M0,7 C-7,4 -8,-6 -3,-10 C-1,-11.5 1,-11.5 3,-10 C8,-6 7,4 0,7 Z"
+          fill={platek}
+          stroke={kresba}
+          stroke-width="1.7"
+          stroke-linejoin="round"
+        />
+        <path d="M-3,6 L-6,11 M3,6 L6,11" stroke={kresba} stroke-width="1.6" stroke-linecap="round" />
+      </g>
+    </defs>
+
+    {/* Kotouč: kruh od ruky, ne z kružítka */}
+    <path
+      d="M158,34 C224,32 280,86 278,153 C276,219 224,271 158,270 C93,269 41,216 42,151 C43,86 94,36 158,34 Z"
+      fill="#B84A2B"
+    />
+
+    {prosty ? (
+      <g>
+        {/* Malá značka: jeden tah větve přes kotouč a jediný květ */}
+        <path
+          d="M40,244 C88,232 134,206 176,168 C214,134 246,96 272,58 L280,66 C254,106 222,146 184,182 C142,222 94,250 44,262 Z"
+          fill={linka}
+        />
+        <use href={`#${u}-kvet`} transform="translate(150 168) scale(2.1)" />
+      </g>
+    ) : (
+      <g>
+        {/* Hlavní větev je plocha, ne tah — jen tak se dá směrem ke špičce ztenčit */}
+        <path
+          d="M16,251 C58,246 96,232 132,208 C170,183 214,146 252,108 C270,90 288,72 300,60 L305,67 C293,80 274,98 256,116 C218,154 174,191 136,216 C100,240 60,256 18,264 Z"
+          fill={linka}
+        />
+        {/* Úponky */}
+        <g stroke={linka} fill="none" stroke-linecap="round">
+          <path d="M98,229 C88,214 80,203 72,194" stroke-width="4" />
+          <path d="M152,198 C162,208 170,216 178,223" stroke-width="3.4" />
+          <path d="M218,150 C218,138 220,128 223,117" stroke-width="3.2" />
+          <path d="M264,102 C274,98 282,95 291,92" stroke-width="2.8" />
+        </g>
+
+        <use href={`#${u}-kvet`} transform="translate(54 240) scale(1.05)" />
+        <use href={`#${u}-kvet`} transform="translate(72 192) scale(0.78) rotate(-18)" />
+        <use href={`#${u}-kvet`} transform="translate(126 208) scale(1.15) rotate(12)" />
+        <use href={`#${u}-kvet`} transform="translate(179 226) scale(0.86) rotate(-24)" />
+        <use href={`#${u}-kvet`} transform="translate(168 156) scale(1.28) rotate(6)" />
+        <use href={`#${u}-kvet`} transform="translate(224 112) scale(1) rotate(-10)" />
+        <use href={`#${u}-kvet`} transform="translate(252 88) scale(0.72) rotate(20)" />
+
+        <use href={`#${u}-poupe`} transform="translate(294 89) scale(1) rotate(28)" />
+        <use href={`#${u}-poupe`} transform="translate(302 62) scale(0.85) rotate(-14)" />
+        <use href={`#${u}-poupe`} transform="translate(104 236) scale(0.9) rotate(150)" />
+      </g>
+    )}
+  </svg>
+
+  {!jenZnak && (
+    <span
+      class={`logo-jiro__slovo ${jeStetec ? "logo-jiro__slovo--stetec" : ""}`}
+      style={`font-size:${velikostPisma}px;color:${slovoBarva};${dotahNahoru ? `margin-top:${dotahNahoru}px;` : ""}${rodina ? `font-family:${rodina};` : ""}`}
+    >JIRO SAKU</span>
+  )}
+</div>
+
+<style>
+  .logo-jiro {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .logo-jiro--sloupec {
+    flex-direction: column;
+    /* Odstup dělá `dotahNahoru` v komponentě, ne gap — musí se odvíjet od značky */
+    gap: 0;
+  }
+
+  .logo-jiro--radek {
+    flex-direction: row;
+    gap: 0.5em;
+  }
+
+  .logo-jiro__znak {
+    display: block;
+    height: auto;
+  }
+
+  .logo-jiro__slovo {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-variation-settings: "opsz" 72;
+    /* Prostrkání drží nápis pohromadě jako značku, ne jako běžný text */
+    letter-spacing: 0.16em;
+    /* Prostrkání přidává mezeru i za poslední písmeno — tady se odečte */
+    margin-right: -0.16em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .logo-jiro__slovo--stetec {
+    font-family: var(--font-stetec);
+    font-weight: 400;
+    font-variation-settings: normal;
+    letter-spacing: 0.08em;
+    margin-right: -0.08em;
+  }
+</style>

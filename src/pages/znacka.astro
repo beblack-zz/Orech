@@ -1,0 +1,147 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Logo from "../components/Logo.astro";
+
+/**
+ * Zkušební list nové značky. Není v menu — vede sem jen odkaz z /dizajn.
+ * Značka se posuzuje v tom, jak se chová při zmenšení a na tmavém, ne
+ * jako jeden velký obrázek.
+ */
+---
+
+<Layout title="Značka JIRO SAKU — zkušební list" description="Návrh nové značky: kotouč s větví sakury a nápis ve Fraunces.">
+  <section class="py-14 md:py-16 fade-up">
+    <div class="container-x">
+      <div class="max-w-[640px]">
+        <h1 class="hero-title text-espresso text-[42px] md:text-[56px] mb-5">
+          Nová <span class="serif-italic">značka.</span>
+        </h1>
+        <p class="text-stone text-[17px] leading-[1.7]">
+          Kotouč je vedený od ruky, ne z kružítka — otisk razítka do hlíny nikdy nesedne dokola
+          stejně. Bez té nepravidelnosti by se z toho stala vlajka. Nápis není v kresbě, ale
+          skutečný text ve Fraunces, takže se dá vybrat, najít a přečíst odečítačem.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-10">
+    <div class="container-x grid gap-8 md:grid-cols-2">
+      <div class="bg-cream-warm rounded-xl p-10 flex flex-col items-center justify-center gap-6">
+        <Logo varianta="lockup" size={240} />
+        <p class="mono-meta">Lockup · na krémové</p>
+      </div>
+      <div class="bg-espresso rounded-xl p-10 flex flex-col items-center justify-center gap-6">
+        <Logo varianta="lockup" size={240} tema="tmave" />
+        <p class="mono-meta text-cream/70">Lockup · na espressu</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-10">
+    <div class="container-x">
+      <h2 class="font-serif text-[26px] font-medium text-espresso mb-2">Serif, nebo štětec</h2>
+      <p class="text-stone text-[16px] leading-[1.7] mb-6 max-w-[620px]">
+        Štětcový nápis je Yuji Syuku, psaný skutečným štětcem. Má ale jeden tvrdý limit:
+        <strong class="font-medium text-espresso">nemá háčky ani kroužek</strong> — chybí ř, č, ě, ů, ň, ď, ť.
+        Unese proto jen latinské „JIRO SAKU“. Na české slovo, na běžný text ani na jméno
+        Jiřík se použít nedá; propadl by do fallbacku.
+      </p>
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { pismo: "stetec" as const, popis: "Yuji Syuku", nota: "štětec, tvrdý tah" },
+          { pismo: "stetec-mai" as const, popis: "Yuji Mai", nota: "štětec, měkčí a tažené" },
+          { pismo: "stetec-boku" as const, popis: "Yuji Boku", nota: "štětec, klidnější" },
+          { pismo: "serif" as const, popis: "Fraunces", nota: "serif, současný web" },
+        ].map((v) => (
+          <div class="bg-cream-warm rounded-xl p-8 flex flex-col items-center gap-5">
+            <Logo varianta="lockup" size={180} pismo={v.pismo} />
+            <span class="text-center">
+              <span class="block font-mono text-[11px] tracking-wider uppercase text-espresso">{v.popis}</span>
+              <span class="block font-mono text-[11px] tracking-wider text-stone mt-0.5">{v.nota}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <div class="mt-5 bg-white border border-espresso/10 rounded-xl p-6">
+        <p class="font-mono text-[11px] tracking-wider uppercase text-stone mb-3">Co štětec udělá s češtinou</p>
+        <p class="text-[26px] text-espresso" style="font-family: var(--font-stetec);">
+          Přijď si zatočit · Jiřík &amp; Renča · Střípek
+        </p>
+        <p class="text-stone text-[14px] leading-[1.6] mt-3">
+          Písmena s háčky vypadla na Fraunces — v jednom slově se tak potkají dvě různá písma.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-10">
+    <div class="container-x">
+      <h2 class="font-serif text-[26px] font-medium text-espresso mb-2">V hlavičce</h2>
+      <p class="text-stone text-[16px] leading-[1.7] mb-6 max-w-[560px]">
+        Vedle sebe, ne pod sebou — hlavička je nízká a lockup by ji rozjel. Vlevo nová značka,
+        vpravo pro srovnání současný wordmark v rámečku.
+      </p>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="bg-white border border-espresso/10 rounded-xl p-6 flex items-center">
+          <Logo varianta="radek" size={44} pismo="stetec" />
+        </div>
+        <div class="bg-white border border-espresso/10 rounded-xl p-6 flex items-center">
+          <span class="bg-stone text-cream px-4 py-2.5 rounded-xl inline-flex flex-col leading-none gap-1">
+            <span class="logo-word font-serif text-[12px] font-medium" style="font-variation-settings: 'opsz' 48;">{"JIRO".split("").map(l => <span>{l}</span>)}</span>
+            <span class="logo-word font-serif text-[22px] font-medium" style="font-variation-settings: 'opsz' 48;">{"SAKU".split("").map(l => <span>{l}</span>)}</span>
+          </span>
+        </div>
+        <div class="bg-espresso rounded-xl p-6 flex items-center">
+          <Logo varianta="radek" size={44} tema="tmave" />
+        </div>
+        <div class="bg-espresso rounded-xl p-6 flex items-center">
+          <span class="bg-stone text-cream px-4 py-2.5 rounded-xl inline-flex flex-col leading-none gap-1">
+            <span class="logo-word font-serif text-[12px] font-medium" style="font-variation-settings: 'opsz' 48;">{"JIRO".split("").map(l => <span>{l}</span>)}</span>
+            <span class="logo-word font-serif text-[22px] font-medium" style="font-variation-settings: 'opsz' 48;">{"SAKU".split("").map(l => <span>{l}</span>)}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-10">
+    <div class="container-x">
+      <h2 class="font-serif text-[26px] font-medium text-espresso mb-2">Zmenšování</h2>
+      <p class="text-stone text-[16px] leading-[1.7] mb-6 max-w-[560px]">
+        Osm květů a tři úponky se pod 96&nbsp;px slijí do skvrny. Malá značka proto není
+        zmenšená velká — je to vlastní kresba: jeden tah větve a jeden květ. Zlom je vidět
+        mezi 112 a 80&nbsp;px.
+      </p>
+      <div class="bg-cream-warm rounded-xl p-8 flex flex-wrap items-end justify-center gap-10">
+        {[160, 112, 80, 48, 32, 20].map((s) => (
+          <div class="flex flex-col items-center gap-3">
+            <Logo varianta="znak" size={s} />
+            <span class="font-mono text-[11px] text-stone tracking-wider">{s} px</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-10 pb-16">
+    <div class="container-x">
+      <h2 class="font-serif text-[26px] font-medium text-espresso mb-2">Na fotce a na hlíně</h2>
+      <p class="text-stone text-[16px] leading-[1.7] mb-6 max-w-[560px]">
+        Kotouč je plná plocha, takže drží i na neklidném podkladu. Nápis pod ním ne — na fotku
+        patří jen znak, nebo lockup na plné ploše.
+      </p>
+      <div class="grid gap-5 sm:grid-cols-3">
+        <div class="rounded-xl p-10 flex items-center justify-center bg-stone">
+          <Logo varianta="znak" size={110} />
+        </div>
+        <div class="rounded-xl p-10 flex items-center justify-center" style="background:#B84A2B;">
+          <Logo varianta="znak" size={110} tema="tmave" />
+        </div>
+        <div class="rounded-xl p-10 flex items-center justify-center bg-white">
+          <Logo varianta="znak" size={110} />
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
