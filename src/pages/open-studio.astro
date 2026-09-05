@@ -68,20 +68,12 @@ const rules = [
               </span>
             )}
             <h3 class="font-serif text-[17px] font-medium mb-4 pt-2" style="font-variation-settings: 'opsz' 48;">{p.name}</h3>
-            <p class={`font-serif text-[32px] md:text-[36px] font-medium mb-4 leading-none ${p.badge ? "text-terracotta" : "text-terracotta"}`}>{p.price}</p>
+            <p class={`font-serif text-[32px] md:text-[36px] font-medium mb-4 leading-none ${p.badge ? "text-clay" : "text-clay"}`}>{p.price}</p>
             <div class={`w-8 h-px mx-auto mb-4 ${p.badge ? "bg-cream/25" : "bg-espresso/10"}`}></div>
             <p class={`text-[15px] leading-[1.7] ${p.badge ? "text-cream/85" : "text-stone"}`}>{p.desc}</p>
           </div>
         ))}
       </div>
-
-      <Bublina
-        name="Hlínka"
-        text="Zatím jsem jenom hrouda."
-        class="mt-14 justify-center"
-      >
-        <Hlinka />
-      </Bublina>
     </div>
   </section>
 

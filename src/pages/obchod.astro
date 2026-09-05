@@ -65,11 +65,11 @@ import { pocetKusu } from "../data/pocty";
           <p class="text-stone text-[15px] leading-[1.7]">Osobní odběr v dílně nebo posíláme Zásilkovnou po celém Česku.</p>
         </div>
       </div>
-      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-0">
-        <Vazicka size={240} class="w-[96px] lg:w-[240px] h-auto pointer-events-none flex-shrink-0 lg:-mr-[100px] relative z-[2]" />
+      {/* Postavička pryč — bez ní odpadá i podsouvání tlačítka pod kresbu, zůstane samo na středu */}
+      <div class="mt-8 flex justify-center">
         <a
           href="mailto:ahoj@orechovahlina.cz"
-          class="relative z-[1] inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
+          class="inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
         >
           Objednat <span aria-hidden="true">→</span>
         </a>

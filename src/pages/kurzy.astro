@@ -1,7 +1,5 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Stripek from "../components/characters/Stripek.astro";
-import Bublina from "../components/characters/Bublina.astro";
 import Poukaz from "../components/Poukaz.astro";
 import { kurzy as courses, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat, sezona } from "../data/kurzy";
 import { pocetKurzu } from "../data/pocty";
@@ -120,14 +118,6 @@ const faq = [
           </div>
         ))}
       </div>
-
-      <Bublina
-        name="Střípek"
-        text="Já jsem se rozbil hned na první hodině. A pořád jsem tady."
-        class="mt-10 justify-center"
-      >
-        <Stripek />
-      </Bublina>
     </div>
   </section>
 

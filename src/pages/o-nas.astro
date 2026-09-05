@@ -2,9 +2,7 @@
 import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
 import oNas from "../images/o-nas.png";
-import Kapka from "../components/characters/Kapka.astro";
-import Pecinka from "../components/characters/Pecinka.astro";
-import Bublina from "../components/characters/Bublina.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
 
 const team = [
   {
@@ -52,7 +50,7 @@ const milestones = [
             Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a mlčet u hlíny.
           </p>
           <div class="flex items-center gap-4 mt-6">
-            <Pecinka size={230} class="pointer-events-none flex-shrink-0" />
+            <Postavicka id="pecinka" varianta="dospela" size={230} class="pointer-events-none flex-shrink-0" />
             <div>
               <p class="font-hand text-[28px] text-clay leading-none">— Jiřík & Renča</p>
               <p class="font-mono text-[12px] text-stone mt-1.5 tracking-wider uppercase">Zakladatelé · Lektoři</p>
@@ -93,14 +91,6 @@ const milestones = [
           </div>
         ))}
       </div>
-
-      <Bublina
-        name="Kapka"
-        text="Já jsem tady spíš omylem. Ale nikomu to neříkej."
-        class="mt-10 justify-center"
-      >
-        <Kapka />
-      </Bublina>
     </div>
   </section>
 
