@@ -125,11 +125,39 @@ const fonts = [
         </div>
       </div>
 
+      <!-- Značka -->
+      <div class="mb-16">
+        <div class="flex items-baseline justify-between gap-4 mb-5">
+          <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase">Značka</h2>
+          <a href="/znacka" class="mono-meta hover:text-clay">Zkušební list značky →</a>
+        </div>
+        <p class="text-stone text-[15px] leading-[1.7] mb-5 max-w-[620px]">
+          Nápis ve čtyřech řezech. Štětcová písma nemají háčky — unesou „JIRO SAKU“,
+          ale žádné české slovo.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { pismo: "stetec" as const, popis: "Yuji Syuku", nota: "štětec, tvrdý tah" },
+            { pismo: "stetec-mai" as const, popis: "Yuji Mai", nota: "štětec, měkčí a tažené" },
+            { pismo: "stetec-boku" as const, popis: "Yuji Boku", nota: "štětec, klidnější" },
+            { pismo: "serif" as const, popis: "Fraunces", nota: "serif, současný web" },
+          ].map((v) => (
+            <a href="/znacka" class="bg-cream-warm rounded-lg p-6 flex flex-col items-center gap-4 hover:bg-cream transition-colors">
+              <Logo varianta="lockup" size={150} pismo={v.pismo} />
+              <span class="text-center">
+                <span class="block font-mono text-[11px] tracking-wider uppercase text-espresso">{v.popis}</span>
+                <span class="block font-mono text-[11px] tracking-wider text-stone mt-0.5">{v.nota}</span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+
       <!-- Postavičky -->
       <div class="mb-16">
         <div class="flex items-baseline justify-between gap-4 mb-5">
           <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase">Postavičky</h2>
-          <a href="/parta" class="mono-meta hover:text-terracotta">Seznam se s partou →</a>
+          <a href="/parta" class="mono-meta hover:text-clay">Seznam se s partou →</a>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
           {parta.map((p) => (

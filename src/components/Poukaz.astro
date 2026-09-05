@@ -1,16 +1,14 @@
 ---
-import Postavicka from "./characters/Postavicka.astro";
-import type { PostavaId } from "../data/parta";
+import Logo from "./Logo.astro";
 
 interface Props {
   /** Hodnota vytištěná na poukazu */
   hodnota?: string;
   /** Kdo je na „portrétu“ */
-  postava?: PostavaId;
   class?: string;
 }
 
-const { hodnota = "1 500", postava = "vazicka", class: cls = "" } = Astro.props;
+const { hodnota = "1 500", class: cls = "" } = Astro.props;
 
 // Vlastní id pro SVG pattern, aby se dva poukazy na stránce nepraly
 const uid = Math.random().toString(36).slice(2, 8);
@@ -140,10 +138,11 @@ const prsteny = [
           </div>
         </div>
 
-        <!-- „Portrét“ jako otisknutá hrnčířská značka -->
+        <!-- Otisknutá hrnčířská značka — kotouč se sakurou, tedy samotné logo -->
         <div class="relative flex-shrink-0">
-          <div class="poukaz-portret rounded-full flex items-end justify-center overflow-hidden">
-            <Postavicka id={postava} size={132} class="w-[86px] sm:w-[118px] h-auto" />
+          <div class="poukaz-portret rounded-full flex items-center justify-center overflow-hidden">
+            {/* Tmavé téma: v prohlubni by se větev v espressu ztratila */}
+            <Logo varianta="znak" size={96} tema="tmave" />
           </div>
         </div>
       </div>
