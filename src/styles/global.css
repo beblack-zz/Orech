@@ -89,12 +89,12 @@
   letter-spacing: -0.02em;
 }
 
-@utility serif-italic-terracotta {
+/* Kurzíva odlišuje poslední slovo nadpisu tvarem, ne barvou — barvu dědí. */
+@utility serif-italic {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
   font-variation-settings: "opsz" 144, "SOFT" 100;
-  color: var(--color-terracotta);
 }
 
 @utility mono-meta {

@@ -15,11 +15,11 @@ const links: Odkaz[] = [
   { href: "/", label: "Úvod" },
   { href: "/kurzy", label: "Kurzy" },
   { href: "/deti", label: "Pro děti", skrtnuto: true },
-  { href: "/parta", label: "Parta", accent: true },
+  { href: "/parta", label: "Parta", accent: true, skrtnuto: true },
   { href: "/open-studio", label: "Open studio" },
   { href: "/obchod", label: "Obchod" },
   { href: "/dizajn", label: "Dizajn", skrtnuto: true },
-  { href: "/dizajn-2", label: "Dizajn 2.0" },
+  { href: "/dizajn-2", label: "Dizajn 2.0", skrtnuto: true },
   { href: "/o-nas", label: "O nás" },
 ];
 
@@ -50,7 +50,7 @@ const skrt = "line-through decoration-2 decoration-clay";
           href={l.href}
           aria-current={jeTu(l.href) ? "page" : undefined}
           class={`text-[15px] whitespace-nowrap transition-colors ${
-            l.accent ? "parta-odkaz text-peri-deep hover:text-peri" : "hover:text-terracotta"
+            l.accent ? "parta-odkaz text-peri-deep hover:text-peri" : "hover:text-clay"
           } ${jeTu(l.href) ? stav : ""} ${l.skrtnuto ? skrt : ""}`}
         >
           {l.accent && (
@@ -65,7 +65,7 @@ const skrt = "line-through decoration-2 decoration-clay";
 
       <a
         href="/kurzy#rezervace"
-        class="bg-espresso text-cream px-5 py-2.5 rounded-full text-[14px] font-medium whitespace-nowrap hover:bg-clay transition-colors"
+        class="bg-peri-deep text-cream px-5 py-2.5 rounded-full text-[14px] font-medium whitespace-nowrap hover:bg-espresso transition-colors"
       >
         Rezervovat
       </a>
@@ -108,7 +108,7 @@ const skrt = "line-through decoration-2 decoration-clay";
     ))}
     <a
       href="/kurzy#rezervace"
-      class="bg-espresso text-cream px-4 py-2.5 rounded-full text-[15px] font-medium text-center mt-2"
+      class="bg-peri-deep text-cream px-4 py-2.5 rounded-full text-[15px] font-medium text-center mt-2"
     >
       Rezervovat
     </a>

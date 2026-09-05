@@ -37,14 +37,14 @@ const faq = [
       {courses.length === 0 && (
         <p class="text-stone text-[16px] leading-[1.7] max-w-[52ch]">
           Zrovna teď nemáme vypsaný žádný volný termín. Chystáme další —
-          <a href="#rezervace" class="text-terracotta underline underline-offset-2">ozvi se nám</a>
+          <a href="#rezervace" class="text-clay underline underline-offset-2">ozvi se nám</a>
           a zapíšeme tě mezi první, komu dáme vědět.
         </p>
       )}
       <div>
         {courses.map((c) => (
           <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto] items-start gap-4 md:gap-5 py-5 border-b border-espresso/10 last:border-b-0">
-            <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
+            <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none text-clay" style="font-variation-settings: 'opsz' 72;">
               {den(c.date)}
               <span class="block font-mono text-[12px] text-stone mt-1 tracking-wider uppercase font-normal">{mesic(c.date)}</span>
             </div>
@@ -128,7 +128,7 @@ const faq = [
         <div class="mb-8 md:mb-0">
           <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-4">Dárkový poukaz</h2>
           <p class="font-serif text-[26px] md:text-[32px] font-medium leading-tight text-espresso mb-4" style="font-variation-settings: 'opsz' 72;">
-            Daruj někomu <em class="italic font-normal text-terracotta">odpoledne u kruhu.</em>
+            Daruj někomu <em class="italic font-normal">odpoledne u kruhu.</em>
           </p>
           <p class="text-stone text-[16px] leading-[1.7] mb-6 max-w-[46ch]">
             Poukaz platí na jakýkoli kurz, workshop i open studio — obdarovaný si vybere sám,
@@ -154,7 +154,7 @@ const faq = [
 
   <section id="rezervace" class="bg-cream-warm py-14 fade-up">
     <div class="container-x text-center max-w-[560px] mx-auto">
-      <p class="font-hand text-[28px] text-terracotta mb-6 relative z-10">Kde každá „chyba“ má svůj tvar</p>
+      <p class="font-hand text-[28px] text-clay mb-6 relative z-10">Kde každá „chyba“ má svůj tvar</p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center mb-8">
         <a
           href="mailto:ahoj@orechovahlina.cz"
