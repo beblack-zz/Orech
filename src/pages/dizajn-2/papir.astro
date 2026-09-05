@@ -3,7 +3,7 @@ import Nahled from "../../layouts/Nahled.astro";
 ---
 
 <Nahled
-  title="Ořechová hlína z papíru"
+  title="Jiro Saku z papíru"
   fonts="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@300;400;500;600&display=swap"
 >
   <style is:global>
@@ -116,15 +116,15 @@ import Nahled from "../../layouts/Nahled.astro";
     footer h2 { font-size: clamp(30px,5vw,58px); }
     .tiraz { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; margin-top: 36px; padding-top: 16px; border-top: 2px solid rgba(251,246,236,0.25); font-size: 13px; opacity: 0.75; }
 
-    @media (max-width: 950px) { .hero, .odilne, .udalost { grid-template-columns: 1fr; } .karty { grid-template-columns: repeat(2,1fr); } .parta { grid-template-columns: repeat(5,1fr); } }
-    @media (max-width: 560px) { .karty { grid-template-columns: 1fr; } .termin { grid-template-columns: 64px 1fr; } .termin .stav { grid-column: 2; justify-self: start; } .parta { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 950px) { .hero, .odilne, .udalost { grid-template-columns: 1fr; } .dny { grid-template-columns: repeat(4,1fr); } .karty { grid-template-columns: repeat(2,1fr); } .parta { grid-template-columns: repeat(5,1fr); } }
+    @media (max-width: 560px) { .dny { grid-template-columns: repeat(2,1fr); } .karty { grid-template-columns: 1fr; } .termin { grid-template-columns: 64px 1fr; } .termin .stav { grid-column: 2; justify-self: start; } .parta { grid-template-columns: repeat(3,1fr); } }
     @media (prefers-reduced-motion: reduce) { .karta:hover, .btn-v:hover, .btn-z:hover { transform: none; } }
   </style>
 
   <header class="natrzeno">
     <div class="list hl">
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-        <a href="#" class="znak">Ořechová hlína</a>
+        <a href="#" class="znak">Jiro Saku</a>
         <span class="lbl">Keramická dílna · Luční 235, Ořech</span>
       </div>
       <nav>
