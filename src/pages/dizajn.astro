@@ -1,50 +1,45 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Logo from "../components/Logo.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
-import Poznamka from "../components/Poznamka.astro";
 import { parta } from "../data/parta";
 
-/**
- * `token` je název proměnné z @theme — díky němu jde barvu za běhu
- * přepsat na <html> a celý web se překreslí, včetně těchhle vzorků.
- */
 const colors = [
-  { name: "Espresso", token: "espresso", hex: "#3A2E28", light: true },
-  { name: "Cream", token: "cream", hex: "#F4EBDD", light: false },
-  { name: "Cream Warm", token: "cream-warm", hex: "#EFE3D0", light: false },
-  { name: "Terracotta", token: "terracotta", hex: "#C87E4E", light: true },
-  { name: "Stone", token: "stone", hex: "#6B5D4F", light: true },
-  { name: "Clay", token: "clay", hex: "#B84A2B", light: true },
-  { name: "Peri", token: "peri", hex: "#6366F1", light: true },
-  { name: "Mustard", token: "mustard", hex: "#E8B440", light: false },
-  { name: "White", token: "white", hex: "#FFFFFF", light: false },
+  { name: "Espresso", hex: "#3A2E28", light: true },
+  { name: "Cream", hex: "#F4EBDD", light: false },
+  { name: "Cream Warm", hex: "#EFE3D0", light: false },
+  { name: "Terracotta", hex: "#C87E4E", light: true },
+  { name: "Stone", hex: "#6B5D4F", light: true },
+  { name: "Clay", hex: "#B84A2B", light: true },
+  { name: "Peri", hex: "#6366F1", light: true },
+  { name: "Mustard", hex: "#E8B440", light: false },
+  { name: "White", hex: "#FFFFFF", light: false },
 ];
 
 const fonts = [
-  { name: "Fraunces", family: "var(--font-serif)", role: "Nadpisy", sample: "Ořechová hlína", style: "italic", weight: 500, opsz: "96" },
+  { name: "Fraunces", family: "var(--font-serif)", role: "Nadpisy", sample: "Jiro Saku", style: "italic", weight: 500, opsz: "96" },
   { name: "Inter", family: "var(--font-sans)", role: "Text", sample: "Kurzy keramiky pro začátečníky i pokročilé", style: "normal", weight: 400, opsz: null },
   { name: "Caveat", family: "var(--font-hand)", role: "Akcent", sample: "— ručně psaný podpis", style: "normal", weight: 400, opsz: null },
   { name: "JetBrains Mono", family: "var(--font-mono)", role: "Meta", sample: "EST. 2026 · OŘECH", style: "normal", weight: 400, opsz: null },
 ];
 ---
 
-<Layout title="Dizajn — Ořechová hlína" description="Vizuální identita a mood board dílny Ořechová hlína.">
+<Layout title="Dizajn — Jiro Saku" description="Vizuální identita a mood board dílny Jiro Saku.">
   <section class="py-14 fade-up">
     <div class="container-x relative">
       <div class="max-w-[720px] mb-12">
         <h1 class="hero-title text-espresso text-[36px] md:text-[48px] lg:text-[58px] mb-5">
-          Mood <span class="serif-italic-terracotta">board.</span>
+          Mood <span class="serif-italic">board.</span>
         </h1>
         <p class="text-stone text-[16px] leading-[1.75]">
-          Teplé tóny, přírodní materiály, klid dílny. Vizuální jazyk Ořechové hlíny vychází z hlíny, dřeva a světla, co do ní padá odpoledne.
+          Teplé tóny, přírodní materiály, klid dílny. Vizuální jazyk Jiro Saku vychází z hlíny, dřeva a světla, co do ní padá odpoledne.
         </p>
       </div>
 
       <!-- Paleta barev -->
       <div class="mb-16">
         <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-5">Paleta barev</h2>
-        <p class="font-mono text-[12px] tracking-wider text-stone uppercase mb-2">Původní</p>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3 mb-8">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
           {colors.map((c) => (
             <div>
               <div
@@ -61,57 +56,6 @@ const fonts = [
               <p class="text-[14px] text-stone mt-1.5 text-center">{c.name}</p>
             </div>
           ))}
-        </div>
-
-        <div class="flex items-center gap-2 mb-2">
-          <p class="font-mono text-[12px] tracking-wider text-stone uppercase">Zkusit jinou</p>
-          <Poznamka>
-            Tady můžeš měnit barvy (některé prvky jako kruh mají barvu natvrdo).
-          </Poznamka>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3" data-paleta>
-          {colors.map((c) => (
-            <div>
-              <div
-                class="relative flex aspect-square rounded-lg border border-espresso/8 items-end p-2.5 transition-transform hover:scale-[1.03] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-peri"
-                style={`background:var(--color-${c.token});`}
-                data-vzorek
-              >
-                <span
-                  class="font-mono text-[12px] tracking-wider opacity-70 pointer-events-none"
-                  style={`color:${c.light ? '#F4EBDD' : '#3A2E28'};`}
-                  data-hex
-                >
-                  {c.hex}
-                </span>
-                {/*
-                  Průhledný input přes celý vzorek — klik tak vždycky spadne
-                  rovnou na něj. Přes <label> to občas neotevřelo dialog.
-                */}
-                <input
-                  type="color"
-                  aria-label={`Změnit barvu ${c.name}`}
-                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  value={c.hex}
-                  data-token={c.token}
-                  data-vychozi={c.hex}
-                />
-              </div>
-              <p class="text-[14px] text-stone mt-1.5 text-center">{c.name}</p>
-            </div>
-          ))}
-        </div>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4">
-          <p class="font-mono text-[12px] text-stone tracking-wider">
-            Klikni na vzorek a vyber libovolnou jinou barvu — stránka se překreslí.
-          </p>
-          <button
-            type="button"
-            data-paleta-reset
-            class="font-mono text-[12px] tracking-wider text-terracotta underline underline-offset-2 hover:text-clay transition-colors"
-          >
-            Vrátit původní
-          </button>
         </div>
       </div>
 
@@ -223,109 +167,4 @@ const fonts = [
       <span class="mono-meta block text-right mt-8">Vizuální identita</span>
     </div>
   </section>
-
-<script>
-  /**
-   * Vzorky paletky přepisují proměnné z @theme přímo na <html>. Tailwind
-   * z nich čte všechny utility (bg-espresso, text-stone, …), takže změna
-   * jedné hodnoty překreslí celou stránku, ne jen ten čtvereček.
-   *
-   * Výběr se ukládá do localStorage a Layout ho po každém přechodu mezi
-   * stránkami nanese znovu — klientský router jinak inline styl z <html>
-   * smaže a barvy by se po návratu na /dizajn tvářily jako rozbité.
-   */
-  const KLIC = "paleta";
-
-  const nactiUlozene = (): Record<string, string> => {
-    try {
-      return JSON.parse(localStorage.getItem(KLIC) || "{}");
-    } catch (err) {
-      return {};
-    }
-  };
-
-  const ulozStav = (stav: Record<string, string>) => {
-    try {
-      localStorage.setItem(KLIC, JSON.stringify(stav));
-    } catch (err) {}
-  };
-
-  /** Světlá, nebo tmavá? Podle toho se obarví popisek s hexem. */
-  const jeSvetla = (hex: string) => {
-    const n = parseInt(hex.slice(1), 16);
-    const kanal = (v: number) => {
-      const s = v / 255;
-      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-    };
-    const jas =
-      0.2126 * kanal((n >> 16) & 255) +
-      0.7152 * kanal((n >> 8) & 255) +
-      0.0722 * kanal(n & 255);
-    return jas > 0.4;
-  };
-
-  const zapoj = () => {
-    const paleta = document.querySelector<HTMLElement>("[data-paleta]");
-    // Router vrací pokaždé čerstvé DOM; tenhle příznak hlídá dvojí navěšení.
-    if (!paleta || paleta.dataset.zapojeno) return;
-    paleta.dataset.zapojeno = "1";
-
-    const vstupy = paleta.querySelectorAll<HTMLInputElement>("input[type=color]");
-
-    const naneseni = (vstup: HTMLInputElement, zapsat = true) => {
-      const { token } = vstup.dataset;
-      if (!token) return;
-      const hex = vstup.value.toUpperCase();
-      document.documentElement.style.setProperty(`--color-${token}`, hex);
-
-      const popisek = vstup
-        .closest("[data-vzorek]")
-        ?.querySelector<HTMLElement>("[data-hex]");
-      if (popisek) {
-        popisek.textContent = hex;
-        popisek.style.color = jeSvetla(hex) ? "#3A2E28" : "#F4EBDD";
-      }
-
-      if (zapsat) {
-        const stav = nactiUlozene();
-        stav[token] = hex;
-        ulozStav(stav);
-      }
-    };
-
-    // Vzorky ukazují, co je opravdu nastavené — i po návratu z jiné stránky.
-    const ulozene = nactiUlozene();
-    for (const vstup of vstupy) {
-      const token = vstup.dataset.token ?? "";
-      if (ulozene[token]) {
-        vstup.value = ulozene[token];
-        naneseni(vstup, false);
-      }
-    }
-
-    // `input` chodí průběžně při tažení, `change` až po potvrzení dialogu.
-    // Systémový barvoměnič ve Windows umí poslat jen to druhé.
-    for (const vstup of vstupy) {
-      vstup.addEventListener("input", () => naneseni(vstup));
-      vstup.addEventListener("change", () => naneseni(vstup));
-    }
-
-    document
-      .querySelector<HTMLButtonElement>("[data-paleta-reset]")
-      ?.addEventListener("click", () => {
-        try {
-          localStorage.removeItem(KLIC);
-        } catch (err) {}
-        for (const vstup of vstupy) {
-          vstup.value = vstup.dataset.vychozi ?? vstup.value;
-          naneseni(vstup, false);
-        }
-        // Až po obnově popisků — naneseni cestou zase sáhne na inline styl.
-        document.documentElement.removeAttribute("style");
-      });
-  };
-
-  zapoj();
-  document.addEventListener("astro:page-load", zapoj);
-</script>
 </Layout>

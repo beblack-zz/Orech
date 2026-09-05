@@ -1,43 +1,26 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Vazicka from "../components/characters/Vazicka.astro";
 import ProduktKarta from "../components/ProduktKarta.astro";
-import Poznamka from "../components/Poznamka.astro";
 import { produkty as items, tvorba } from "../data/obchod";
 import { pocetKusu } from "../data/pocty";
-import Pecinka from "../components/characters/Pecinka.astro";
-import Bublina from "../components/characters/Bublina.astro";
 
 ---
 
-<Layout title="Obchod — Ořechová hlína" description="Ručně dělaná keramika od našich lektorů. Malé série, žádné dva stejné kusy.">
+<Layout title="Obchod — Jiro Saku" description="Ručně dělaná keramika od našich lektorů. Malé série, žádné dva stejné kusy.">
   <section class="py-14 fade-up">
     <div class="container-x relative">
-      <div class="md:grid md:grid-cols-[1.15fr_1fr] md:gap-12 md:items-center mb-12">
-        <div>
-          <h1 class="hero-title text-espresso text-[36px] md:text-[48px] lg:text-[58px] mb-5">
-            Ručně, kus po <span class="serif-italic-terracotta">kuse.</span>
-          </h1>
-          <p class="text-stone text-[16px] leading-[1.75]">
-            Všechno je točené na kruhu, ručně glazované a vypálené v peci. Něco vzniklo u nás v dílně, něco od tvůrců, které máme rádi — někdy až z Japonska. Malé série: když se něco vyprodá, příště bude jiné.
-          </p>
-        </div>
-        <div class="flex justify-center md:justify-end mt-8 md:mt-0">
-          <Bublina
-            name="Pecinka"
-            text="Za dva týdny to bude tvrdý jako kámen. Slibuju."
-            side="right"
-          >
-            <Pecinka />
-          </Bublina>
-        </div>
+      {/* Bez postavičky vedle textu už mřížka nemá druhý sloupec — z úvodu je běžný odstavcový blok */}
+      <div class="max-w-[640px] mb-12">
+        <h1 class="hero-title text-espresso text-[36px] md:text-[48px] lg:text-[58px] mb-5">
+          Ručně, kus po <span class="serif-italic">kuse.</span>
+        </h1>
+        <p class="text-stone text-[16px] leading-[1.75]">
+          Všechno je točené na kruhu, ručně glazované a vypálené v peci. Něco vzniklo u nás v dílně, něco od tvůrců, které máme rádi — někdy až z Japonska. Malé série: když se něco vyprodá, příště bude jiné.
+        </p>
       </div>
 
-      <div class="flex items-center gap-2 mb-6 border-t border-espresso/10 pt-4">
+      <div class="mb-6 border-t border-espresso/10 pt-4">
         <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase">Obchod</h2>
-        <Poznamka>
-          Tady můžem prodávat výrobky, co nakoupíme + cena.
-        </Poznamka>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         {items.map((it) => <ProduktKarta item={it} />)}
@@ -52,13 +35,8 @@ import Bublina from "../components/characters/Bublina.astro";
   -->
   <section class="pb-14 fade-up">
     <div class="container-x">
-      <div class="flex items-center gap-2 mb-6 border-t-2 border-espresso pt-4">
+      <div class="mb-6 border-t-2 border-espresso pt-4">
         <h2 class="font-mono text-[12px] tracking-wider text-espresso uppercase">Naše tvorba</h2>
-        <Poznamka>
-          Tady můžem „prodávat“ naši tvorbu bez ceny. Není to ideální, ale
-          když bude někdo něco chtít, napíše mail nebo zavolá — a tam už je
-          prostor to vysvětlit.
-        </Poznamka>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         {tvorba.map((it) => <ProduktKarta item={it} tmava />)}

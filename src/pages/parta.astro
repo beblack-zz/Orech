@@ -1,7 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
-import Poznamka from "../components/Poznamka.astro";
 import { parta } from "../data/parta";
 import type { PostavaId } from "../data/parta";
 
@@ -63,10 +62,7 @@ const styly: Record<PostavaId, string> = {
   -->
   <section class="pb-14 md:pb-16 fade-up">
     <div class="container-x space-y-12 md:space-y-14">
-      <div class="relative">
-        <Poznamka class="absolute top-0.5 -left-5 md:-left-7">
-          Bez tvářiček to sice vypadá dospěle, ale pojem „parta“ ztrácí na významu — nemáš se s kým kamarádit.
-        </Poznamka>
+      <div>
         <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-1">Bez tváře</h2>
         <p class="text-stone/80 text-[14px] leading-[1.6] mb-6 max-w-[46ch]">
           Ty samé kresby, jen bez očí a pusy. Zůstane z nich tvar — hrouda, kapka, pec.
@@ -83,12 +79,7 @@ const styly: Record<PostavaId, string> = {
         </div>
       </div>
 
-      <div class="relative">
-        <Poznamka class="absolute top-0.5 -left-5 md:-left-7">
-          Jakoby… Mona Lisa? Tady jsem vypustil Krakena, ale mix všech stylů
-          by nám dovolil namíchat prvky z Dizajnu 2.0 do celého webu — to by
-          vypadalo WOW!
-        </Poznamka>
+      <div>
         <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-1">Dospělá verze — devět stylů</h2>
         <p class="text-stone/80 text-[14px] leading-[1.6] mb-6 max-w-[52ch]">
           Každá postavička je nakreslená jinou technikou, žádná nemá tvář.
@@ -118,11 +109,7 @@ const styly: Record<PostavaId, string> = {
         </div>
       </div>
 
-      <div class="relative">
-        <Poznamka class="absolute top-0.5 -left-5 md:-left-7">
-          Ubereme z Mona Lisa efektu tak 30 %, ale máme Partu zpátky.
-          Tvářičky se můžou vyladit.
-        </Poznamka>
+      <div>
         <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-1">Ty samé styly — s tváří</h2>
         <p class="text-stone/80 text-[14px] leading-[1.6] mb-6 max-w-[52ch]">
           Stejná devítka, jen jsem každé dokreslil oči a pusu technikou toho

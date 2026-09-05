@@ -1,6 +1,5 @@
 ---
 import SectionHead from "./SectionHead.astro";
-import Poznamka from "./Poznamka.astro";
 
 const offers = [
   {
@@ -39,30 +38,50 @@ const offers = [
 ];
 
 /*
- * Široký blok nad čtveřicí. Není to pátá položka katalogu, ale událost
- * s datem, proto jde přes celou šířku a má větší písmo — hierarchii nese
- * velikost, ne barva, aby to nesoupeřilo s odznakem „Nejoblíbenější“.
+ * Široký blok nad čtveřicí. Není to pátá položka katalogu, ale událost,
+ * proto jde přes celou šířku a jako jediný má plnou barvu — mezi bílými
+ * kartami se tím oddělí dřív, než se začne číst.
+ *
+ * Vystřižený papír z Dizajnu 2.0: rovné hrany místo zaoblených, měkký
+ * stín a lehké natočení. Každý termín je vlastní lístek, žádný nesedí
+ * rovně — jinak by ta metafora nefungovala a byla by to jen mřížka.
  */
 const den = {
-  idx: "10. 9. · 10–16",
-  name: "Den otevřených dveří",
+  name: "Dny otevřených dveří",
   desc: "Přijď se podívat, jak dílna funguje zevnitř. Uvidíš točení na kruhu, nahlédneš do pece a osaháš si hlínu, i kdybys ji v ruce nikdy neměl. Ptát se můžeš na cokoliv.",
 };
+
+const dny = [
+  { datum: "4. 9.", cas: "15–19 hodin", sklon: "-rotate-[1.7deg]" },
+  { datum: "11. 9.", cas: "9–14 hodin", sklon: "rotate-[1.2deg]" },
+  { datum: "18. 9.", cas: "9–14 hodin", sklon: "rotate-[0.9deg]" },
+  { datum: "25. 9.", cas: "15–19 hodin", sklon: "-rotate-[1.1deg]" },
+];
 ---
 
 <section class="py-14 relative fade-up">
   <div class="container-x">
     <SectionHead title="Co u nás" italic="najdeš" meta="Katalog" />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="sm:col-span-2 lg:col-span-4 bg-white rounded-xl border border-espresso/10 p-6 md:p-8 relative">
-        <Poznamka align="right" class="absolute top-3 right-3">
-          Pokud to budeš chtít na webu, tak bych to vymazlil.
-        </Poznamka>
-        <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{den.idx}</div>
-        <h3 class="font-serif text-[26px] md:text-[32px] font-medium leading-tight mb-2" style="font-variation-settings: 'opsz' 72;">
-          {den.name}
-        </h3>
-        <p class="text-[15px] leading-[1.6] text-stone max-w-[62ch]">{den.desc}</p>
+      <div class="sm:col-span-2 lg:col-span-4 bg-clay text-cream p-6 md:p-8 lg:p-10 -rotate-[0.5deg] shadow-[0_10px_22px_-10px_rgba(58,46,40,0.4)] grid gap-7 md:grid-cols-[1fr_auto] md:gap-10 md:items-center">
+        <div>
+          <h3 class="font-serif text-[26px] md:text-[32px] font-medium leading-tight mb-2" style="font-variation-settings: 'opsz' 72;">
+            {den.name}
+          </h3>
+          <p class="text-[15px] leading-[1.6] text-cream/90 max-w-[62ch]">{den.desc}</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3 md:gap-3.5 shrink-0">
+          {dny.map((d) => (
+            <div class={`bg-cream px-4 py-3 shadow-[0_4px_10px_-4px_rgba(58,46,40,0.34)] ${d.sklon}`}>
+              <span class="block font-serif font-medium text-clay text-[30px] md:text-[36px] leading-none tabular-nums whitespace-nowrap" style="font-variation-settings: 'opsz' 72;">
+                {d.datum}
+              </span>
+              <span class="block font-mono text-[11px] text-stone tracking-wider uppercase mt-2 whitespace-nowrap">
+                {d.cas}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {offers.map((o) => (

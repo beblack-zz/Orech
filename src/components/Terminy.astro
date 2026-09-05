@@ -1,6 +1,5 @@
 ---
 import SectionHead from "./SectionHead.astro";
-import Poznamka from "./Poznamka.astro";
 import { kurzy, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat, sezona } from "../data/kurzy";
 import { pocetKurzu } from "../data/pocty";
 
@@ -20,16 +19,13 @@ const courses = kurzy.slice(0, 4);
     {courses.length === 0 && (
       <p class="text-stone text-[16px] leading-[1.7] py-4">
         Zrovna teď nemáme vypsaný žádný termín — chystáme další.
-        <a href="/kurzy" class="text-terracotta underline underline-offset-2">Napiš nám</a> a dáme ti vědět, jakmile budou venku.
+        <a href="/kurzy" class="text-clay underline underline-offset-2">Napiš nám</a> a dáme ti vědět, jakmile budou venku.
       </p>
     )}
-    <div class="relative">
-      <Poznamka align="right" class="absolute -top-3 right-0">
-        Tak sem se mýlil, todle je teď nejslabší část. I jeden platný kurz za měsíc je lepší než žádný.
-      </Poznamka>
+    <div>
       {courses.map((c) => (
         <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto] items-center gap-4 md:gap-5 py-4 border-b border-espresso/10 last:border-b-0">
-          <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
+          <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none text-clay" style="font-variation-settings: 'opsz' 72;">
             {den(c.date)}
             <span class="block font-mono text-[12px] text-stone mt-1 tracking-wider uppercase font-normal">{mesic(c.date)}</span>
           </div>

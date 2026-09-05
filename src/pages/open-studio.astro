@@ -2,10 +2,7 @@
 import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
 import openStudio from "../images/open-studio.png";
-import Kapka from "../components/characters/Kapka.astro";
-import Poznamka from "../components/Poznamka.astro";
-import Hlinka from "../components/characters/Hlinka.astro";
-import Bublina from "../components/characters/Bublina.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
 
 const pricing = [
   { name: "Jednorázový vstup", price: "350 Kč / 3 hod", desc: "Přijď, kdy chceš. Hlína a nástroje v ceně, glazování +120 Kč." },
@@ -54,16 +51,13 @@ const rules = [
   </section>
 
   <section class="py-20 md:py-28 fade-up">
-    <div class="container-x text-center relative">
-      <Poznamka class="absolute top-0.5 -left-5 md:-left-7">
-        Todle by měl být jedinej „ready“ produkt, takže ho potřebujem nacenit.
-      </Poznamka>
+    <div class="container-x text-center">
       <h2 class="font-mono text-[12px] tracking-[0.15em] text-stone uppercase mb-3">Ceník</h2>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0 mb-14">
         <p class="font-serif text-[28px] md:text-[36px] text-espresso font-medium" style="font-variation-settings: 'opsz' 48;">
           Vyber si, jak chceš tvořit.
         </p>
-        <Kapka size={240} class="w-[96px] lg:w-[240px] h-auto pointer-events-none flex-shrink-0 lg:-ml-[80px] relative z-[2]" />
+        <Postavicka id="kapka" varianta="dospela" size={240} class="w-[96px] lg:w-[240px] h-auto pointer-events-none flex-shrink-0 lg:-ml-[80px] relative z-[2]" />
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-6 max-w-[960px] mx-auto items-stretch">
         {pricing.map((p) => (

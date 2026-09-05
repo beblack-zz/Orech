@@ -51,18 +51,6 @@ const ogImage = new URL(image, Astro.site);
     <script is:inline>
       // Obsah se schovává jen tehdy, když ho JS umí zase odkrýt.
       document.documentElement.classList.add("js");
-      // Poznámky pro klienta jsou vidět vždycky; schovat je jde přepínačem
-      // (nebo ?poznamky=0) a prohlížeč si to pamatuje. Nastavuje se ještě
-      // před vykreslením, aby poznámky neproblikly.
-      try {
-        var poznParam = new URL(window.location.href).searchParams.get("poznamky");
-        if (poznParam !== null) {
-          localStorage.setItem("poznamky", poznParam === "0" ? "off" : "on");
-        }
-        if (localStorage.getItem("poznamky") === "off") {
-          document.documentElement.classList.add("poznamky-vyp");
-        }
-      } catch (e) {}
       // Pojistka: kdyby se hlavní skript nenačetl, po 3 s se obsah zobrazí tak jako tak.
       setTimeout(function () {
         if (!window.__fadeReady) document.documentElement.classList.remove("js");
@@ -76,10 +64,6 @@ const ogImage = new URL(image, Astro.site);
       <slot />
     </main>
     <Footer />
-
-    <button type="button" class="poznamky-panel" data-poznamky-prepinac aria-pressed="true">
-      Poznámky zap.
-    </button>
 
     <script>
       (window as any).__fadeReady = true;
@@ -113,84 +97,6 @@ const ogImage = new URL(image, Astro.site);
 
       setupObserver();
       document.addEventListener("astro:page-load", setupObserver);
-
-      // ——— Poznámky pro klienta ———
-      const html = document.documentElement;
-
-      const syncPrepinac = () => {
-        const zapnuto = !html.classList.contains("poznamky-vyp");
-        for (const b of document.querySelectorAll("[data-poznamky-prepinac]")) {
-          b.setAttribute("aria-pressed", String(zapnuto));
-          b.textContent = zapnuto ? "Poznámky zap." : "Poznámky vyp.";
-        }
-      };
-
-      const zavriPoznamky = () => {
-        for (const p of document.querySelectorAll(".poznamka.otevreno")) {
-          p.classList.remove("otevreno");
-          p.querySelector(".poznamka-dot")?.setAttribute("aria-expanded", "false");
-        }
-      };
-
-      document.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
-
-        const prepinac = target.closest("[data-poznamky-prepinac]");
-        if (prepinac) {
-          const zapnuto = !html.classList.toggle("poznamky-vyp");
-          try {
-            localStorage.setItem("poznamky", zapnuto ? "on" : "off");
-          } catch (err) {}
-          if (!zapnuto) zavriPoznamky();
-          syncPrepinac();
-          return;
-        }
-
-        const dot = target.closest(".poznamka-dot");
-        if (dot) {
-          const poznamka = dot.closest(".poznamka")!;
-          const otevrit = !poznamka.classList.contains("otevreno");
-          zavriPoznamky();
-          if (otevrit) {
-            poznamka.classList.add("otevreno");
-            dot.setAttribute("aria-expanded", "true");
-          }
-          return;
-        }
-
-        // Klik mimo bublinu ji zavře
-        if (!target.closest(".poznamka-bublina")) zavriPoznamky();
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") zavriPoznamky();
-      });
-
-      // Přechody mezi stránkami přepisují atributy <html>, tak si stav vracíme zpátky
-      const obnovStav = () => {
-        try {
-          html.classList.toggle("poznamky-vyp", localStorage.getItem("poznamky") === "off");
-        } catch (err) {}
-        syncPrepinac();
-      };
-
-      obnovStav();
-      document.addEventListener("astro:page-load", obnovStav);
-
-      // ——— Paleta přebarvená na /dizajn ———
-      // Stejný důvod jako výš: přechod mezi stránkami smaže inline styl
-      // z <html>, takže si vybrané barvy po každém načtení naneseme znovu.
-      const obnovPaletu = () => {
-        try {
-          const ulozene = JSON.parse(localStorage.getItem("paleta") || "{}");
-          for (const [token, hex] of Object.entries(ulozene)) {
-            html.style.setProperty(`--color-${token}`, String(hex));
-          }
-        } catch (err) {}
-      };
-
-      obnovPaletu();
-      document.addEventListener("astro:page-load", obnovPaletu);
     </script>
   </body>
 </html>

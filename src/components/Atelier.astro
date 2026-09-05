@@ -1,22 +1,16 @@
 ---
 import { Image } from "astro:assets";
 import SectionHead from "./SectionHead.astro";
-import Poznamka from "./Poznamka.astro";
-import Pecinka from "./characters/Pecinka.astro";
+import Postavicka from "./characters/Postavicka.astro";
 import oAtelieru from "../images/o-atelieru.png";
 ---
 
 <section class="bg-cream-warm py-14 relative fade-up">
   <div class="container-x relative">
-    <div class="absolute -top-2 right-0">
-      <span
-        class="block font-serif font-medium text-[140px] md:text-[200px] text-espresso opacity-[0.07] leading-[0.85] tracking-tighter pointer-events-none select-none"
-        aria-hidden="true"
-      >2026</span>
-      <Poznamka align="right" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-        Informace je hned vlevo, takže mi přišlo lepší to odebrat. Teď je to čistější a bez duplicit.
-      </Poznamka>
-    </div>
+    <span
+      class="absolute -top-2 right-0 font-serif font-medium text-[140px] md:text-[200px] text-espresso opacity-[0.07] leading-[0.85] tracking-tighter pointer-events-none select-none"
+      aria-hidden="true"
+    >2026</span>
     <SectionHead title="O" italic="dílně" />
     <div class="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] gap-8 md:gap-12 items-center">
       <div>

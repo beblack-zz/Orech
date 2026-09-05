@@ -1,29 +1,34 @@
 ---
-import Vazicka from "./characters/Vazicka.astro";
-import Poznamka from "./Poznamka.astro";
+import Postavicka from "./characters/Postavicka.astro";
 ---
 
 <section class="relative py-12 md:py-16">
   <div class="container-x md:grid md:grid-cols-[1.15fr_1fr] md:gap-8 md:items-center relative">
     <div class="fade-up relative">
       <h1 class="hero-title text-espresso text-[42px] md:text-[58px] lg:text-[68px] mb-5 md:mb-6">
-        Uč se keramiku<br />tam, kde má hlína <span class="serif-italic-terracotta">čas.</span>
+        Uč se keramiku<br />tam, kde má hlína <span class="serif-italic text-clay">čas.</span>
       </h1>
       <p class="text-[15px] md:text-[16px] text-stone leading-[1.7] max-w-lg mb-8">
         Malá dílna v Ořechu — kurzy pro začátečníky i pokročilé, open studio pro volnou tvorbu a keramika, kterou si odneseš domů.
       </p>
       <div class="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-0 mt-6 lg:mt-10">
-        <Vazicka size={250} class="w-[96px] lg:w-[250px] h-auto pointer-events-none flex-shrink-0 lg:-mr-[100px] relative z-[2]" />
+        {/*
+          Cedulka ve vystřiženém papíru — kresba je užší než Vázička, takže
+          se tlačítka podsouvají míň, jinak by ležela přes ceduli, ne vedle ní.
+        */}
+        <Postavicka
+          id="cedulka"
+          varianta="dospela"
+          size={250}
+          class="w-[96px] lg:w-[250px] h-auto pointer-events-none flex-shrink-0 lg:-mr-[70px] relative z-[2]"
+        />
         <div class="flex flex-wrap gap-2.5 items-center relative z-[1]">
-          <span class="relative inline-flex">
-            <a
-              href="/kurzy"
-              class="inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
-            >
-              Vybrat kurz <span aria-hidden="true">→</span>
-            </a>
-            <Poznamka class="absolute -top-1.5 -right-1.5">not good</Poznamka>
-          </span>
+          <a
+            href="/kurzy"
+            class="inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
+          >
+            Vybrat kurz <span aria-hidden="true">→</span>
+          </a>
           <a
             href="/open-studio"
             class="inline-flex items-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso hover:text-cream transition-colors"
@@ -34,31 +39,54 @@ import Poznamka from "./Poznamka.astro";
       </div>
     </div>
 
-    <div class="relative aspect-square max-w-[520px] mx-auto w-full mt-10 md:mt-0 fade-up flex items-center justify-center">
-      <Poznamka align="right" class="absolute top-0 right-0 md:top-2 md:right-2">
-        Nové barvy rozbíjí celý dizajn, takže by se musel předělat zbytek. Což můžem — jen abys věděla, že todle je nuda.
-      </Poznamka>
+    <div class="relative aspect-square max-w-[520px] mx-auto w-full mt-10 md:mt-0 fade-up flex items-center justify-center hlina">
       <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
         <circle cx="200" cy="200" r="188" fill="none" stroke="#3A2E28" stroke-width="1.5" stroke-dasharray="7 6" class="dash-ring" />
         <circle cx="200" cy="200" r="155" fill="none" stroke="#3A2E28" stroke-width="8" />
         <circle cx="200" cy="200" r="115" fill="none" stroke="#3A2E28" stroke-width="8" />
-        <path fill="#6B5D4F" class="clay-blob">
-          <animate
-            attributeName="d"
-            dur="12s"
-            repeatCount="indefinite"
-            values="
-              M200,120 C248,118 284,152 280,200 C276,248 244,280 200,280 C156,280 120,248 120,200 C120,152 152,122 200,120 Z;
-              M210,118 C260,130 290,165 278,210 C266,255 235,285 190,278 C145,271 115,235 122,190 C129,145 160,106 210,118 Z;
-              M195,115 C245,110 292,155 285,205 C278,255 240,290 195,285 C150,280 112,245 118,195 C124,145 145,120 195,115 Z;
-              M205,122 C255,135 282,170 270,215 C258,260 225,282 185,275 C145,268 118,230 128,185 C138,140 155,109 205,122 Z;
-              M200,120 C248,118 284,152 280,200 C276,248 244,280 200,280 C156,280 120,248 120,200 C120,152 152,122 200,120 Z
-            "
-            calcMode="spline"
-            keySplines="0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1"
-          />
-        </path>
+        {/*
+          Tvar i barvu hroudy počítá skript — `d` a `fill` v markupu jsou
+          výchozí stav pro chvíli, než se načte (a pro případ, že nedojede).
+        */}
+        <path
+          class="clay-blob"
+          fill="#6B5D4F"
+          d="M200,120 C248,118 284,152 280,200 C276,248 244,280 200,280 C156,280 120,248 120,200 C120,152 152,122 200,120 Z"
+          data-hrouda
+        />
       </svg>
+
+      {/*
+        Klikací plocha sedí jen na hroudě, ne přes celý kruh — kruhy okolo
+        jsou dekorace a klik do nich by nikdo nečekal.
+      */}
+      <button
+        type="button"
+        class="absolute w-[42%] h-[42%] rounded-full cursor-pointer"
+        title="Promáčkni hlínu"
+        aria-expanded="false"
+        aria-controls="hlina-ovladani"
+        data-hlina-prepinac
+      >
+        <span class="sr-only">Promáčknout hlínu — změnit barvu a tvar</span>
+      </button>
+
+      <div
+        id="hlina-ovladani"
+        class="absolute bottom-1 left-1/2 -translate-x-1/2 w-[86%] max-w-[290px] bg-cream border border-espresso/12 rounded-lg shadow-[0_10px_28px_-14px_rgba(58,46,40,0.5)] px-4 py-3 space-y-2.5 z-[3]"
+        hidden
+        data-hlina-panel
+      >
+        <label class="block">
+          <span class="font-mono text-[11px] tracking-wider uppercase text-stone">Výpal</span>
+          <input type="range" min="0" max="100" value="0" class="w-full accent-clay mt-1 cursor-pointer" data-hlina-barva />
+        </label>
+        <label class="block">
+          <span class="font-mono text-[11px] tracking-wider uppercase text-stone">Tvar</span>
+          <input type="range" min="0" max="100" value="45" class="w-full accent-clay mt-1 cursor-pointer" data-hlina-tvar />
+        </label>
+      </div>
+
       <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 font-mono text-[12px] text-espresso tracking-wider whitespace-nowrap">Přijď si sednout ke kruhu</span>
     </div>
   </div>
@@ -70,8 +98,146 @@ import Poznamka from "./Poznamka.astro";
     transform-origin: 200px 200px;
     animation: ring-cw 100s linear infinite;
   }
+
+  /* Jediná stopa, že se s hroudou dá hnout — přejetím lehce zesvětlá */
+  .clay-blob {
+    transition: filter 0.25s ease-out;
+  }
+  .hlina:has(button:hover) .clay-blob {
+    filter: brightness(1.07);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .dash-ring { animation: none; }
   }
 </style>
+
+<script>
+  /**
+   * Hrouda v heru je hlína, takže se dá promačkávat: klik na ni otevře dva
+   * posuvníky — výpal (barva) a tvar (jak je nepravidelná).
+   *
+   * Tvar počítá skript z devíti bodů kolem středu a posuvník řídí, jak moc
+   * se jejich poloměry rozejdou od kruhu: vlevo na doraz je z toho přesný
+   * kruh, vpravo neurovnaná hrouda. Odchylky bodů jsou pevné, aby se tvar
+   * při tažení plynule rozjížděl, a ne překresloval náhodně.
+   */
+  const STRED = 200;
+  const R = 80;
+  const zaklad = [0.07, -0.09, 0.11, -0.06, 0.09, -0.1, 0.06, -0.08, 0.1];
+  const faze = [0, 1.9, 3.4, 0.7, 2.6, 4.4, 1.2, 5.1, 3.9];
+  const tempo = [1, 0.82, 1.15, 0.93, 1.28, 0.76, 1.05, 0.88, 1.2];
+
+  /* Výpal: od syrové šedé hlíny přes terakotu k vypálenému espressu */
+  const vypal: [number, [number, number, number]][] = [
+    [0, [107, 93, 79]],
+    [0.42, [200, 126, 78]],
+    [0.72, [184, 74, 43]],
+    [1, [58, 46, 40]],
+  ];
+
+  const barva = (t: number) => {
+    let i = 1;
+    while (i < vypal.length - 1 && t > vypal[i][0]) i++;
+    const [odKde, od] = vypal[i - 1];
+    const [kamKde, kam] = vypal[i];
+    const p = (t - odKde) / (kamKde - odKde);
+    const kanal = (k: number) => Math.round(od[k] + (kam[k] - od[k]) * p);
+    return `rgb(${kanal(0)}, ${kanal(1)}, ${kanal(2)})`;
+  };
+
+  /* Uzavřená Catmull-Rom křivka přepsaná do kubických bézierů */
+  const cesta = (body: [number, number][]) => {
+    const n = body.length;
+    let d = `M${body[0][0].toFixed(1)},${body[0][1].toFixed(1)}`;
+    for (let i = 0; i < n; i++) {
+      const p0 = body[(i - 1 + n) % n];
+      const p1 = body[i];
+      const p2 = body[(i + 1) % n];
+      const p3 = body[(i + 2) % n];
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+      const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+      const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    }
+    return `${d}Z`;
+  };
+
+  const tvar = (mira: number, cas: number) => {
+    const body: [number, number][] = [];
+    for (let i = 0; i < zaklad.length; i++) {
+      const uhel = (i / zaklad.length) * Math.PI * 2 - Math.PI / 2;
+      // Dech drží hroudu živou; na doraz vlevo je nulový, takže kruh je kruh
+      const dech = Math.sin(cas * 0.00042 * tempo[i] + faze[i]) * 0.09;
+      const r = R * (1 + (zaklad[i] + dech) * mira);
+      body.push([STRED + Math.cos(uhel) * r, STRED + Math.sin(uhel) * r]);
+    }
+    return cesta(body);
+  };
+
+  const zapoj = () => {
+    const plocha = document.querySelector<HTMLElement>(".hlina");
+    // Klientský router vrací čerstvé DOM; příznak hlídá dvojí navěšení.
+    if (!plocha || plocha.dataset.zapojeno) return;
+    plocha.dataset.zapojeno = "1";
+
+    const hrouda = plocha.querySelector<SVGPathElement>("[data-hrouda]");
+    const prepinac = plocha.querySelector<HTMLButtonElement>("[data-hlina-prepinac]");
+    const panel = plocha.querySelector<HTMLElement>("[data-hlina-panel]");
+    const posBarva = plocha.querySelector<HTMLInputElement>("[data-hlina-barva]");
+    const posTvar = plocha.querySelector<HTMLInputElement>("[data-hlina-tvar]");
+    if (!hrouda || !prepinac || !panel || !posBarva || !posTvar) return;
+
+    const klid = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let mira = (Number(posTvar.value) / 100) * 1.6;
+
+    const prekresli = (cas: number) => {
+      hrouda.setAttribute("d", tvar(mira, klid.matches ? 0 : cas));
+    };
+
+    // Kdo si vypnul animace, dostane hroudu bez dechu — překreslí se jen na zásah
+    let bezi = 0;
+    const smycka = (cas: number) => {
+      prekresli(cas);
+      bezi = requestAnimationFrame(smycka);
+    };
+    const rozjed = () => {
+      cancelAnimationFrame(bezi);
+      if (klid.matches) prekresli(0);
+      else bezi = requestAnimationFrame(smycka);
+    };
+    rozjed();
+    klid.addEventListener("change", rozjed);
+    // Po odchodu na jinou stránku už není co překreslovat
+    document.addEventListener("astro:before-swap", () => cancelAnimationFrame(bezi), { once: true });
+
+    posTvar.addEventListener("input", () => {
+      mira = (Number(posTvar.value) / 100) * 1.6;
+      if (klid.matches) prekresli(0);
+    });
+
+    posBarva.addEventListener("input", () => {
+      hrouda.setAttribute("fill", barva(Number(posBarva.value) / 100));
+    });
+
+    const prepni = (otevrit: boolean) => {
+      panel.hidden = !otevrit;
+      prepinac.setAttribute("aria-expanded", String(otevrit));
+      if (otevrit) posBarva.focus();
+    };
+
+    prepinac.addEventListener("click", () => prepni(panel.hidden));
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !panel.hidden) {
+        prepni(false);
+        prepinac.focus();
+      }
+    });
+  };
+
+  zapoj();
+  document.addEventListener("astro:page-load", zapoj);
+</script>
 

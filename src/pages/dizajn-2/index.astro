@@ -1,6 +1,5 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import Poznamka from "../../components/Poznamka.astro";
 
 /**
  * Přepínač vizuálních směrů.
@@ -102,19 +101,8 @@ const smery = [
         </p>
       </div>
 
-      <!--
-        Poznámka sedí nad přepínačem, ne v něm — do role="tablist" patří
-        jen záložky, nic jiného.
-      -->
-      <div class="flex items-center mt-8">
-        <Poznamka>
-          Pár nových stylů. Žádný není lepší, ale jednotlivě obsahují prvky,
-          které bychom dokázali zakombinovat.
-        </Poznamka>
-      </div>
-
       <!-- Přepínač -->
-      <div class="flex flex-wrap items-center gap-2 mt-3" role="tablist" aria-label="Vizuální směry">
+      <div class="flex flex-wrap items-center gap-2 mt-8" role="tablist" aria-label="Vizuální směry">
         {smery.map((s, i) => (
           <button
             type="button"

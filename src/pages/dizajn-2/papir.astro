@@ -63,11 +63,22 @@ import Nahled from "../../layouts/Nahled.astro";
     .hlava { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 28px; }
     .hlava h2 { font-size: clamp(30px,4.4vw,50px); }
 
-    .udalost { background: var(--p4); color: var(--p1); padding: clamp(24px,4vw,44px); box-shadow: var(--stin); transform: rotate(-0.5deg); display: grid; grid-template-columns: auto 1fr; gap: clamp(20px,4vw,48px); align-items: center; }
-    .udalost .kdy { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: clamp(44px,7.4vw,82px); line-height: 0.86; background: var(--p1); color: var(--p4); padding: 14px 18px; transform: rotate(1.6deg); box-shadow: var(--stin-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .udalost .kdy small { display: block; font-family: "Figtree", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.16em; margin-top: 10px; color: var(--ink-2); }
+    .udalost { background: var(--p4); color: var(--p1); padding: clamp(24px,4vw,44px); box-shadow: var(--stin); transform: rotate(-0.5deg); display: grid; grid-template-columns: 1fr auto; gap: clamp(20px,4vw,48px); align-items: center; }
     .udalost h2 { font-size: clamp(26px,3.6vw,42px); margin-bottom: 12px; }
     .udalost p { opacity: 0.94; }
+
+    /*
+      Termíny jsou čtyři lístky vystřižené zvlášť — proto se každý naklání
+      jinam a leží na barevném podkladu, ne v jednom bloku data jako dřív.
+    */
+    .dny { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    .den { background: var(--p1); color: var(--p4); padding: 12px 16px 11px; box-shadow: var(--stin-2); font-variant-numeric: tabular-nums; }
+    .den b { display: block; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: clamp(30px,3.8vw,46px); line-height: 0.86; }
+    .den small { display: block; font-family: "Figtree", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.16em; margin-top: 9px; color: var(--ink-2); white-space: nowrap; }
+    .den:nth-child(1) { transform: rotate(-1.7deg); }
+    .den:nth-child(2) { transform: rotate(1.2deg); }
+    .den:nth-child(3) { transform: rotate(0.9deg); }
+    .den:nth-child(4) { transform: rotate(-1.1deg); }
 
     .karty { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
     .karta { padding: 24px 20px; box-shadow: var(--stin); display: flex; flex-direction: column; gap: 10px; position: relative; }
@@ -156,10 +167,15 @@ import Nahled from "../../layouts/Nahled.astro";
     <section style="padding-top:0;">
       <div class="list">
         <div class="udalost">
-          <div class="kdy">10.9.<small>10—16 HODIN</small></div>
           <div>
-            <h2>Den otevřených dveří</h2>
+            <h2>Dny otevřených dveří</h2>
             <p>Přijď se podívat, jak dílna funguje zevnitř. Uvidíš točení na kruhu, nahlédneš do pece a osaháš si hlínu, i kdybys ji v ruce nikdy neměl. Ptát se můžeš na cokoliv.</p>
+          </div>
+          <div class="dny">
+            <div class="den"><b>4.9.</b><small>15—19 HODIN</small></div>
+            <div class="den"><b>11.9.</b><small>9—14 HODIN</small></div>
+            <div class="den"><b>18.9.</b><small>9—14 HODIN</small></div>
+            <div class="den"><b>25.9.</b><small>15—19 HODIN</small></div>
           </div>
         </div>
       </div>
