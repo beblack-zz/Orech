@@ -1,6 +1,5 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import Poznamka from "../../components/Poznamka.astro";
 
 /**
  * Přepínač vizuálních směrů.
@@ -100,17 +99,6 @@ const smery = [
           Tři podoby té samé úvodní stránky. Přepni si mezi nimi a porovnej, co
           každý směr s obsahem udělá — co unese, a co mu vezme.
         </p>
-      </div>
-
-      <!--
-        Poznámka sedí nad přepínačem, ne v něm — do role="tablist" patří
-        jen záložky, nic jiného.
-      -->
-      <div class="flex items-center mt-8">
-        <Poznamka>
-          Pár nových stylů. Žádný není lepší, ale jednotlivě obsahují prvky,
-          které bychom dokázali zakombinovat.
-        </Poznamka>
       </div>
 
       <!-- Přepínač -->

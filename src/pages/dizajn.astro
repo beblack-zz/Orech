@@ -1,7 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
-import Poznamka from "../components/Poznamka.astro";
 import { parta } from "../data/parta";
 
 /**
@@ -65,9 +64,6 @@ const fonts = [
 
         <div class="flex items-center gap-2 mb-2">
           <p class="font-mono text-[12px] tracking-wider text-stone uppercase">Zkusit jinou</p>
-          <Poznamka>
-            Tady můžeš měnit barvy (některé prvky jako kruh mají barvu natvrdo).
-          </Poznamka>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3" data-paleta>
           {colors.map((c) => (

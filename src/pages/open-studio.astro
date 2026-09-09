@@ -3,7 +3,6 @@ import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
 import openStudio from "../images/open-studio.png";
 import Kapka from "../components/characters/Kapka.astro";
-import Poznamka from "../components/Poznamka.astro";
 import Hlinka from "../components/characters/Hlinka.astro";
 import Bublina from "../components/characters/Bublina.astro";
 
@@ -55,9 +54,6 @@ const rules = [
 
   <section class="py-20 md:py-28 fade-up">
     <div class="container-x text-center relative">
-      <Poznamka class="absolute top-0.5 -left-5 md:-left-7">
-        Todle by měl být jedinej „ready“ produkt, takže ho potřebujem nacenit.
-      </Poznamka>
       <h2 class="font-mono text-[12px] tracking-[0.15em] text-stone uppercase mb-3">Ceník</h2>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0 mb-14">
         <p class="font-serif text-[28px] md:text-[36px] text-espresso font-medium" style="font-variation-settings: 'opsz' 48;">
