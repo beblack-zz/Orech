@@ -1,4 +1,6 @@
 ---
+import Logo from "./Logo.astro";
+
 /**
  * `accent` označuje položku, která má v menu schválně vyčnívat.
  * Pravidlo, na kterém to stojí: barva nese identitu (co ta položka je),
@@ -35,9 +37,8 @@ const skrt = "line-through decoration-2 decoration-clay";
 <header class="border-b border-espresso/10">
   <div class="container-x flex items-center justify-between py-4">
     <div class="flex items-center gap-3">
-      <a href="/" class="bg-stone text-cream px-4 py-2.5 rounded-xl inline-flex flex-col leading-none gap-1 hover:bg-espresso transition-colors">
-        <span class="logo-word font-serif text-[12px] font-medium" style="font-variation-settings: 'opsz' 48;">{"OŘECHOVÁ".split("").map(l => <span>{l}</span>)}</span>
-        <span class="logo-word font-serif text-[22px] font-medium" style="font-variation-settings: 'opsz' 48;">{"HLÍNA".split("").map(l => <span>{l}</span>)}</span>
+      <a href="/" class="inline-block hover:opacity-75 transition-opacity">
+        <Logo size={48} />
       </a>
       <span class="mono-meta hidden xl:inline">Keramická dílna · Luční 235, Ořech</span>
     </div>

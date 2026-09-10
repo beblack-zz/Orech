@@ -1,0 +1,109 @@
+---
+/**
+ * Značka: hrnčířský kruh shora — světlá deska, na ní tmavší hrouda hlíny
+ * uprostřed a jeden květ sakury. Název stojí pod obrázkem, ne vedle něj.
+ *
+ * `size` je průměr desky v pixelech; text se dopočítá, aby poměr držel
+ * v hlavičce i v patičce.
+ */
+interface Props {
+  size?: number;
+  class?: string;
+  /** Patička je tmavá — název se tam píše krémovou, ne espresso. */
+  invertovany?: boolean;
+}
+
+const { size = 44, class: trida = "", invertovany = false } = Astro.props;
+
+const deska = "#CDC7C1";
+const hlina = "#8A8480";
+const kvet = "#D79A94";
+
+/** Logo bývá na stránce dvakrát (hlavička, patička) — id se nesmějí srazit. */
+const id = `saku-${Math.random().toString(36).slice(2, 8)}`;
+
+/** Umístění květu na desce: úhel od středu, vzdálenost, velikost, natočení. */
+const uhel = -21;
+const vzdalenost = 20;
+const velikost = 2.65;
+const natoceni = 12;
+
+/** O kolik plátek odstupuje od středu květu — tím vznikají mezery mezi nimi. */
+const odsun = 1.7;
+
+/** Průsvitná rýha v desce — vede mezikružím mezi hroudou a okrajem. */
+const ryhaPolomer = 41;
+const ryhaSila = 1.6;
+
+const rad = (uhel * Math.PI) / 180;
+const x = (50 + vzdalenost * Math.cos(rad)).toFixed(1);
+const y = (50 + vzdalenost * Math.sin(rad)).toFixed(1);
+
+const nazevPx = Math.round(size * 0.34);
+---
+
+<span class={`inline-flex flex-col items-center gap-1.5 leading-none ${trida}`}>
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 100 100"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    class="block flex-shrink-0"
+  >
+    <defs>
+      {/*
+        Plátek podle fotky: špičatá pata, mandlové boky nejširší pod polovinou
+        a nahoře dva hroty s hlubokým rovným zářezem mezi nimi.
+      */}
+      <path
+        id={`${id}-listek`}
+        d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z"
+      />
+      <g id={`${id}-kvet`}>
+        {[0, 72, 144, 216, 288].map((u) => (
+          <use href={`#${id}-listek`} transform={`rotate(${u}) translate(0 -${odsun})`} />
+        ))}
+      </g>
+      {/* Deska ořezává vše, co by přeteklo přes okraj kruhu. */}
+      <clipPath id={`${id}-deska`}>
+        <circle cx="50" cy="50" r="50" />
+      </clipPath>
+      {/*
+        Tenká rýha v desce: černý kroužek v masce ji prořízne skrz, takže
+        v ní prosvítá to, na čem logo leží. Květ se kreslí až po ní, proto
+        rýha nikde neprotne plátky.
+      */}
+      <mask id={`${id}-ryha`}>
+        <circle cx="50" cy="50" r="50" fill="white" />
+        <circle
+          cx="50"
+          cy="50"
+          r={ryhaPolomer}
+          fill="none"
+          stroke="black"
+          stroke-width={ryhaSila}
+        />
+      </mask>
+    </defs>
+
+    <circle cx="50" cy="50" r="50" fill={deska} mask={`url(#${id}-ryha)`} />
+    <circle cx="50" cy="50" r="21" fill={hlina} />
+
+    {/* Květ leží až na hroudě, ne za ní. */}
+    <g clip-path={`url(#${id}-deska)`}>
+      <use
+        href={`#${id}-kvet`}
+        transform={`translate(${x} ${y}) rotate(${natoceni}) scale(${velikost})`}
+        fill={kvet}
+      />
+    </g>
+  </svg>
+  <span
+    class={`font-serif font-medium whitespace-nowrap tracking-[0.04em] ${invertovany ? "text-cream" : "text-espresso"}`}
+    style={`font-size: ${nazevPx}px; font-variation-settings: 'opsz' 48;`}
+  >
+    <span class="uppercase tracking-[0.10em]">Jiro</span> saku
+  </span>
+</span>
