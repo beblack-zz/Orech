@@ -1,0 +1,111 @@
+---
+/**
+ * Pracovní náhled: tušové siluety party bez tváře a s tváří.
+ * Tvář je vykrytá do papíru — v tuši se světlo netiskne, jen se vynechá,
+ * takže oči a pusa jsou v barvě podkladu, ne v další barvě navrch.
+ */
+const tus = "#23211D";
+const papir = "#F4F0E6";
+const zlato = "#B8912F";
+
+/** Každá silueta je tvar plus souřadnice, kam jí tvář sedne. */
+const postavy = [
+  {
+    jmeno: "Hlínka",
+    telo: `<path d="M18 62 C18 34 32 18 46 18 C62 18 74 34 74 62 C74 74 62 82 46 82 C30 82 18 74 18 62 Z" fill="${tus}"/>
+           <path d="M10 90 C30 84 62 84 82 90 C62 96 30 96 10 90 Z" fill="${tus}" opacity="0.55"/>`,
+    tvar: { x: 46, y: 54, s: 1 },
+  },
+  {
+    jmeno: "Kapka",
+    telo: `<path d="M46 12 C30 44 22 60 22 70 C22 82 33 90 46 90 C59 90 70 82 70 70 C70 60 62 44 46 12 Z" fill="${tus}"/>`,
+    tvar: { x: 46, y: 66, s: 0.95 },
+  },
+  {
+    jmeno: "Pecinka",
+    telo: `<path d="M20 30 C20 26 22 24 26 24 L66 24 C70 24 72 26 72 30 L72 84 C72 88 70 90 66 90 L26 90 C22 90 20 88 20 84 Z" fill="${tus}"/>
+           <path d="M32 48 h28 v26 h-28 Z" fill="${papir}"/>
+           <path d="M56 24 V10 h12 v14" fill="none" stroke="${tus}" stroke-width="6"/>`,
+    tvar: { x: 46, y: 36, s: 0.8 },
+  },
+  {
+    jmeno: "Střípek",
+    telo: `<path d="M16 38 C19 68 30 88 46 88 C62 88 73 68 76 38 L66 40 C63 62 57 78 46 78 C35 78 29 62 26 40 Z" fill="${tus}"/>
+           <path d="M13 36 C28 44 64 44 79 36 C64 50 28 50 13 36 Z" fill="${tus}" opacity="0.9"/>
+           <path d="M53 42 L44 58 L54 70 L48 88 L44 86 L50 70 L40 58 L49 41 Z" fill="${zlato}"/>`,
+    tvar: { x: 32, y: 60, s: 0.72 },
+  },
+  {
+    jmeno: "Vázička",
+    telo: `<path d="M38 14 L37 30 C24 42 20 62 24 76 C28 86 36 92 46 92 C56 92 64 86 68 76 C72 62 68 42 55 30 L54 14 Z" fill="${tus}"/>
+           <path d="M34 14 h24" stroke="${tus}" stroke-width="5" stroke-linecap="round"/>`,
+    tvar: { x: 46, y: 68, s: 0.9 },
+  },
+  {
+    jmeno: "Bublinka",
+    /* Obrys místo plochy — tvář tady musí být v tuši, ne vykrytá. */
+    telo: `<circle cx="46" cy="54" r="32" fill="none" stroke="${tus}" stroke-width="7"/>
+           <circle cx="34" cy="42" r="6" fill="${tus}" opacity="0.3"/>`,
+    tvar: { x: 48, y: 58, s: 0.9, tmava: true },
+  },
+  {
+    jmeno: "Kachlík",
+    telo: `<path d="M18 26 h56 v56 h-56 Z" fill="${tus}"/>
+           <path d="M30 38 h32 v32 h-32 Z" fill="${papir}"/>`,
+    tvar: { x: 46, y: 54, s: 0.78, tmava: true },
+  },
+  {
+    jmeno: "Cedulka",
+    telo: `<path d="M28 26 h34 v62 h-34 Z" fill="${tus}"/>
+           <circle cx="45" cy="38" r="5" fill="${papir}"/>
+           <path d="M34 64 h22 M34 74 h14" stroke="${papir}" stroke-width="4" stroke-linecap="round"/>
+           <path d="M45 26 C36 16 40 8 45 6" fill="none" stroke="${tus}" stroke-width="4"/>`,
+    tvar: { x: 45, y: 52, s: 0.62 },
+  },
+  {
+    jmeno: "Šamotka",
+    telo: `<path d="M8 48 h74 v22 h-74 Z" fill="${tus}"/>
+           <path d="M16 82 C32 76 58 76 74 82 C58 88 32 88 16 82 Z" fill="${tus}" opacity="0.4"/>`,
+    tvar: { x: 45, y: 59, s: 0.62 },
+  },
+];
+
+/**
+ * Tvář podle dospělé varianty „tušový tah“: oči i pusa jsou tahy štětcem,
+ * ne čáry — plochy tlusté uprostřed a špičaté na koncích. Na plné siluetě
+ * se vykryjí do papíru, na obrysové postavičce se naopak natisknou tuší.
+ */
+const tvar = ({ x, y, s, tmava }: { x: number; y: number; s: number; tmava?: boolean }) => `
+  <g transform="translate(${x} ${y}) scale(${s * 0.42})" fill="${tmava ? tus : papir}">
+    <path d="M-23 -5 C-19 -11 -12 -12 -8 -9 C-13 -9.6 -18.5 -8 -23 -5 Z"/>
+    <path d="M23 -5 C19 -11 12 -12 8 -9 C13 -9.6 18.5 -8 23 -5 Z"/>
+    <path d="M-6 9 C-2 13 2 13 6 9 C2 11.6 -2 11.6 -6 9 Z"/>
+  </g>`;
+---
+
+<html lang="cs">
+  <head><meta charset="utf-8" /><title>Parta v tušovém tahu</title></head>
+  <body style={`margin:0;background:${papir};font-family:Georgia,serif;color:${tus};padding:40px 32px;`}>
+    <h1 style="font-size:22px;font-weight:400;margin:0 0 4px;">Parta v tušovém tahu</h1>
+    <p style="font-size:13px;opacity:0.6;margin:0 0 34px;">Nahoře siluety, jak jsou teď. Dole ty samé s obličejem z původní party.</p>
+
+    {[false, true].map((sTvari) => (
+      <>
+        <p style="font-family:monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.45;margin:0 0 10px;">
+          {sTvari ? "S tváří" : "Bez tváře"}
+        </p>
+        <div style="display:flex;gap:18px;align-items:flex-end;margin-bottom:44px;flex-wrap:wrap;">
+          {postavy.map((p) => (
+            <figure style="margin:0;width:104px;text-align:center;">
+              <svg viewBox="0 0 90 100" style="width:100%;height:auto;" aria-hidden="true"
+                   set:html={p.telo + (sTvari ? tvar(p.tvar) : "")} />
+              <figcaption style="font-family:monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.5;margin-top:6px;">
+                {p.jmeno}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </>
+    ))}
+  </body>
+</html>

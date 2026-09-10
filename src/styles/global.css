@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
-@import "@fontsource-variable/fraunces";
-@import "@fontsource-variable/inter";
+/* Písmo z návrhu „tušový tah“: Cormorant Garamond na nadpisy, Newsreader na text. */
+@import "@fontsource/cormorant-garamond/300.css";
+@import "@fontsource/cormorant-garamond/400.css";
+@import "@fontsource/cormorant-garamond/500.css";
+@import "@fontsource/cormorant-garamond/600.css";
+@import "@fontsource/cormorant-garamond/300-italic.css";
+@import "@fontsource/cormorant-garamond/400-italic.css";
+@import "@fontsource-variable/newsreader";
+@import "@fontsource-variable/newsreader/opsz-italic.css";
 @import "@fontsource-variable/jetbrains-mono";
 @import "@fontsource/caveat/400.css";
 @import "@fontsource/caveat/500.css";
@@ -10,17 +17,18 @@
   --color-espresso: #3A2E28;
   --color-cream: #F4EBDD;
   --color-cream-warm: #EFE3D0;
-  --color-terracotta: #C87E4E;
+  /* Sépie z návrhu „mědirytina“ — teplá hnědá, akcent celého webu. */
+  --color-terracotta: #6B5540;
   --color-stone: #6B5D4F;
   --color-clay: #B84A2B;
-  --color-peri: #6366F1;
-  /* Tmavší peri na text — světlá varianta má na krémové jen 3,78:1 */
-  --color-peri-deep: #4F46E5;
+  --color-peri: #C6C9CB;
+  /* Ocelová z loga. Tmavší varianta je na text — světlá má na krémové 1,4:1. */
+  --color-peri-deep: #5C666B;
   --color-mustard: #E8B440;
   --color-white: #FFFFFF;
 
-  --font-serif: "Fraunces Variable", "Fraunces", serif;
-  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Newsreader Variable", "Newsreader", Georgia, "Times New Roman", serif;
   --font-hand: "Caveat", cursive;
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 }
@@ -40,9 +48,25 @@
     line-height: 1.6;
   }
 
+  /*
+   * Vlákna ručního papíru z návrhu „tušový tah“. Vrstva leží přes celou
+   * stránku, ale násobí — vlastní barvu nepřidává, jen podklad rozčeří,
+   * takže krémová zůstává krémová. Nesmí brát kliknutí, proto pointer-events.
+   */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 60;
+    opacity: 0.34;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7 0.04' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23v)' opacity='0.22'/%3E%3C/svg%3E");
+  }
+
   ::selection {
     background: var(--color-peri);
-    color: var(--color-cream);
+    color: var(--color-espresso);
   }
 
   a {
@@ -83,11 +107,24 @@
   color: var(--color-terracotta);
 }
 
+/*
+  Navigace a tlačítka jdou v tuši monem, ne patkovým textovým písmem —
+  drží tak stejnou linku jako drobné štítky.
+*/
+@utility nav-odkaz {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  letter-spacing: 0.1em;
+}
+/* Štítek podle návrhu „tušový tah“: verzálky s velkým prokladem. */
 @utility mono-meta {
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  color: var(--color-stone);
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  /* Vybledlá espresso místo syté stone — tuš má štítky výrazně tišší. */
+  color: color-mix(in srgb, var(--color-espresso) 45%, transparent);
 }
 
 @utility container-x {

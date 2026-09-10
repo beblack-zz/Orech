@@ -16,13 +16,13 @@ import Vazicka from "./characters/Vazicka.astro";
         <div class="flex flex-wrap gap-2.5 items-center relative z-[1]">
           <a
             href="/kurzy"
-            class="inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
+            class="inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full nav-odkaz text-[13px] uppercase hover:bg-espresso transition-colors"
           >
             Vybrat kurz <span aria-hidden="true">→</span>
           </a>
           <a
             href="/open-studio"
-            class="inline-flex items-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso hover:text-cream transition-colors"
+            class="inline-flex items-center bg-transparent text-espresso border border-espresso px-6 py-3.5 rounded-full nav-odkaz text-[13px] uppercase hover:bg-espresso hover:text-cream transition-colors"
           >
             Zjistit open studio
           </a>
@@ -235,9 +235,9 @@ import Vazicka from "./characters/Vazicka.astro";
             <use href="#g1" transform="translate(74.4 60.3) rotate(173) scale(0.45)" fill="#E7D7B4"><animate attributeName="opacity" values="0;.73;.73;0;0" keyTimes="0;.16;.56;.68;1" dur="8.3s" begin="-1.4s" repeatCount="indefinite" /></use>
           </pattern>
         </defs>
-        <circle cx="200" cy="200" r="188" fill="none" stroke="#3A2E28" stroke-width="1.5" stroke-dasharray="7 6" class="dash-ring" />
-        <circle cx="200" cy="200" r="155" fill="none" stroke="#3A2E28" stroke-width="8" />
-        <circle cx="200" cy="200" r="115" fill="none" stroke="#3A2E28" stroke-width="8" />
+        <circle cx="200" cy="200" r="188" fill="none" stroke="#7E858A" stroke-width="1.5" stroke-dasharray="7 6" class="dash-ring" />
+        <circle cx="200" cy="200" r="155" fill="none" stroke="#C6C9CB" stroke-width="5" />
+        <circle cx="200" cy="200" r="115" fill="none" stroke="#C6C9CB" stroke-width="5" />
         <path fill="url(#samot)" class="clay-blob">
           <animate
             attributeName="d"
@@ -255,7 +255,7 @@ import Vazicka from "./characters/Vazicka.astro";
           />
         </path>
       </svg>
-      <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 font-mono text-[12px] text-espresso tracking-wider whitespace-nowrap">Přijď si sednout ke kruhu</span>
+      <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 mono-meta whitespace-nowrap">Přijď si sednout ke kruhu</span>
     </div>
   </div>
 </section>

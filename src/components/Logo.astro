@@ -15,9 +15,13 @@ interface Props {
 
 const { size = 44, class: trida = "", invertovany = false } = Astro.props;
 
-const deska = "#CDC7C1";
-const hlina = "#8A8480";
+/* Šedé jdou mírně do modra — deska hrnčířského kruhu je z oceli, ne z hlíny. */
+const deska = "#C6C9CB";
+const hlina = "#7E858A";
 const kvet = "#D79A94";
+/* Stínování plátku: u paty hustší barva, ke špičce prosvětlená. */
+const kvetPata = "#C4837C";
+const kvetSpicka = "#E7BAB3";
 
 /** Logo bývá na stránce dvakrát (hlavička, patička) — id se nesmějí srazit. */
 const id = `saku-${Math.random().toString(36).slice(2, 8)}`;
@@ -39,7 +43,8 @@ const rad = (uhel * Math.PI) / 180;
 const x = (50 + vzdalenost * Math.cos(rad)).toFixed(1);
 const y = (50 + vzdalenost * Math.sin(rad)).toFixed(1);
 
-const nazevPx = Math.round(size * 0.34);
+/* Značka roste rychleji než název — proto menší poměr než dřív. */
+const nazevPx = Math.round(size * 0.26);
 ---
 
 <span class={`inline-flex flex-col items-center gap-1.5 leading-none ${trida}`}>
@@ -57,8 +62,26 @@ const nazevPx = Math.round(size * 0.34);
         Plátek podle fotky: špičatá pata, mandlové boky nejširší pod polovinou
         a nahoře dva hroty s hlubokým rovným zářezem mezi nimi.
       */}
+      {/*
+        Skutečný plátek je u stopky sytější a ke špičce prosvítá. Přechod
+        je v soustavě samotného plátku, takže se s ním otočí — každý
+        z pěti stínuje od své vlastní paty, ne přes celý květ.
+      */}
+      <linearGradient
+        id={`${id}-stin`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1="0.5"
+        x2="0"
+        y2="-12.6"
+      >
+        <stop offset="0" stop-color={kvetPata} />
+        <stop offset="0.45" stop-color={kvet} />
+        <stop offset="1" stop-color={kvetSpicka} />
+      </linearGradient>
       <path
         id={`${id}-listek`}
+        fill={`url(#${id}-stin)`}
         d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z"
       />
       <g id={`${id}-kvet`}>
@@ -96,14 +119,13 @@ const nazevPx = Math.round(size * 0.34);
       <use
         href={`#${id}-kvet`}
         transform={`translate(${x} ${y}) rotate(${natoceni}) scale(${velikost})`}
-        fill={kvet}
       />
     </g>
   </svg>
   <span
-    class={`font-serif font-medium whitespace-nowrap tracking-[0.04em] ${invertovany ? "text-cream" : "text-espresso"}`}
+    class={`font-serif font-medium whitespace-nowrap tracking-[0.04em] [word-spacing:-0.08em] ${invertovany ? "text-cream" : "text-espresso"}`}
     style={`font-size: ${nazevPx}px; font-variation-settings: 'opsz' 48;`}
   >
-    <span class="uppercase tracking-[0.10em]">Jiro</span> saku
+    <span class="uppercase tracking-[-0.01em]">Jiro</span> saku
   </span>
 </span>

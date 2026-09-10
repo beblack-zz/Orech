@@ -1,0 +1,28 @@
+---
+/**
+ * Oddělovač z návrhu „tušový tah“: jeden tah štětcem, který se v tlaku
+ * rozšíří a na konci ztenčí, a pod ním tenká linka. Dva tahy pod sebou —
+ * jeden ruční, jeden rýsovaný.
+ *
+ * `preserveAspectRatio="none"` je tu schválně: tah se má roztáhnout přes
+ * celou šířku sloupce, ne držet poměr stran.
+ */
+interface Props {
+  class?: string;
+}
+const { class: trida = "" } = Astro.props;
+---
+
+<div class={`container-x ${trida}`} aria-hidden="true">
+  <svg
+    viewBox="0 0 900 14"
+    preserveAspectRatio="none"
+    class="block w-full h-[14px] text-espresso/25"
+  >
+    <path
+      d="M0 8 C120 3 300 2 470 5 C640 8 790 10 900 6 C790 14 640 13 470 11 C300 9 120 11 0 8 Z"
+      fill="currentColor"
+    />
+  </svg>
+  <div class="border-t border-espresso/12 mt-6"></div>
+</div>
