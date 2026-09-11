@@ -174,7 +174,7 @@ const styly: Record<PostavaId, string> = {
 
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-5">
                 <span class="font-mono text-[12px] tracking-wider uppercase text-stone">
-                  Má ráda: <span class="text-espresso">{p.oblibene}</span>
+                  {p.muz ? "Má rád" : "Má ráda"}: <span class="text-espresso">{p.oblibene}</span>
                 </span>
               </div>
 
@@ -190,10 +190,10 @@ const styly: Record<PostavaId, string> = {
 
   <section class="py-14 fade-up">
     <div class="container-x text-center max-w-[560px] mx-auto">
-      <p class="font-serif italic text-[24px] text-espresso mb-3">Chceš je poznat naživo?</p>
+      <p class="font-serif italic text-[24px] text-espresso mb-3">Seznamte se naživo…</p>
       <p class="text-stone text-[16px] leading-[1.7] mb-7">
-        Pecinka topí každý týden a Hlínka na tebe čeká na stole. Přijď si zkusit, jaké to je,
-        když se ti hlína točí pod rukama.
+        Pecinka topí každý týden a Hlínka čeká na stole. Jaké to asi je, když se hlína točí
+        pod rukama…
       </p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a

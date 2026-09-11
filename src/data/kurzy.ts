@@ -28,13 +28,31 @@ export interface Kurz {
  */
 const vsechnyKurzy: Kurz[] = [
   {
-    date: new Date(2026, 10, 4), // středa — sedí na „středy 18:00“
-    title: "Kurz kruhu pro začátečníky",
-    format: "4 lekce · středy 18:00",
-    lektor: "Jiřík",
+    date: new Date(2026, 9, 6), // úterý — sedí na „úterky 15:00“, začátek trimestru
+    title: "Malý & Velký",
+    format: "10 lekcí · trimestr · úterky 15:00–16:30 · 90 min · s pomocí",
+    lektor: "JIRO",
+    capacity: "",
+    state: "pripravujeme",
+    desc: "Modelování, točení, příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.",
+  },
+  {
+    date: new Date(2026, 9, 6), // úterý — stejný den jako Malý & Velký, jen večer
+    title: "Velký & Velký",
+    format: "10 lekcí · trimestr · úterky 17:00–18:30 · 90 min · s pomocí",
+    lektor: "JIRO",
+    capacity: "",
+    state: "pripravujeme",
+    desc: "Pro velké a pro dospělé. Modelování, točení, příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.",
+  },
+  {
+    date: new Date(2026, 10, 3), // úterý — sedí na „úterky 10:00“
+    title: "Kurz kruh pro začátečníky",
+    format: "4 lekce · měsíc · úterky 10:00–11:30",
+    lektor: "JIRO",
     capacity: "6 / 8 míst",
     state: "pripravujeme",
-    desc: "Naučíš se základy točení na kruhu — centrovat, vytahovat, tvarovat. Čtyři večery, vlastní tempo.",
+    desc: "Příprava hlíny a náčiní, základy točení na kruhu (centrování, vytahování, tvarování), obrábění.",
   },
   {
     date: new Date(2026, 10, 14), // sobota
@@ -49,7 +67,7 @@ const vsechnyKurzy: Kurz[] = [
     date: new Date(2026, 10, 21), // sobota
     title: "Glazování — pokročilý seminář",
     format: "1 den · sobota 09:00",
-    lektor: "Jiřík",
+    lektor: "JIRO",
     capacity: "obsazeno",
     state: "pripravujeme",
     desc: "Teorie i praxe glazur — oxidace, redukce, vrstvení. Pro ty, kdo už mají za sebou pár výpalů.",

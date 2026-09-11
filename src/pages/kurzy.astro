@@ -4,7 +4,6 @@ import Stripek from "../components/characters/Stripek.astro";
 import Bublina from "../components/characters/Bublina.astro";
 import Poukaz from "../components/Poukaz.astro";
 import { kurzy as courses, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat, sezona } from "../data/kurzy";
-import { pocetKurzu } from "../data/pocty";
 
 
 const faq = [
@@ -29,7 +28,7 @@ const faq = [
         </div>
         <div></div>
       </div>
-      <span class="mono-meta block text-right">{[sezona(), pocetKurzu(courses.length)].filter(Boolean).join(" · ")}</span>
+      <span class="mono-meta block text-right">{sezona()}</span>
     </div>
   </section>
 

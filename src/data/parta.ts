@@ -18,6 +18,8 @@ export interface Postava {
   replika: string;
   /** Barva z palety, kterou má postavička nejblíž — používá se na podklad karty */
   tint: string;
+  /** Kluci mají na kartě „Má rád“ místo „Má ráda“ */
+  muz?: boolean;
 }
 
 export const parta: Postava[] = [
@@ -34,16 +36,16 @@ export const parta: Postava[] = [
     id: "kapka",
     name: "Kapka",
     tagline: "utekla ze štětce",
-    bio: "Vylila se z kelímku s glazurou a od té doby se toulá po dílně. Nejradši má všechno, co se leskne.",
-    oblibene: "Modrá glazura a louže",
+    bio: "Skápla ze štětce, když se glazovalo, a od té doby se toulá po dílně. Nejradši má všechno, co se leskne.",
+    oblibene: "Pastelové glazury a louže",
     replika: "Já jsem tady spíš omylem. Ale nikomu to neříkej.",
     tint: "#6366F1",
   },
   {
     id: "pecinka",
     name: "Pecinka",
-    tagline: "teplá a připravená",
-    bio: "Naše pec. Přes den podřimuje a v noci pracuje — uvnitř má skoro tisíc stupňů. Co z ní vyleze, to už zůstane napořád.",
+    tagline: "připravená to rozpálit",
+    bio: "Naše pec. Přes noc podřimuje a přes den pracuje — vypalovat dokáže až na 1 320 stupňů.",
     oblibene: "Teplo a trpělivost",
     replika: "Za dva týdny to bude tvrdý jako kámen. Slibuju.",
     tint: "#B84A2B",
@@ -51,18 +53,19 @@ export const parta: Postava[] = [
   {
     id: "stripek",
     name: "Střípek",
-    tagline: "prasklý, ale nevzdává",
-    bio: "Býval hrnek. Pak spadl ze stolu. Teď chodí po dílně a všem vysvětluje, že rozbít něco není konec světa.",
+    tagline: "prasklý, ale nevzdává se",
+    bio: "Býval hrnkem. Pak spadl ze stolu. Teď chodí po dílně a všem vysvětluje, že rozbít něco není konec světa.",
     oblibene: "Druhé pokusy",
     replika: "Já jsem se rozbil hned na první hodině. A pořád jsem tady.",
     tint: "#E8B440",
+    muz: true,
   },
   {
     id: "vazicka",
     name: "Vázička",
     tagline: "elegantní a voňavá",
     bio: "Nejstarší kus v dílně. Vždycky má v sobě čerstvé kytky a vždycky ví, jak se co dělá pořádně.",
-    oblibene: "Kopretiny a rovná záda",
+    oblibene: "Sakury a rovná záda",
     replika: "Rovně sedět, rovně točit. A dýchat — na to se často zapomíná.",
     tint: "#C87E4E",
   },
@@ -78,17 +81,18 @@ export const parta: Postava[] = [
   {
     id: "kachlik",
     name: "Kachlík",
-    tagline: "rovný podle pravítka a pyšný na to",
+    tagline: "rovný podle pravítka",
     bio: "Jediný v partě, komu se povedlo být dokonale rovný. Připomíná to při každé příležitosti a nenaklonil se od výpalu ani o stupeň. Teda skoro.",
     oblibene: "Pravítko a pravé úhly",
     replika: "Čtyři strany, čtyři pravé úhly. Zkus to taky.",
     tint: "#C87E4E",
+    muz: true,
   },
   {
     id: "cedulka",
     name: "Cedulka",
     tagline: "aby sis to poznal",
-    bio: "Dva týdny na polici vypadají všechny misky stejně. Cedulka je jediná, kdo si pamatuje, čí je která — a proto si na ni každý dává pozor.",
+    bio: "Dvacet misek na polici může vypadat hodně podobně. Cedulka je jediná, kdo si pamatuje, čí je která — a proto si na ni každý dává pozor.",
     oblibene: "Tužka a rovné písmo",
     replika: "Napiš se na mě. Za dva týdny mi poděkuješ.",
     tint: "#6B5D4F",

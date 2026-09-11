@@ -1,5 +1,6 @@
 ---
 import SectionHead from "./SectionHead.astro";
+import NabidkaKarta from "./NabidkaKarta.astro";
 
 const offers = [
   {
@@ -11,7 +12,7 @@ const offers = [
     featured: false,
   },
   {
-    idx: "4–8 lekcí",
+    idx: "4–10 lekcí",
     name: "Kurzy",
     desc: "Vícedenní cykly pro začátečníky i pokročilé. Kruh, technika, glazování.",
     link: "/kurzy",
@@ -37,45 +38,67 @@ const offers = [
   },
 ];
 
+/* Kurzy patří k tomu, co u nás najdete; zbytek je v sekci „Co připravujeme“. */
+const najdete = offers.filter((o) => o.name === "Kurzy");
+const pripravujeme = offers.filter((o) => o.name !== "Kurzy");
+
 /*
  * Široký blok nad čtveřicí. Není to pátá položka katalogu, ale událost
  * s datem, proto jde přes celou šířku a má větší písmo — hierarchii nese
  * velikost, ne barva, aby to nesoupeřilo s odznakem „Nejoblíbenější“.
  */
 const den = {
-  idx: "10. 9. · 10–16",
+  idx: "pátky v září",
   name: "Den otevřených dveří",
-  desc: "Přijď se podívat, jak dílna funguje zevnitř. Uvidíš točení na kruhu, nahlédneš do pece a osaháš si hlínu, i kdybys ji v ruce nikdy neměl. Ptát se můžeš na cokoliv.",
+  desc: "Přijďte se podívat, jak funguje dílna zevnitř a jak to u nás vypadá. Vidět můžete točení na kruhu, nahlédnete do pece a osaháte si hlínu, i kdybyste ji v ruce nikdy neměli. Ptát se můžete na cokoliv.",
+  terminy: [
+    { datum: "4. 9.", cas: "15:00–19:00" },
+    { datum: "11. 9.", cas: "9:00–14:00" },
+    { datum: "18. 9.", cas: "9:00–14:00" },
+    { datum: "25. 9.", cas: "15:00–19:00" },
+  ],
 };
 ---
 
 <section class="py-14 relative fade-up">
   <div class="container-x">
-    <SectionHead title="Co u nás" italic="najdeš" meta="Katalog" />
+    <SectionHead title="Co u nás" italic="najdete" />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="sm:col-span-2 lg:col-span-4 bg-white rounded-xl border border-espresso/10 p-6 md:p-8">
-        <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{den.idx}</div>
-        <h3 class="font-serif text-[26px] md:text-[32px] font-medium leading-tight mb-2" style="font-variation-settings: 'opsz' 72;">
-          {den.name}
-        </h3>
-        <p class="text-[15px] leading-[1.6] text-stone max-w-[62ch]">{den.desc}</p>
-      </div>
-
-      {offers.map((o) => (
-        <div class={`bg-white rounded-xl p-5 border ${o.featured ? "border-espresso" : "border-espresso/10"} relative`}>
-          {o.badge && (
-            <span class="absolute -top-2 left-3.5 bg-peri text-espresso font-mono text-[12px] font-medium px-2.5 py-1 rounded-full tracking-wider">
-              {o.badge}
-            </span>
-          )}
-          <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{o.idx}</div>
-          <h3 class="font-serif text-[20px] font-medium mb-1.5" style="font-variation-settings: 'opsz' 48;">{o.name}</h3>
-          <p class="text-[14px] leading-[1.55] text-stone mb-4 min-h-[54px]">{o.desc}</p>
-          <a href={o.link} class="text-[14px] font-medium">
-            {o.linkText} <span class="text-terracotta">→</span>
-          </a>
+      <div class="sm:col-span-2 lg:col-span-4 bg-white rounded-xl border border-espresso/10 p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+        <div class="flex-1">
+          <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{den.idx}</div>
+          <h3 class="font-serif text-[26px] md:text-[32px] font-medium leading-tight mb-2" style="font-variation-settings: 'opsz' 72;">
+            {den.name}
+          </h3>
+          <p class="text-[15px] leading-[1.6] text-stone max-w-[62ch]">{den.desc}</p>
         </div>
-      ))}
+        {/* Konkrétní termíny v bublině vpravo — nahoře stačí „pátky v září“. */}
+        {/*
+          Dvě sloupce zarovnané doprava: u data lícují měsíce, u času pomlčky
+          (konce jsou všechny pětiznakové). Mezery v datu a kolem pomlčky úzké,
+          aby se údaj nerozpadal.
+        */}
+        <ul class="md:ml-auto shrink-0 self-start md:self-center bg-cream rounded-2xl border border-espresso/10 px-6 py-4 font-mono text-[13px] tabular-nums grid grid-cols-[auto_auto]">
+          {den.terminy.map((t, i) => (
+            <li class="contents">
+              <span class={`text-right text-espresso font-medium py-2 pr-7 ${i > 0 ? "border-t border-espresso/10" : ""}`}>
+                {t.datum.replace(" ", " ")}
+              </span>
+              <span class={`text-right text-stone py-2 ${i > 0 ? "border-t border-espresso/10" : ""}`}>
+                {t.cas.replace("–", " – ")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {najdete.map((o) => <NabidkaKarta {...o} />)}
+    </div>
+
+    <div class="mt-14">
+      <SectionHead title="Co" italic="připravujeme" meta="Katalog" />
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {pripravujeme.map((o) => <NabidkaKarta {...o} />)}
     </div>
   </div>
 </section>

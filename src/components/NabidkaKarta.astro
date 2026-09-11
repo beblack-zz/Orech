@@ -1,0 +1,28 @@
+---
+/** Jedna karta z katalogu nabídky — používá se v obou sekcích Nabídky. */
+interface Props {
+  idx: string;
+  name: string;
+  desc: string;
+  link: string;
+  linkText: string;
+  featured?: boolean;
+  badge?: string;
+}
+
+const { idx, name, desc, link, linkText, featured = false, badge } = Astro.props;
+---
+
+<div class={`bg-white rounded-xl p-5 border ${featured ? "border-espresso" : "border-espresso/10"} relative`}>
+  {badge && (
+    <span class="absolute -top-2 left-3.5 bg-peri text-espresso font-mono text-[12px] font-medium px-2.5 py-1 rounded-full tracking-wider">
+      {badge}
+    </span>
+  )}
+  <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{idx}</div>
+  <h3 class="font-serif text-[20px] font-medium mb-1.5" style="font-variation-settings: 'opsz' 48;">{name}</h3>
+  <p class="text-[14px] leading-[1.55] text-stone mb-4 min-h-[54px]">{desc}</p>
+  <a href={link} class="text-[14px] font-medium">
+    {linkText} <span class="text-terracotta">→</span>
+  </a>
+</div>

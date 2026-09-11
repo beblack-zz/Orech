@@ -11,13 +11,20 @@ interface Props {
   class?: string;
   /** Patička je tmavá — název se tam píše krémovou, ne espresso. */
   invertovany?: boolean;
+  /** Varianta: jeden plátek z květu odvál vítr a leží opodál na desce. */
+  vitr?: boolean;
 }
 
-const { size = 44, class: trida = "", invertovany = false } = Astro.props;
+const { size = 44, class: trida = "", invertovany = false, vitr = false } = Astro.props;
 
 /* Šedé jdou mírně do modra — deska hrnčířského kruhu je z oceli, ne z hlíny. */
 const deska = "#C6C9CB";
 const hlina = "#7E858A";
+/* Tón kruhů: prosvětlené místo vlevo nahoře a stín u okraje. */
+const deskaSvetlo = "#D8DBDD";
+const deskaStin = "#B2B6B9";
+const hlinaSvetlo = "#929A9F";
+const hlinaStin = "#697075";
 const kvet = "#D79A94";
 /* Stínování plátku: u paty hustší barva, ke špičce prosvětlená. */
 const kvetPata = "#C4837C";
@@ -39,11 +46,30 @@ const odsun = 1.7;
 const ryhaPolomer = 41;
 const ryhaSila = 1.6;
 
+/**
+ * Odvátý plátek: chybí ten, který míří dolů doleva (216° + natočení).
+ * Vítr ho jen jemně poodnesl — leží kousek za svým místem v květu,
+ * lehce pootočený, ne daleko na desce.
+ */
+const chybi = 216;
+/** Vzdálenost středu plátku od středu květu (v květu je to zhruba 21). */
+const odvatyVzdalenost = 38;
+/** Pootočení a boční úlet oproti místu, kde plátek v květu byl. */
+const odvatyPootoceni = 55;
+const odvatyUlet = 12;
+const odvatyVelikost = 2.4;
+
 const rad = (uhel * Math.PI) / 180;
 const x = (50 + vzdalenost * Math.cos(rad)).toFixed(1);
 const y = (50 + vzdalenost * Math.sin(rad)).toFixed(1);
 
 /* Značka roste rychleji než název — proto menší poměr než dřív. */
+/* Směr, kam plátek v květu mířil (0° = nahoru, po směru hodin). */
+const smer = ((chybi + natoceni + odvatyUlet) * Math.PI) / 180;
+const odvatyX = (Number(x) + odvatyVzdalenost * Math.sin(smer)).toFixed(1);
+const odvatyY = (Number(y) - odvatyVzdalenost * Math.cos(smer)).toFixed(1);
+const odvatyNatoceni = chybi + natoceni + odvatyPootoceni;
+
 const nazevPx = Math.round(size * 0.26);
 ---
 
@@ -85,10 +111,24 @@ const nazevPx = Math.round(size * 0.26);
         d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z"
       />
       <g id={`${id}-kvet`}>
-        {[0, 72, 144, 216, 288].map((u) => (
+        {[0, 72, 144, 216, 288].filter((u) => !vitr || u !== chybi).map((u) => (
           <use href={`#${id}-listek`} transform={`rotate(${u}) translate(0 -${odsun})`} />
         ))}
       </g>
+      {/*
+        Stejný princip jako u plátku: kruh není plochý, světlo dopadá zleva
+        shora. Deska i hrouda se u okraje vpravo dole jemně ztmaví.
+      */}
+      <radialGradient id={`${id}-deska-ton`} cx="0.38" cy="0.34" r="0.75">
+        <stop offset="0" stop-color={deskaSvetlo} />
+        <stop offset="0.55" stop-color={deska} />
+        <stop offset="1" stop-color={deskaStin} />
+      </radialGradient>
+      <radialGradient id={`${id}-hlina-ton`} cx="0.4" cy="0.36" r="0.72">
+        <stop offset="0" stop-color={hlinaSvetlo} />
+        <stop offset="0.5" stop-color={hlina} />
+        <stop offset="1" stop-color={hlinaStin} />
+      </radialGradient>
       {/* Deska ořezává vše, co by přeteklo přes okraj kruhu. */}
       <clipPath id={`${id}-deska`}>
         <circle cx="50" cy="50" r="50" />
@@ -111,8 +151,8 @@ const nazevPx = Math.round(size * 0.26);
       </mask>
     </defs>
 
-    <circle cx="50" cy="50" r="50" fill={deska} mask={`url(#${id}-ryha)`} />
-    <circle cx="50" cy="50" r="21" fill={hlina} />
+    <circle cx="50" cy="50" r="50" fill={`url(#${id}-deska-ton)`} mask={`url(#${id}-ryha)`} />
+    <circle cx="50" cy="50" r="21" fill={`url(#${id}-hlina-ton)`} />
 
     {/* Květ leží až na hroudě, ne za ní. */}
     <g clip-path={`url(#${id}-deska)`}>
@@ -120,6 +160,12 @@ const nazevPx = Math.round(size * 0.26);
         href={`#${id}-kvet`}
         transform={`translate(${x} ${y}) rotate(${natoceni}) scale(${velikost})`}
       />
+      {vitr && (
+        <use
+          href={`#${id}-listek`}
+          transform={`translate(${odvatyX} ${odvatyY}) rotate(${odvatyNatoceni}) scale(${odvatyVelikost}) translate(0 6.3)`}
+        />
+      )}
     </g>
   </svg>
   <span
