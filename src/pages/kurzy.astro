@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Stripek from "../components/characters/Stripek.astro";
 import Bublina from "../components/characters/Bublina.astro";
 import Poukaz from "../components/Poukaz.astro";
-import { kurzy as courses, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat, sezona } from "../data/kurzy";
+import { kurzy as courses, poMesicich, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat, sezona } from "../data/kurzy";
 
 
 const faq = [
@@ -34,7 +34,6 @@ const faq = [
 
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
-      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Nejbližší termíny</h2>
       {courses.length === 0 && (
         <p class="text-stone text-[16px] leading-[1.7] max-w-[52ch]">
           Zrovna teď nemáme vypsaný žádný volný termín. Chystáme další —
@@ -42,8 +41,12 @@ const faq = [
           a zapíšeme tě mezi první, komu dáme vědět.
         </p>
       )}
-      <div>
-        {courses.map((c) => (
+      <div class="flex flex-col gap-4">
+        {poMesicich(courses).map((m) => (
+        <div class="bg-cream rounded-2xl border border-espresso/10 px-5 md:px-8 pt-6 pb-2">
+        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-2">Nejbližší termíny · {m.nazev}</h2>
+        <div>
+        {m.kurzy.map((c) => (
           <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto] items-start gap-4 md:gap-5 py-5 border-b border-espresso/10 last:border-b-0">
             <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
               {den(c.date)}
@@ -52,7 +55,7 @@ const faq = [
             <div>
               <h3 class="font-serif text-[17px] md:text-[19px] font-medium mb-1 leading-tight">{c.title}</h3>
               <p class="text-[14px] text-stone mb-2">{popisKurzu(c)}</p>
-              <p class="text-[15px] text-stone leading-[1.6]">{c.desc}</p>
+              <p class="text-[15px] text-stone leading-[1.6] whitespace-pre-line">{c.desc}</p>
             </div>
             <div class={`font-mono text-[12px] hidden md:block ${
               c.state === "urgent" ? "text-clay font-medium" :
@@ -103,6 +106,9 @@ const faq = [
               ))}
             </div>
           </div>
+        ))}
+        </div>
+        </div>
         ))}
       </div>
     </div>

@@ -1,70 +1,84 @@
 ---
 import SectionHead from "./SectionHead.astro";
-import { kurzy, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat, sezona } from "../data/kurzy";
+import { poMesicich, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat } from "../data/kurzy";
 
-// Homepage ukazuje jen nejbližší čtyři, celý seznam je na /kurzy
-const courses = kurzy.slice(0, 4);
+// Homepage ukazuje jen nejbližší měsíc v jedné bublině. Další měsíce jsou na /kurzy
+const mesice = poMesicich().slice(0, 1);
 ---
 
 <section class="bg-white py-14 relative fade-up">
   <div class="container-x relative">
-    <SectionHead title="Nejbližší" italic="termíny" meta={sezona() ? `${sezona()} ·` : undefined} metaLink="/kurzy" metaLinkText="Zobrazit vše" />
-    {courses.length === 0 && (
-      <p class="text-stone text-[16px] leading-[1.7] py-4">
-        Zrovna teď nemáme vypsaný žádný termín — chystáme další.
-        <a href="/kurzy" class="text-terracotta underline underline-offset-2">Napiš nám</a> a dáme ti vědět, jakmile budou venku.
-      </p>
+    {mesice.length === 0 && (
+      <>
+        <SectionHead title="Nejbližší" italic="termíny" metaLink="/kurzy" metaLinkText="Zobrazit vše" />
+        <p class="text-stone text-[16px] leading-[1.7] py-4">
+          Zrovna teď nemáme vypsaný žádný termín — chystáme další.
+          <a href="/kurzy" class="text-terracotta underline underline-offset-2">Napiš nám</a> a dáme ti vědět, jakmile budou venku.
+        </p>
+      </>
     )}
-    <div>
-      {courses.map((c) => (
-        <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto] items-center gap-4 md:gap-5 py-4 border-b border-espresso/10 last:border-b-0">
-          <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
-            {den(c.date)}
-            <span class="block font-mono text-[12px] text-stone mt-1 tracking-wider uppercase font-normal">{mesic(c.date)}</span>
-          </div>
+    <div class="flex flex-col gap-4">
+      {mesice.map((m, mi) => (
+        <div class="bg-cream rounded-2xl border border-espresso/10 px-5 md:px-8 pt-6 pb-2">
+          <SectionHead
+            title="Nejbližší termíny"
+            italic={m.nazev}
+            metaLink={mi === 0 ? "/kurzy" : undefined}
+            metaLinkText="Zobrazit vše"
+          />
           <div>
-            <h3 class="font-serif text-[16px] md:text-[17px] font-medium mb-1 leading-tight">{c.title}</h3>
-            <p class="text-[14px] text-stone">{popisKurzu(c)}</p>
-          </div>
-          <div class={`font-mono text-[12px] hidden md:block ${
-            c.state === "urgent" ? "text-clay font-medium" :
-            c.state === "full" ? "text-stone line-through" : "text-stone"
-          }`}>
-            {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
-          </div>
-          {/* Ve fázi „připravujeme“ není co nabídnout — logika zůstává pro chvíli, kdy se zápis otevře */}
-          {c.state !== "pripravujeme" && (
-            <a
-              href="/kurzy"
-              class={`px-4 py-2 rounded-full text-[12px] font-medium hidden md:inline-block ${
-                lzeRezervovat(c)
-                  ? "bg-espresso text-cream hover:bg-clay transition-colors"
-                  : "bg-transparent text-stone border border-espresso/20"
-              }`}
-            >
-              {tlacitkoPopis(c)}
-            </a>
-          )}
-          <div class="col-span-2 flex items-center justify-between md:hidden pt-1">
-            <div class={`font-mono text-[12px] ${
-              c.state === "urgent" ? "text-clay font-medium" :
-              c.state === "full" ? "text-stone line-through" :
-              c.state === "pripravujeme" ? "text-stone/70 italic" : "text-stone"
-            }`}>
-              {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
-            </div>
-            {c.state !== "pripravujeme" && (
-              <a
-                href="/kurzy"
-                class={`px-3 py-1.5 rounded-full text-[12px] font-medium ${
-                  lzeRezervovat(c)
-                    ? "bg-espresso text-cream"
-                    : "bg-transparent text-stone border border-espresso/20"
-                }`}
-              >
-                {tlacitkoPopis(c)}
-              </a>
-            )}
+            {m.kurzy.map((c) => (
+              <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto] items-center gap-4 md:gap-5 py-4 border-b border-espresso/10 last:border-b-0">
+                <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
+                  {den(c.date)}
+                  <span class="block font-mono text-[12px] text-stone mt-1 tracking-wider uppercase font-normal">{mesic(c.date)}</span>
+                </div>
+                <div>
+                  <h3 class="font-serif text-[16px] md:text-[17px] font-medium mb-1 leading-tight">{c.title}</h3>
+                  <p class="text-[14px] text-stone">{popisKurzu(c)}</p>
+                </div>
+                <div class={`font-mono text-[12px] hidden md:block ${
+                  c.state === "urgent" ? "text-clay font-medium" :
+                  c.state === "full" ? "text-stone line-through" : "text-stone"
+                }`}>
+                  {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
+                </div>
+                {/* Ve fázi „připravujeme“ není co nabídnout — logika zůstává pro chvíli, kdy se zápis otevře */}
+                {c.state !== "pripravujeme" && (
+                  <a
+                    href="/kurzy"
+                    class={`px-4 py-2 rounded-full text-[12px] font-medium hidden md:inline-block ${
+                      lzeRezervovat(c)
+                        ? "bg-espresso text-cream hover:bg-clay transition-colors"
+                        : "bg-transparent text-stone border border-espresso/20"
+                    }`}
+                  >
+                    {tlacitkoPopis(c)}
+                  </a>
+                )}
+                <div class="col-span-2 flex items-center justify-between md:hidden pt-1">
+                  <div class={`font-mono text-[12px] ${
+                    c.state === "urgent" ? "text-clay font-medium" :
+                    c.state === "full" ? "text-stone line-through" :
+                    c.state === "pripravujeme" ? "text-stone/70 italic" : "text-stone"
+                  }`}>
+                    {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
+                  </div>
+                  {c.state !== "pripravujeme" && (
+                    <a
+                      href="/kurzy"
+                      class={`px-3 py-1.5 rounded-full text-[12px] font-medium ${
+                        lzeRezervovat(c)
+                          ? "bg-espresso text-cream"
+                          : "bg-transparent text-stone border border-espresso/20"
+                      }`}
+                    >
+                      {tlacitkoPopis(c)}
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       ))}

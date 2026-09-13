@@ -40,7 +40,8 @@ const skrt = "line-through decoration-2 decoration-clay";
       <a href="/" class="inline-block hover:opacity-75 transition-opacity">
         <Logo size={62} />
       </a>
-      <span class="mono-meta hidden xl:inline pr-6">Dílna · Luční 235, Ořech</span>
+      {/* Řádky napevno — Chrome a Firefox by jinak zalamovaly každý jinde */}
+      <span class="mono-meta hidden xl:inline-block pr-6 whitespace-nowrap">Dílna ·<br />Luční 235<br />Ořech ·</span>
     </div>
 
     <nav class="hidden lg:flex items-center gap-5 xl:gap-6">

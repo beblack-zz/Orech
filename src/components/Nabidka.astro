@@ -4,15 +4,15 @@ import NabidkaKarta from "./NabidkaKarta.astro";
 
 const offers = [
   {
-    idx: "3 hodiny",
+    idx: "hodiny či dny",
     name: "Workshopy",
-    desc: "Jednorázové zážitkové kurzy. Ideální na dárek nebo teambuilding.",
+    desc: "Jednorázové zážitkové kurzy. Ideální jako dárek nebo akce na teambuilding.",
     link: "/kurzy",
     linkText: "Vybrat termín",
     featured: false,
   },
   {
-    idx: "4–10 lekcí",
+    idx: "1–10 lekcí",
     name: "Kurzy",
     desc: "Vícedenní cykly pro začátečníky i pokročilé. Kruh, technika, glazování.",
     link: "/kurzy",
@@ -22,16 +22,16 @@ const offers = [
   {
     idx: "na hodiny",
     name: "Open studio",
-    desc: "Rezervuj si čas u kruhu bez instruktora. Členství i jednorázový vstup.",
+    desc: "Máte čas pro sebe a chtěli byste ho strávit kreativně? Dílna slouží i jako otevřený prostor, kde si svůj čas tvoření řídíte sami.",
     link: "/open-studio",
     linkText: "Zjistit více",
     featured: true,
     badge: "Nejoblíbenější",
   },
   {
-    idx: "malé série",
+    idx: "keramika na prodej",
     name: "Obchod",
-    desc: "Keramika od nás i našich lektorů. Malé série, žádné dva stejné.",
+    desc: "Výrobky od nás i českých a zahraničních keramiků. Malé série a originální sady.",
     link: "/obchod",
     linkText: "Do obchodu",
     featured: false,
@@ -52,8 +52,8 @@ const den = {
   name: "Den otevřených dveří",
   desc: "Přijďte se podívat, jak funguje dílna zevnitř a jak to u nás vypadá. Vidět můžete točení na kruhu, nahlédnete do pece a osaháte si hlínu, i kdybyste ji v ruce nikdy neměli. Ptát se můžete na cokoliv.",
   terminy: [
-    { datum: "4. 9.", cas: "15:00–19:00" },
-    { datum: "11. 9.", cas: "9:00–14:00" },
+    { datum: "4. 9.", cas: "15:00–19:00", probehlo: true },
+    { datum: "11. 9.", cas: "9:00–14:00", probehlo: true },
     { datum: "18. 9.", cas: "9:00–14:00" },
     { datum: "25. 9.", cas: "15:00–19:00" },
   ],
@@ -80,11 +80,11 @@ const den = {
         */}
         <ul class="md:ml-auto shrink-0 self-start md:self-center bg-cream rounded-2xl border border-espresso/10 px-6 py-4 font-mono text-[13px] tabular-nums grid grid-cols-[auto_auto]">
           {den.terminy.map((t, i) => (
-            <li class="contents">
-              <span class={`text-right text-espresso font-medium py-2 pr-7 ${i > 0 ? "border-t border-espresso/10" : ""}`}>
+            <li class={`col-span-2 grid grid-cols-subgrid relative ${t.probehlo ? "after:absolute after:inset-x-0 after:top-1/2 after:border-t after:border-espresso/50" : ""}`}>
+              <span class={`text-right text-espresso font-medium py-2 pr-7 ${i > 0 ? "border-t border-espresso/10" : ""} ${t.probehlo ? "opacity-50" : ""}`}>
                 {t.datum.replace(" ", " ")}
               </span>
-              <span class={`text-right text-stone py-2 ${i > 0 ? "border-t border-espresso/10" : ""}`}>
+              <span class={`text-right text-stone py-2 ${i > 0 ? "border-t border-espresso/10" : ""} ${t.probehlo ? "opacity-50" : ""}`}>
                 {t.cas.replace("–", " – ")}
               </span>
             </li>

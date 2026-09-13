@@ -1,21 +1,30 @@
 ---
 import { Image } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
-import oNas from "../images/o-nas.png";
+import oNas from "../images/o-nas-kuchynka.webp";
+import fotoJirik from "../images/o-nas-jirik.webp";
+import fotoRenca from "../images/o-nas-renca.webp";
 import Kapka from "../components/characters/Kapka.astro";
 import Pecinka from "../components/characters/Pecinka.astro";
 import Bublina from "../components/characters/Bublina.astro";
+import Delic from "../components/Delic.astro";
 
 const team = [
   {
-    name: "Jiřík",
+    name: "JIRO",
     role: "Zakladatel · Lektor",
-    bio: "U kruhu od střední, dílnu otevřel v roce 2026. Učí začátečníky i pokročilé, specializuje se na točení a glazury.",
+    photo: fotoJirik,
+    alt: "Jiřík točí hrnek na hrnčířském kruhu",
+    position: "object-top",
+    bio: "Keramika má v jeho srdci vypálený hodně velký prostor. Skoro každá volná chvíle patří práci okolo dílny, čtení článků a knih o keramice a nakoukávání hrnčířských videí. Jeho výtvarná duše je v dílně k ruce všem nadšencům pro hlínu, když zrovna neroztáčí kruh…",
   },
   {
-    name: "Renča",
+    name: "Renata",
     role: "Zakladatelka · Lektorka",
-    bio: "Výtvarná duše dílny. Vede workshopy, rodinné dílny a stará se o to, aby se každý cítil jako doma.",
+    photo: fotoRenca,
+    alt: "Renča u cihlové pece na pálení keramiky",
+    position: "object-center",
+    bio: "Lásku ke keramice si nese od prvních kroužků na základní škole. A jak plynul čas, láska ke keramice a Jiříkovo místo v srdci daly vzniknout malé dílně v Ořechu. Je k ruce obsahu webových stránek, příběhům a feedu na Instagramu a komunikaci se vznikající hliněnou partou…",
   },
 ];
 
@@ -25,12 +34,14 @@ const team = [
  * někde vzadu a nevypadá to, že dílna mezitím zavřela.
  */
 const milestones = [
-  { year: "2026", month: "Únor", text: "Otevíráme dílnu — 3 kruhy, 1 pec, 2 stoly, 0 studentů (zatím)." },
-  { year: "2026", month: "Březen", text: "První kurz vyprodán do 48 hodin. Přidáváme druhý termín." },
-  { year: "2026", month: "Duben", text: "Spouštíme open studio — 6 míst, každý den jiná hlína." },
-  { year: "2026", month: "Červen", text: "Přes 200 lidí prošlo dílnou. Pec pracuje bez přestávky." },
-  { year: "2026", month: "Červenec", text: "První příměstský tábor. Pět dní, dvacet dětí, jeden drak v životní velikosti." },
-  { year: "2026", month: "Srpen", text: "Vypisujeme podzimní termíny a otevíráme dětské oslavy." },
+  { year: "2026", month: "Únor", text: "rekonstrukce garáže po vodovodní havárii" },
+  { year: "2026", month: "Březen", text: "vyléváme podlahu, malujeme stěny, bouráme zeď a stavíme výlohu" },
+  { year: "2026", month: "Duben", text: "stěhujeme do dílny kruhy, montujeme stoly z kanceláře" },
+  { year: "2026", month: "Květen", text: "přivádíme vodovodní a odpadní trubky a sestavujeme skříňky" },
+  { year: "2026", month: "Červen", text: "všechno se nám táhne, a tak na prosby rozjíždíme Instagram a sdílíme alespoň pokroky v dílně" },
+  { year: "2026", month: "Červenec", text: "necháváme udělat revizi elektřiny, instalujeme zásuvky a děláme místo pro novou pec" },
+  { year: "2026", month: "Srpen", text: "nakupujeme hlínu, testujeme glazury, vypalujeme první várku výtvorů" },
+  { year: "2026", month: "Září", text: "nestíháme rozjet kurzy s novým školním rokem, ale vítáme nové tváře na dnech otevřených dveří" },
 ];
 ---
 
@@ -49,7 +60,7 @@ const milestones = [
             Náš přístup je jednoduchý — méně dokonalosti, víc radosti. Nemusíš umět nic, nemusíš plánovat, co vyrobíš. Sedneš si ke kruhu, začneš točit a dál to už půjde samo.
           </p>
           <p class="text-stone text-[16px] leading-[1.75]">
-            Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a mlčet u hlíny.
+            Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a rozjímat u hlíny.
           </p>
           <div class="flex items-center gap-4 mt-6">
             <Pecinka size={230} class="pointer-events-none flex-shrink-0" />
@@ -59,12 +70,12 @@ const milestones = [
             </div>
           </div>
         </div>
-        <div class="rounded-xl aspect-[3/4] overflow-hidden mt-8 md:mt-0">
+        <div class="rounded-xl aspect-[3/4] overflow-hidden mt-8 md:mt-0 w-full max-w-[370px] mx-auto md:mx-0 md:max-w-none md:w-[78%] md:justify-self-end">
           <Image
             src={oNas}
-            alt="Dílna JIRO saku"
+            alt="Kuchyňka v dílně JIRO saku s keramikou na polici"
             widths={[400, 600, 900]}
-            sizes="(min-width: 768px) 42vw, 90vw"
+            sizes="(min-width: 768px) 33vw, 370px"
             format="webp"
             loading="eager"
             fetchpriority="high"
@@ -75,17 +86,23 @@ const milestones = [
     </div>
   </section>
 
+  <Delic />
+
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
       <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Náš tým</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[760px]">
         {team.map((t) => (
           <div>
-            <div class="bg-[#D9C3A3] rounded-xl aspect-square flex items-center justify-center mb-4">
-              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
-                <circle cx="40" cy="30" r="14" fill="none" stroke="#3A2E28" stroke-width="1.5" />
-                <path d="M16 72 Q16 50 40 50 Q64 50 64 72" fill="none" stroke="#3A2E28" stroke-width="1.5" />
-              </svg>
+            <div class="bg-[#D9C3A3] rounded-xl aspect-square overflow-hidden mb-4">
+              <Image
+                src={t.photo}
+                alt={t.alt}
+                widths={[400, 600, 900]}
+                sizes="(min-width: 640px) 370px, calc(100vw - 48px)"
+                format="webp"
+                class:list={["w-full h-full object-cover", t.position]}
+              />
             </div>
             <h3 class="font-serif text-[18px] font-medium mb-0.5">{t.name}</h3>
             <p class="font-mono text-[12px] text-stone tracking-wider uppercase mb-2">{t.role}</p>
@@ -104,26 +121,34 @@ const milestones = [
     </div>
   </section>
 
+  <div class="bg-white">
+    <Delic />
+  </div>
+
   <section class="py-14 fade-up">
     <div class="container-x">
-      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Jak jsme rostli</h2>
-      <div class="max-w-[600px]">
+      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Tak jde čas…</h2>
+      <div class="max-w-[600px] lg:max-w-none">
         <span class="font-serif text-[32px] font-medium block mb-3 text-terracotta" style="font-variation-settings: 'opsz' 72;">2026</span>
         {milestones.map((m) => (
           <div class="flex gap-4 py-3 border-b border-espresso/8 last:border-b-0">
             <span class="font-mono text-[12px] text-terracotta uppercase tracking-wider w-[70px] flex-shrink-0 pt-0.5">{m.month}</span>
-            <p class="text-stone text-[16px] leading-[1.6]">{m.text}</p>
+            <p class="text-stone text-[16px] leading-[1.6] lg:whitespace-nowrap">{m.text}</p>
           </div>
         ))}
       </div>
     </div>
   </section>
 
+  <Delic />
+
   <section class="bg-cream-warm py-14 fade-up">
-    <div class="container-x text-center max-w-[480px] mx-auto">
-      <p class="font-serif italic text-[22px] text-espresso mb-2">Přijď se podívat</p>
+    <div class="container-x text-center max-w-[560px] mx-auto">
+      <p class="font-serif italic text-[22px] text-espresso mb-2">Všichni jste vítáni</p>
       <p class="text-stone text-[16px] leading-[1.75] mb-6">
-        Luční 235, Ořech. Dílna je otevřená Po–Pá 9–18, v sobotu 10–14. Stavíme i&nbsp;na&nbsp;kafe.
+        Luční 235, Ořech.<br />
+        <span class="whitespace-nowrap">Dílna je otevřená v&nbsp;úterý a&nbsp;v&nbsp;pátek 9:00–18:30.</span><br />
+        Stavíme i&nbsp;na&nbsp;kafe.
       </p>
       <div class="flex items-center justify-center gap-0">
         <a

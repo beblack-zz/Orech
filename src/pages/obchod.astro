@@ -6,6 +6,20 @@ import { produkty as items, tvorba } from "../data/obchod";
 import { pocetKusu } from "../data/pocty";
 import Pecinka from "../components/characters/Pecinka.astro";
 import Bublina from "../components/characters/Bublina.astro";
+import { Image } from "astro:assets";
+import Delic from "../components/Delic.astro";
+import zdaleka1 from "../images/zdaleka-1.webp";
+import zdaleka2 from "../images/zdaleka-2.webp";
+import zdaleka3 from "../images/zdaleka-3.webp";
+import zdaleka4 from "../images/zdaleka-4.webp";
+
+/** Keramika zdaleka — čtyři místa, `null` je zatím prázdná karta. */
+const zdaleka = [
+  { src: zdaleka1, alt: "Neglazovaná miska se zdobením mřížky na poličce", name: "Unglazed", author: "Keiichi Miyagawa", price: "1 500 Kč" },
+  { src: zdaleka2, alt: "Miska s modrozelenou stékající glazurou na poličce", name: "Hagi", author: "Seigan Yamane", price: "2 500 Kč" },
+  { src: zdaleka3, alt: "Světlá miska s šedými točenými pruhy na poličce", name: "Banko", author: "Teruhisa Sato", price: "700 Kč" },
+  { src: zdaleka4, alt: "Hrnek ze Shigaraki s hrubou světlou glazurou na poličce", name: "Shigaraki ware cup", author: "No name", price: "800 Kč" },
+];
 
 ---
 
@@ -18,7 +32,7 @@ import Bublina from "../components/characters/Bublina.astro";
             Ručně, kus po <span class="serif-italic-terracotta">kuse.</span>
           </h1>
           <p class="text-stone text-[16px] leading-[1.75]">
-            Všechno je točené na kruhu, ručně glazované a vypálené v peci. Něco vzniklo u nás v dílně, něco od tvůrců, které máme rádi — někdy až z Japonska. Malé série: když se něco vyprodá, příště bude jiné.
+            Všechno je točené na kruhu nebo modelované, ručně glazované a vypálené v peci. Něco vzniklo u nás v dílně, něco je od tvůrců, které máme rádi — někdy až z Japonska.
           </p>
         </div>
         <div class="flex justify-center md:justify-end mt-8 md:mt-0">
@@ -32,13 +46,25 @@ import Bublina from "../components/characters/Bublina.astro";
         </div>
       </div>
 
+      <!-- Stejný tah štětcem jako v Delic.astro, jen bez vlastního kontejneru. -->
+      <svg
+        viewBox="0 0 900 14"
+        preserveAspectRatio="none"
+        class="block w-full h-[14px] text-espresso/25 mb-6"
+        aria-hidden="true"
+      >
+        <path
+          d="M0 8 C120 3 300 2 470 5 C640 8 790 10 900 6 C790 14 640 13 470 11 C300 9 120 11 0 8 Z"
+          fill="currentColor"
+        />
+      </svg>
       <div class="flex items-center gap-2 mb-6 border-t border-espresso/10 pt-4">
-        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase">Obchod</h2>
+        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase">Na přání</h2>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         {items.map((it) => <ProduktKarta item={it} />)}
       </div>
-      <span class="mono-meta block text-right mt-5">Obchod · {pocetKusu(items.length)}</span>
+      <span class="mono-meta block text-right mt-5">Na přání · {pocetKusu(items.length)}</span>
     </div>
   </section>
 
@@ -57,6 +83,42 @@ import Bublina from "../components/characters/Bublina.astro";
       <span class="mono-meta block text-right mt-5">Naše tvorba · {pocetKusu(tvorba.length)}</span>
     </div>
   </section>
+
+  <!--
+    Zatím jen čtyři prázdná místa — fotky a texty doplníme, až je budeme mít.
+  -->
+  <section class="pb-14 fade-up">
+    <div class="container-x">
+      <div class="flex items-center gap-2 mb-6 border-t-2 border-espresso pt-4">
+        <h2 class="font-mono text-[12px] tracking-wider text-espresso uppercase">Keramika zdaleka</h2>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {zdaleka.map((foto) => (
+          <div class="rounded-xl border bg-white border-espresso/8">
+            <div class="aspect-square bg-[#E8D7BF] rounded-t-xl overflow-hidden">
+              {foto && (
+                <Image
+                  src={foto.src}
+                  alt={foto.alt}
+                  widths={[300, 450, 600, 900]}
+                  sizes="(min-width: 768px) 283px, 50vw"
+                  format="webp"
+                  class="w-full h-full object-cover"
+                />
+              )}
+            </div>
+            <div class="p-3 rounded-b-xl min-h-[75px]">
+              {foto?.name && <p class="font-serif text-[16px] font-medium m-0 mb-0.5">{foto.name}</p>}
+              {foto?.author && <p class="font-mono text-[12px] mb-1 text-stone">{foto.author}</p>}
+              {foto?.price && <p class="font-mono text-[14px] text-espresso font-medium">{foto.price}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <Delic />
 
   <section class="bg-cream-warm py-14 fade-up">
     <div class="container-x">
