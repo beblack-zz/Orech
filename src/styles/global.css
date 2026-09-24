@@ -21,8 +21,13 @@
   --color-terracotta: #6B5540;
   --color-stone: #6B5D4F;
   --color-clay: #B84A2B;
-  --color-peri: #C6C9CB;
-  /* Ocelová z loga. Tmavší varianta je na text — světlá má na krémové 1,4:1. */
+  /* Sakura ze značky. Stejný odstín jako clay — je to jedna barva se dvěma
+     rolemi: clay = zvýraznění v ploše, sakura = květ a akcenty ze značky. */
+  --color-sakura: #B84A2B;
+  /* Ocelová ze značky: deska hrnčířského kruhu a hrouda hlíny na ní. */
+  --color-peri: #8C949B;
+  --color-peri-hlina: #49535A;
+  /* Tmavší varianta je na text — světlá má na krémové 1,4:1. */
   --color-peri-deep: #5C666B;
   --color-mustard: #E8B440;
   --color-white: #FFFFFF;
@@ -104,12 +109,13 @@
   letter-spacing: -0.02em;
 }
 
-@utility serif-italic-terracotta {
+/* Zvýrazněné slovo v nadpisu — stejná barva jako sakura ve značce. */
+@utility serif-italic-sakura {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
   font-variation-settings: "opsz" 144, "SOFT" 100;
-  color: var(--color-terracotta);
+  color: var(--color-sakura);
 }
 
 /*

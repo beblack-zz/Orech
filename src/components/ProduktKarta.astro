@@ -15,7 +15,7 @@ const { item, tmava = false } = Astro.props;
 <div class:list={["rounded-xl border relative group", tmava ? "bg-espresso border-espresso" : "bg-white border-espresso/8"]}>
   {item.tag && (
     <span class={`absolute -top-2 left-3 font-mono text-[12px] font-medium px-2.5 py-0.5 rounded-full tracking-wider uppercase z-10 ${
-      item.tagKind === "new" ? "bg-mustard text-espresso" : "bg-clay text-cream"
+      item.tagKind === "new" ? "bg-mustard text-espresso" : "bg-sakura text-cream"
     }`}>
       {item.tag}
     </span>

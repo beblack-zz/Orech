@@ -30,8 +30,8 @@ const jeTu = (href: string) => path === href;
 // Aktivní = podtržení, ne barva
 const stav = "font-medium underline decoration-2 underline-offset-[6px] decoration-terracotta";
 
-// Škrt je jediná červená v menu — clay je z palety nejblíž červené
-const skrt = "line-through decoration-2 decoration-clay";
+// Škrt i druhá tečka u Party jdou v sakuře ze značky
+const skrt = "line-through decoration-2 decoration-sakura";
 ---
 
 <header class="border-b border-espresso/10">
@@ -50,13 +50,13 @@ const skrt = "line-through decoration-2 decoration-clay";
           href={l.href}
           aria-current={jeTu(l.href) ? "page" : undefined}
           class={`nav-odkaz text-[14px] whitespace-nowrap transition-colors ${
-            l.accent ? "parta-odkaz text-peri-deep hover:text-peri" : "hover:text-terracotta"
-          } ${jeTu(l.href) ? stav : ""} ${l.skrtnuto ? skrt : ""}`}
+            l.accent ? "parta-odkaz text-peri-hlina" : ""
+          } hover:text-sakura ${jeTu(l.href) ? stav : ""} ${l.skrtnuto ? skrt : ""}`}
         >
           {l.accent && (
             <span class="inline-flex items-baseline gap-[3px] mr-1.5" aria-hidden="true">
-              <span class="tecka inline-block w-[6px] h-[6px] rounded-full bg-peri-deep"></span>
-              <span class="tecka tecka-2 inline-block w-[6px] h-[6px] rounded-full bg-clay"></span>
+              <span class="tecka inline-block w-[6px] h-[6px] rounded-full bg-peri-hlina"></span>
+              <span class="tecka tecka-2 inline-block w-[6px] h-[6px] rounded-full bg-sakura"></span>
             </span>
           )}
           {l.label}
@@ -65,7 +65,7 @@ const skrt = "line-through decoration-2 decoration-clay";
 
       <a
         href="/kurzy#rezervace"
-        class="bg-espresso text-cream px-5 py-2.5 rounded-full nav-odkaz text-[13px] uppercase whitespace-nowrap hover:bg-clay transition-colors"
+        class="bg-espresso text-cream px-5 py-2.5 rounded-full nav-odkaz text-[13px] uppercase whitespace-nowrap hover:bg-sakura transition-colors"
       >
         Rezervovat
       </a>
@@ -95,12 +95,12 @@ const skrt = "line-through decoration-2 decoration-clay";
       <a
         href={l.href}
         aria-current={jeTu(l.href) ? "page" : undefined}
-        class={`nav-odkaz text-[14px] py-1 ${l.accent ? "parta-odkaz text-peri-deep" : ""} ${jeTu(l.href) ? stav : ""} ${l.skrtnuto ? skrt : ""}`}
+        class={`nav-odkaz text-[14px] py-1 hover:text-sakura transition-colors ${l.accent ? "parta-odkaz text-peri-hlina" : ""} ${jeTu(l.href) ? stav : ""} ${l.skrtnuto ? skrt : ""}`}
       >
         {l.accent && (
           <span class="inline-flex items-baseline gap-[3px] mr-1.5" aria-hidden="true">
-            <span class="tecka inline-block w-[6px] h-[6px] rounded-full bg-peri-deep"></span>
-            <span class="tecka tecka-2 inline-block w-[6px] h-[6px] rounded-full bg-clay"></span>
+            <span class="tecka inline-block w-[6px] h-[6px] rounded-full bg-peri-hlina"></span>
+            <span class="tecka tecka-2 inline-block w-[6px] h-[6px] rounded-full bg-sakura"></span>
           </span>
         )}
         {l.label}
