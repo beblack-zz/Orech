@@ -1,0 +1,102 @@
+---
+import Logo from "../components/Logo.astro";
+
+/**
+ * Srovnání poslední změny: rýhy v desce lemované ocelí proti stavu,
+ * kdy byly rýhy holé. Všechno ostatní je u obou stejné.
+ */
+const varianty = [
+  { nazev: "PŘED — rýhy bez rámečku", ramyRyh: false },
+  { nazev: "PO — rýhy lemované ocelí", ramyRyh: true },
+];
+
+const pozadi = [
+  { nazev: "na krémové", barva: "#F4EBDD", tmave: false },
+  { nazev: "na bílé", barva: "#FFFFFF", tmave: false },
+  { nazev: "na espressu", barva: "#3A2E28", tmave: true },
+];
+---
+
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Logo — rámečky rýh</title>
+    <style is:global>
+      body {
+        margin: 0;
+        padding: 32px clamp(16px, 4vw, 48px) 72px;
+        background: #efe7db;
+        color: #3a2e28;
+        font: 14px/1.6 ui-sans-serif, system-ui, sans-serif;
+      }
+      h1 {
+        font-size: 19px;
+        margin: 0 0 4px;
+      }
+      p.uvod {
+        max-width: 60ch;
+        margin: 0 0 28px;
+        opacity: 0.75;
+      }
+      .stitek {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.55;
+        margin: 22px 0 8px;
+      }
+      .dvojice {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .karta {
+        border-radius: 12px;
+        padding: 20px 24px;
+        box-shadow: inset 0 0 0 1px #3a2e2814;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .popis {
+        font-size: 12px;
+        opacity: 0.6;
+        max-width: 12ch;
+      }
+      .tmave .popis {
+        color: #f4ebdd;
+      }
+      /* Název pod značkou tu jen překáží, porovnává se kresba. */
+      .karta > span > span {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Logo — rámečky rýh</h1>
+    <p class="uvod">
+      Poslední změna: obě průsvitné rýhy v desce dostaly po stranách tenkou
+      linku v témže tónu, jaký má okraj kruhu. Vlevo je stav před ní.
+    </p>
+
+    {pozadi.map((p) => (
+      <>
+        <div class="stitek">{p.nazev}</div>
+        <div class="dvojice">
+          {varianty.map((v) => (
+            <div
+              class={`karta ${p.tmave ? "tmave" : ""}`}
+              style={`background: ${p.barva}`}
+            >
+              <Logo size={190} ramyRyh={v.ramyRyh} invertovany={p.tmave} />
+              <Logo size={62} ramyRyh={v.ramyRyh} invertovany={p.tmave} />
+              <Logo size={34} ramyRyh={v.ramyRyh} invertovany={p.tmave} />
+              <span class="popis">{v.nazev}</span>
+            </div>
+          ))}
+        </div>
+      </>
+    ))}
+  </body>
+</html>

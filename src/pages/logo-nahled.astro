@@ -1,6 +1,247 @@
 ---
 import Logo from "../components/Logo.astro";
+
+/**
+ * Pracovní list pro volbu barvy značky. Varianty se liší jen základními
+ * tóny — tvar, plastika i sakura zůstávají stejné, aby šlo porovnávat
+ * opravdu jen barvu.
+ */
+type Varianta = {
+  nazev: string;
+  popis: string;
+  barvaDesky?: string;
+  barvaHliny?: string;
+  barvaKvetu?: string;
+};
+
+/**
+ * Škála ztmavení ocelové barvy. Modrý nádech zůstává, mění se jen
+ * hloubka tónu a kontrast mezi deskou a hroudou.
+ */
+const varianty: Varianta[] = [
+  {
+    nazev: "0 — dnešní stav",
+    popis: "Deska #C6C9CB, hrouda #7E858A. Pro srovnání.",
+  },
+  {
+    nazev: "1 — zřetelná ocel",
+    popis: "Značka v hlavičce přestane splývat s papírem, pořád je ale klidná.",
+    barvaDesky: "#AEB4B8",
+    barvaHliny: "#5C666B",
+  },
+  {
+    nazev: "2 — sytá ocel",
+    popis: "Deska už je jasně šedá, sakura na ní svítí.",
+    barvaDesky: "#959DA2",
+    barvaHliny: "#49535A",
+  },
+  {
+    nazev: "3 — kalená ocel",
+    popis: "Značka se stává tmavým bodem stránky. Vidět i ve 20 px.",
+    barvaDesky: "#7C858C",
+    barvaHliny: "#3B454C",
+  },
+  {
+    nazev: "4 — litina",
+    popis: "Nejtmavší rozumná mez. Na espressu už deska splývá s podkladem.",
+    barvaDesky: "#656F77",
+    barvaHliny: "#2E373D",
+  },
+  {
+    nazev: "5 — tmavá deska, světlá hrouda",
+    popis: "Obrácený kontrast: hrouda vystupuje z desky světlem, ne stínem.",
+    barvaDesky: "#6B747B",
+    barvaHliny: "#AAB2B7",
+  },
+];
+
+/**
+ * Ocel z varianty 2 — na té se vybíralo dál, takže je pro všechny
+ * řady s květem pevně daná a mění se jen sakura.
+ */
+const ocel = { barvaDesky: "#959DA2", barvaHliny: "#49535A" };
+
+/** Sytost: stejný odstín růžové, přidává se jen síla barvy. */
+const ruzove = [
+  { nazev: "A — dnešní", barva: "#D79A94" },
+  { nazev: "B — o kousek sytější", barva: "#DD958C" },
+  { nazev: "C — jasná sakura", barva: "#E28D83" },
+  { nazev: "D — výrazná", barva: "#E58176" },
+  { nazev: "E — do terakoty", barva: "#DF7462" },
+];
+
+/** Odstín: stejná síla barvy, mění se teplota — od chladné po cihlovou. */
+const odstiny = [
+  { nazev: "F — chladná", barva: "#E08792" },
+  { nazev: "G — čistá růžová", barva: "#E4867F" },
+  { nazev: "H — meruňková", barva: "#E48C74" },
+  { nazev: "I — korálová", barva: "#E37A68" },
+  { nazev: "J — cihlová", barva: "#D9705A" },
+];
+
+/** Tmavší, hlubší tóny — na krémovém papíru drží víc kontrastu. */
+const hluboke = [
+  { nazev: "K — starorůžová", barva: "#C97F78" },
+  { nazev: "L — pálená růž", barva: "#C4726A" },
+  { nazev: "M — terakota", barva: "#BC6450" },
+  { nazev: "N — clay (z palety)", barva: "#B84A2B" },
+  { nazev: "O — vínová", barva: "#A85A55" },
+];
+
+const radyKvetu = [
+  { nadpis: "sytost sakury", polozky: ruzove },
+  { nadpis: "odstín sakury (stejná síla, jiná teplota)", polozky: odstiny },
+  { nadpis: "hlubší tóny", polozky: hluboke },
+];
+
+const pozadi = [
+  { nazev: "na krémové", barva: "#F4EBDD", tmave: false },
+  { nazev: "na bílé", barva: "#FFFFFF", tmave: false },
+  { nazev: "na espressu", barva: "#3A2E28", tmave: true },
+];
 ---
-<html><body style="margin:0;padding:30px;background:#F3EBE0">
-  <Logo size={150} />
-</body></html>
+
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Logo — barevné varianty</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 40px clamp(16px, 4vw, 48px) 80px;
+        background: #efe7db;
+        color: #3a2e28;
+        font: 14px/1.6 ui-sans-serif, system-ui, sans-serif;
+      }
+      h1 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 6px;
+      }
+      .uvod {
+        max-width: 60ch;
+        margin: 0 0 36px;
+        opacity: 0.75;
+      }
+      .varianta {
+        margin-bottom: 28px;
+      }
+      .rada {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 28px;
+        border-radius: 12px;
+        padding: 22px 26px;
+        box-shadow: inset 0 0 0 1px #3a2e2814;
+      }
+      .dlazdice {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .cislo {
+        font-size: 12px;
+        opacity: 0.5;
+      }
+      .tmave .cislo {
+        color: #f4ebdd;
+      }
+      .stitek {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.55;
+        margin-bottom: 8px;
+      }
+      .legenda {
+        border-top: 1px solid #3a2e2820;
+        padding-top: 18px;
+        max-width: 72ch;
+      }
+      .legenda p {
+        margin: 0 0 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Logo — barevné varianty</h1>
+    <p class="uvod">
+      Každý řádek je jedna barevnost ve třech velikostech (hlavička, patička,
+      velký otisk) a na třech podkladech, které web používá.
+    </p>
+
+    <div class="stitek">detail — dnešní výchozí barvy</div>
+    <section class="varianta">
+      <div class="rada" style="background: #F4EBDD">
+        <Logo size={220} />
+        <Logo size={120} />
+        <Logo size={62} />
+        <Logo size={34} />
+        <Logo size={20} />
+      </div>
+    </section>
+
+    {pozadi.map((p) => (
+      <section class="varianta">
+        <div class="stitek">{p.nazev}</div>
+        <div
+          class={`rada ${p.tmave ? "tmave" : ""}`}
+          style={`background: ${p.barva}`}
+        >
+          {varianty.map((v, i) => (
+            <div class="dlazdice">
+              <Logo
+                size={72}
+                barvaDesky={v.barvaDesky}
+                barvaHliny={v.barvaHliny}
+                barvaKvetu={v.barvaKvetu}
+                invertovany={p.tmave}
+              />
+              <Logo
+                size={34}
+                barvaDesky={v.barvaDesky}
+                barvaHliny={v.barvaHliny}
+                barvaKvetu={v.barvaKvetu}
+                invertovany={p.tmave}
+              />
+              <span class="cislo">{i}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    {radyKvetu.map((r) => (
+      <section class="varianta">
+        <div class="stitek">{r.nadpis} — ocel všude stejná (#959DA2 / #49535A)</div>
+        <div class="rada" style="background: #F4EBDD">
+          {r.polozky.map((k) => (
+            <div class="dlazdice">
+              <Logo size={72} {...ocel} barvaKvetu={k.barva} />
+              <Logo size={34} {...ocel} barvaKvetu={k.barva} />
+              <span class="cislo">{k.nazev}</span>
+            </div>
+          ))}
+        </div>
+        <div class="rada tmave" style="background: #3A2E28; margin-top: 8px">
+          {r.polozky.map((k) => (
+            <div class="dlazdice">
+              <Logo size={72} {...ocel} barvaKvetu={k.barva} invertovany />
+              <Logo size={34} {...ocel} barvaKvetu={k.barva} invertovany />
+              <span class="cislo">{k.nazev}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <section class="legenda">
+      {varianty.map((v, i) => (
+        <p>
+          <strong>{v.nazev}</strong> — {v.popis}
+        </p>
+      ))}
+    </section>
+  </body>
+</html>

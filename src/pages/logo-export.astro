@@ -1,0 +1,30 @@
+---
+import Logo from "../components/Logo.astro";
+
+/**
+ * Holý otisk značky pro export do obrázku — jen SVG, žádný název ani
+ * stránka kolem. Skript `scripts/logo-png.mjs` si odsud SVG vytáhne
+ * a přežene ho přes sharp do PNG.
+ */
+---
+
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <title>Logo — export</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #f4ebdd;
+      }
+      /* Název pod značkou se do profilovky nevejde, tady ho nechceme. */
+      span > span {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <Logo size={512} />
+  </body>
+</html>
