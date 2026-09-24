@@ -1,7 +1,7 @@
 ---
 /**
- * Značka: hrnčířský kruh shora — světlá deska, na ní tmavší hrouda hlíny
- * uprostřed a jeden květ sakury. Název stojí pod obrázkem, ne vedle něj.
+ * Značka: hrnčířský kruh shora — světlá deska, na ní tmavší soustředný
+ * pás jako na hlavě kruhu a jeden květ sakury. Název stojí pod obrázkem.
  *
  * `size` je průměr desky v pixelech; text se dopočítá, aby poměr držel
  * v hlavičce i v patičce.
@@ -13,22 +13,77 @@ interface Props {
   invertovany?: boolean;
   /** Varianta: jeden plátek z květu odvál vítr a leží opodál na desce. */
   vitr?: boolean;
+  /** Základní barva desky. Světlo a stín se z ní dopočítají. */
+  barvaDesky?: string;
+  /** Základní barva prostředního pásu. */
+  barvaHliny?: string;
+  /** Základní barva květu. */
+  barvaKvetu?: string;
+  /** Rýhy v desce lemuje ocel jako okraj kruhu. Vypnout jen pro srovnání. */
+  ramyRyh?: boolean;
 }
 
-const { size = 44, class: trida = "", invertovany = false, vitr = false } = Astro.props;
+const {
+  size = 44,
+  class: trida = "",
+  invertovany = false,
+  vitr = false,
+  /* Šedé jdou mírně do modra — deska hrnčířského kruhu je z oceli, ne z hlíny. */
+  barvaDesky = "#8C949B",
+  barvaHliny = "#49535A",
+  /* Sakura je jediná barva ve značce. Clay je z palety webu, takže
+     značka drží pohromadě se zvýrazněními ve zbytku stránky. */
+  barvaKvetu = "#B84A2B",
+  ramyRyh = true,
+} = Astro.props;
 
-/* Šedé jdou mírně do modra — deska hrnčířského kruhu je z oceli, ne z hlíny. */
-const deska = "#C6C9CB";
-const hlina = "#7E858A";
+/**
+ * Světlo a stín se dopočítají ze základní barvy — celá značka se dá
+ * přebarvit jedním tónem a plastika zůstane stejná.
+ */
+const posun = (hex: string, mira: number) => {
+  const cislo = parseInt(hex.slice(1), 16);
+  const kanaly = [(cislo >> 16) & 255, (cislo >> 8) & 255, cislo & 255];
+  const cil = mira > 0 ? 255 : 0;
+  const k = Math.abs(mira);
+  return `#${kanaly
+    .map((c) => Math.round(c + (cil - c) * k).toString(16).padStart(2, "0"))
+    .join("")}`;
+};
+
+const deska = barvaDesky;
+const hlina = barvaHliny;
 /* Tón kruhů: prosvětlené místo vlevo nahoře a stín u okraje. */
-const deskaSvetlo = "#D8DBDD";
-const deskaStin = "#B2B6B9";
-const hlinaSvetlo = "#929A9F";
-const hlinaStin = "#697075";
-const kvet = "#D79A94";
+const deskaSvetlo = posun(deska, 0.22);
+const deskaStin = posun(deska, -0.26);
+/*
+ * Lem desky — stejný princip jako u plátku: po obvodu tmavší ocel, aby
+ * kruh nekončil rozplynutím do papíru. Taky stínovaný, takže vlevo nahoře
+ * (kde na desku dopadá světlo) je světlejší a vpravo dole nejtmavší.
+ */
+const deskaObrysSila = 0.65;
+const deskaObrysSvetlo = posun(deska, -0.04);
+const deskaObrysStin = posun(deska, -0.42);
+const hlinaSvetlo = posun(hlina, 0.26);
+const hlinaStin = posun(hlina, -0.3);
+const kvet = barvaKvetu;
 /* Stínování plátku: u paty hustší barva, ke špičce prosvětlená. */
-const kvetPata = "#C4837C";
-const kvetSpicka = "#E7BAB3";
+const kvetPata = posun(kvet, -0.14);
+const kvetSpicka = posun(kvet, 0.32);
+/*
+ * Obrys plátku: tmavší clay po okraji. Prosvětlený střed plátku jinak
+ * jeho hranu rozpustí do desky — lem ji vrátí a květ drží tvar i v 20 px.
+ */
+const kvetObrys = posun(kvet, -0.22);
+/* Lem roste z poloviny ven, takže i desetina navíc sousední plátky slepí. */
+const kvetObrysSila = 0.42;
+/*
+ * Lem má vlastní přechod ve stejném směru jako výplň: u paty hustá clay,
+ * ke špičce prosvětlený. Jednolitý tmavý obrys by plátek orámoval jako
+ * nálepku — takhle se lem ke špičce zapráší spolu s ní.
+ */
+const kvetObrysPata = posun(kvet, -0.34);
+const kvetObrysSpicka = posun(kvet, 0.12);
 
 /** Logo bývá na stránce dvakrát (hlavička, patička) — id se nesmějí srazit. */
 const id = `saku-${Math.random().toString(36).slice(2, 8)}`;
@@ -45,6 +100,29 @@ const odsun = 1.7;
 /** Průsvitná rýha v desce — vede mezikružím mezi hroudou a okrajem. */
 const ryhaPolomer = 41;
 const ryhaSila = 1.6;
+
+/**
+ * Prostřední kruh hlavy hrnčířského kruhu — celistvý tmavý střed, žádná
+ * díra uprostřed. Širší než bývala hrouda, proto se čte jako kruh, ne
+ * jako kus hlíny položený na desce.
+ */
+const stredPolomer = 21;
+
+/**
+ * Rýha lemuje střed přesně po obvodu: kružnice je odsazená o polovinu
+ * síly, takže její vnitřní hrana padne na hranu středu a nezbyde mezi
+ * nimi proužek desky. Užší než vnější rýha, aby to byl lem.
+ */
+const ryhaVnitrniSila = 1.2;
+const ryhaUStredu = stredPolomer + ryhaVnitrniSila / 2;
+
+/**
+ * Rámeček rýh: po obou stranách každé rýhy tenká linka v témže tónu jako
+ * lem desky. Kreslí se jako kroužek o šířce rýhy plus dvakrát rámeček
+ * a projde stejnou maskou — ta z něj rýhu zase vyřízne, takže zbydou
+ * přesně dvě hrany. Díky tomu drží rýhy tvar i tam, kde je deska světlá.
+ */
+const ryhaRamSila = 0.55;
 
 /**
  * Odvátý plátek: chybí ten, který míří dolů doleva (216° + natočení).
@@ -105,9 +183,24 @@ const nazevPx = Math.round(size * 0.26);
         <stop offset="0.45" stop-color={kvet} />
         <stop offset="1" stop-color={kvetSpicka} />
       </linearGradient>
+      <linearGradient
+        id={`${id}-obrys`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1="0.5"
+        x2="0"
+        y2="-12.6"
+      >
+        <stop offset="0" stop-color={kvetObrysPata} />
+        <stop offset="0.45" stop-color={kvetObrys} />
+        <stop offset="1" stop-color={kvetObrysSpicka} />
+      </linearGradient>
       <path
         id={`${id}-listek`}
         fill={`url(#${id}-stin)`}
+        stroke={`url(#${id}-obrys)`}
+        stroke-width={kvetObrysSila}
+        stroke-linejoin="round"
         d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z"
       />
       <g id={`${id}-kvet`}>
@@ -129,6 +222,21 @@ const nazevPx = Math.round(size * 0.26);
         <stop offset="0.5" stop-color={hlina} />
         <stop offset="1" stop-color={hlinaStin} />
       </radialGradient>
+      {/*
+        Lem desky jde po diagonále: světlo vlevo nahoře, stín vpravo dole —
+        stejný směr, jakým je nasvícená i samotná deska.
+      */}
+      <linearGradient
+        id={`${id}-deska-obrys`}
+        gradientUnits="userSpaceOnUse"
+        x1="15"
+        y1="12"
+        x2="85"
+        y2="88"
+      >
+        <stop offset="0" stop-color={deskaObrysSvetlo} />
+        <stop offset="1" stop-color={deskaObrysStin} />
+      </linearGradient>
       {/* Deska ořezává vše, co by přeteklo přes okraj kruhu. */}
       <clipPath id={`${id}-deska`}>
         <circle cx="50" cy="50" r="50" />
@@ -148,11 +256,33 @@ const nazevPx = Math.round(size * 0.26);
           stroke="black"
           stroke-width={ryhaSila}
         />
+        <circle
+          cx="50"
+          cy="50"
+          r={ryhaUStredu}
+          fill="none"
+          stroke="black"
+          stroke-width={ryhaVnitrniSila}
+        />
       </mask>
     </defs>
 
     <circle cx="50" cy="50" r="50" fill={`url(#${id}-deska-ton)`} mask={`url(#${id}-ryha)`} />
-    <circle cx="50" cy="50" r="21" fill={`url(#${id}-hlina-ton)`} />
+
+    {/* Rámečky rýh — stejná maska je zase provrtá, zbydou jen jejich hrany. */}
+    {ramyRyh && (
+      <g mask={`url(#${id}-ryha)`} fill="none" stroke={`url(#${id}-deska-obrys)`}>
+        <circle cx="50" cy="50" r={ryhaPolomer} stroke-width={ryhaSila + 2 * ryhaRamSila} />
+        <circle
+          cx="50"
+          cy="50"
+          r={ryhaUStredu}
+          stroke-width={ryhaVnitrniSila + 2 * ryhaRamSila}
+        />
+      </g>
+    )}
+
+    <circle cx="50" cy="50" r={stredPolomer} fill={`url(#${id}-hlina-ton)`} />
 
     {/* Květ leží až na hroudě, ne za ní. */}
     <g clip-path={`url(#${id}-deska)`}>
@@ -167,6 +297,20 @@ const nazevPx = Math.round(size * 0.26);
         />
       )}
     </g>
+
+    {/*
+      Lem desky se kreslí až nakonec, aby nepřetržitě obtočil celý kruh —
+      i tam, kde se o okraj opírá plátek. Je vsazený dovnitř, takže jeho
+      vnější hrana padne přesně na okraj desky a nic nepřečnívá.
+    */}
+    <circle
+      cx="50"
+      cy="50"
+      r={50 - deskaObrysSila / 2}
+      fill="none"
+      stroke={`url(#${id}-deska-obrys)`}
+      stroke-width={deskaObrysSila}
+    />
   </svg>
   <span
     class={`font-serif font-medium whitespace-nowrap tracking-[0.04em] [word-spacing:-0.08em] ${invertovany ? "text-cream" : "text-espresso"}`}
