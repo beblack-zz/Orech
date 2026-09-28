@@ -1,0 +1,170 @@
+---
+/**
+ * Plátky sakury padající přes celý úvodní blok.
+ *
+ * Vrstva leží pod textem a nebere kliknutí, takže se do ní dá psát
+ * i klikat skrz. Každý plátek má vlastní rychlost, zpoždění a boční
+ * úlet — kdyby padaly stejně, četlo by se to jako spadaná mřížka,
+ * ne jako vítr.
+ */
+interface Props {
+  class?: string;
+}
+const { class: trida = "" } = Astro.props;
+
+/** Id musí být jedinečné, kdyby vrstva byla na stránce dvakrát. */
+const id = `sakura-${Math.random().toString(36).slice(2, 8)}`;
+
+/**
+ * Rozsazení je ruční, ne náhodné — náhoda dělá shluky a prázdná pole.
+ * `x` je poloha v procentech šířky, `zpozdeni` a `doba` v sekundách,
+ * `ulet` je boční vychýlení v pixelech (klad doprava).
+ */
+const platky = [
+  { x: 4, velikost: 1.5, doba: 19, zpozdeni: 0, ulet: 34, kryti: 0.5, otoceni: 172 },
+  { x: 12, velikost: 1.1, doba: 23, zpozdeni: 6.5, ulet: -26, kryti: 0.34, otoceni: 205 },
+  { x: 21, velikost: 1.7, doba: 17, zpozdeni: 11, ulet: 42, kryti: 0.55, otoceni: 150 },
+  { x: 29, velikost: 0.9, doba: 26, zpozdeni: 3.5, ulet: -18, kryti: 0.28, otoceni: 228 },
+  { x: 37, velikost: 1.3, doba: 21, zpozdeni: 14.5, ulet: 28, kryti: 0.42, otoceni: 188 },
+  { x: 45, velikost: 1.6, doba: 18, zpozdeni: 8, ulet: -38, kryti: 0.5, otoceni: 163 },
+  { x: 54, velikost: 1, doba: 25, zpozdeni: 17, ulet: 22, kryti: 0.3, otoceni: 214 },
+  { x: 62, velikost: 1.8, doba: 16, zpozdeni: 2, ulet: -30, kryti: 0.58, otoceni: 145 },
+  { x: 70, velikost: 1.2, doba: 22, zpozdeni: 12.5, ulet: 36, kryti: 0.38, otoceni: 196 },
+  { x: 78, velikost: 1.45, doba: 20, zpozdeni: 5, ulet: -24, kryti: 0.46, otoceni: 178 },
+  { x: 86, velikost: 0.95, doba: 27, zpozdeni: 15.5, ulet: 30, kryti: 0.26, otoceni: 232 },
+  { x: 93, velikost: 1.35, doba: 19.5, zpozdeni: 9.5, ulet: -34, kryti: 0.44, otoceni: 158 },
+];
+---
+
+<div class={`platky-vrstva ${trida}`} aria-hidden="true">
+  <svg width="0" height="0" style="position: absolute">
+    <defs>
+      {/* Stejná kresba plátku jako ve značce, včetně stínování a lemu. */}
+      <linearGradient
+        id={`${id}-ton`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1="0.5"
+        x2="0"
+        y2="-12.6"
+      >
+        <stop offset="0" stop-color="#9E4025" />
+        <stop offset="0.45" stop-color="#B84A2B" />
+        <stop offset="1" stop-color="#CF846F" />
+      </linearGradient>
+      <path
+        id={`${id}-platek`}
+        fill={`url(#${id}-ton)`}
+        stroke="#8F3A21"
+        stroke-width="0.42"
+        stroke-linejoin="round"
+        d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z"
+      />
+    </defs>
+  </svg>
+
+  {platky.map((p) => (
+    <span
+      class="platek"
+      style={`
+        left: ${p.x}%;
+        --kryti: ${p.kryti};
+        --doba: ${p.doba}s;
+        --zpozdeni: -${p.zpozdeni}s;
+        --ulet: ${p.ulet}px;
+      `}
+    >
+      {/*
+        Plátek se otáčí kolem svého středu (0, -6.3), ne kolem paty —
+        jinak by se při otočení vysunul z plátna a ořízl by se na třísku.
+        Plátno má kolem něj rezervu, aby se vešel v každém úhlu.
+      */}
+      <svg
+        width={Math.round(19 * p.velikost)}
+        height={Math.round(19 * p.velikost)}
+        viewBox="-9.5 -15.8 19 19"
+      >
+        <g class="platek-otaceni">
+          <use href={`#${id}-platek`} transform={`rotate(${p.otoceni} 0 -6.3)`} />
+        </g>
+      </svg>
+    </span>
+  ))}
+</div>
+
+<style>
+  .platky-vrstva {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    /* Vrstva nesmí brát kliknutí ani označování textu, leží jen v pozadí. */
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /*
+   * Pád a kolébání jsou rozdělené na dva prvky, protože každý potřebuje
+   * něco jiného. Vnější span padá přes `top` v procentech, takže se délka
+   * pádu řídí výškou bloku a nemusí se nikde psát v pixelech. Vnitřní
+   * obal se jen kolébá do stran a otáčí — to jede přes transform, který
+   * prohlížeč zvládne bez překreslování stránky.
+   */
+  .platek {
+    position: absolute;
+    display: block;
+    animation: platek-pad var(--doba) linear infinite;
+    animation-delay: var(--zpozdeni);
+  }
+
+  .platek > svg {
+    display: block;
+    will-change: transform;
+    animation: platek-kolebani calc(var(--doba) / 2) ease-in-out infinite;
+    animation-delay: var(--zpozdeni);
+  }
+
+  /*
+   * Otáčení má vlastní prvek a vlastní tempo. Musí jít celých 360°, aby
+   * konec smyčky padl na její začátek — kdyby se točilo jen o kus a pak
+   * se vrátilo na nulu, plátek by při každém opakování škubnul.
+   */
+  .platek-otaceni {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: platek-otaceni calc(var(--doba) * 0.8) linear infinite;
+    animation-delay: var(--zpozdeni);
+  }
+
+  /*
+   * Plátek se u horní hrany vynoří a u spodní zase ztratí. Bez toho
+   * by se na obou koncích ořezu objevoval a mizel skokem a hrana bloku
+   * by se tím kreslila do pohybu.
+   */
+  @keyframes platek-pad {
+    0% { top: -12%; opacity: 0; }
+    10% { opacity: var(--kryti); }
+    82% { opacity: var(--kryti); }
+    100% { top: 104%; opacity: 0; }
+  }
+
+  /*
+   * Kolébání se vrací tam, odkud vyšlo: doprava, zpátky, doleva a zase
+   * zpátky. Celý cyklus tedy končí ve stejné poloze, v jaké začal, a na
+   * švu není vidět žádný zlom.
+   */
+  @keyframes platek-kolebani {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(var(--ulet)); }
+    75% { transform: translateX(calc(var(--ulet) * -1)); }
+  }
+
+  @keyframes platek-otaceni {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Padající listí je ozdoba — při omezení animací zmizí úplně. */
+  @media (prefers-reduced-motion: reduce) {
+    .platky-vrstva { display: none; }
+  }
+</style>

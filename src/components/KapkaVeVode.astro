@@ -1,0 +1,292 @@
+---
+/**
+ * Kapka hlíny rozpitá ve vodě — k nadpisu „Hlína počká. Ty nemusíš.“
+ *
+ * Není to simulace tekutiny, jen pár rozostřených skvrn, které se
+ * pomalu nadechnou a zase vyblednou. Důvod je výkon: simulace by na
+ * mobilu běžela ve smyčce na celé ploše, tohle je několik tvarů, které
+ * se jen zvětšují a průhlední — takové animace zvládne i starší telefon.
+ *
+ * Celý cyklus trvá 13 s a je schválně pomalý. Rychlé rozpití by z toho
+ * udělalo efekt; tady má jít o to, že se čeká.
+ */
+interface Props {
+  class?: string;
+}
+const { class: trida = "" } = Astro.props;
+
+/** Id musí být jedinečné, kdyby komponenta byla na stránce dvakrát. */
+const id = `kapka-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div class={`kapka-vode ${trida}`} aria-hidden="true">
+  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+    <defs>
+      {/* Tři stupně rozostření: jádro skvrny, její okraj a nejřidší závoj. */}
+      <filter id={`${id}-m`} x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="7" />
+      </filter>
+      <filter id={`${id}-s`} x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="16" />
+      </filter>
+      <filter id={`${id}-v`} x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="30" />
+      </filter>
+
+      {/*
+        Kouřový okraj: šum nejdřív tvar rozhrne do cárů (feDisplacementMap)
+        a teprve pak se rozostří. Kdyby se rozostřilo dřív, zvlnění by se
+        zase uhladilo do koule. Šum je statický — počítá se jednou a pak
+        se s ním jen hýbe, takže to nestojí výkon každý snímek.
+      */}
+      <filter id={`${id}-kour`} x="-70%" y="-70%" width="240%" height="240%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.013" numOctaves="4" seed="7" result="sum" />
+        <feDisplacementMap in="SourceGraphic" in2="sum" scale="62" xChannelSelector="R" yChannelSelector="G" />
+        <feGaussianBlur stdDeviation="9" />
+      </filter>
+
+      <filter id={`${id}-kour-2`} x="-70%" y="-70%" width="240%" height="240%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.019" numOctaves="3" seed="21" result="sum" />
+        <feDisplacementMap in="SourceGraphic" in2="sum" scale="46" xChannelSelector="R" yChannelSelector="G" />
+        <feGaussianBlur stdDeviation="6" />
+      </filter>
+
+      {/*
+        Plátek sakury — stejná kresba jako ve značce: špičatá pata,
+        mandlové boky a nahoře dva hroty se zářezem. U paty sytější,
+        ke špičce prosvětlený.
+      */}
+      <linearGradient
+        id={`${id}-platek-ton`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1="0.5"
+        x2="0"
+        y2="-12.6"
+      >
+        <stop offset="0" stop-color="#9E4025" />
+        <stop offset="0.45" stop-color="#B84A2B" />
+        <stop offset="1" stop-color="#CF846F" />
+      </linearGradient>
+      <path
+        id={`${id}-listek`}
+        fill={`url(#${id}-platek-ton)`}
+        stroke="#8F3A21"
+        stroke-width="0.42"
+        stroke-linejoin="round"
+        d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z"
+      />
+
+      {/*
+        Skvrny nejsou kruhy — hlína se ve vodě roztahuje do cípů. Každá
+        má jiný obrys, aby se při otáčení neopakovaly.
+      */}
+      <path
+        id={`${id}-tvar-1`}
+        d="M0,-62 C26,-58 44,-40 52,-16 C60,8 54,34 36,50 C18,66 -10,68 -30,56 C-50,44 -62,20 -58,-6 C-54,-32 -34,-56 -8,-62 Z"
+      />
+      <path
+        id={`${id}-tvar-2`}
+        d="M0,-54 C30,-52 52,-30 54,-2 C56,26 38,48 12,56 C-14,64 -44,52 -55,28 C-66,4 -58,-28 -36,-44 C-24,-53 -12,-55 0,-54 Z"
+      />
+      <path
+        id={`${id}-tvar-3`}
+        d="M0,-48 C22,-46 42,-32 48,-10 C54,12 44,36 24,46 C4,56 -22,52 -38,36 C-54,20 -56,-6 -44,-26 C-32,-44 -16,-49 0,-48 Z"
+      />
+    </defs>
+
+    {/*
+      Do vody nepadá kapka, ale plátek sakury — stejný tvar jako ve značce.
+      Ten, co dopadne, se ve vodě rozpustí a zbyde po něm stopa hlíny.
+      Souřadnice plátku jsou v jeho vlastní soustavě (pata v nule, špička
+      nahoru), proto se umisťuje přes translate, ne přes x a y.
+    */}
+    <g class="platek-hlavni">
+      <use href={`#${id}-listek`} transform="translate(200 0) rotate(196) scale(1.7)" />
+    </g>
+
+
+    {/*
+      Klidová skvrna: zůstává v místě pořád. Bez ní je plocha mezi dvěma
+      kapkami prázdná a stránka vypadá rozbitě — takhle je tam vždycky
+      obrázek a kapka ho jen oživí.
+    */}
+    <g style="transform-origin: 200px 186px; transform: scale(1.05, 2.9)">
+      <use href={`#${id}-tvar-3`} x="200" y="208" fill="#49535A" opacity="0.24" filter={`url(#${id}-kour)`} />
+      <use href={`#${id}-tvar-1`} x="200" y="202" fill="#3A2E28" opacity="0.2" filter={`url(#${id}-kour-2)`} />
+      {/* Sakura zůstává i v klidu — kouř je šedý, ale hlína v něm prosvítá. */}
+      <use href={`#${id}-tvar-2`} x="200" y="206" fill="#B84A2B" opacity="0.14" filter={`url(#${id}-kour)`} />
+    </g>
+
+    {/* Závoj — nejširší a nejřidší, drží celou skvrnu pohromadě. */}
+    <g class="oblak oblak-3" style="transform-origin: 200px 210px">
+      <use href={`#${id}-tvar-3`} x="200" y="210" fill="#5C666B" filter={`url(#${id}-kour)`} />
+    </g>
+
+    {/* Střední vrstva s otáčením na druhou stranu — voda se vlní. */}
+    <g class="oblak oblak-2" style="transform-origin: 200px 205px">
+      <use href={`#${id}-tvar-2`} x="200" y="205" fill="#A8442A" filter={`url(#${id}-kour)`} />
+    </g>
+
+    {/*
+      Spodní patro: leží níž a roste hlavně do šířky. Díky němu má stopa
+      tvar klínu — nahoře úzký pramínek, dole rozlitá hlava — místo aby
+      byla všude stejně široká.
+    */}
+    <g class="oblak oblak-4" style="transform-origin: 200px 252px">
+      <use href={`#${id}-tvar-2`} x="200" y="252" fill="#49535A" filter={`url(#${id}-kour)`} />
+    </g>
+    <g class="oblak oblak-5" style="transform-origin: 200px 268px">
+      <use href={`#${id}-tvar-3`} x="200" y="268" fill="#A8442A" filter={`url(#${id}-kour)`} />
+    </g>
+
+    {/*
+      Horní chuchvalec: to, co se u hladiny odtrhne a odejde na opačnou
+      stranu než zbytek. Díky němu má stopa tvar vlnovky — nahoře doleva
+      k nadpisu, dole doprava k popisku — místo jedné zatáčky.
+    */}
+    <g class="oblak oblak-6" style="transform-origin: 200px 176px">
+      <use href={`#${id}-tvar-3`} x="200" y="176" fill="#5C666B" filter={`url(#${id}-kour)`} />
+    </g>
+    <g class="oblak oblak-7" style="transform-origin: 200px 168px">
+      <use href={`#${id}-tvar-1`} x="200" y="168" fill="#A8442A" filter={`url(#${id}-kour-2)`} />
+    </g>
+
+    {/* Jádro: nejtmavší a nejmenší, mizí první. */}
+    <g class="oblak oblak-1" style="transform-origin: 200px 200px">
+      <use href={`#${id}-tvar-1`} x="200" y="200" fill="#2E2926" filter={`url(#${id}-kour-2)`} />
+    </g>
+
+    {/* Dva ocelové závity — stopa po tom, jak se voda hnula. */}
+    <g class="zavit" style="transform-origin: 200px 200px">
+      <path
+        d="M150,196 C176,182 214,186 238,202"
+        fill="none"
+        stroke="#49535A"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        opacity="0.5"
+        filter={`url(#${id}-m)`}
+      />
+      <path
+        d="M162,224 C188,238 220,234 246,218"
+        fill="none"
+        stroke="#49535A"
+        stroke-width="1.2"
+        stroke-linecap="round"
+        opacity="0.4"
+        filter={`url(#${id}-m)`}
+      />
+    </g>
+  </svg>
+</div>
+
+<style>
+  .kapka-vode svg {
+    /* Stopa se smí protáhnout pod plátno — jinak by o tu délku narostla
+       celá buňka v mřížce a nadpis vedle by odskočil. */
+    overflow: visible;
+  }
+
+  .kapka-vode {
+    /* Skvrna se nesmí opřít o text vedle — proto vlastní dýchací prostor. */
+    max-width: 520px;
+    margin-inline: auto;
+  }
+
+  /*
+   * Kapka padá jen v první pětině cyklu, zbytek je pod hladinou.
+   * Zrychluje, jak by měla — proto ease-in, ne rovnoměrný pohyb.
+   */
+  /*
+   * Plátek nepadá rovně — ve vzduchu se kolébá ze strany na stranu a
+   * pootáčí se, jak ho nese vzduch. Proto se v transformu míchá posun
+   * vodorovný i svislý. U hladiny se zploští a zmizí; z toho místa
+   * pak začíná rozpití.
+   */
+  @keyframes platek-pad {
+    0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0; }
+    4% { opacity: 0.9; }
+    5% { transform: translate(-16px, 46px) rotate(-14deg) scale(1); }
+    9% { transform: translate(14px, 98px) rotate(16deg) scale(0.94); }
+    13% { transform: translate(-8px, 152px) rotate(-10deg) scale(1); }
+    16% { transform: translate(2px, 192px) rotate(6deg) scale(0.98); opacity: 0.9; }
+    18% { transform: translate(0, 202px) rotate(2deg) scale(0.5, 0.3); opacity: 0; }
+    100% { transform: translate(0, 202px) scale(0.5, 0.3); opacity: 0; }
+  }
+
+
+  /*
+   * Skvrny se rozpíjejí: zvětšují se a zároveň blednou. Každá má jiné
+   * zpoždění a jiný směr otáčení, takže se cípy nepřekrývají pořád stejně.
+   */
+  /*
+   * Svisle rostou rychleji než vodorovně a zároveň klesají — hlína je
+   * těžší než voda, takže se stopa protáhne dolů, ne do kruhu.
+   */
+  @keyframes rozpiti {
+    0%, 15% { transform: translate(0, 0) scale(0.22, 0.26) rotate(0deg); opacity: 0; }
+    22% { opacity: 0.62; }
+    60% { transform: translate(10px, 74px) scale(1.1, 3.2) rotate(4deg); opacity: 0.44; }
+    100% { transform: translate(30px, 126px) scale(1.25, 4.6) rotate(11deg); opacity: 0; }
+  }
+
+  @keyframes rozpiti-zpet {
+    0%, 15% { transform: translate(0, 0) scale(0.22, 0.28) rotate(0deg); opacity: 0; }
+    24% { opacity: 0.34; }
+    60% { transform: translate(6px, 86px) scale(1.2, 3.6) rotate(-3deg); opacity: 0.24; }
+    100% { transform: translate(22px, 148px) scale(1.4, 5.2) rotate(4deg); opacity: 0; }
+  }
+
+  /*
+   * Spodní patro roste hlavně do šířky a začíná později — hlína teče
+   * dolů a tam se teprve rozlije. Proto je klín dole nejširší.
+   */
+  @keyframes rozliti-dole {
+    0%, 26% { transform: translate(0, 0) scale(0.3, 0.4) rotate(0deg); opacity: 0; }
+    38% { opacity: 0.4; }
+    62% { transform: translate(38px, 54px) scale(2.1, 1.9) rotate(6deg); opacity: 0.32; }
+    100% { transform: translate(88px, 100px) scale(3.2, 2.6) rotate(15deg); opacity: 0; }
+  }
+
+  /*
+   * Horní chuchvalec jde proti proudu: doleva a mírně vzhůru, jako když
+   * se u hladiny utrhne cár a odplave sám.
+   */
+  @keyframes rozpiti-vlevo {
+    0%, 18% { transform: translate(0, 0) scale(0.24, 0.3) rotate(0deg); opacity: 0; }
+    30% { opacity: 0.42; }
+    62% { transform: translate(-42px, 4px) scale(1.7, 1.9) rotate(-8deg); opacity: 0.3; }
+    100% { transform: translate(-86px, -14px) scale(2.5, 2.4) rotate(-17deg); opacity: 0; }
+  }
+
+  /* Závity se jen roztáhnou do stran a zmizí — jsou to stopy, ne tvary. */
+  @keyframes zavity {
+    0%, 16% { transform: scale(0.5); opacity: 0; }
+    28% { opacity: 0.55; }
+    100% { transform: translateY(30px) scale(2.2, 1.5); opacity: 0; }
+  }
+
+  .platek-hlavni { animation: platek-pad 13s cubic-bezier(0.4, 0, 0.7, 0.6) infinite; }
+  .oblak-1 { animation: rozpiti 13s ease-out infinite; }
+  .oblak-2 { animation: rozpiti-zpet 13s ease-out infinite; animation-delay: 0.6s; }
+  .oblak-3 { animation: rozpiti 13s ease-out infinite; animation-delay: 1.4s; }
+  .oblak-4 { animation: rozliti-dole 13s ease-out infinite; animation-delay: 0.4s; }
+  .oblak-5 { animation: rozliti-dole 13s ease-out infinite; animation-delay: 1.9s; }
+  .oblak-6 { animation: rozpiti-vlevo 13s ease-out infinite; animation-delay: 0.8s; }
+  .oblak-7 { animation: rozpiti-vlevo 13s ease-out infinite; animation-delay: 2.3s; }
+  .zavit { animation: zavity 13s ease-out infinite; animation-delay: 0.3s; }
+
+  /*
+   * Bez pohybu zůstane jedna rozpitá skvrna — obrázek, ne prázdné místo.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .platek-hlavni { animation: none; opacity: 0; }
+    .oblak,
+    .zavit {
+      animation: none;
+      opacity: 0.3;
+      transform: scale(0.9);
+    }
+  }
+</style>
