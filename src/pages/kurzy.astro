@@ -3,6 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import Stripek from "../components/characters/Stripek.astro";
 import Bublina from "../components/characters/Bublina.astro";
 import Poukaz from "../components/Poukaz.astro";
+import PadajiciPlatky from "../components/PadajiciPlatky.astro";
+import Delic from "../components/Delic.astro";
 import { kurzy as courses, poMesicich, den, mesic, popisKurzu, stavPopis, tlacitkoPopis, lzeRezervovat, sezona } from "../data/kurzy";
 
 
@@ -15,7 +17,8 @@ const faq = [
 ---
 
 <Layout title="Kurzy — JIRO saku" description="Kurzy keramiky pro začátečníky i pokročilé. Workshopy, vícedenní cykly a rodinné dílny.">
-  <section class="py-14 fade-up">
+  <section class="py-14 fade-up relative">
+    <PadajiciPlatky />
     <div class="container-x relative">
       <div class="md:grid md:grid-cols-[1.15fr_1fr] md:gap-12 md:items-center mb-12">
         <div>
@@ -32,6 +35,8 @@ const faq = [
     </div>
   </section>
 
+  <Delic />
+
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
       {courses.length === 0 && (
@@ -42,8 +47,9 @@ const faq = [
         </p>
       )}
       <div class="flex flex-col gap-4">
-        {poMesicich(courses).map((m) => (
-        <div class="bg-cream rounded-2xl border border-espresso/10 px-5 md:px-8 pt-6 pb-2">
+        {/* Nejbližší měsíc se vyzdvihne růžovou plochou, další už ne — zvýraznění platí, jen když je vzácné. */}
+        {poMesicich(courses).map((m, mi) => (
+        <div class={`rounded-2xl border px-5 md:px-8 pt-6 pb-2 ${mi === 0 ? "blok-vyzdvizeny" : "bg-cream border-espresso/10"}`}>
         <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-2">Nejbližší termíny · {m.nazev}</h2>
         <div>
         {m.kurzy.map((c) => (
@@ -114,6 +120,10 @@ const faq = [
     </div>
   </section>
 
+  <div class="bg-white">
+    <Delic />
+  </div>
+
   <section class="py-14 fade-up">
     <div class="container-x">
       <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Časté otázky</h2>
@@ -135,6 +145,8 @@ const faq = [
       </Bublina>
     </div>
   </section>
+
+  <Delic />
 
   <!-- Dárkový poukaz -->
   <section id="poukaz" class="bg-white py-14 fade-up">
