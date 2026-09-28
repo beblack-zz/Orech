@@ -29,6 +29,13 @@
   --color-peri-hlina: #49535A;
   /* Tmavší varianta je na text — světlá má na krémové 1,4:1. */
   --color-peri-deep: #5C666B;
+  /*
+   * Růžová od Kapky — barva pro „tohle si všimni“. Na rozdíl od sakury
+   * se nosí v ploše, ne v písmu: podklad bloku, rámeček, štítek.
+   * Plná barva je na štítky, světlá na plochy pod textem.
+   */
+  --color-kapka: #D79A94;
+  --color-kapka-plocha: #F3E3DE;
   --color-mustard: #E8B440;
   --color-white: #FFFFFF;
 
@@ -99,6 +106,27 @@
   :where(footer, .bg-espresso) :where(a, button, [tabindex]):focus-visible {
     outline-color: var(--color-cream);
   }
+}
+
+/*
+ * ——— Zvýrazňování ———
+ *
+ * Každá barva má jednu roli a jednu formu. Když přibude další zvýraznění,
+ * má se vejít do některého z těchto čtyř řádků, ne si založit pátý:
+ *
+ *   sakura   #B84A2B  značka a důraz v písmu — kurzíva v nadpisu, hover,
+ *                     logo; a stav, který hoří („poslední místa“)
+ *   kapka    #D79A94  „všimni si“ v ploše — podklad bloku, rámeček, štítek
+ *                     doporučení; nejvýš jeden takový blok na stránku
+ *   mustard  #E8B440  novinka — malý štítek, nic víc
+ *   stone    #6B5D4F  drobná podpora: šipky, štítky, odkazy v odstavci
+ *
+ * Ocel (peri) je barva značky a rozhraní, ne zvýraznění — štítky z ní
+ * schválně zmizely, aby si role nekonkurovaly.
+ */
+@utility blok-vyzdvizeny {
+  background: var(--color-kapka-plocha);
+  border-color: color-mix(in srgb, var(--color-kapka) 55%, transparent);
 }
 
 @utility hero-title {

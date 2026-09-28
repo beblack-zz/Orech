@@ -38,12 +38,16 @@ const offers = [
   },
 ];
 
-/* Kurzy patří k tomu, co u nás najdete; zbytek je v sekci „Co připravujeme“. */
-const najdete = offers.filter((o) => o.name === "Kurzy");
-const pripravujeme = offers.filter((o) => o.name !== "Kurzy");
+/*
+ * Kurzy a Open studio jsou to, co v dílně běží — patří k tomu, co u nás
+ * najdete. V „Co připravujeme“ zůstává to, co se teprve chystá.
+ */
+const vDilne = ["Kurzy", "Open studio"];
+const najdete = offers.filter((o) => vDilne.includes(o.name));
+const pripravujeme = offers.filter((o) => !vDilne.includes(o.name));
 
 /*
- * Široký blok nad čtveřicí. Není to pátá položka katalogu, ale událost
+ * Široký blok nad kartami. Není to další položka katalogu, ale událost
  * s datem, proto jde přes celou šířku a má větší písmo — hierarchii nese
  * velikost, ne barva, aby to nesoupeřilo s odznakem „Nejoblíbenější“.
  */
@@ -63,8 +67,8 @@ const den = {
 <section class="py-14 relative fade-up">
   <div class="container-x">
     <SectionHead title="Co u nás" italic="najdete" />
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="sm:col-span-2 lg:col-span-4 bg-white rounded-xl border border-espresso/10 p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="sm:col-span-2 blok-vyzdvizeny rounded-xl border p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
         <div class="flex-1">
           <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{den.idx}</div>
           <h3 class="font-serif text-[26px] md:text-[32px] font-medium leading-tight mb-2" style="font-variation-settings: 'opsz' 72;">
@@ -97,7 +101,7 @@ const den = {
     <div class="mt-14">
       <SectionHead title="Co" italic="připravujeme" meta="Katalog" />
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {pripravujeme.map((o) => <NabidkaKarta {...o} />)}
     </div>
   </div>
