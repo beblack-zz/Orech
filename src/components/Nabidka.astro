@@ -81,13 +81,15 @@ const den = {
     <div class="mt-14">
       <SectionHead title="Co již" italic="proběhlo" />
     </div>
-    <div class="border-t border-espresso/20">
+    <div>
       {/*
-        Doběhlá akce zůstává na stránce jako stopa, ale už nic neslibuje —
-        proto žádné zvýraznění a žádný rámeček. Sazba je stejná jako u nabídky
-        výš, jen bez odkazu: tahle položka nikam nevede, už se stala.
+        Výjimka z pravidla „seznamy bez rámečku“: řádek drží tvar jen ve
+        skupině, kde se má podle čeho zarovnat. Tahle akce je v sekci sama,
+        takže by jako holý řádek vypadala jako zapomenutá. Bublina jí dává
+        hranici; že už proběhla, říká bílá plocha místo růžové a přeškrtnuté
+        termíny, ne výraznost.
       */}
-      <div class="grid md:grid-cols-[2fr_3fr_auto] gap-x-8 lg:gap-x-12 gap-y-5 py-8 md:py-10 border-b border-espresso/20">
+      <div class="bg-white rounded-2xl border border-espresso/10 p-6 md:p-8 grid md:grid-cols-[2fr_3fr_auto] gap-x-8 lg:gap-x-12 gap-y-5 items-center">
         <div>
           <h3 class="font-serif font-light text-[26px] md:text-[32px] leading-none">{den.name}</h3>
           <p class="mono-meta mt-2.5">{den.idx}</p>
@@ -100,7 +102,7 @@ const den = {
           sazbě — tohle je tabulka, ne věta, a tabulce tichý podklad drží sloupce
           pohromadě. Pravidlo „karta patří věci“ mluví o položkách, ne o datech.
         */}
-        <ul class="md:ml-auto shrink-0 self-start bg-cream rounded-2xl border border-espresso/10 px-6 py-4 font-mono text-[13px] tabular-nums grid grid-cols-[auto_auto]">
+        <ul class="md:ml-auto shrink-0 self-start bg-cream rounded-xl px-6 py-4 font-mono text-[13px] tabular-nums grid grid-cols-[auto_auto]">
           {den.terminy.map((t, i) => (
             <li class={`col-span-2 grid grid-cols-subgrid relative ${t.probehlo ? "after:absolute after:inset-x-0 after:top-1/2 after:border-t after:border-espresso/50" : ""}`}>
               <span class={`text-right text-espresso font-medium py-2 pr-7 ${i > 0 ? "border-t border-espresso/10" : ""} ${t.probehlo ? "opacity-50" : ""}`}>

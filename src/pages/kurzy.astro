@@ -50,24 +50,28 @@ const faq = [
           a zapíšeme tě mezi první, komu dáme vědět.
         </p>
       )}
-      <div class="flex flex-col gap-4">
-        {/* Nejbližší měsíc se vyzdvihne růžovou plochou, další už ne — zvýraznění platí, jen když je vzácné. */}
+      <div class="flex flex-col gap-14 md:gap-16">
         {poMesicich(courses).map((m, mi) => (
-        <div class={`rounded-2xl border px-5 md:px-8 pt-6 pb-2 ${mi === 0 ? "blok-vyzdvizeny" : "bg-cream border-espresso/10"}`}>
-        {/* Běžící měsíc je „aktuální“, ty další teprve přijdou — proto „nejbližší“. */}
-        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-2">
-          {mi === 0 ? "Aktuální" : "Nejbližší"} termíny · {m.nazev}
+        <div>
+        {/*
+          Běžící měsíc je „aktuální“, ty další teprve přijdou — proto „nejbližší“.
+          Zvýraznění prvního měsíce nese nadpis, ne barevná plocha: slovo
+          v sakuře a silnější linka nad seznamem.
+        */}
+        <h2 class="font-serif font-light text-[32px] md:text-[40px] leading-none mb-7">
+          {mi === 0 ? <em class="italic font-light text-sakura">Aktuální</em> : "Nejbližší"} termíny
+          <span class="text-stone/60"> · {m.nazev}</span>
         </h2>
         <div>
         {m.kurzy.map((c) => (
-          <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto] items-start gap-4 md:gap-5 py-5 border-b border-espresso/10 last:border-b-0">
-            <div class="font-serif font-medium text-[24px] md:text-[26px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
+          <div class="grid grid-cols-[52px_1fr] md:grid-cols-[72px_1fr_auto_auto] items-start gap-4 md:gap-8 py-7 md:py-8 border-b border-espresso/20 first:border-t first:border-espresso/20">
+            <div class="font-serif font-light text-[28px] md:text-[34px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
               {den(c.date)}
               <span class="block font-mono text-[12px] text-stone mt-1 tracking-wider uppercase font-normal">{mesic(c.date)}</span>
             </div>
             <div>
-              <h3 class="font-serif text-[17px] md:text-[19px] font-medium mb-1 leading-tight">{c.title}</h3>
-              <p class="text-[14px] text-stone mb-2">{popisKurzu(c)}</p>
+              <h3 class="font-serif font-light text-[22px] md:text-[26px] mb-1.5 leading-none">{c.title}</h3>
+              <p class="text-[14px] md:text-[15px] text-stone mb-2.5 leading-[1.6]">{popisKurzu(c)}</p>
               <p class="text-[15px] text-stone leading-[1.6] whitespace-pre-line">{c.desc}</p>
             </div>
             <div class={`font-mono text-[12px] hidden md:block ${
@@ -144,12 +148,20 @@ const faq = [
 
   <section class="py-14 fade-up">
     <div class="container-x">
-      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Časté otázky</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <h2 class="font-serif font-light text-[32px] md:text-[40px] leading-none mb-8 md:mb-10">
+        Časté <em class="italic font-light text-sakura">otázky</em>
+      </h2>
+
+      {/*
+        Otázka vlevo, odpověď vpravo — řádek se tak čte jedním tahem a je na
+        první pohled vidět, kde jedna dvojice končí. Dvousloupcová mřížka
+        vedle sebe to dřív rozsypala: oko muselo skákat do strany i dolů.
+      */}
+      <div class="border-t border-espresso/20">
         {faq.map((f) => (
-          <div class="border-t border-espresso/10 pt-4">
-            <h3 class="font-serif italic text-[17px] text-sakura mb-1.5">{f.q}</h3>
-            <p class="text-stone text-[15px] leading-[1.7]">{f.a}</p>
+          <div class="grid md:grid-cols-[2fr_3fr] gap-x-8 lg:gap-x-12 gap-y-2 py-7 md:py-8 border-b border-espresso/20">
+            <h3 class="font-serif italic font-light text-[20px] md:text-[24px] text-sakura leading-snug">{f.q}</h3>
+            <p class="text-stone text-[16px] md:text-[17px] leading-[1.75] max-w-[52ch]">{f.a}</p>
           </div>
         ))}
       </div>

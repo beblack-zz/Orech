@@ -28,8 +28,8 @@ export interface Kurz {
  */
 const vsechnyKurzy: Kurz[] = [
   {
-    date: new Date(2026, 9, 6), // úterý — stejný den jako Malý & Velký, jen dřív odpoledne
-    title: "Malý & Velký",
+    date: new Date(2026, 9, 6), // úterý — stejný den jako Velký & Malý, jen dřív odpoledne
+    title: "Velký & Malý",
     format: "10 lekcí · trimestr · úterky 13:00–14:30 · 90 min · s pomocí",
     lektor: "Jiřík",
     capacity: "",
@@ -39,7 +39,7 @@ const vsechnyKurzy: Kurz[] = [
   },
   {
     date: new Date(2026, 9, 6), // úterý — sedí na „úterky 15:00“, začátek trimestru
-    title: "Malý & Velký",
+    title: "Velký & Malý",
     format: "10 lekcí · trimestr · úterky 15:00–16:30 · 90 min · s pomocí",
     lektor: "Jiřík",
     capacity: "",
@@ -48,7 +48,7 @@ const vsechnyKurzy: Kurz[] = [
     desc: "Modelování, točení (po individuální domluvě), příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.",
   },
   {
-    date: new Date(2026, 9, 6), // úterý — stejný den jako Malý & Velký, jen večer
+    date: new Date(2026, 9, 6), // úterý — stejný den jako Velký & Malý, jen večer
     title: "Velký & Velký",
     format: "10 lekcí · trimestr · úterky 17:00–18:30 · 90 min · s pomocí",
     lektor: "Jiřík",
