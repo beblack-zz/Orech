@@ -50,7 +50,10 @@ const faq = [
         {/* Nejbližší měsíc se vyzdvihne růžovou plochou, další už ne — zvýraznění platí, jen když je vzácné. */}
         {poMesicich(courses).map((m, mi) => (
         <div class={`rounded-2xl border px-5 md:px-8 pt-6 pb-2 ${mi === 0 ? "blok-vyzdvizeny" : "bg-cream border-espresso/10"}`}>
-        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-2">Nejbližší termíny · {m.nazev}</h2>
+        {/* Běžící měsíc je „aktuální“, ty další teprve přijdou — proto „nejbližší“. */}
+        <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-2">
+          {mi === 0 ? "Aktuální" : "Nejbližší"} termíny · {m.nazev}
+        </h2>
         <div>
         {m.kurzy.map((c) => (
           <div class="grid grid-cols-[52px_1fr] md:grid-cols-[60px_1fr_auto] items-start gap-4 md:gap-5 py-5 border-b border-espresso/10 last:border-b-0">
@@ -66,6 +69,7 @@ const faq = [
             <div class={`font-mono text-[12px] hidden md:block ${
               c.state === "urgent" ? "text-sakura font-medium" :
               c.state === "full" ? "text-stone line-through" :
+              c.price ? "text-espresso font-medium" :
               c.state === "pripravujeme" ? "text-stone/70 italic" : "text-stone"
             }`}>
               {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
@@ -90,7 +94,8 @@ const faq = [
               <div class={`font-mono text-[12px] ${
                 c.state === "urgent" ? "text-sakura font-medium" :
                 c.state === "full" ? "text-stone line-through" :
-                c.state === "pripravujeme" ? "text-stone/70 italic" : "text-stone"
+                c.price ? "text-espresso font-medium" :
+              c.state === "pripravujeme" ? "text-stone/70 italic" : "text-stone"
               }`}>
                 {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
               </div>

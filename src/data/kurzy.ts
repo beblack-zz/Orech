@@ -13,7 +13,7 @@ export interface Kurz {
   lektor: string;
   capacity: string;
   state: StavKurzu;
-  /** Nepovinná — dokud se zápis neotevře, cena se nikde neukazuje. */
+  /** Nepovinná. Když je vyplněná, stojí v seznamu místo stavu kurzu. */
   price?: string;
   desc: string;
 }
@@ -34,7 +34,8 @@ const vsechnyKurzy: Kurz[] = [
     lektor: "Jiřík",
     capacity: "",
     state: "pripravujeme",
-    desc: "Modelování, točení, příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.",
+    price: "4 500 Kč",
+    desc: "Modelování, točení (po individuální domluvě), příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.",
   },
   {
     date: new Date(2026, 9, 6), // úterý — sedí na „úterky 15:00“, začátek trimestru
@@ -43,7 +44,8 @@ const vsechnyKurzy: Kurz[] = [
     lektor: "Jiřík",
     capacity: "",
     state: "pripravujeme",
-    desc: "Modelování, točení, příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.",
+    price: "4 500 Kč",
+    desc: "Modelování, točení (po individuální domluvě), příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.",
   },
   {
     date: new Date(2026, 9, 6), // úterý — stejný den jako Malý & Velký, jen večer
@@ -52,7 +54,8 @@ const vsechnyKurzy: Kurz[] = [
     lektor: "Jiřík",
     capacity: "",
     state: "pripravujeme",
-    desc: "Modelování, točení, příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.\nPro velké a pro dospělé.",
+    price: "4 000 Kč",
+    desc: "Modelování, točení (po individuální domluvě), příprava hlíny, obrábění, glazování, tvoření podle předlohy, volná tvorba.\nPro velké a pro dospělé.",
   },
   {
     date: new Date(2026, 10, 3), // úterý — sedí na „úterky 10:00“
@@ -127,7 +130,12 @@ export const popisKurzu = (k: Kurz) => `${k.format} · ${k.lektor}`;
  * `capacity` v datech nedotčené — až se zápis otevře, stačí přepnout `state`
  * zpátky a obsazenost se vrátí sama.
  */
-export const stavPopis = (k: Kurz) => (k.state === "pripravujeme" ? "připravujeme" : k.capacity);
+/*
+ * Co stojí v pravém sloupci seznamu. Cena má přednost — je to tvrdý údaj,
+ * který člověk hledá; „připravujeme“ zbyde jen tam, kde cena ještě není.
+ */
+export const stavPopis = (k: Kurz) =>
+  k.price ?? (k.state === "pripravujeme" ? "připravujeme" : k.capacity);
 
 /** Popisek tlačítka u termínu. */
 export const tlacitkoPopis = (k: Kurz) =>

@@ -6,7 +6,7 @@ const offers = [
   {
     idx: "hodiny či dny",
     name: "Workshopy",
-    desc: "Jednorázové zážitkové kurzy. Ideální jako dárek nebo akce na teambuilding.",
+    desc: "Jednorázové zážitkové kurzy. Ideální jako dárek nebo příležitost pro Vaše soukromé akce — teambuildingy, narozeniny, rozlučky se svobodou, zážitkový víkend či den…",
     link: "/kurzy",
     linkText: "Vybrat termín",
     featured: false,
@@ -22,7 +22,7 @@ const offers = [
   {
     idx: "na hodiny",
     name: "Open studio",
-    desc: "Máte čas pro sebe a chtěli byste ho strávit kreativně? Dílna slouží i jako otevřený prostor, kde si svůj čas tvoření řídíte sami.",
+    desc: "Máte čas pro sebe a chtěli byste ho strávit kreativně? Dílna slouží i jako otevřený prostor, kde si své tvoření řídíte sami.",
     link: "/open-studio",
     linkText: "Zjistit více",
     featured: true,
@@ -31,7 +31,7 @@ const offers = [
   {
     idx: "keramika s sebou",
     name: "Obchod",
-    desc: "Výrobky od nás i českých a zahraničních keramiků. Malé série a originální sady.",
+    desc: "Výrobky od nás i českých a zahraničních keramiků. Malé série a originální kousky.",
     link: "/obchod",
     linkText: "Do obchodu",
     featured: false,
@@ -47,9 +47,9 @@ const najdete = offers.filter((o) => vDilne.includes(o.name));
 const pripravujeme = offers.filter((o) => !vDilne.includes(o.name));
 
 /*
- * Široký blok nad kartami. Není to další položka katalogu, ale událost
- * s datem, proto jde přes celou šířku a má větší písmo — hierarchii nese
- * velikost, ne barva, aby to nesoupeřilo s odznakem „Nejoblíbenější“.
+ * Zářijový den otevřených dveří. Všechny termíny jsou za námi, proto
+ * stojí v sekci „Co již proběhlo“ a mají přeškrtnutá data. Blok jde přes
+ * celou šířku a má větší písmo — je to událost, ne položka katalogu.
  */
 const den = {
   idx: "pátky v září",
@@ -58,8 +58,8 @@ const den = {
   terminy: [
     { datum: "4. 9.", cas: "15:00–19:00", probehlo: true },
     { datum: "11. 9.", cas: "9:00–14:00", probehlo: true },
-    { datum: "18. 9.", cas: "9:00–14:00" },
-    { datum: "25. 9.", cas: "15:00–19:00" },
+    { datum: "18. 9.", cas: "9:00–14:00", probehlo: true },
+    { datum: "25. 9.", cas: "15:00–19:00", probehlo: true },
   ],
 };
 ---
@@ -68,7 +68,26 @@ const den = {
   <div class="container-x">
     <SectionHead title="Co u nás" italic="najdete" />
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <div class="sm:col-span-2 blok-vyzdvizeny rounded-xl border p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+      {najdete.map((o) => <NabidkaKarta {...o} vyzdvizena />)}
+    </div>
+
+    <div class="mt-14">
+      <SectionHead title="Co" italic="připravujeme" meta="Katalog" />
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {pripravujeme.map((o) => <NabidkaKarta {...o} />)}
+    </div>
+
+    <div class="mt-14">
+      <SectionHead title="Co již" italic="proběhlo" />
+    </div>
+    <div class="grid grid-cols-1 gap-3">
+      {/*
+        Doběhlá akce zůstává na stránce jako stopa, ale už nic neslibuje —
+        proto krémová plocha místo růžové. Růžová je na to, čeho si má
+        člověk všimnout, a tady si všímat není čeho.
+      */}
+      <div class="bg-white rounded-xl border border-espresso/10 p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
         <div class="flex-1">
           <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{den.idx}</div>
           <h3 class="font-serif text-[26px] md:text-[32px] font-medium leading-tight mb-2" style="font-variation-settings: 'opsz' 72;">
@@ -95,14 +114,6 @@ const den = {
           ))}
         </ul>
       </div>
-      {najdete.map((o) => <NabidkaKarta {...o} />)}
-    </div>
-
-    <div class="mt-14">
-      <SectionHead title="Co" italic="připravujeme" meta="Katalog" />
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {pripravujeme.map((o) => <NabidkaKarta {...o} />)}
     </div>
   </div>
 </section>

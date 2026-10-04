@@ -35,7 +35,7 @@
    * Plná barva je na štítky, světlá na plochy pod textem.
    */
   --color-kapka: #D79A94;
-  --color-kapka-plocha: #F3E3DE;
+  --color-kapka-plocha: #EDD5CE;
   --color-mustard: #E8B440;
   --color-white: #FFFFFF;
 
@@ -126,7 +126,7 @@
  */
 @utility blok-vyzdvizeny {
   background: var(--color-kapka-plocha);
-  border-color: color-mix(in srgb, var(--color-kapka) 55%, transparent);
+  border-color: color-mix(in srgb, var(--color-kapka) 75%, transparent);
 }
 
 @utility hero-title {

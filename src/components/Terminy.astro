@@ -10,7 +10,7 @@ const mesice = poMesicich().slice(0, 1);
   <div class="container-x relative">
     {mesice.length === 0 && (
       <>
-        <SectionHead title="Nejbližší" italic="termíny" metaLink="/kurzy" metaLinkText="Zobrazit vše" />
+        <SectionHead title="Aktuální" italic="termíny" metaLink="/kurzy" metaLinkText="Zobrazit vše" />
         <p class="text-stone text-[16px] leading-[1.7] py-4">
           Zrovna teď nemáme vypsaný žádný termín — chystáme další.
           <a href="/kurzy" class="text-terracotta underline underline-offset-2">Napiš nám</a> a dáme ti vědět, jakmile budou venku.
@@ -21,7 +21,7 @@ const mesice = poMesicich().slice(0, 1);
       {mesice.map((m, mi) => (
         <div class="bg-cream rounded-2xl border border-espresso/10 px-5 md:px-8 pt-6 pb-2">
           <SectionHead
-            title="Nejbližší termíny"
+            title="Aktuální termíny"
             italic={m.nazev}
             metaLink={mi === 0 ? "/kurzy" : undefined}
             metaLinkText="Zobrazit vše"
@@ -38,6 +38,7 @@ const mesice = poMesicich().slice(0, 1);
                   <p class="text-[14px] text-stone">{popisKurzu(c)}</p>
                 </div>
                 <div class={`font-mono text-[12px] hidden md:block ${
+                  c.price ? "text-espresso font-medium" :
                   c.state === "urgent" ? "text-sakura font-medium" :
                   c.state === "full" ? "text-stone line-through" : "text-stone"
                 }`}>
@@ -60,7 +61,8 @@ const mesice = poMesicich().slice(0, 1);
                   <div class={`font-mono text-[12px] ${
                     c.state === "urgent" ? "text-sakura font-medium" :
                     c.state === "full" ? "text-stone line-through" :
-                    c.state === "pripravujeme" ? "text-stone/70 italic" : "text-stone"
+                    c.price ? "text-espresso font-medium" :
+              c.state === "pripravujeme" ? "text-stone/70 italic" : "text-stone"
                   }`}>
                     {c.state === "urgent" && <span aria-hidden="true">● </span>}{stavPopis(c)}
                   </div>

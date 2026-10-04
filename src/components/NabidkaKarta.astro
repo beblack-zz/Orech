@@ -8,12 +8,14 @@ interface Props {
   linkText: string;
   featured?: boolean;
   badge?: string;
+  /** Růžová plocha — karta patří k tomu, co v dílně běží teď. */
+  vyzdvizena?: boolean;
 }
 
-const { idx, name, desc, link, linkText, featured = false, badge } = Astro.props;
+const { idx, name, desc, link, linkText, featured = false, badge, vyzdvizena = false } = Astro.props;
 ---
 
-<div class={`bg-white rounded-xl p-5 border ${featured ? "border-espresso" : "border-espresso/10"} relative`}>
+<div class={`rounded-xl p-5 border relative ${vyzdvizena ? "blok-vyzdvizeny" : "bg-white"} ${featured && !vyzdvizena ? "border-espresso" : ""} ${!featured && !vyzdvizena ? "border-espresso/10" : ""}`}>
   {badge && (
     <span class="absolute -top-2 left-3.5 bg-kapka text-espresso font-mono text-[12px] font-medium px-2.5 py-1 rounded-full tracking-wider">
       {badge}
