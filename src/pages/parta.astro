@@ -22,15 +22,28 @@ const styly: Record<PostavaId, string> = {
   title="Parta — JIRO saku"
   description="Hlínka, Kapka, Pecinka, Střípek a Vázička. Pět postaviček, co bydlí v naší dílně."
 >
-  <section class="py-14 md:py-16 fade-up">
+  <section class="py-8 md:py-12 fade-up">
     <div class="container-x">
-      <div class="max-w-[640px]">
+      <div class="max-w-[600px]">
         <h1 class="hero-title text-espresso text-[38px] md:text-[48px] lg:text-[56px] mb-6">
           Seznam se s <span class="serif-italic-sakura">partou.</span>
         </h1>
-        <p class="text-stone text-[16px] md:text-[17px] leading-[1.75] max-w-[54ch]">
-          V dílně s námi bydlí devět postaviček. Každá tady dělá něco jiného a každá ti umí něco poradit.
-          Až přijdeš, zkus je najít — schovávají se po celém webu.
+        {/*
+          Postavičky nejsou maskoti, ale odkaz na hrnčířskou tradici: kiln gods,
+          hliněné figurky, které se stavěly k peci, aby hlídaly výpal. Japonsky
+          kama no kami, čínsky jao-šen. Text to říká naráz, protože bez toho
+          vypadají jako ozdoba — a s tím jsou součástí řemesla.
+        */}
+        <p class="text-stone text-[16px] md:text-[17px] leading-[1.75] max-w-[600px] mb-4">
+          Hrnčíři odedávna stavěli k peci drobné figurky z hlíny, aby hlídaly
+          výpal. V Japonsku jim říkají <em class="serif-italic-sakura">kama no kami</em>,
+          v Číně <em class="serif-italic-sakura">jao-šen</em> — duchové pece.
+        </p>
+        <p class="text-stone text-[16px] md:text-[17px] leading-[1.75] max-w-[600px]">
+          Našich devět bdí nad celou cestou od hroudy k hotovému kusu. Každá má
+          svůj úsek: Hlínka hlídá hlínu, Kapka vodu, Pecinka oheň, Střípek to,
+          co se rozbilo. Schovávají se po celém webu — a v dílně je najdeš doopravdy,
+          vypálené z hlíny. Až přijdeš, zkus je objevit všechny.
         </p>
       </div>
 
@@ -40,7 +53,7 @@ const styly: Record<PostavaId, string> = {
         se tak dělí rovnoměrně (3 + 3 + 3, pak 5 + 4, nakonec všech devět
         v řadě) a poslední nikdy nezůstane sama na druhém řádku.
       */}
-      <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 justify-items-center items-end gap-x-2 gap-y-8 sm:gap-x-6 mt-14 md:mt-20">
+      <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 justify-items-center items-end gap-x-2 gap-y-8 sm:gap-x-6 mt-8 md:mt-10">
         {parta.map((p) => (
           <a
             href={`#${p.id}`}
@@ -50,7 +63,7 @@ const styly: Record<PostavaId, string> = {
             <Postavicka
               id={p.id}
               size={120}
-              class="w-[74px] sm:w-[112px] h-auto transition-transform duration-300 group-hover:-translate-y-2"
+              class="w-[74px] sm:w-[96px] h-auto transition-transform duration-300 group-hover:-translate-y-2"
             />
             <span class="font-mono text-[12px] tracking-wider uppercase text-stone group-hover:text-terracotta transition-colors">
               {p.name}
