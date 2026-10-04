@@ -1,10 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Vazicka from "../components/characters/Vazicka.astro";
 import ProduktKarta from "../components/ProduktKarta.astro";
 import { produkty as items, tvorba } from "../data/obchod";
 import { pocetKusu } from "../data/pocty";
-import Pecinka from "../components/characters/Pecinka.astro";
+import Cedulka from "../components/characters/Cedulka.astro";
 import Bublina from "../components/characters/Bublina.astro";
 import { Image } from "astro:assets";
 import Delic from "../components/Delic.astro";
@@ -42,11 +41,11 @@ const zdaleka = [
         </div>
         <div class="flex justify-center md:justify-end mt-8 md:mt-0">
           <Bublina
-            name="Pecinka"
-            text="Za dva týdny to bude tvrdý jako kámen. Slibuju."
+            name="Cedulka"
+            text="Napiš se na mě. Za dva týdny mi poděkuješ."
             side="right"
           >
-            <Pecinka />
+            <Cedulka />
           </Bublina>
         </div>
       </div>
@@ -146,7 +145,6 @@ const zdaleka = [
         </div>
       </div>
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-0">
-        <Vazicka size={240} class="w-[96px] lg:w-[240px] h-auto pointer-events-none flex-shrink-0 lg:-mr-[100px] relative z-[2]" />
         <a
           href="mailto:ahoj@jirosaku.cz"
           class="relative z-[1] inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"

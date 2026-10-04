@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Stripek from "../components/characters/Stripek.astro";
+import Bublinka from "../components/characters/Bublinka.astro";
 import Bublina from "../components/characters/Bublina.astro";
 import Poukaz from "../components/Poukaz.astro";
 import PadajiciPlatky from "../components/PadajiciPlatky.astro";
@@ -125,6 +126,15 @@ const faq = [
         </div>
         ))}
       </div>
+
+      {/* Střípek hlídá, aby se chyb nikdo nebál — u termínů kurzů je to první obava. */}
+      <Bublina
+        name="Střípek"
+        text="Já jsem se rozbil hned na první hodině. A pořád jsem tady."
+        class="mt-12 justify-center"
+      >
+        <Stripek />
+      </Bublina>
     </div>
   </section>
 
@@ -144,12 +154,13 @@ const faq = [
         ))}
       </div>
 
+      {/* U otázek stojí Bublinka — hlídá vzduch v hlíně a bublina je i řeč. */}
       <Bublina
-        name="Střípek"
-        text="Já jsem se rozbil hned na první hodině. A pořád jsem tady."
+        name="Bublinka"
+        text="Já tam nejsem. Fakt. Klidně to dej do pece."
         class="mt-10 justify-center"
       >
-        <Stripek />
+        <Bublinka />
       </Bublina>
     </div>
   </section>
@@ -181,7 +192,7 @@ const faq = [
         </div>
 
         <div class="flex justify-center md:justify-end">
-          <Poukaz hodnota="1 500" postava="vazicka" />
+          <Poukaz hodnota="1 500" postava="kachlik" />
         </div>
       </div>
     </div>

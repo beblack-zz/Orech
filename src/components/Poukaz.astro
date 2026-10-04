@@ -10,7 +10,7 @@ interface Props {
   class?: string;
 }
 
-const { hodnota = "1 500", postava = "vazicka", class: cls = "" } = Astro.props;
+const { hodnota = "1 500", postava = "kachlik", class: cls = "" } = Astro.props;
 
 // Vlastní id pro SVG pattern, aby se dva poukazy na stránce nepraly
 const uid = Math.random().toString(36).slice(2, 8);
