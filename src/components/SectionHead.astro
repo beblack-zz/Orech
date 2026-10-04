@@ -1,4 +1,9 @@
 ---
+/**
+ * Nadpis sekce v editorialní sazbě: hierarchii nese velikost a světlý řez,
+ * ne linka pod textem. Čára zmizela schválně — seznam pod nadpisem má svoje
+ * vlastní vlasové linky a dvě čáry nad sebou dělaly ze sekce škatuli.
+ */
 interface Props {
   title: string;
   italic: string;
@@ -10,14 +15,17 @@ interface Props {
 const { title, italic, meta, metaLink, metaLinkText } = Astro.props;
 ---
 
-<div class="flex items-baseline justify-between border-b border-espresso/12 pb-3.5 mb-7 gap-4">
-  <h2 class="font-serif text-[26px] md:text-[34px] font-medium tracking-tight m-0" style="font-variation-settings: 'opsz' 96;">
-    {title} <em class="italic font-normal text-sakura">{italic}</em>
+<div class="flex items-baseline justify-between mb-8 md:mb-10 gap-4">
+  <h2
+    class="font-serif text-[32px] md:text-[44px] font-light leading-none tracking-[-0.012em] m-0"
+    style="font-variation-settings: 'opsz' 96;"
+  >
+    {title} <em class="italic font-light text-sakura">{italic}</em>
   </h2>
   <div class="flex gap-4 items-center flex-shrink-0">
     {meta && <span class="mono-meta hidden sm:inline">{meta}</span>}
     {metaLink && (
-      <a href={metaLink} class="mono-meta hover:text-terracotta">{metaLinkText} →</a>
+      <a href={metaLink} class="mono-meta hover:text-sakura transition-colors">{metaLinkText} →</a>
     )}
   </div>
 </div>

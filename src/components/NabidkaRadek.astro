@@ -1,0 +1,62 @@
+---
+/**
+ * Jedna položka nabídky v editorialní sazbě — nástupce karty.
+ *
+ * Řádek se čte jedním tahem zleva doprava: plátek, název, popis, odkaz.
+ * Seskupení nedělá rámeček, ale prázdno: mezera mezi položkami je mnohem
+ * větší než mezery uvnitř nich, takže položka drží pohromadě sama od sebe.
+ * Jistotu, že se dá kliknout, dává světlý pruh po najetí myší — tedy až
+ * ve chvíli, kdy ji člověk potřebuje.
+ */
+interface Props {
+  idx: string;
+  name: string;
+  desc: string;
+  link: string;
+  linkText: string;
+  badge?: string;
+}
+
+const { idx, name, desc, link, linkText, badge } = Astro.props;
+---
+
+<a
+  href={link}
+  class="group grid md:grid-cols-[auto_2fr_3fr_auto] gap-x-8 lg:gap-x-12 gap-y-2 items-baseline border-b border-espresso/20 py-8 md:py-10 px-4 -mx-4 rounded-lg transition-colors hover:bg-kapka-plocha/60"
+>
+  {/*
+    Plátek sakury místo čísla: řádek potřebuje pevný začátek, ale pořadí tu
+    žádné není — Kurzy nejsou „první“ a Open studio „druhé“. Je to tatáž
+    kresba jako ve značce, jen drobounká, a při najetí zčervená spolu se jménem.
+  */}
+  <svg
+    class="hidden md:block w-[11px] h-[13px] mt-2 overflow-visible text-peri-hlina/70 transition-colors group-hover:text-sakura"
+    viewBox="-5 -14 10 15"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    {/* Náklon je napevno v kresbě, ne animací — otáčení při přejezdu se ve Firefoxu zubatí. */}
+    <path
+      transform="rotate(14)"
+      d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z"
+    />
+  </svg>
+
+  <div>
+    <h3 class="font-serif font-light text-[26px] md:text-[32px] leading-none group-hover:text-sakura transition-colors">
+      {name}
+    </h3>
+    <p class="mono-meta mt-2.5">{idx}</p>
+    {badge && (
+      <span class="inline-block mt-3 bg-kapka text-espresso font-mono text-[11px] font-medium px-2.5 py-1 rounded-full tracking-wider">
+        {badge}
+      </span>
+    )}
+  </div>
+
+  <p class="text-[16px] md:text-[17px] text-stone leading-[1.75] max-w-[52ch] mt-3 md:mt-0">{desc}</p>
+
+  <span class="mono-meta whitespace-nowrap mt-3 md:mt-0 group-hover:text-sakura transition-colors">
+    {linkText} <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+  </span>
+</a>

@@ -1,6 +1,6 @@
 ---
 import SectionHead from "./SectionHead.astro";
-import NabidkaKarta from "./NabidkaKarta.astro";
+import NabidkaRadek from "./NabidkaRadek.astro";
 
 const offers = [
   {
@@ -67,15 +67,15 @@ const den = {
 <section class="py-14 relative fade-up">
   <div class="container-x">
     <SectionHead title="Co u nás" italic="najdete" />
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {najdete.map((o) => <NabidkaKarta {...o} vyzdvizena />)}
+    <div class="border-t border-espresso/20">
+      {najdete.map((o) => <NabidkaRadek {...o} />)}
     </div>
 
     <div class="mt-14">
       <SectionHead title="Co" italic="připravujeme" meta="Katalog" />
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {pripravujeme.map((o) => <NabidkaKarta {...o} />)}
+    <div class="border-t border-espresso/20">
+      {pripravujeme.map((o) => <NabidkaRadek {...o} />)}
     </div>
 
     <div class="mt-14">
