@@ -81,27 +81,26 @@ const den = {
     <div class="mt-14">
       <SectionHead title="Co již" italic="proběhlo" />
     </div>
-    <div class="grid grid-cols-1 gap-3">
+    <div class="border-t border-espresso/20">
       {/*
         Doběhlá akce zůstává na stránce jako stopa, ale už nic neslibuje —
-        proto krémová plocha místo růžové. Růžová je na to, čeho si má
-        člověk všimnout, a tady si všímat není čeho.
+        proto žádné zvýraznění a žádný rámeček. Sazba je stejná jako u nabídky
+        výš, jen bez odkazu: tahle položka nikam nevede, už se stala.
       */}
-      <div class="bg-white rounded-xl border border-espresso/10 p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
-        <div class="flex-1">
-          <div class="font-mono text-[12px] text-stone tracking-wider mb-3.5">{den.idx}</div>
-          <h3 class="font-serif text-[26px] md:text-[32px] font-medium leading-tight mb-2" style="font-variation-settings: 'opsz' 72;">
-            {den.name}
-          </h3>
-          <p class="text-[15px] leading-[1.6] text-stone max-w-[62ch]">{den.desc}</p>
+      <div class="grid md:grid-cols-[2fr_3fr_auto] gap-x-8 lg:gap-x-12 gap-y-5 py-8 md:py-10 border-b border-espresso/20">
+        <div>
+          <h3 class="font-serif font-light text-[26px] md:text-[32px] leading-none">{den.name}</h3>
+          <p class="mono-meta mt-2.5">{den.idx}</p>
         </div>
-        {/* Konkrétní termíny v bublině vpravo — nahoře stačí „pátky v září“. */}
+
+        <p class="text-[16px] md:text-[17px] text-stone leading-[1.75] max-w-[52ch]">{den.desc}</p>
         {/*
-          Dvě sloupce zarovnané doprava: u data lícují měsíce, u času pomlčky
-          (konce jsou všechny pětiznakové). Mezery v datu a kolem pomlčky úzké,
-          aby se údaj nerozpadal.
+          Dva sloupce zarovnané doprava: u data lícují měsíce, u času pomlčky
+          (konce jsou všechny pětiznakové). Bublina tu zůstává i v editorialní
+          sazbě — tohle je tabulka, ne věta, a tabulce tichý podklad drží sloupce
+          pohromadě. Pravidlo „karta patří věci“ mluví o položkách, ne o datech.
         */}
-        <ul class="md:ml-auto shrink-0 self-start md:self-center bg-cream rounded-2xl border border-espresso/10 px-6 py-4 font-mono text-[13px] tabular-nums grid grid-cols-[auto_auto]">
+        <ul class="md:ml-auto shrink-0 self-start bg-cream rounded-2xl border border-espresso/10 px-6 py-4 font-mono text-[13px] tabular-nums grid grid-cols-[auto_auto]">
           {den.terminy.map((t, i) => (
             <li class={`col-span-2 grid grid-cols-subgrid relative ${t.probehlo ? "after:absolute after:inset-x-0 after:top-1/2 after:border-t after:border-espresso/50" : ""}`}>
               <span class={`text-right text-espresso font-medium py-2 pr-7 ${i > 0 ? "border-t border-espresso/10" : ""} ${t.probehlo ? "opacity-50" : ""}`}>

@@ -122,6 +122,11 @@
  *           položkami je výrazně větší než mezery uvnitř nich, a jistotu, že
  *           je řádek klikatelný, dává až světlý pruh po najetí myší.
  *
+ *   bublina patří tabulce — pár čísel ve sloupcích, třeba termíny Dne otevřených
+ *           dveří. Tichý podklad drží zarovnání pohromadě; bez něj se sloupce
+ *           rozsypou do plochy a čísla splynou s okolním textem. Vyzkoušeno:
+ *           bez bubliny se termíny ztratily.
+ *
  * Proč na tom záleží: rámeček kolem každého odstavce je nejlevnější způsob,
  * jak něco odlišit, a proto tak vypadá každá šablona. Dokud se karty používaly
  * i na seznamy, web se četl jako katalog, ne jako dílna.
