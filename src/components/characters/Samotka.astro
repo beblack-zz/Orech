@@ -2,19 +2,28 @@
 interface Props { class?: string; size?: number; }
 const { class: cls = "", size = 64 } = Astro.props;
 ---
+<!--
+  Šamotka je jediná postavička na šířku, ne na výšku. V plátně 180×180 jí
+  proto zbývalo nahoře i dole prázdno a v řadě vedle ostatních vypadala
+  jako proužek. Celá kresba se tedy zvětší a posune na střed plátna —
+  tvar zůstává, mění se jen to, kolik místa v rámečku zabere.
+-->
 <svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
-  <ellipse cx="90" cy="150" rx="54" ry="6" fill="#3A2E28" opacity="0.14"/>
-  {/* Jediná v partě, která se sama nehýbe — pulzuje jen žár pod ní. Klid je taky charakter. */}
-  <g class="samotka-zar">
-    <ellipse cx="90" cy="134" rx="48" ry="10" fill="#E8B440" opacity="0.4"/>
-  </g>
-  <rect x="24" y="82" width="132" height="34" rx="5" fill="#EFE3D0" stroke="#6B5D4F" stroke-width="1.5"/>
-  <rect x="24" y="110" width="132" height="12" rx="4" fill="#CBBBA3"/>
-  <ellipse cx="50" cy="94" rx="13" ry="6" fill="#6B5D4F" opacity="0.26"/>
-  <ellipse cx="134" cy="100" rx="10" ry="5" fill="#6B5D4F" opacity="0.2"/>
-  <g class="tvar">
-    <path d="M76 94 Q80 89 84 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-    <path d="M96 94 Q100 89 104 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-    <path d="M83 104 Q90 109 97 104" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <g transform="translate(90 102) scale(1.34) translate(-90 -102)">
+    <ellipse cx="90" cy="150" rx="54" ry="6" fill="#3A2E28" opacity="0.14"/>
+    {/* Jediná v partě, která se sama nehýbe — pulzuje jen žár pod ní. Klid je taky charakter. */}
+    <g class="samotka-zar">
+      <ellipse cx="90" cy="134" rx="48" ry="10" fill="#E8B440" opacity="0.4"/>
+    </g>
+    {/* Tělo je o tón sytější než papír — na krémové by samotný obrys zanikl. */}
+    <rect x="24" y="82" width="132" height="34" rx="5" fill="#E6D7BE" stroke="#6B5D4F" stroke-width="1.5"/>
+    <rect x="24" y="110" width="132" height="12" rx="4" fill="#C3B197"/>
+    <ellipse cx="50" cy="94" rx="13" ry="6" fill="#6B5D4F" opacity="0.26"/>
+    <ellipse cx="134" cy="100" rx="10" ry="5" fill="#6B5D4F" opacity="0.2"/>
+    <g class="tvar">
+      <path d="M76 94 Q80 89 84 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <path d="M96 94 Q100 89 104 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <path d="M83 104 Q90 109 97 104" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none"/>
+    </g>
   </g>
 </svg>

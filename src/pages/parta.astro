@@ -25,17 +25,22 @@ const styly: Record<PostavaId, string> = {
   <section class="py-14 md:py-16 fade-up">
     <div class="container-x">
       <div class="max-w-[640px]">
-        <h1 class="hero-title text-espresso text-[42px] md:text-[56px] lg:text-[64px] mb-5">
+        <h1 class="hero-title text-espresso text-[38px] md:text-[48px] lg:text-[56px] mb-6">
           Seznam se s <span class="serif-italic-sakura">partou.</span>
         </h1>
-        <p class="text-stone text-[17px] leading-[1.7]">
-          V dílně s námi bydlí pět postaviček. Každá tady dělá něco jiného a každá ti umí něco poradit.
+        <p class="text-stone text-[16px] md:text-[17px] leading-[1.75] max-w-[54ch]">
+          V dílně s námi bydlí devět postaviček. Každá tady dělá něco jiného a každá ti umí něco poradit.
           Až přijdeš, zkus je najít — schovávají se po celém webu.
         </p>
       </div>
 
       <!-- Řada postaviček — zároveň rozcestník na profily níž -->
-      <div class="flex flex-wrap justify-center items-end gap-2 sm:gap-6 mt-10 md:mt-12">
+      {/*
+        Mřížka s pevným počtem sloupců, ne volné zalamování: devět postaviček
+        se tak dělí rovnoměrně (3 + 3 + 3, pak 5 + 4, nakonec všech devět
+        v řadě) a poslední nikdy nezůstane sama na druhém řádku.
+      */}
+      <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 justify-items-center items-end gap-x-2 gap-y-8 sm:gap-x-6 mt-14 md:mt-20">
         {parta.map((p) => (
           <a
             href={`#${p.id}`}
@@ -67,7 +72,8 @@ const styly: Record<PostavaId, string> = {
         <p class="text-stone/80 text-[14px] leading-[1.6] mb-6 max-w-[46ch]">
           Ty samé kresby, jen bez očí a pusy. Zůstane z nich tvar — hrouda, kapka, pec.
         </p>
-        <div class="flex flex-wrap justify-center items-end gap-2 sm:gap-6">
+        {/* Stejná mřížka jako u řady s tvářemi, ať se obě zalamují shodně. */}
+        <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 justify-items-center items-end gap-x-2 gap-y-8 sm:gap-x-6">
           {parta.map((p) => (
             <Postavicka
               id={p.id}
