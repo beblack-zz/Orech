@@ -18,6 +18,8 @@
   --color-cream: #F4EBDD;
   --color-cream-warm: #EFE3D0;
   /* Sépie z návrhu „mědirytina“ — teplá hnědá, akcent celého webu. */
+  /* Stará hnědá. Role si rozdělily sakura a stone (viz Zvýrazňování niž);
+     zbyla jen na pracovních stránkách /dizajn a ve srovnání starých karet. */
   --color-terracotta: #6B5540;
   --color-stone: #6B5D4F;
   --color-clay: #B84A2B;
@@ -117,15 +119,17 @@
  *           produkt v obchodě, profil postavičky. Rámeček je hranice věci,
  *           tónovaný podklad je její barva. Bez karty by se ztratilo obojí.
  *
- *   řádek   patří seznamům informací — nabídka, termíny, ceník, časté dotazy.
+ *   řádek   patří seznamům informací — nabídka, termíny, programy, dotazy.
  *           Hierarchii nese velikost písma a prázdno, ne rámeček: mezera mezi
  *           položkami je výrazně větší než mezery uvnitř nich, a jistotu, že
  *           je řádek klikatelný, dává až světlý pruh po najetí myší.
  *
  *   bublina patří tabulce — pár čísel ve sloupcích, třeba termíny Dne otevřených
- *           dveří. Tichý podklad drží zarovnání pohromadě; bez něj se sloupce
- *           rozsypou do plochy a čísla splynou s okolním textem. Vyzkoušeno:
- *           bez bubliny se termíny ztratily.
+ *           dveří nebo ceník open studia. Tichý podklad drží zarovnání
+ *           pohromadě; bez něj se sloupce rozsypou do plochy a čísla splynou
+ *           s okolním textem. Vyzkoušeno: bez bubliny se termíny ztratily.
+ *           Uvnitř bubliny jsou pak zase řádky, ne karta na každé číslo —
+ *           tři ceny ve třech kartách se musely porovnávat přes mezery.
  *
  * Proč na tom záleží: rámeček kolem každého odstavce je nejlevnější způsob,
  * jak něco odlišit, a proto tak vypadá každá šablona. Dokud se karty používaly
@@ -144,9 +148,18 @@
  *                     doporučení; nejvýš jeden takový blok na stránku
  *   mustard  #E8B440  novinka — malý štítek, nic víc
  *   stone    #6B5D4F  drobná podpora: šipky, štítky, odkazy v odstavci
+ *   peri     #5C666B  chladný údaj — formát kurzu, délka, věk, čas. Ocel je
+ *                     studená, takže se mezi teplými hnědými čte jako jiný
+ *                     druh informace, ne jako důraz. Nikdy nadpis ani odkaz.
  *
- * Ocel (peri) je barva značky a rozhraní, ne zvýraznění — štítky z ní
- * schválně zmizely, aby si role nekonkurovaly.
+ * Ocel je jinak barva značky a rozhraní — štítky z ní schválně zmizely,
+ * aby si role nekonkurovaly.
+ *
+ * Na tmavém podkladu (patička) by sakura ztmavla pod čitelnost — tam ji
+ * po najetí myší zastupuje kapka. Jiná výjimka není.
+ *
+ * Pozor na barvu, která zvýraznění jen předstírá: terakota #6B5540 se od
+ * stone #6B5D4F liší o pár jednotek a oko to nepozná. Proto z webu zmizela.
  */
 @utility blok-vyzdvizeny {
   background: var(--color-kapka-plocha);
@@ -442,24 +455,6 @@
     transform: none;
     transition: none;
   }
-}
-
-.pricing-card {
-  box-shadow: 0 1px 3px rgba(58, 46, 40, 0.06), 0 8px 24px rgba(58, 46, 40, 0.04);
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.pricing-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(58, 46, 40, 0.08), 0 16px 40px rgba(58, 46, 40, 0.08);
-}
-
-.pricing-card--featured {
-  box-shadow: 0 4px 12px rgba(58, 46, 40, 0.1), 0 20px 48px rgba(58, 46, 40, 0.12);
-}
-
-.pricing-card--featured:hover {
-  box-shadow: 0 8px 20px rgba(58, 46, 40, 0.12), 0 28px 56px rgba(58, 46, 40, 0.16);
 }
 
 .logo-word {
