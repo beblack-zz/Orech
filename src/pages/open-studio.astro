@@ -8,8 +8,8 @@ import Bublina from "../components/characters/Bublina.astro";
 const pricing = [
   /*
    * Jednorázový vstup má dvě ceny podle toho, u čeho člověk sedí — kruh
-   * je dražší než stůl. Každá cena dostala vlastní kartu: ve dvou řádcích
-   * v jedné kartě se dalo snadno přehlédnout, která platí pro mě.
+   * je dražší než stůl. Každá cena má vlastní řádek: ve dvou cenách
+   * v jednom řádku se dalo snadno přehlédnout, která platí pro mě.
    */
   {
     name: "Modelování",
@@ -24,8 +24,8 @@ const pricing = [
   {
     name: "Měsíční členství",
     price: "1 900 Kč / měs",
-    /* Jediná tmavá karta — členství se neplatí za sezení, ale za měsíc. */
-    tmava: true,
+    /* Členství se neplatí za sezení, ale za měsíc — proto stojí zvlášť. */
+    mesicni: true,
     desc: "Neomezený přístup v otevíracích hodinách open studia. Hlína, glazury, výpal — vše v ceně.",
   },
 ];
@@ -71,31 +71,39 @@ const rules = [
     </div>
   </section>
 
-  {/* Ceník navazuje těsně, aby první karty koukaly nad hranu obrazovky. */}
-  <section class="py-8 md:py-10 fade-up">
+  {/* Ceník navazuje těsně, aby nadpis koukal nad hranu obrazovky i na nižším okně. */}
+  <section class="pt-3 md:pt-5 pb-8 md:pb-10 fade-up">
     <div class="container-x text-center relative">
-      <h2 class="font-mono text-[12px] tracking-[0.15em] text-stone uppercase mb-3">Ceník</h2>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0 mb-8">
-        <p class="font-serif text-[28px] md:text-[36px] text-espresso font-medium" style="font-variation-settings: 'opsz' 48;">
-          Vyber si, jak chceš tvořit.
-        </p>
+        <h2 class="font-serif font-light text-[32px] md:text-[40px] text-espresso leading-none">
+          Vyber si, jak chceš <em class="italic font-light text-sakura">tvořit.</em>
+        </h2>
         <Kapka size={240} class="w-[84px] lg:w-[150px] h-auto pointer-events-none flex-shrink-0 lg:-ml-[40px] relative z-[2]" />
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-6 max-w-[960px] mx-auto items-stretch">
-        {/*
-          Ceník je na stránce jediná růžová plocha, takže zvýraznění nic
-          neředí — čte se jako „tohle je to podstatné“. Uvnitř skupiny se
-          karty nerozlišují, žádná z nich není doporučená před ostatními.
-        */}
-        {pricing.map((p) => (
-          <div class={`pricing-card group relative rounded-2xl text-center flex flex-col border p-7 ${
-            /* Tmavá karta drží stejnou velikost i stejný růžový rámeček jako zbytek řady — liší se jen plochou. */
-            p.tmava ? "bg-espresso text-cream ramecek-kapka" : "blok-vyzdvizeny"
+
+      {/*
+        Ceník je tabulka: co, za co a kolik. Tři karty vedle sebe nutily
+        porovnávat ceny přes mezery mezi rámečky — teď jsou pod sebou v jednom
+        sloupci a dají se přečíst shora dolů. Růžová plocha zůstává, ale drží
+        celou tabulku, ne každou cenu zvlášť: je to jediné zvýraznění na
+        stránce, takže zvýraznění nic neředí.
+      */}
+      <div class="blok-vyzdvizeny rounded-2xl border max-w-[760px] mx-auto px-6 md:px-8 py-2 text-left">
+        {pricing.map((p, i) => (
+          <div class={`py-6 ${
+            /* Členství je jiný druh platby než sezení — oddělí ho silnější linka. */
+            i > 0 ? (p.mesicni ? "border-t border-espresso/25" : "border-t border-espresso/12") : ""
           }`}>
-            <h3 class="font-serif text-[17px] font-medium mb-4 pt-2" style="font-variation-settings: 'opsz' 48;">{p.name}</h3>
-            <p class={`font-serif text-[32px] md:text-[36px] font-medium mb-4 leading-none ${p.tmava ? "text-cream" : "text-espresso"}`}>{p.price}</p>
-            <div class={`w-8 h-px mx-auto mb-4 ${p.tmava ? "bg-cream/25" : "bg-espresso/15"}`}></div>
-            <p class={`text-[15px] leading-[1.7] ${p.tmava ? "text-cream/85" : "text-stone"}`}>{p.desc}</p>
+            {/*
+              Název a cena drží jeden řádek a rozejdou se k okrajům; na úzkém
+              displeji se cena zalomí pod název místo toho, aby název mačkala
+              do sloupce o pár písmenech.
+            */}
+            <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+              <h3 class="font-serif font-medium text-[20px] md:text-[23px] leading-none" style="font-variation-settings: 'opsz' 48;">{p.name}</h3>
+              <p class="font-serif text-[24px] md:text-[32px] font-medium text-espresso leading-none whitespace-nowrap">{p.price}</p>
+            </div>
+            <p class="text-[15px] leading-[1.7] text-espresso/75 max-w-[48ch] mt-2">{p.desc}</p>
           </div>
         ))}
       </div>
@@ -107,11 +115,11 @@ const rules = [
         nahlas to, co v dílně stejně běžně děláme — bez ní vidí návštěvník
         jen zavřené dveře tam, kde mu ceník neodpovídá.
       */}
-      <div class="max-w-[960px] mx-auto mt-6 text-center">
+      <div class="max-w-[760px] mx-auto mt-6 text-center">
         <p class="mono-meta">Ceny platí pro říjen 2026</p>
         <p class="text-[15px] leading-[1.7] text-stone mt-3 max-w-[56ch] mx-auto">
           Chceš v dílně víc času? Vezmi si dva vstupy po sobě nebo členství.
-          A kdyby ti nic z toho nesedělo, <a href="mailto:ahoj@jirosaku.cz" class="text-terracotta underline underline-offset-2">napiš nám</a> — domluvíme se.
+          A kdyby ti nic z toho nesedělo, <a href="mailto:ahoj@jirosaku.cz" class="text-stone underline underline-offset-2 hover:text-sakura transition-colors">napiš nám</a> — domluvíme se.
         </p>
       </div>
 
@@ -122,8 +130,10 @@ const rules = [
     <div class="container-x">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-14">
         <div>
-          <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-4">Otevírací hodiny</h2>
-          <div class="border-t border-espresso/10 pt-4 space-y-2">
+          <h2 class="font-serif font-light text-[28px] md:text-[32px] leading-none mb-5">
+            Otevírací <em class="italic font-light text-sakura">hodiny</em>
+          </h2>
+          <div class="border-t border-espresso/20 pt-4 space-y-2">
             <div class="flex justify-between text-[16px]">
               <span>Pondělí – Pátek</span>
               <span class="font-mono text-[14px] text-stone">09:00 – 18:00</span>
@@ -139,11 +149,13 @@ const rules = [
           </div>
         </div>
         <div>
-          <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-4">Pravidla studia</h2>
-          <ul class="space-y-2">
+          <h2 class="font-serif font-light text-[28px] md:text-[32px] leading-none mb-5">
+            Pravidla <em class="italic font-light text-sakura">studia</em>
+          </h2>
+          <ul class="border-t border-espresso/20 pt-4 space-y-2">
             {rules.map((r) => (
               <li class="text-[15px] text-stone leading-[1.6] flex gap-2">
-                <span class="text-terracotta mt-0.5 flex-shrink-0">·</span>
+                <span class="text-stone mt-0.5 flex-shrink-0">·</span>
                 {r}
               </li>
             ))}
@@ -151,8 +163,9 @@ const rules = [
         </div>
       </div>
 
-      <div class="bg-cream-warm rounded-xl p-8 text-center max-w-[480px] mx-auto">
-        <p class="font-serif italic text-[18px] text-espresso mb-4">Chceš si rezervovat slot?</p>
+      {/* Výzva má stejný tvar jako na Kurzech: vystředěný text bez rámečku. */}
+      <div class="text-center max-w-[560px] mx-auto">
+        <p class="font-serif italic font-light text-[24px] md:text-[28px] text-espresso mb-6">Chceš si rezervovat slot?</p>
         <div class="flex items-center justify-center gap-0">
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a
