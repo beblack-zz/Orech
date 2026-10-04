@@ -129,12 +129,21 @@
   border-color: color-mix(in srgb, var(--color-kapka) 75%, transparent);
 }
 
+/* Jen rámeček, bez plochy — pro karty, které mají vlastní podklad. */
+@utility ramecek-kapka {
+  border-color: color-mix(in srgb, var(--color-kapka) 75%, transparent);
+}
+
+/*
+ * Nadpis podle tušového návrhu: světlý řez a velké stupně. Tenký řez sám
+ * o sobě vypadá slabě — nese ho až velikost, proto jdou obě věci spolu.
+ */
 @utility hero-title {
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 300;
   font-variation-settings: "opsz" 144, "SOFT" 30;
   line-height: 1.0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.012em;
 }
 
 /* Zvýrazněné slovo v nadpisu — stejná barva jako sakura ve značce. */

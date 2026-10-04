@@ -7,9 +7,28 @@ import Hlinka from "../components/characters/Hlinka.astro";
 import Bublina from "../components/characters/Bublina.astro";
 
 const pricing = [
-  { name: "Jednorázový vstup", price: "350 Kč / 3 hod", desc: "Přijď, kdy chceš. Hlína a nástroje v ceně, glazování +120 Kč." },
-  { name: "Balíček 5 vstupů", price: "1 500 Kč", desc: "Platnost 3 měsíce. Vychází na 300 Kč za návštěvu.", badge: "Nejoblíbenější" },
-  { name: "Měsíční členství", price: "2 200 Kč / měs", desc: "Neomezený přístup v otevíracích hodinách. Hlína, glazury, výpal — vše v ceně." },
+  /*
+   * Jednorázový vstup má dvě ceny podle toho, u čeho člověk sedí — kruh
+   * je dražší než stůl. Každá cena dostala vlastní kartu: ve dvou řádcích
+   * v jedné kartě se dalo snadno přehlédnout, která platí pro mě.
+   */
+  {
+    name: "Modelování",
+    price: "300 Kč",
+    desc: "Stůl, hlína a nástroje. Cena je za 90 minut, glazování v ceně.",
+  },
+  {
+    name: "Točení na kruhu",
+    price: "400 Kč",
+    desc: "Kruh jen pro tebe. Cena je za 90 minut, glazování v ceně.",
+  },
+  {
+    name: "Měsíční členství",
+    price: "1 900 Kč / měs",
+    /* Jediná tmavá karta — členství se neplatí za sezení, ale za měsíc. */
+    tmava: true,
+    desc: "Neomezený přístup v otevíracích hodinách open studia. Hlína, glazury, výpal — vše v ceně.",
+  },
 ];
 
 const rules = [
@@ -21,11 +40,11 @@ const rules = [
 ---
 
 <Layout title="Open studio — JIRO saku" description="Otevřená dílna pro keramiky. Rezervuj si čas u kruhu bez instruktora.">
-  <section class="py-14 fade-up">
+  <section class="py-10 md:py-12 fade-up">
     <div class="container-x relative">
-      <div class="md:grid md:grid-cols-[1.15fr_1fr] md:gap-12 md:items-center">
+      <div class="md:grid md:grid-cols-[1.15fr_0.85fr] md:gap-12 md:items-center mb-4">
         <div class="max-w-[540px] mb-10 md:mb-0">
-          <h1 class="hero-title text-espresso text-[36px] md:text-[48px] lg:text-[58px] mb-5">
+          <h1 class="hero-title text-espresso text-[38px] md:text-[48px] lg:text-[56px] mb-6">
             Ruce v hlíně,<br />hlava v <span class="serif-italic-sakura">klidu.</span>
           </h1>
           <p class="text-stone text-[16px] leading-[1.75] mb-3">
@@ -35,7 +54,8 @@ const rules = [
             Máme tři kruhy, jednu pec, dva stoly a všechno nářadí. Stačí si rezervovat slot a přijít.
           </p>
         </div>
-        <div class="rounded-xl aspect-[4/3] overflow-hidden">
+        {/* Fotka se drží výšky hlavičky, ať ceník kouká nad hranu obrazovky. */}
+        <div class="rounded-xl aspect-[4/3] overflow-hidden max-w-[400px] md:ml-auto">
           <Image
             src={openStudio}
             alt="Open studio — kruhy a pracovní stoly"
@@ -48,33 +68,52 @@ const rules = [
           />
         </div>
       </div>
-      <span class="mono-meta block text-right mt-6">Pro pokročilé · 6 míst</span>
+      <span class="mono-meta block text-right mt-4">Pro pokročilé · 6 míst</span>
     </div>
   </section>
 
-  <section class="py-20 md:py-28 fade-up">
+  {/* Ceník navazuje těsně, aby první karty koukaly nad hranu obrazovky. */}
+  <section class="py-8 md:py-10 fade-up">
     <div class="container-x text-center relative">
       <h2 class="font-mono text-[12px] tracking-[0.15em] text-stone uppercase mb-3">Ceník</h2>
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0 mb-14">
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0 mb-8">
         <p class="font-serif text-[28px] md:text-[36px] text-espresso font-medium" style="font-variation-settings: 'opsz' 48;">
           Vyber si, jak chceš tvořit.
         </p>
-        <Kapka size={240} class="w-[96px] lg:w-[240px] h-auto pointer-events-none flex-shrink-0 lg:-ml-[80px] relative z-[2]" />
+        <Kapka size={240} class="w-[84px] lg:w-[150px] h-auto pointer-events-none flex-shrink-0 lg:-ml-[40px] relative z-[2]" />
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-6 max-w-[960px] mx-auto items-stretch">
+        {/*
+          Ceník je na stránce jediná růžová plocha, takže zvýraznění nic
+          neředí — čte se jako „tohle je to podstatné“. Uvnitř skupiny se
+          karty nerozlišují, žádná z nich není doporučená před ostatními.
+        */}
         {pricing.map((p) => (
-          <div class={`pricing-card group relative rounded-2xl text-center flex flex-col ${p.badge ? "pricing-card--featured bg-espresso text-cream sm:-my-3 sm:py-10 p-7" : "bg-white p-7"}`}>
-            {p.badge && (
-              <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-peri text-espresso font-mono text-[12px] font-semibold px-3.5 py-1 rounded-full tracking-wider whitespace-nowrap">
-                {p.badge}
-              </span>
-            )}
+          <div class={`pricing-card group relative rounded-2xl text-center flex flex-col border p-7 ${
+            /* Tmavá karta drží stejnou velikost i stejný růžový rámeček jako zbytek řady — liší se jen plochou. */
+            p.tmava ? "bg-espresso text-cream ramecek-kapka" : "blok-vyzdvizeny"
+          }`}>
             <h3 class="font-serif text-[17px] font-medium mb-4 pt-2" style="font-variation-settings: 'opsz' 48;">{p.name}</h3>
-            <p class="font-serif text-[32px] md:text-[36px] font-medium mb-4 leading-none text-espresso">{p.price}</p>
-            <div class={`w-8 h-px mx-auto mb-4 ${p.badge ? "bg-cream/25" : "bg-espresso/10"}`}></div>
-            <p class={`text-[15px] leading-[1.7] ${p.badge ? "text-cream/85" : "text-stone"}`}>{p.desc}</p>
+            <p class={`font-serif text-[32px] md:text-[36px] font-medium mb-4 leading-none ${p.tmava ? "text-cream" : "text-espresso"}`}>{p.price}</p>
+            <div class={`w-8 h-px mx-auto mb-4 ${p.tmava ? "bg-cream/25" : "bg-espresso/15"}`}></div>
+            <p class={`text-[15px] leading-[1.7] ${p.tmava ? "text-cream/85" : "text-stone"}`}>{p.desc}</p>
           </div>
         ))}
+      </div>
+
+      {/*
+        Platnost ceníku a individuální domluva. Datum je tu schválně: ceník
+        s obdobím se čte jako rozhodnutí na dané období, ne jako provizorium,
+        a nechává volnou ruku ceny po zkušenostech upravit. Druhá věta říká
+        nahlas to, co v dílně stejně běžně děláme — bez ní vidí návštěvník
+        jen zavřené dveře tam, kde mu ceník neodpovídá.
+      */}
+      <div class="max-w-[960px] mx-auto mt-6 text-center">
+        <p class="mono-meta">Ceny platí pro říjen 2026</p>
+        <p class="text-[15px] leading-[1.7] text-stone mt-3 max-w-[56ch] mx-auto">
+          Chceš v dílně víc času? Vezmi si dva vstupy po sobě nebo členství.
+          A kdyby ti nic z toho nesedělo, <a href="mailto:ahoj@jirosaku.cz" class="text-terracotta underline underline-offset-2">napiš nám</a> — domluvíme se.
+        </p>
       </div>
 
       <Bublina
