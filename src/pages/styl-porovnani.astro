@@ -1,0 +1,128 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SectionHead from "../components/SectionHead.astro";
+import NabidkaKarta from "../components/NabidkaKarta.astro";
+
+/**
+ * Pracovní srovnání dvou cest, kterými se web může vydat. Stejný obsah,
+ * dvakrát jinak vysázený — aby se o stylu rozhodovalo nad obrázkem,
+ * ne nad dojmem.
+ *
+ * Data jsou tu schválně zkopírovaná z Nabídky: je to maketa, která má
+ * zůstat nedotčená, i když se Nabídka mezitím změní.
+ */
+const polozky = [
+  {
+    idx: "1–10 lekcí",
+    name: "Kurzy",
+    desc: "Vícedenní cykly pro začátečníky i pokročilé. Kruh, technika, glazování.",
+    link: "/kurzy",
+    linkText: "Prohlédnout kurzy",
+  },
+  {
+    idx: "na hodiny",
+    name: "Open studio",
+    desc: "Máte čas pro sebe a chtěli byste ho strávit kreativně? Dílna slouží i jako otevřený prostor, kde si své tvoření řídíte sami.",
+    link: "/open-studio",
+    linkText: "Zjistit více",
+    badge: "Nejoblíbenější",
+  },
+  {
+    idx: "hodiny či dny",
+    name: "Workshopy",
+    desc: "Jednorázové zážitkové kurzy. Ideální jako dárek nebo příležitost pro Vaše soukromé akce — teambuildingy, narozeniny, rozlučky se svobodou.",
+    link: "/kurzy",
+    linkText: "Vybrat termín",
+  },
+];
+---
+
+<Layout title="Srovnání stylů — JIRO saku" description="Pracovní stránka: katalog versus editorial.">
+  <section class="py-14">
+    <div class="container-x">
+      <p class="mono-meta mb-3">Pracovní stránka · dvě cesty, stejný obsah</p>
+      <h1 class="hero-title text-espresso text-[32px] md:text-[44px] mb-5">
+        Katalog, nebo <span class="serif-italic-sakura">tušový tah?</span>
+      </h1>
+      <p class="text-[16px] text-stone leading-[1.7] max-w-[62ch]">
+        Nahoře je dnešní web: obsah v kartách, barevná plocha, pilulky.
+        Dole totéž v duchu tušového návrhu: žádné rámečky, obsah leží na
+        papíře a odděluje ho vlasová linka a velikost písma.
+      </p>
+    </div>
+  </section>
+
+  <section class="bg-white py-14">
+    <div class="container-x">
+      <p class="mono-meta mb-8">A — dnešní web (katalog)</p>
+      <SectionHead title="Co u nás" italic="najdete" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {polozky.map((o) => <NabidkaKarta {...o} vyzdvizena />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-14">
+    <div class="container-x">
+      <p class="mono-meta mb-8">B — tušový tah (editorial)</p>
+
+      {/* Editorialní sazba: hierarchii nese velikost písma, ne rámeček. */}
+      {/*
+        Dvě podoby téhož nadpisu na porovnání. V B je nadpis o 22 px větší
+        než názvy položek pod ním, takže rozdíl je čitelný i bez barvy —
+        a sakura si může nechat roli, kterou v seznamu plní: značí, že se
+        na řádek dá kliknout.
+      */}
+      <div class="border-l-2 border-espresso/15 pl-6 mb-14 flex flex-col gap-10">
+        <div>
+          <p class="mono-meta mb-3">B1 — bez zvýraznění</p>
+          <h2 class="font-serif font-light text-[40px] md:text-[56px] leading-none tracking-[-0.012em]">
+            Co u nás najdeš
+          </h2>
+        </div>
+        <div>
+          <p class="mono-meta mb-3">B2 — se zvýrazněným slovem</p>
+          <h2 class="font-serif font-light text-[40px] md:text-[56px] leading-none tracking-[-0.012em]">
+            Co u nás <span class="serif-italic-sakura">najdeš</span>
+          </h2>
+        </div>
+      </div>
+
+      {/*
+        Řádek se čte jedním tahem zleva doprava: číslo, název, popis, odkaz.
+        Seskupení nedělá rámeček, ale prázdno — mezera mezi položkami je
+        mnohem větší než mezery uvnitř nich, takže položka drží pohromadě
+        sama od sebe. Světlý pruh po najetí myší dává tutéž jistotu jako
+        hranice karty, ale jen ve chvíli, kdy ji člověk potřebuje.
+      */}
+      <div class="border-t border-espresso/20">
+        {polozky.map((o, i) => (
+          <a
+            href={o.link}
+            class="group grid md:grid-cols-[auto_2fr_3fr_auto] gap-x-8 lg:gap-x-12 gap-y-2 items-baseline border-b border-espresso/20 py-10 md:py-12 px-4 -mx-4 rounded-lg transition-colors hover:bg-kapka-plocha/60"
+          >
+            <span class="mono-meta hidden md:block pt-1">{String(i + 1).padStart(2, "0")}</span>
+
+            <div>
+              <h3 class="font-serif font-light text-[26px] md:text-[32px] leading-none group-hover:text-sakura transition-colors">
+                {o.name}
+              </h3>
+              <p class="mono-meta mt-2.5">{o.idx}</p>
+            </div>
+
+            <p class="text-[16px] md:text-[17px] text-stone leading-[1.75] max-w-[52ch] mt-3 md:mt-0">{o.desc}</p>
+
+            <span class="mono-meta whitespace-nowrap mt-3 md:mt-0 group-hover:text-sakura transition-colors">
+              {o.linkText} <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <p class="text-[15px] text-stone leading-[1.7] max-w-[62ch] mt-10">
+        Rozdíl není v obsahu — je úplně stejný. Liší se jen to, čím se
+        odděluje: v A hranicí a barvou, v B prázdnem a velikostí písma.
+      </p>
+    </div>
+  </section>
+</Layout>
