@@ -114,7 +114,9 @@ const milestones = [
 
   <section class="bg-white py-14 fade-up">
     <div class="container-x">
-      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Náš tým</h2>
+      <h2 class="font-serif font-light text-[32px] md:text-[40px] leading-none mb-8">
+        Náš <em class="italic font-light text-sakura">tým</em>
+      </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[760px]">
         {team.map((t) => (
           <div>
@@ -151,12 +153,19 @@ const milestones = [
 
   <section class="py-14 fade-up">
     <div class="container-x">
-      <h2 class="font-mono text-[12px] tracking-wider text-stone uppercase mb-6">Tak jde čas…</h2>
+      <h2 class="font-serif font-light text-[32px] md:text-[40px] leading-none mb-8">
+        Tak jde <em class="italic font-light text-sakura">čas…</em>
+        <span class="text-stone/60"> · 2026</span>
+      </h2>
+      {/*
+        Milníky jsou seznam, ne karty: rytmus drží linky a měsíc ve vlastním
+        sloupci. Rok byl dřív samostatný velký nadpis nad seznamem — teď je
+        v nadpisu sekce, ať nad jedním seznamem nestojí nadpisy dva.
+      */}
       <div class="max-w-[600px] lg:max-w-none">
-        <span class="font-serif text-[32px] font-medium block mb-3 text-terracotta" style="font-variation-settings: 'opsz' 72;">2026</span>
         {milestones.map((m) => (
-          <div class="flex gap-4 py-3 border-b border-espresso/8 last:border-b-0">
-            <span class="font-mono text-[12px] text-terracotta uppercase tracking-wider w-[70px] flex-shrink-0 pt-0.5">{m.month}</span>
+          <div class="flex gap-4 py-4 border-b border-espresso/20 first:border-t first:border-espresso/20">
+            <span class="mono-meta w-[70px] flex-shrink-0 pt-1">{m.month}</span>
             <p class="text-stone text-[16px] leading-[1.6] lg:whitespace-nowrap">{m.text}</p>
           </div>
         ))}
