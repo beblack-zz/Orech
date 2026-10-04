@@ -109,6 +109,25 @@
 }
 
 /*
+ * ——— Karta, nebo řádek? ———
+ *
+ * Karta patří věci, řádek patří položce v seznamu.
+ *
+ *   karta   má smysl tam, kde blok představuje předmět s vlastní identitou:
+ *           produkt v obchodě, profil postavičky. Rámeček je hranice věci,
+ *           tónovaný podklad je její barva. Bez karty by se ztratilo obojí.
+ *
+ *   řádek   patří seznamům informací — nabídka, termíny, ceník, časté dotazy.
+ *           Hierarchii nese velikost písma a prázdno, ne rámeček: mezera mezi
+ *           položkami je výrazně větší než mezery uvnitř nich, a jistotu, že
+ *           je řádek klikatelný, dává až světlý pruh po najetí myší.
+ *
+ * Proč na tom záleží: rámeček kolem každého odstavce je nejlevnější způsob,
+ * jak něco odlišit, a proto tak vypadá každá šablona. Dokud se karty používaly
+ * i na seznamy, web se četl jako katalog, ne jako dílna.
+ */
+
+/*
  * ——— Zvýrazňování ———
  *
  * Každá barva má jednu roli a jednu formu. Když přibude další zvýraznění,
