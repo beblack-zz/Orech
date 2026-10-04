@@ -65,13 +65,19 @@ const faq = [
         <div>
         {m.kurzy.map((c) => (
           <div class="grid grid-cols-[52px_1fr] md:grid-cols-[72px_1fr_auto_auto] items-start gap-4 md:gap-8 py-7 md:py-8 border-b border-espresso/20 first:border-t first:border-espresso/20">
-            <div class="font-serif font-light text-[28px] md:text-[34px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
+            <div class="font-serif font-medium text-[28px] md:text-[34px] text-center leading-none" style="font-variation-settings: 'opsz' 72;">
               {den(c.date)}
               <span class="block font-mono text-[12px] text-stone mt-1 tracking-wider uppercase font-normal">{mesic(c.date)}</span>
             </div>
             <div>
-              <h3 class="font-serif font-light text-[22px] md:text-[26px] mb-1.5 leading-none">{c.title}</h3>
-              <p class="text-[14px] md:text-[15px] text-stone mb-2.5 leading-[1.6]">{popisKurzu(c)}</p>
+              <h3 class="font-serif font-medium text-[22px] md:text-[26px] mb-1.5 leading-none">{c.title}</h3>
+              {/*
+                Formát v oceli ze značky — jediná studená barva v paletě, takže
+                se mezi teplými hnědými čte jako samostatný údaj. Sama o sobě
+                byla dřív málo vidět; funguje až teď, když má datum a název
+                silnější řez a je vedle čeho vyniknout.
+              */}
+              <p class="text-[14px] md:text-[15px] text-peri-deep mb-2.5 leading-[1.6]">{popisKurzu(c)}</p>
               <p class="text-[15px] text-stone leading-[1.6] whitespace-pre-line">{c.desc}</p>
             </div>
             <div class={`font-mono text-[12px] hidden md:block ${
@@ -159,9 +165,9 @@ const faq = [
       */}
       <div class="border-t border-espresso/20">
         {faq.map((f) => (
-          <div class="grid md:grid-cols-[2fr_3fr] gap-x-8 lg:gap-x-12 gap-y-2 py-7 md:py-8 border-b border-espresso/20">
-            <h3 class="font-serif italic font-light text-[20px] md:text-[24px] text-sakura leading-snug">{f.q}</h3>
-            <p class="text-stone text-[16px] md:text-[17px] leading-[1.75] max-w-[52ch]">{f.a}</p>
+          <div class="grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-8 lg:gap-x-10 gap-y-1 py-4 md:py-5 border-b border-espresso/20 items-baseline">
+            <h3 class="font-serif italic font-light text-[18px] md:text-[21px] text-sakura leading-snug">{f.q}</h3>
+            <p class="text-stone text-[15px] md:text-[16px] leading-[1.6]">{f.a}</p>
           </div>
         ))}
       </div>
