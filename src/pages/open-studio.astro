@@ -88,11 +88,18 @@ const rules = [
         celou tabulku, ne každou cenu zvlášť: je to jediné zvýraznění na
         stránce, takže zvýraznění nic neředí.
       */}
-      <div class="blok-vyzdvizeny rounded-2xl border max-w-[760px] mx-auto px-6 md:px-8 py-2 text-left">
+      <div class="blok-vyzdvizeny rounded-2xl border overflow-hidden max-w-[760px] mx-auto px-6 md:px-8 py-2 text-left">
         {pricing.map((p, i) => (
-          <div class={`py-6 ${
-            /* Členství je jiný druh platby než sezení — oddělí ho silnější linka. */
-            i > 0 ? (p.mesicni ? "border-t border-espresso/25" : "border-t border-espresso/12") : ""
+          <div class={`${
+            /*
+              Členství se neplatí za sezení, ale za měsíc — není to třetí
+              varianta téhož. Tmavý pruh přes celou šířku to řekne dřív než
+              text: tabulka zůstává jedna, ale je vidět, kde končí ceny za
+              vstup a začíná něco jiného. Linka by to jen naznačila.
+            */
+            p.mesicni
+              ? "bg-espresso text-cream -mx-6 md:-mx-8 -mb-2 mt-6 px-6 md:px-8 py-7"
+              : `py-6 ${i > 0 ? "border-t border-espresso/12" : ""}`
           }`}>
             {/*
               Název a cena drží jeden řádek a rozejdou se k okrajům; na úzkém
@@ -101,9 +108,9 @@ const rules = [
             */}
             <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
               <h3 class="font-serif font-medium text-[20px] md:text-[23px] leading-none" style="font-variation-settings: 'opsz' 48;">{p.name}</h3>
-              <p class="font-serif text-[24px] md:text-[32px] font-medium text-espresso leading-none whitespace-nowrap">{p.price}</p>
+              <p class={`font-serif text-[24px] md:text-[32px] font-medium leading-none whitespace-nowrap ${p.mesicni ? "text-cream" : "text-espresso"}`}>{p.price}</p>
             </div>
-            <p class="text-[15px] leading-[1.7] text-espresso/75 max-w-[48ch] mt-2">{p.desc}</p>
+            <p class={`text-[15px] leading-[1.7] max-w-[48ch] mt-2 ${p.mesicni ? "text-cream/85" : "text-espresso/75"}`}>{p.desc}</p>
           </div>
         ))}
       </div>
