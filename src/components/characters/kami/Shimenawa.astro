@@ -1,0 +1,26 @@
+---
+import Kresba from "./Kresba.astro";
+import Shide from "./Shide.astro";
+import { uid } from "../dospele/uid";
+
+/**
+ * Shimenawa jako oddělovač: provázek, který označuje místo, kde kami bydlí.
+ * Na stránce Party visí nad profilem každé postavičky — karta tím přestane
+ * být karta a stane se malou svatyní.
+ */
+interface Props { class?: string; }
+const { class: cls = "" } = Astro.props;
+const u = uid();
+const provaz = "M6 10 Q300 34 594 10";
+---
+<svg viewBox="0 0 600 48" class={cls} fill="none" aria-hidden="true" preserveAspectRatio="xMidYMin meet">
+  <defs><Kresba id={u} posun={2} /></defs>
+  <g filter={`url(#${u}-tah)`}>
+    <path d={provaz} stroke="#C9B186" stroke-width="7.5" stroke-linecap="round" />
+    <path d={provaz} stroke="#EBDDB8" stroke-width="6" stroke-linecap="round" />
+    <path d={provaz} stroke="#C9B186" stroke-width="6" stroke-dasharray="2 5" />
+  </g>
+  <Shide x={150} y={22} />
+  <Shide x={300} y={27} zpozdeni />
+  <Shide x={450} y={22} />
+</svg>

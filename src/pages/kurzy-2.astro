@@ -1,0 +1,199 @@
+---
+/**
+ * Kurzy 2 — návrh nového vzhledu stránky s kurzy. Stejný svět jako
+ * Parta 2 (obloha, papír, písmo, parta), ale tady jde o to, aby si člověk
+ * vybral a zapsal se. Stránka jde přes jeden den v dílně: ráno se odemyká
+ * a zkouší kruh, přes den se vybírá termín, večer se balí poukaz a v noci
+ * se zhasíná.
+ *
+ * Termíny, ceny a popisy jsou jen z data/kurzy.ts. Co přidal nový vzhled
+ * (patroni, průvodce, strom dovedností), je v data/kurzy2.ts.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/kurzy2.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Kami from "../components/parta2/Kami.astro";
+import Listi from "../components/kurzy2/Listi.astro";
+import Simulator from "../components/kurzy2/Simulator.astro";
+import Hledac from "../components/kurzy2/Hledac.astro";
+import Jizdenka from "../components/kurzy2/Jizdenka.astro";
+import Kalendar from "../components/kurzy2/Kalendar.astro";
+import Dovednosti from "../components/kurzy2/Dovednosti.astro";
+import Lektori from "../components/kurzy2/Lektori.astro";
+import CestaDomu from "../components/kurzy2/CestaDomu.astro";
+import Otazky from "../components/kurzy2/Otazky.astro";
+import PoukazStavitel from "../components/kurzy2/PoukazStavitel.astro";
+import NaradiBedna from "../components/kurzy2/NaradiBedna.astro";
+import Naradi from "../components/kurzy2/Naradi.astro";
+
+import { kurzy, sezona } from "../data/kurzy";
+import { pocetKurzu } from "../data/pocty";
+
+const sez = sezona();
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent(
+  "陶芸教室道案内準備中受付中満員残りわずか轆窯贈道具稽古守一二三習",
+)}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kurzy keramiky v Ořechu · JIRO saku</title>
+    <meta name="description" content="Kurzy keramiky pro začátečníky i pokročilé v Ořechu. Malé skupiny, nejvýš 8 lidí. Zkus si kruh nanečisto, najdi svůj kurz a termín." />
+    <meta name="theme-color" content="#6FA4DA" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+  </head>
+  <body class="p2 k2">
+    <Nebe />
+    <Listi />
+    <Hlavicka sber="naradi" />
+
+    <main>
+      {/* ——— Ráno: kruh nanečisto ——— */}
+      <section class="k-uvod" data-hodina="8.6" aria-labelledby="k-nadpis">
+        <p class="k-tategaki" lang="ja" aria-hidden="true">陶芸教室</p>
+        <div class="k-uvod-mriz">
+          <div class="k-uvod-text papir">
+            <p class="stitek">Kurzy{sez && <> · {sez}</>}</p>
+            <h1 id="k-nadpis" class="k-nadpis">Hlína počká. <em>Ty nemusíš.</em></h1>
+            <p class="k-perex">
+              Kurzy keramiky pro úplné začátečníky i pokročilé. Malé skupiny, nejvýš
+              8 lidí, dva lektoři s vlastním rukopisem. Hlínu, zástěru i nástroje
+              máme — stačí přijít.
+            </p>
+            <div class="k-cta">
+              <a class="tlacitko" href="#hledac">Najít svůj kurz</a>
+              <a class="tlacitko tlacitko-obrys" href="#terminy">{pocetKurzu(kurzy.length)} v kalendáři</a>
+            </div>
+            <p class="k-sipka">Nebo si to vedle zkus nanečisto <span aria-hidden="true">→</span></p>
+          </div>
+          <Simulator />
+        </div>
+      </section>
+
+      {/* ——— Průvodce ——— */}
+      <section class="k-sekce" id="hledac" data-hodina="9.6" aria-labelledby="hledac-nadpis">
+        <div class="papir k-papir">
+          <p class="stitek"><span lang="ja">道案内</span> · průvodce</p>
+          <h2 id="hledac-nadpis" class="nadpis-2">Který kurz je tvůj?</h2>
+          <p class="k-papir-perex">Tři otázky, žádná špatná odpověď. Podle nich ti z termínů, které teď jsou, vybereme ten nejbližší tvé náladě.</p>
+          <Naradi id="zastera" x={88} y={6} w={8} u={10} />
+          <Hledac />
+        </div>
+      </section>
+
+      {/* ——— Termíny ——— */}
+      <section class="k-sekce k-terminy" id="terminy" aria-labelledby="terminy-nadpis">
+        <div class="k-terminy-hlava papir" data-hodina="10">
+          <p class="stitek"><span lang="ja">稽古</span> · termíny{sez && <> · {sez}</>}</p>
+          <h2 id="terminy-nadpis" class="nadpis-2">Kdy a s kým</h2>
+          <p class="k-papir-perex">
+            Každý termín je jízdenka. Útržek má barvu oblohy v hodinu, kdy kurz začíná —
+            a obloha celé stránky se při čtení přebarví s ním.
+          </p>
+        </div>
+        {kurzy.length === 0 ? (
+          <div class="papir k-papir k-prazdno">
+            <p>Zrovna teď nemáme vypsaný žádný termín. Chystáme další — <a href="#kontakt">ozvi se</a> a dáme ti vědět mezi prvními.</p>
+          </div>
+        ) : (
+          <div class="k-terminy-mriz">
+            <aside class="k-kalendar papir"><Kalendar /></aside>
+            <div class="k-jizdenky">
+              {kurzy.map((k, i) => (
+                <Jizdenka kurz={k} index={i}>
+                  {i === Math.min(2, kurzy.length - 1) && <Naradi id="jehla" x={93} y={58} w={5} u={-35} />}
+                </Jizdenka>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ——— Co se naučíš ——— */}
+      <section class="k-sekce" id="dovednosti" data-hodina="15.5" aria-labelledby="dovednosti-nadpis">
+        <div class="papir k-papir k-papir-siroky">
+          <p class="stitek"><span lang="ja">習</span> · co se naučíš</p>
+          <h2 id="dovednosti-nadpis" class="nadpis-2">Od hroudy po vrstvené glazury</h2>
+          <p class="k-papir-perex">Strom roste z přípravy hlíny. Klikni na ořech a uvidíš, na kterém kurzu se to učí.</p>
+          <Dovednosti />
+        </div>
+      </section>
+
+      {/* ——— Lektoři ——— */}
+      <section class="k-sekce" id="lektori" data-hodina="17.3" aria-labelledby="lektori-nadpis">
+        <div class="k-lektori-hlava">
+          <p class="stitek stitek-svetly">Kdo učí</p>
+          <h2 id="lektori-nadpis" class="nadpis-2 k-svetly">Dva lektoři, dva rukopisy</h2>
+        </div>
+        <Lektori />
+      </section>
+
+      {/* ——— Cesta domů ——— */}
+      <section class="k-sekce" id="domu" data-hodina="19" aria-labelledby="domu-nadpis">
+        <div class="papir k-papir k-papir-siroky">
+          <p class="stitek">Po kurzu</p>
+          <h2 id="domu-nadpis" class="nadpis-2">Kdy si to odneseš domů</h2>
+          <p class="k-papir-perex">Tvar vznikne na kurzu. Hotový kus ale ještě musí projít dvěma výpaly — proto se vyzvedává až za pár týdnů.</p>
+          <CestaDomu />
+        </div>
+      </section>
+
+      {/* ——— Otázky ——— */}
+      <section class="k-sekce" id="otazky" data-hodina="20.3" aria-labelledby="otazky-nadpis">
+        <div class="papir k-papir">
+          <p class="stitek">Časté otázky</p>
+          <h2 id="otazky-nadpis" class="nadpis-2">Zeptej se party</h2>
+          <Otazky />
+        </div>
+      </section>
+
+      {/* ——— Poukaz ——— */}
+      <section class="k-sekce" id="poukaz" data-hodina="21.4" aria-labelledby="poukaz-nadpis">
+        <div class="papir k-papir k-papir-siroky">
+          <p class="stitek"><span lang="ja">贈</span> · dárkový poukaz</p>
+          <h2 id="poukaz-nadpis" class="nadpis-2">Daruj někomu odpoledne u kruhu</h2>
+          <PoukazStavitel />
+        </div>
+      </section>
+
+      {/* ——— Noc: kontakt ——— */}
+      <section class="k-sekce k-kontakt" id="kontakt" data-hodina="23" aria-labelledby="kontakt-nadpis">
+        <div class="k-kontakt-obsah">
+          <Kami id="pecinka" class="k-kontakt-kami" />
+          <p class="stitek stitek-svetly">Dílna zhasíná</p>
+          <h2 id="kontakt-nadpis" class="nadpis-2 k-svetly">Ozvi se — zítra se zase točí</h2>
+          <p class="k-kontakt-text">Rezervuj si místo mailem nebo telefonem a domluvíme se.</p>
+          <div class="k-kontakt-akce">
+            <a class="tlacitko tlacitko-svetle" href="mailto:ahoj@jirosaku.cz">ahoj@jirosaku.cz</a>
+            <a class="tlacitko tlacitko-obrys tlacitko-svetle-obrys" href="tel:+420777000000">+420 777 000 000</a>
+          </div>
+          <p class="k-kontakt-adresa">Dílna · Luční 235 · Ořech</p>
+        </div>
+      </section>
+    </main>
+
+    <Paticka />
+    <NaradiBedna />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/kurzy2/hlavni.ts";
+    </script>
+  </body>
+</html>

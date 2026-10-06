@@ -1,0 +1,117 @@
+---
+/**
+ * Brána — první obrazovka. Ráno před dílnou: kopce, ořech přes střechu,
+ * ve dveřích visí noren. Sekce je vyšší než okno a scéna v ní stojí;
+ * scrollováním kamera dojede ke dveřím, noren se rozhrne a člověk
+ * vejde do světla — do prohlídky. Řídí scripts/uvod2/brana.ts.
+ *
+ * Kdo nechce scrollovat, klikne na noren (je to odkaz na #prohlidka),
+ * kdo má zapnutý omezený pohyb, dostane klidnou scénu bez kamery.
+ */
+import Noren from "./Noren.astro";
+import Fasada from "./Fasada.astro";
+import Orech from "../parta2/Orech.astro";
+import Louka from "../parta2/Louka.astro";
+import Kami from "../parta2/Kami.astro";
+import { chomac, body } from "../parta2/tvary";
+import { kontakt } from "../../data/uvod2";
+import type { Sezona } from "../../data/uvod2";
+import { parta } from "../../data/parta";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+/** Kolik stupňů umí pec — číslo je jen v Pecinčině profilu, tak se vytáhne odtud */
+const pecinka = parta.find((p) => p.id === "pecinka");
+const stupne = pecinka?.bio.match(/(\d[\d\s]*\d)\s*stup/)?.[1]?.replace(/\s/g, " ");
+
+const les: [number, number, number, number][] = [
+  [80, 196, 70, 20], [260, 176, 90, 22], [520, 154, 80, 18], [700, 164, 100, 22], [960, 160, 90, 20], [1200, 150, 110, 22], [1440, 148, 90, 18],
+];
+const stromky: [number, number, number][] = [[150, 286, 22], [196, 296, 16], [620, 262, 18], [880, 282, 24], [1320, 270, 20]];
+/** Padající listí, plátky nebo sníh — co se ukáže, řídí data-sezona */
+const castice = body(12, 517, 100, 100);
+---
+<section class="brana" id="brana" data-hodina="7" data-sezona={sezona} aria-labelledby="brana-nadpis">
+  <div class="brana-scena">
+    <svg class="brana-kopce" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="brana-opar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color:var(--nebe-obzor)" stop-opacity="0" />
+          <stop offset="0.5" style="stop-color:var(--nebe-obzor)" stop-opacity="0.55" />
+          <stop offset="1" style="stop-color:var(--nebe-obzor)" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <path d="M0 210 C160 172 330 180 480 160 C640 140 800 176 960 158 C1120 142 1290 170 1450 154 C1520 148 1570 150 1600 148 L1600 500 L0 500 Z" style="fill:var(--kopec-daleko)" />
+      <g style="fill:var(--kopec-blizko)" opacity="0.5">
+        {les.map(([x, y, rx, ry], i) => <path d={chomac(x, y, rx, ry, 12, 900 + i, 0.5, 0.7)} />)}
+      </g>
+      {/* Pár stavení na protějším kopci — Ořech z dálky */}
+      <g opacity="0.75">
+        {[[380, 196], [412, 200], [446, 194], [1060, 176], [1094, 180]].map(([x, y]) => (
+          <g>
+            <rect x={x} y={y} width="22" height="14" style="fill:var(--nebe-obzor)" />
+            <path d={`M${x - 3} ${y} L${x + 11} ${y - 10} L${x + 25} ${y} Z`} fill="#B4523A" />
+          </g>
+        ))}
+      </g>
+      <rect x="0" y="140" width="1600" height="160" fill="url(#brana-opar)" />
+      <path d="M0 300 C200 262 380 270 560 252 C760 232 940 270 1140 248 C1320 230 1470 252 1600 242 L1600 500 L0 500 Z" style="fill:var(--kopec-blizko)" />
+      <path d="M0 372 C220 336 470 350 720 334 C980 316 1240 350 1600 324 L1600 500 L0 500 Z" fill="#87A85C" />
+      <path d="M120 380 C240 362 360 364 460 358 L500 404 C380 412 240 418 140 424 Z" fill="#E2C35A" opacity="0.9" />
+      <path d="M520 352 C660 344 780 340 880 336 L910 372 C800 380 680 386 560 392 Z" fill="#A4BF6C" />
+      <path d="M40 420 C180 408 300 404 420 400" stroke="#D8C9A3" stroke-width="9" stroke-linecap="round" fill="none" opacity="0.8" />
+      {stromky.map(([x, y, s], i) => (
+        <g>
+          <path d={`M${x} ${y + s} L${x} ${y + s * 0.3}`} stroke="#4E4238" stroke-width={s * 0.16} />
+          <path d={chomac(x, y, s * 0.7, s * 0.8, 9, 960 + i, 0.8, 0.7)} fill="#4E7339" />
+          <path d={chomac(x - s * 0.15, y - s * 0.2, s * 0.42, s * 0.45, 8, 980 + i, 1, 0.7)} fill="#6E9A4B" />
+        </g>
+      ))}
+    </svg>
+
+    <Orech class="brana-orech" />
+    <Louka class="brana-louka" seed={4} />
+
+    <div class="brana-svet">
+      <Fasada class="brana-fasada" />
+      <span class="brana-svetlo" aria-hidden="true"></span>
+      <Noren class="brana-noren" />
+      <a class="brana-schranka" href={`mailto:${kontakt.email}`} aria-label={`Schránka — napsat e-mail na ${kontakt.email}`}></a>
+      <Kami id="bublinka" class="brana-kami brana-kami-bublinka" />
+      <Kami id="kapka" class="brana-kami brana-kami-kapka" />
+      <p class="brana-cedulka" aria-hidden="true"><span lang="ja">暖簾</span> noren — závěs, který v Japonsku visí ve dveřích, dokud je otevřeno</p>
+    </div>
+
+    <div class="brana-text">
+      <p class="stitek">Keramická dílna · {kontakt.obec} · od 2026</p>
+      <h1 id="brana-nadpis" class="brana-nadpis">Tvoříme keramiku tam, kde má hlína <em>čas.</em></h1>
+      <p class="brana-perex">
+        Kurzy pro začátečníky i pokročilé, open studio a pec{stupne && <>, která umí až {stupne}&nbsp;°C</>}.
+        Malá dílna v Ořechu — pojď dál.
+      </p>
+      <div class="brana-akce">
+        <a class="tlacitko" href="/kurzy-2#hledac">Najít svůj kurz</a>
+        <a class="tlacitko tlacitko-obrys" href="#odjezdy">Nejbližší termíny</a>
+      </div>
+    </div>
+
+    <a class="brana-dolu" href="#prohlidka">
+      <span>Projdi norenem dovnitř</span>
+      <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </a>
+
+    <div class="castice" aria-hidden="true">
+      {castice.map((c, i) => (
+        <span
+          class={`castice-kus ${i % 3 === 0 ? "castice-velky" : ""}`}
+          style={`left:${(c.x * 0.96 + 2).toFixed(1)}%;--d:${(11 + c.s * 10).toFixed(1)}s;--z:${(-c.t * 21).toFixed(1)}s;--dx:${((c.s - 0.35) * 240).toFixed(0)}px`}
+        ></span>
+      ))}
+    </div>
+
+    <div class="brana-zar" aria-hidden="true"></div>
+  </div>
+</section>

@@ -1,0 +1,60 @@
+---
+/**
+ * Co se tu naučíš — strom dovedností. Kořen je příprava hlíny, z ní
+ * rostou modelování a točení, nahoře víčka, džbány a vrstvené glazury.
+ * Každý uzel je postavený ze slov v popisech kurzů, takže ukazuje jen to,
+ * co kurzy opravdu slibují. Kliknutí ukáže, které kurzy uzel učí.
+ *
+ * Na úzké obrazovce se strom rozloží do seznamu větví — popisky by se
+ * mezi sebou praly.
+ */
+import { kurzy } from "../../data/kurzy";
+import { dovednosti } from "../../data/kurzy2";
+import Naradi from "./Naradi.astro";
+
+const podle = Object.fromEntries(dovednosti.map((d) => [d.id, d]));
+/** Index první jízdenky s tímhle názvem — kam vede odkaz z uzlu */
+const kotva = (nazev: string) => kurzy.findIndex((k) => k.title === nazev);
+
+const vetve = dovednosti
+  .filter((d) => d.z)
+  .map((d) => {
+    const r = podle[d.z!];
+    const x1 = r.x * 10, y1 = 1000 - r.y * 10, x2 = d.x * 10, y2 = 1000 - d.y * 10;
+    const sila = 26 - (d.y / 100) * 16;
+    return { id: d.id, d: `M${x1} ${y1} C${x1} ${(y1 + y2) / 2} ${x2} ${(y1 + y2) / 2 + 60} ${x2} ${y2}`, sila };
+  });
+---
+<div class="strom" data-strom>
+  <svg class="strom-vetve" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M500 1000 C500 980 500 960 500 940" stroke="#6E5A4C" stroke-width="34" stroke-linecap="round" />
+    {vetve.map((v) => (
+      <g data-vetev={v.id}>
+        <path class="strom-vetev-stin" d={v.d} stroke-width={v.sila + 6} />
+        <path class="strom-vetev" d={v.d} stroke-width={v.sila} />
+      </g>
+    ))}
+  </svg>
+
+  <ul class="strom-uzly">
+    {dovednosti.map((d) => (
+      <li class="strom-uzel-obal" style={`--x:${d.x}%;--y:${d.y}%`} data-uroven={d.y < 20 ? 0 : d.y < 45 ? 1 : d.y < 70 ? 2 : 3}>
+        <button type="button" class="strom-uzel" data-uzel={d.id} data-rodic={d.z ?? ""} aria-expanded="false">
+          <span class="strom-orech" aria-hidden="true"></span>
+          <span class="strom-nazev">{d.nazev}</span>
+        </button>
+        <div class="strom-kurzy" hidden>
+          <p>Učí se na:</p>
+          <ul>
+            {d.kurzy.filter((k) => kotva(k) >= 0).map((k) => (
+              <li><a href={`#kurz-${kotva(k)}`}>{k}</a></li>
+            ))}
+            {d.kurzy.every((k) => kotva(k) < 0) && <li>Zrovna není vypsaný termín — <a href="#kontakt">ozvi se</a>.</li>}
+          </ul>
+        </div>
+      </li>
+    ))}
+  </ul>
+
+  <Naradi id="ocko" x={36} y={34} w={6} u={28} class="strom-naradi" />
+</div>

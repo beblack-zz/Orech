@@ -1,0 +1,93 @@
+---
+/**
+ * 四 Tvar — hrnčířský kruh v poledne. Scrollováním roste z hroudy váza:
+ * centrování, otevření, vytažení, tvarování. Obrys hlíny přepočítává
+ * scripts/parta2/sceny.ts (kruh), tady je jen jeviště.
+ */
+import Kami from "../Kami.astro";
+---
+<div class="scena scena-kruh">
+  <svg class="scena-pozadi" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="kruh-zed" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F6F1E6" />
+        <stop offset="1" stop-color="#E3D8C4" />
+      </linearGradient>
+      <radialGradient id="kruh-svetlo" cx="0.5" cy="0" r="0.8">
+        <stop offset="0" stop-color="#FFFBEA" stop-opacity="0.9" />
+        <stop offset="1" stop-color="#FFFBEA" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="kruh-hlava" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#7E858C" />
+        <stop offset="0.35" stop-color="#C9CFD4" />
+        <stop offset="0.6" stop-color="#A3AAB0" />
+        <stop offset="1" stop-color="#6B7278" />
+      </linearGradient>
+      <linearGradient id="kruh-hlina" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#5E4334" />
+        <stop offset="0.28" stop-color="#9C7860" />
+        <stop offset="0.42" stop-color="#C9A184" />
+        <stop offset="0.5" stop-color="#B08A6E" />
+        <stop offset="0.78" stop-color="#7E5E4A" />
+        <stop offset="1" stop-color="#523A2D" />
+      </linearGradient>
+      <radialGradient id="kruh-vnitrek" cx="0.5" cy="0.35" r="0.7">
+        <stop offset="0" stop-color="#3E2C22" />
+        <stop offset="1" stop-color="#6E5040" />
+      </radialGradient>
+      {/* Svislé proužky, které ujíždějí do strany — tak je vidět, že se hlína točí */}
+      <pattern id="kruh-toceni" width="46" height="600" patternUnits="userSpaceOnUse">
+        <rect x="0" width="5" height="600" fill="#FFFFFF" opacity="0.12" />
+        <rect x="21" width="2" height="600" fill="#3E2C22" opacity="0.14" />
+      </pattern>
+      <clipPath id="kruh-orez"><path class="kruh-tvar" d="M200 470 L400 470 L300 330 Z" /></clipPath>
+    </defs>
+
+    <rect width="600" height="600" fill="url(#kruh-zed)" />
+    <rect width="600" height="600" fill="url(#kruh-svetlo)" />
+    {/* Police na zdi s hotovými kusy */}
+    <rect x="60" y="150" width="480" height="9" fill="#9A7350" />
+    <path d="M90 150 C88 124 102 116 116 116 C130 116 140 126 138 150 Z" fill="#8FA7A0" />
+    <path d="M170 150 L172 110 L200 110 L202 150 Z" fill="#D9C7A8" />
+    <path d="M396 150 C392 132 402 122 420 122 C438 122 446 132 442 150 Z" fill="#3E3029" />
+    <path d="M470 150 C468 120 476 108 490 106 C504 108 512 120 510 150 Z" fill="#C46A4E" />
+
+    {/* Podlaha */}
+    <rect x="0" y="520" width="600" height="80" fill="#CDBFA6" />
+    {/* Vana kruhu — zadní okraj */}
+    <ellipse cx="300" cy="476" rx="236" ry="66" fill="#53595E" />
+    <ellipse cx="300" cy="472" rx="222" ry="58" fill="#3F4448" />
+    {/* Hlava kruhu */}
+    <ellipse cx="300" cy="480" rx="172" ry="36" fill="#5E656B" />
+    <ellipse cx="300" cy="472" rx="172" ry="36" fill="url(#kruh-hlava)" />
+    <ellipse cx="300" cy="472" rx="120" ry="25" fill="none" stroke="#6B7278" stroke-width="1.5" opacity="0.6" />
+    <ellipse cx="300" cy="472" rx="70" ry="14" fill="none" stroke="#6B7278" stroke-width="1.5" opacity="0.6" />
+    <g class="kruh-znacky" fill="#4E555B">
+      <circle class="kruh-znacka" cx="300" cy="490" r="4" />
+      <circle class="kruh-znacka" cx="300" cy="490" r="4" />
+      <circle class="kruh-znacka" cx="300" cy="490" r="4" />
+    </g>
+    {/* Kaluž šlikru na hlavě */}
+    <ellipse cx="300" cy="474" rx="110" ry="20" fill="#8E6E58" opacity="0.35" />
+
+    {/* Hlína — tvar přepisuje skript */}
+    <path class="kruh-tvar kruh-hlina" d="M200 470 L400 470 L300 330 Z" fill="url(#kruh-hlina)" />
+    <g clip-path="url(#kruh-orez)">
+      <rect class="kruh-prouzky" x="-46" y="0" width="700" height="600" fill="url(#kruh-toceni)" />
+      <g class="kruh-ryhy" stroke="#4E3A2D" stroke-width="1.6" fill="none" opacity="0.3"></g>
+    </g>
+    <ellipse class="kruh-okraj" cx="300" cy="330" rx="0" ry="0" fill="url(#kruh-vnitrek)" stroke="#C9A184" stroke-width="3" opacity="0" />
+
+    {/* Vana kruhu — přední okraj */}
+    <path d="M64 476 C80 540 520 540 536 476 L536 500 C520 566 80 566 64 500 Z" fill="#6B7176" />
+    <path d="M64 476 C80 540 520 540 536 476" stroke="#8C949B" stroke-width="3" fill="none" />
+
+    {/* Kyblík s vodou a houbička */}
+    <path d="M478 540 L486 600 L566 600 L574 540 Z" fill="#7E8C96" />
+    <ellipse cx="526" cy="540" rx="48" ry="10" fill="#9DB4C2" stroke="#5E6A72" stroke-width="3" />
+    <rect x="506" y="530" width="30" height="12" rx="5" fill="#E8C35A" />
+  </svg>
+
+  <Kami id="vazicka" class="scena-kami" style="left:3%;top:47%;width:24%" />
+  <p class="scena-stitek kruh-stitek" aria-hidden="true"><span class="kruh-faze">Centrování</span> · <span class="kruh-otacky">220</span> ot./min</p>
+</div>

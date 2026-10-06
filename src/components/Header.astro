@@ -1,5 +1,7 @@
 ---
 import Logo from "./Logo.astro";
+import RezervovatTlacitko from "./RezervovatTlacitko.astro";
+import PrepinacTematu from "./PrepinacTematu.astro";
 
 /**
  * `accent` označuje položku, která má v menu schválně vyčnívat.
@@ -13,10 +15,14 @@ type Odkaz = { href: string; label: string; accent?: boolean; skrtnuto?: boolean
 
 const links: Odkaz[] = [
   { href: "/", label: "Úvod" },
+  { href: "/uvod-2", label: "Úvod 2" },
   { href: "/kurzy", label: "Kurzy" },
+  { href: "/kurzy-2", label: "Kurzy 2" },
   { href: "/deti", label: "Pro děti", skrtnuto: true },
   { href: "/parta", label: "Parta", accent: true },
+  { href: "/parta-2", label: "Parta 2" },
   { href: "/open-studio", label: "Open studio" },
+  { href: "/rezervace", label: "Rezervace" },
   { href: "/obchod", label: "Obchod" },
   { href: "/dizajn", label: "Dizajn", skrtnuto: true },
   { href: "/dizajn-2", label: "Dizajn 2.0" },
@@ -41,10 +47,11 @@ const skrt = "line-through decoration-2 decoration-sakura";
         <Logo size={62} />
       </a>
       {/* Řádky napevno — Chrome a Firefox by jinak zalamovaly každý jinde */}
-      <span class="mono-meta hidden xl:inline-block pr-6 whitespace-nowrap">Dílna ·<br />Luční 235<br />Ořech ·</span>
+      <span class="mono-meta hidden min-[1500px]:inline-block pr-6 whitespace-nowrap">Dílna ·<br />Luční 235<br />Ořech ·</span>
     </div>
 
-    <nav class="hidden lg:flex items-center gap-5 xl:gap-6">
+    <div class="flex items-center gap-2 xl:gap-4">
+    <nav class="hidden min-[1340px]:flex items-center gap-3">
       {links.map((l) => (
         <a
           href={l.href}
@@ -62,18 +69,13 @@ const skrt = "line-through decoration-2 decoration-sakura";
           {l.label}
         </a>
       ))}
-
-      <a
-        href="/kurzy#rezervace"
-        class="bg-espresso text-cream px-5 py-2.5 rounded-full nav-odkaz text-[13px] uppercase whitespace-nowrap hover:bg-sakura transition-colors"
-      >
-        Rezervovat
-      </a>
     </nav>
+
+    <PrepinacTematu />
 
     <button
       id="menu-toggle"
-      class="lg:hidden text-espresso p-2"
+      class="min-[1340px]:hidden text-espresso p-2"
       aria-label="Otevřít menu"
       aria-controls="mobile-menu"
       aria-expanded="false"
@@ -83,12 +85,13 @@ const skrt = "line-through decoration-2 decoration-sakura";
         <line x1="3" y1="15" x2="19" y2="15" />
       </svg>
     </button>
+    </div>
   </div>
 </header>
 
 <div
   id="mobile-menu"
-  class="hidden lg:hidden bg-cream border-b border-espresso/10"
+  class="hidden min-[1340px]:hidden bg-cream border-b border-espresso/10"
 >
   <nav class="container-x flex flex-col gap-3 py-4">
     {links.map((l) => (
@@ -106,14 +109,14 @@ const skrt = "line-through decoration-2 decoration-sakura";
         {l.label}
       </a>
     ))}
-    <a
-      href="/kurzy#rezervace"
-      class="bg-espresso text-cream px-4 py-2.5 rounded-full nav-odkaz text-[13px] uppercase text-center mt-2"
-    >
-      Rezervovat
-    </a>
   </nav>
 </div>
+
+{/*
+  Rezervovat visí vpravo dole na každé stránce, i na mobilu — proto už není
+  v hlavičce ani v mobilním menu.
+*/}
+<RezervovatTlacitko />
 
 <script>
   // Musí se navázat znovu po každé navigaci — ClientRouter vymění DOM,

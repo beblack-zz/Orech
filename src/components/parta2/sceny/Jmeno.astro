@@ -1,0 +1,60 @@
+---
+/**
+ * 六 Jméno — police s miskami ve zlatém odpoledni. Cedulka visí na hřebíku
+ * a dá se na ni napsat jméno (pole je v kartě vedle, scripts/parta2/sceny.ts).
+ * Z kraje police visí Kapka, která ještě neskápla.
+ */
+import Kami from "../Kami.astro";
+import Skryty from "../Skryty.astro";
+import CedulkaKami from "../../characters/kami/Cedulka.astro";
+
+/** Misky na dvou policích: [x, šířka, výška, barva, cedulka posunutá o] */
+const misky: [number, number, number, string, number][] = [
+  [258, 64, 34, "#B9AC9A", 4], [334, 56, 40, "#A99A88", -3], [402, 70, 30, "#C4B8A6", 2], [482, 58, 44, "#B3A592", -2],
+  [262, 60, 40, "#AA9C8A", 3], [336, 72, 32, "#BFB2A0", -4], [420, 54, 38, "#B9AC9A", 2], [488, 62, 30, "#A89886", -1],
+];
+---
+<div class="scena scena-jmeno">
+  <svg class="scena-pozadi" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="jmeno-zed" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#F6D9A8" />
+        <stop offset="1" stop-color="#D9AE7E" />
+      </linearGradient>
+      <linearGradient id="jmeno-paprsek" x1="1" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FFE3A8" stop-opacity="0.85" />
+        <stop offset="1" stop-color="#FFE3A8" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <rect width="600" height="600" fill="url(#jmeno-zed)" />
+    <path d="M600 40 L600 300 L180 600 L40 600 Z" fill="url(#jmeno-paprsek)" opacity="0.5" />
+    {/* Hřebík, na kterém visí Cedulka */}
+    <circle cx="132" cy="62" r="5" fill="#5A4636" />
+    {/* Dvě police */}
+    {[250, 420].map((y) => (
+      <g>
+        <rect x="220" y={y} width="340" height="12" fill="#8A6544" />
+        <rect x="220" y={y + 12} width="340" height="5" fill="#6A4E34" />
+        <path d={`M236 ${y + 17} L236 ${y + 40} M544 ${y + 17} L544 ${y + 40}`} stroke="#6A4E34" stroke-width="6" />
+      </g>
+    ))}
+    {misky.map(([x, w, h, barva, posun], i) => {
+      const y = i < 4 ? 250 : 420;
+      return (
+        <g>
+          <path d={`M${x - w / 2} ${y - h} Q${x - w / 2 + 3} ${y} ${x} ${y} Q${x + w / 2 - 3} ${y} ${x + w / 2} ${y - h} Z`} fill={barva} />
+          <ellipse cx={x} cy={y - h} rx={w / 2} ry={w * 0.08} fill="#8C7E6C" />
+          <path d={`M${x} ${y + 12} L${x + posun} ${y + 30}`} stroke="#6B5D4F" stroke-width="1" />
+          <rect x={x + posun - 10} y={y + 30} width="20" height="24" rx="2" fill="#F1E6CF" transform={`rotate(${posun * 2} ${x + posun} ${y + 30})`} />
+          <path d={`M${x + posun - 6} ${y + 40} h12 M${x + posun - 6} ${y + 46} h8`} stroke="#6B5D4F" stroke-width="1.4" transform={`rotate(${posun * 2} ${x + posun} ${y + 30})`} />
+        </g>
+      );
+    })}
+    <rect x="0" y="560" width="600" height="40" fill="#B89470" />
+  </svg>
+
+  <Kami id="cedulka" class="scena-kami jmeno-cedulka" style="left:0%;top:5%;width:44%">
+    <CedulkaKami size={260} napis class="kami-svg" />
+  </Kami>
+  <Skryty id="kapka" x={72.5} y={71.5} w={6} />
+</div>

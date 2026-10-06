@@ -1,0 +1,87 @@
+---
+/**
+ * Noc — konec dne. Noren je uklizený, na dveřích visí 準備中, ve výloze
+ * se svítí. Po ulici jde parta s lucerničkami jako noční průvod a vedle
+ * je kontakt. Kdo dojde až sem, dostane poslední razítko (夜).
+ *
+ * Průvod je jen CSS animace; při najetí myší se zastaví, ať jde na
+ * postavičky kliknout. S omezeným pohybem stojí parta v řadě.
+ */
+import Fasada from "./Fasada.astro";
+import Razitko from "./Razitko.astro";
+import Kami from "../parta2/Kami.astro";
+import Louka from "../parta2/Louka.astro";
+import { chomac } from "../parta2/tvary";
+import { kontakt, mapa, oDilne, razitka } from "../../data/uvod2";
+import type { PostavaId } from "../../data/parta";
+import type { Sezona } from "../../data/uvod2";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+const pruvod: PostavaId[] = ["kachlik", "vazicka", "kapka", "pecinka", "hlinka", "stripek", "cedulka", "bublinka", "samotka"];
+---
+<section class="noc" id="kontakt" data-hodina="22.8" data-sezona={sezona} aria-labelledby="noc-nadpis">
+  <div class="noc-scena">
+    <svg class="noc-kopce" viewBox="0 0 1600 420" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path d="M0 170 C180 130 360 142 540 122 C720 104 900 140 1080 124 C1260 108 1440 132 1600 118 L1600 420 L0 420 Z" style="fill:var(--kopec-daleko)" />
+      <g style="fill:var(--kopec-blizko)" opacity="0.6">
+        {[[120, 150, 90, 20], [420, 128, 100, 22], [820, 132, 120, 22], [1240, 118, 100, 20]].map(([x, y, rx, ry], i) => <path d={chomac(x, y, rx, ry, 12, 940 + i, 0.5, 0.7)} />)}
+      </g>
+      <g fill="#FFD27A">
+        {[[300, 150], [318, 154], [1004, 134], [1180, 128], [1196, 131]].map(([x, y]) => <rect x={x} y={y} width="4" height="4" opacity="0.8" />)}
+      </g>
+      <path d="M0 250 C240 214 460 226 700 210 C960 194 1200 226 1600 204 L1600 420 L0 420 Z" style="fill:var(--kopec-blizko)" />
+    </svg>
+
+    <div class="noc-dum">
+      <Fasada noc class="noc-fasada" />
+    </div>
+
+    <div class="pruvod" role="group" aria-label="Noční průvod party — klikni na kohokoli">
+      {pruvod.map((id, i) => (
+        <div class="pruvod-clen" style={`--i:${i}`}>
+          <svg class="lucerna" viewBox="0 0 60 96" aria-hidden="true">
+            <path d="M6 96 C10 60 22 30 44 14" stroke="#5E452E" stroke-width="3" fill="none" stroke-linecap="round" />
+            <g class="lucerna-telo">
+              <path d="M44 14 V22" stroke="#2B2420" stroke-width="1.6" />
+              <rect x="36" y="22" width="16" height="4" rx="1.4" fill="#2B2420" />
+              <ellipse cx="44" cy="41" rx="14" ry="16" fill="#FFB55A" />
+              <ellipse cx="44" cy="39" rx="8" ry="10" fill="#FFE7A8" opacity="0.8" />
+              <path d="M31 33 H57 M30 41 H58 M31 49 H57" stroke="#C4432B" stroke-width="1" opacity="0.45" />
+              <rect x="36" y="56" width="16" height="4" rx="1.4" fill="#2B2420" />
+              <path d="M44 60 V68" stroke="#C4432B" stroke-width="2.4" stroke-linecap="round" />
+            </g>
+          </svg>
+          <Kami id={id} class="pruvod-kami" />
+        </div>
+      ))}
+    </div>
+
+    <Louka class="noc-louka" seed={3} />
+  </div>
+
+  <div class="noc-karta papir">
+    <p class="stitek">{oDilne.vitani}</p>
+    <h2 id="noc-nadpis" class="nadpis-2">Noren je na noc uvnitř.</h2>
+    <p class="noc-perex">Dílna zhasíná. Napiš nám nebo zavolej — domluvíme se.</p>
+    <div class="noc-akce">
+      <a class="tlacitko" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+      <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+    </div>
+    <p class="noc-adresa">
+      {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
+      <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
+    </p>
+    <div class="noc-sesit">
+      <Razitko id="noc" />
+      <p>
+        V sešitě máš <b class="razitka-stav">0</b> z {razitka.length} razítek.
+        <button type="button" class="odkaz-tlacitko razitka-otevrit">Otevřít sešit</button>
+      </p>
+    </div>
+    <p class="noc-parta">Ti malí s lucerničkami? Devět kami z dílny. <a href="/parta-2">Seznam se s partou <span aria-hidden="true">→</span></a></p>
+  </div>
+</section>

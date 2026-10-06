@@ -1,0 +1,187 @@
+---
+/**
+ * Návrh 06 — Větvička. Čistě písmová značka: J ve jménu je větev sakury.
+ * Kmen dělá dřík, háček je ohyb větve, nahoře kvete. Zbytek jména je
+ * v Cormorantu jako dnes.
+ *
+ * Bez názvu (`nazev="zadny"`) zbyde samotné J s květy — monogram na
+ * avatar a favicon. S názvem je `size` výška celé značky × 0,45, aby
+ * zabírala podobnou plochu jako ostatní návrhy.
+ *
+ * Šířku nápisu změří stránka až po načtení písma (data-fit), proto je
+ * viewBox tady jen odhad.
+ */
+import { BARVY, kvetDefs, noveId, tah, cara, bezier, type Bod, type LogoProps } from "./sdilene";
+
+const {
+  size = 160,
+  tema = "svetle",
+  mono = BARVY.espresso,
+  anim = false,
+  nazev = "zadny",
+  maly = false,
+  class: trida = "",
+} = Astro.props as LogoProps;
+
+const id = noveId("vt");
+const jeMono = tema === "mono";
+const tmave = tema === "tmave";
+const ink = jeMono ? mono : tmave ? BARVY.krem : BARVY.espresso;
+const kura = jeMono ? [mono, mono, mono] : tmave ? ["#C9AE90", "#E6D3BC", "#B89B7C"] : ["#2B211D", "#5A4434", "#2B211D"];
+const kvetBarva = tmave ? BARVY.sakuraSvetla : BARVY.sakura;
+const akcent = jeMono ? mono : kvetBarva;
+const slovo = nazev !== "zadny";
+
+/**
+ * J v soustavě písma: verzálka vysoká 100, účaří v y = 100. Dřík se jemně
+ * vlní jako větev, háček klesá pod účaří jako u garamondového J.
+ */
+const stredJ = (t: number): Bod => {
+  if (t <= 0.7) {
+    const s = t / 0.7;
+    return [1.2 * Math.sin(2 * Math.PI * s), -3 + 95 * s];
+  }
+  return bezier([0, 92], [0.5, 118], [-30, 128], [-37, 108], (t - 0.7) / 0.3);
+};
+const sirkaJ = (t: number) => {
+  if (t < 0.04) return 10.5 + 3 * (t / 0.04);
+  if (t < 0.7) return 13.5 - 2 * ((t - 0.04) / 0.66);
+  return 11.5 - 8.4 * Math.pow((t - 0.7) / 0.3, 1.25);
+};
+const jTah = tah(stredJ, sirkaJ, 130);
+const odhalJ = cara(Array.from({ length: 81 }, (_, i) => stredJ(i / 80)));
+
+const vetvicky = [
+  tah((t) => bezier([4, 41], [8, 37], [12, 33], [18, 28], t), (t) => 4.4 - 2.8 * t, 24),
+  tah((t) => bezier([-2, 7], [-6, 4], [-11, 1.5], [-17, 0], t), (t) => 5.6 - 3.2 * t, 24),
+];
+
+const vyska = slovo ? Math.round(size * 0.45) : size;
+---
+
+<span class={`lg lg-${nazev} vt ${anim ? "anim" : ""} ${trida}`} data-logo style={`--s:${size}px`}>
+  <svg
+    height={vyska}
+    width={slovo ? Math.round(vyska * 4.3) : size}
+    viewBox={slovo ? "-46 -30 640 158" : "-86 -31 160 160"}
+    data-fit={slovo ? "5" : undefined}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-label="JIRO saku"
+  >
+    <defs>
+      <Fragment set:html={kvetDefs(id, { barva: kvetBarva, mono: jeMono ? mono : null })} />
+      <linearGradient id={`${id}-kura`} gradientUnits="userSpaceOnUse" x1="-7" y1="0" x2="7" y2="0">
+        <stop offset="0" stop-color={kura[0]} />
+        <stop offset="0.38" stop-color={kura[1]} />
+        <stop offset="1" stop-color={kura[2]} />
+      </linearGradient>
+      {anim && (
+        <mask id={`${id}-rust`} maskUnits="userSpaceOnUse" x="-60" y="-40" width="140" height="180">
+          <path class="vt-rust" d={odhalJ} pathLength="1" stroke="#fff" stroke-width="24" />
+          {/* Větvičky a suky se ukážou, až je J dopsané */}
+          <rect class="vt-rust-zbytek" x="-60" y="-40" width="140" height="180" fill="#fff" />
+        </mask>
+      )}
+    </defs>
+
+    <g data-fit-obsah>
+      <g mask={anim ? `url(#${id}-rust)` : undefined} fill={`url(#${id}-kura)`}>
+        <path d={jTah} />
+        {vetvicky.map((d) => <path d={d} />)}
+        <ellipse cx="5.8" cy="30" rx="2.7" ry="1.7" transform="rotate(-20 5.8 30)" />
+        <ellipse cx="-5.6" cy="64" rx="2.3" ry="1.5" transform="rotate(15 -5.6 64)" />
+        {!maly && !jeMono && (
+          <g stroke={kura[1]} stroke-linecap="round" fill="none" opacity="0.5">
+            <path d="M-2.6 16 C -2 40 -3.1 60 -2.7 84" stroke-width="0.8" />
+            <path d="M2.9 34 C 3.4 52 2.6 70 3.1 88" stroke-width="0.6" />
+          </g>
+        )}
+      </g>
+
+      {/* Poupata: na konci háčku a za horním květem */}
+      <g transform="translate(-37 107.5) rotate(-30) scale(0.66)">
+        <g class="vt-kvet" style="--z:1.55s">
+          <use href={`#${id}-platek`} />
+        </g>
+      </g>
+      <g transform="translate(15 -17) rotate(38) scale(0.62)">
+        <g class="vt-kvet" style="--z:1.4s">
+          <use href={`#${id}-platek`} />
+        </g>
+      </g>
+      {[
+        { t: "translate(-18.5 -1) rotate(-25) scale(0.78)", z: 1.25 },
+        { t: "translate(19.5 27) rotate(40) scale(0.6)", z: 1.45 },
+        { t: "translate(6 -7) rotate(8) scale(1.18)", z: 1.1 },
+      ].map((k) => (
+        <g transform={k.t}>
+          <g class="vt-kvet" style={`--z:${k.z}s`}>
+            <use href={`#${id}-kvet`} />
+            {!jeMono && <circle r="1.4" fill={BARVY.mustard} />}
+          </g>
+        </g>
+      ))}
+
+      {slovo && (
+        <g class="vt-slovo">
+          <text y="100" fill={ink} font-family="'Cormorant Garamond', Georgia, serif" font-weight="500" font-size="159" letter-spacing="1.5"><tspan x="30">IRO</tspan><tspan dx="36" font-style="italic" font-weight="400" fill={akcent}>saku</tspan></text>
+        </g>
+      )}
+    </g>
+  </svg>
+</span>
+
+<style>
+  .anim .vt-rust {
+    stroke-dasharray: 1 1;
+    animation: vt-kresli 1.1s cubic-bezier(0.55, 0.05, 0.35, 1) 0.15s both;
+  }
+  .anim .vt-rust-zbytek {
+    animation: vt-objev 0.5s ease-out 1.05s both;
+  }
+  .anim .vt-kvet {
+    transform-origin: 0 0;
+    animation: vt-kvet 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+    animation-delay: var(--z);
+  }
+  .anim .vt-slovo {
+    animation: vt-slovo 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.6s both;
+  }
+
+  @keyframes vt-kresli {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes vt-objev {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes vt-kvet {
+    from {
+      transform: scale(0) rotate(-70deg);
+    }
+    to {
+      transform: scale(1) rotate(0);
+    }
+  }
+  @keyframes vt-slovo {
+    from {
+      opacity: 0;
+      transform: translateX(-24px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

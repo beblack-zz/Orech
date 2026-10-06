@@ -1,0 +1,23 @@
+---
+/** Patička nového vzhledu — tichý papír pod loukou. Poznámku dole si stránka může poslat vlastní. */
+interface Props {
+  poznamka?: string;
+}
+const {
+  poznamka = "Parta 2 je návrh nového vzhledu webu. Obloha, krajina i zvuky se kreslí a skládají přímo v prohlížeči — žádné fotky, žádné nahrávky.",
+} = Astro.props;
+---
+<footer class="pata">
+  <div class="pata-obsah">
+    <p class="pata-znacka">JIRO <em>saku</em></p>
+    <p class="pata-adresa">Keramická dílna · Luční 235 · Ořech</p>
+    <nav class="pata-nav" aria-label="Patička">
+      <a href="/kurzy">Kurzy</a>
+      <a href="/open-studio">Open studio</a>
+      <a href="/obchod">Obchod</a>
+      <a href="/parta">Parta</a>
+      <a href="/o-nas">O nás</a>
+    </nav>
+    <p class="pata-poznamka">{poznamka}</p>
+  </div>
+</footer>

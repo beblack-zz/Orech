@@ -1,0 +1,101 @@
+---
+/**
+ * Obloha za celou stránkou. Stojí na místě a mění se s tím, kam člověk
+ * dojel: barvy, slunce, měsíc i hvězdy jedou z CSS proměnných, které
+ * nastavuje scripts/parta2/nebe.ts podle denní doby právě viditelného
+ * stanoviště. Výchozí hodnoty v parta2.css odpovídají svítání, takže
+ * se nic nepřebarví, ani když se skript nenačte.
+ */
+import { chomac, body } from "./tvary";
+
+const hvezdy = body(150, 7, 1600, 620);
+const svetlusky = body(30, 31);
+
+/** Mraky: výška na obloze, velikost, doba přeletu a kde v ní jsou při načtení. */
+const mraky = [
+  { y: 9, s: 1.15, doba: 300, start: 0.15, seed: 3 },
+  { y: 22, s: 0.7, doba: 240, start: 0.55, seed: 11 },
+  { y: 5, s: 0.55, doba: 360, start: 0.8, seed: 19 },
+  { y: 31, s: 0.9, doba: 280, start: 0.35, seed: 27 },
+  { y: 16, s: 0.45, doba: 420, start: 0.95, seed: 41 },
+];
+
+const mrak = (seed: number) => ({
+  telo: [
+    chomac(300, 178, 250, 82, 22, seed, 0.25, 0.66),
+    chomac(222, 136, 118, 92, 14, seed + 1, 0.4, 0.7),
+    chomac(372, 112, 142, 108, 16, seed + 2, 0.4, 0.7),
+    chomac(470, 158, 92, 66, 11, seed + 3, 0.4, 0.7),
+  ],
+  svetlo: [
+    chomac(196, 112, 70, 50, 10, seed + 4, 1, 0.7),
+    chomac(338, 80, 92, 58, 12, seed + 5, 1, 0.7),
+  ],
+});
+---
+<div class="nebe" aria-hidden="true">
+  <svg class="nebe-hvezdy" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMin slice">
+    {hvezdy.map((h, i) => (
+      <circle
+        class={i % 7 === 0 ? "hvezda-blik" : undefined}
+        cx={h.x}
+        cy={h.y}
+        r={0.6 + h.s * 1.5}
+        fill="#FFF8E7"
+        opacity={0.35 + h.t * 0.65}
+        style={i % 7 === 0 ? `animation-delay:${(-h.t * 4).toFixed(2)}s` : undefined}
+      />
+    ))}
+  </svg>
+
+  <div class="nebe-slunce"></div>
+
+  <svg class="nebe-mesic" viewBox="0 0 100 100">
+    <defs>
+      <mask id="mesic-srpek">
+        <rect width="100" height="100" fill="#fff" />
+        <circle cx="62" cy="42" r="30" fill="#000" />
+      </mask>
+    </defs>
+    <circle cx="50" cy="50" r="30" fill="#FFF6DA" mask="url(#mesic-srpek)" />
+  </svg>
+
+  <div class="nebe-mraky">
+    {mraky.map((m, i) => {
+      const t = mrak(m.seed);
+      return (
+        <div
+          class="mrak"
+          style={`--y:${m.y}%;--s:${m.s};--doba:${m.doba}s;--zpozdeni:${(-m.start * m.doba).toFixed(1)}s`}
+        >
+          <svg viewBox="0 0 600 260">
+            <defs>
+              <linearGradient id={`mrak-g-${i}`} gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="260">
+                <stop offset="0" style="stop-color:var(--mrak-svetlo)" />
+                <stop offset="0.5" style="stop-color:var(--mrak-svetlo)" />
+                <stop offset="1" style="stop-color:var(--mrak-stin)" />
+              </linearGradient>
+            </defs>
+            <g fill={`url(#mrak-g-${i})`}>
+              {t.telo.map((d) => <path d={d} />)}
+            </g>
+            <g style="fill:var(--mrak-zare)" opacity="0.55">
+              {t.svetlo.map((d) => <path d={d} />)}
+            </g>
+          </svg>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+{/* Světlušky — v noci plují přes všechno, ale kliknutí nechávají projít */}
+<div class="svetlusky" aria-hidden="true">
+  {svetlusky.map((s) => (
+    <span
+      style={`left:${s.x}%;top:${(30 + s.y * 0.66).toFixed(1)}%;--d:${(7 + s.s * 9).toFixed(1)}s;--z:${(-s.t * 12).toFixed(1)}s;--dx:${((s.s - 0.5) * 120).toFixed(0)}px;--dy:${(-30 - s.t * 90).toFixed(0)}px`}
+    ></span>
+  ))}
+</div>
+
+<div class="zrno" aria-hidden="true"></div>

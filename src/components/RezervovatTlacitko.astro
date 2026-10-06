@@ -1,0 +1,284 @@
+---
+/**
+ * Plovoucí Rezervovat vpravo dole — jediné místo na webu, které smí křičet.
+ *
+ * Všechno ostatní je tiché, tohle schválně ne: sakura v ploše místo
+ * espressa, květ ze značky, který se točí jako hlava kruhu, a plátky, které z něj občas odletí. Na najetí myší se květ roztočí
+ * a plátky vybuchnou do stran.
+ *
+ * Leží nad papírovou texturou (z-index nad body::after), aby barva
+ * nezešedla — je to jediná věc, která na papír „nepatří“.
+ */
+
+/** Id musí být jedinečné — kresbu plátku sdílí květ i odletující plátky. */
+const id = `rez-${Math.random().toString(36).slice(2, 8)}`;
+
+/** Stejný plátek jako ve značce a v PadajiciPlatky. */
+const platek =
+  "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
+
+/**
+ * Odletující plátky: kam doletí po výbuchu (x, y v px), jak se přitom
+ * otočí a jak dlouho čekají v klidu, než jeden sám uletí nahoru.
+ */
+const odlety = [
+  { x: -78, y: -54, otoceni: -160, zpozdeni: 0 },
+  { x: -34, y: -82, otoceni: 120, zpozdeni: 1.4 },
+  { x: 18, y: -90, otoceni: -200, zpozdeni: 2.8 },
+  { x: 64, y: -66, otoceni: 210, zpozdeni: 4.2 },
+  { x: 92, y: -22, otoceni: -140, zpozdeni: 5.6 },
+  { x: -96, y: -8, otoceni: 180, zpozdeni: 7 },
+];
+---
+
+<a href="/kurzy#rezervace" class="rez" aria-label="Rezervovat kurz">
+  <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+    <defs>
+      <path id={`${id}-platek`} d={platek} />
+    </defs>
+  </svg>
+
+  {/* Ručně psaná cedulka nad tlačítkem, jen na větších obrazovkách */}
+  <span class="rez-poznamka" aria-hidden="true">ruce do hlíny!</span>
+
+  {/* Plátky, které z tlačítka odlétají */}
+  <span class="rez-platky" aria-hidden="true">
+    {odlety.map((o) => (
+      <span
+        class="rez-platek"
+        style={`--x: ${o.x}px; --y: ${o.y}px; --ot: ${o.otoceni}deg; --zpozdeni: ${o.zpozdeni}s;`}
+      >
+        <svg width="16" height="16" viewBox="-8 -14 16 16">
+          <use href={`#${id}-platek`} />
+        </svg>
+      </span>
+    ))}
+  </span>
+
+  <span class="rez-telo">
+    <svg class="rez-kvet" width="26" height="26" viewBox="-15 -15 30 30" aria-hidden="true">
+      {[0, 72, 144, 216, 288].map((u) => (
+        <use href={`#${id}-platek`} transform={`rotate(${u}) translate(0 -1.7)`} />
+      ))}
+      <circle r="2.1" class="rez-kvet-stred" />
+    </svg>
+
+    <span class="rez-text">Rezervovat</span>
+
+    <svg class="rez-sipka" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M3 9 H14 M9.5 4.5 L14 9 L9.5 13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </span>
+</a>
+
+<style>
+  .rez {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    /* Nad papírovou texturou (body::after má 60) */
+    z-index: 70;
+    display: block;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @media (min-width: 768px) {
+    .rez {
+      right: 2rem;
+      bottom: 2rem;
+    }
+  }
+  .rez:hover {
+    transform: translateY(-4px) scale(1.06);
+  }
+  .rez:active {
+    transform: translateY(0) scale(0.97);
+  }
+
+  /* ——— Tělo ——— */
+
+  .rez-telo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    overflow: hidden;
+    padding: 0.85rem 1.4rem 0.85rem 1.1rem;
+    border-radius: 999px;
+    /* Napevno, ne token — v noci je krémová tmavá a písmo by na sakuře zhaslo */
+    color: #f4ebdd;
+    background:
+      radial-gradient(120% 140% at 20% 0%, #D86A48 0%, transparent 55%),
+      linear-gradient(135deg, #C9583A 0%, #B84A2B 45%, #8F3A21 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.28),
+      inset 0 -2px 0 rgb(0 0 0 / 0.18),
+      0 10px 28px -8px rgb(143 58 33 / 0.75),
+      0 4px 10px -4px rgb(58 46 40 / 0.5);
+    animation: rez-postrc 7s ease-in-out infinite;
+    transition: box-shadow 0.3s ease;
+  }
+  .rez:hover .rez-telo {
+    animation-play-state: paused;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.32),
+      inset 0 -2px 0 rgb(0 0 0 / 0.18),
+      0 16px 36px -8px rgb(143 58 33 / 0.9),
+      0 0 40px -6px rgb(232 180 64 / 0.55);
+  }
+
+  .rez-text {
+    position: relative;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-shadow: 0 1px 0 rgb(0 0 0 / 0.2);
+  }
+
+  /* ——— Květ ——— */
+
+  .rez-kvet {
+    position: relative;
+    flex: none;
+    fill: #f4ebdd;
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.25));
+    animation: rez-tocit 9s linear infinite;
+  }
+  .rez-kvet-stred {
+    fill: var(--color-mustard);
+  }
+  .rez:hover .rez-kvet {
+    animation-duration: 1.1s;
+  }
+
+  /* ——— Šipka vyjede až na hover ——— */
+
+  .rez-sipka {
+    position: relative;
+    flex: none;
+    width: 0;
+    margin-left: -0.6rem;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: width 0.3s ease, margin 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  }
+  .rez:hover .rez-sipka,
+  .rez:focus-visible .rez-sipka {
+    width: 18px;
+    margin-left: 0;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ——— Plátky ——— */
+
+  .rez-platky {
+    position: absolute;
+    left: 1.9rem;
+    top: 50%;
+    pointer-events: none;
+  }
+  .rez-platek {
+    position: absolute;
+    left: -8px;
+    top: -8px;
+    fill: var(--color-sakura);
+    opacity: 0;
+    animation: rez-unik 8.4s ease-out infinite;
+    animation-delay: var(--zpozdeni);
+  }
+  .rez:hover .rez-platek {
+    animation: rez-vybuch 0.9s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  }
+
+  /* ——— Cedulka ——— */
+
+  /*
+   * Papírová cedulka s ocáskem dolů na tlačítko. Krémový podklad má kvůli
+   * patičce — sakura přímo na espressu by se nedala přečíst.
+   */
+  .rez-poznamka {
+    position: absolute;
+    right: 1.4rem;
+    bottom: calc(100% + 0.7rem);
+    display: none;
+    padding: 0.2rem 0.7rem 0.3rem;
+    border-radius: 6px;
+    background: var(--color-cream);
+    box-shadow: 0 0 0 1px rgb(184 74 43 / 0.35), 0 6px 14px -6px rgb(58 46 40 / 0.45);
+    font-family: var(--font-hand);
+    font-size: 22px;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--color-sakura);
+    transform: rotate(-5deg);
+    transform-origin: right bottom;
+    animation: rez-cedulka 3.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .rez-poznamka::after {
+    content: "";
+    position: absolute;
+    right: 1.4rem;
+    top: 100%;
+    border: 7px solid transparent;
+    border-top-color: var(--color-cream);
+    border-bottom-width: 0;
+  }
+  @media (min-width: 768px) {
+    .rez-poznamka {
+      display: block;
+    }
+  }
+
+  /* ——— Pohyb ——— */
+
+  @keyframes rez-tocit {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Dlouho klid, pak se tlačítko ohlásí — povyskočí a zavrtí se */
+  @keyframes rez-postrc {
+    0%, 82%, 100% { transform: translateY(0) rotate(0) scale(1); }
+    85% { transform: translateY(-6px) rotate(-3deg) scale(1.05); }
+    88% { transform: translateY(0) rotate(2.5deg) scale(1.02); }
+    91% { transform: translateY(-3px) rotate(-1.5deg) scale(1.03); }
+    94% { transform: translateY(0) rotate(0.8deg) scale(1); }
+  }
+
+  /* Jeden plátek se utrhne a odletí nahoru doleva */
+  @keyframes rez-unik {
+    0% { opacity: 0; transform: translate(0, 0) rotate(0); }
+    3% { opacity: 0.9; }
+    16% { opacity: 0; transform: translate(calc(var(--x) * 0.6), -70px) rotate(var(--ot)); }
+    100% { opacity: 0; transform: translate(calc(var(--x) * 0.6), -70px) rotate(var(--ot)); }
+  }
+
+  /* Na hover vybuchnou všechny naráz do stran */
+  @keyframes rez-vybuch {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0) scale(0.6); }
+    60% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--ot)) scale(1.1); }
+  }
+
+  @keyframes rez-cedulka {
+    0%, 100% { transform: rotate(-5deg) translateY(0); }
+    50% { transform: rotate(-3deg) translateY(-4px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rez,
+    .rez-telo,
+    .rez-kvet,
+    .rez-platek,
+    .rez-poznamka {
+      animation: none !important;
+      transition: none;
+    }
+    .rez:hover {
+      transform: none;
+    }
+  }
+</style>

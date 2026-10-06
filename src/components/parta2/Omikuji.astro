@@ -1,0 +1,81 @@
+---
+/**
+ * Omikuji — věštba ze svatyně, jen hrnčířská. Zatřese se krabičkou,
+ * vyjede tyčka s číslem a rozbalí se papír. Smůla se dá přivázat
+ * k provazu u ořechu, jak se to v Japonsku dělá; uzlíky se pamatují
+ * v prohlížeči. Losuje scripts/parta2/omikuji.ts.
+ */
+import Skryty from "./Skryty.astro";
+---
+<section class="omikuji" id="omikuji" data-hodina="31" aria-labelledby="omikuji-nadpis">
+  <div class="omikuji-mriz">
+    <div class="omikuji-uvod">
+      <p class="stitek"><span lang="ja">御神籤</span> · omikuji</p>
+      <h2 id="omikuji-nadpis" class="nadpis-2">Vylosuj si, co tě čeká u kruhu.</h2>
+      <p class="omikuji-perex">
+        Ve svatyních se losují papírky s věštbou — od velkého štěstí po smůlu.
+        Ta naše je hrnčířská a podepisuje ji vždycky někdo z party.
+      </p>
+      <div class="omikuji-stojan">
+        <button type="button" class="omikuji-krabicka" aria-label="Zatřást krabičkou s věštbami">
+          <span class="omikuji-tycka" aria-hidden="true"><span class="omikuji-cislo" lang="ja"></span></span>
+          <svg viewBox="0 0 160 260" aria-hidden="true">
+            <defs>
+              <linearGradient id="omi-predek" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#C9A37A" />
+                <stop offset="1" stop-color="#B08660" />
+              </linearGradient>
+            </defs>
+            <polygon points="20,44 50,34 50,252 20,242" fill="#A9835C" />
+            <polygon points="110,34 140,44 140,242 110,252" fill="#8A6A48" />
+            <rect x="50" y="34" width="60" height="218" fill="url(#omi-predek)" />
+            <polygon points="20,44 50,34 110,34 140,44 110,54 50,54" fill="#D9B88E" />
+            <circle cx="80" cy="44" r="7" fill="#3A2E28" />
+            <rect x="50" y="62" width="60" height="10" fill="#C4432B" />
+            <rect x="50" y="222" width="60" height="10" fill="#C4432B" />
+            <rect x="60" y="84" width="40" height="126" fill="#FBF6EA" stroke="#C4432B" stroke-width="2" />
+            <g font-family="Yuji Syuku, Yu Mincho, serif" font-size="30" fill="#2B2420" text-anchor="middle">
+              <text x="80" y="122">御</text>
+              <text x="80" y="160">神</text>
+              <text x="80" y="198">籤</text>
+            </g>
+            <path d="M20 242 L50 252 L110 252 L140 242" stroke="#5E452E" stroke-width="2" fill="none" />
+          </svg>
+        </button>
+        <p class="omikuji-pokyn">Zatřes krabičkou.</p>
+      </div>
+    </div>
+
+    <div class="vestba-misto" aria-live="polite">
+      <p class="vestba-prazdno">Tady se rozbalí tvoje věštba.</p>
+      <article class="vestba" hidden>
+        <p class="vestba-cislo" lang="ja">第<span class="vestba-c"></span>番</p>
+        <p class="vestba-stupen" lang="ja"></p>
+        <p class="vestba-cteni"><i class="vestba-romaji" lang="ja-Latn"></i> · <span class="vestba-cesky"></span></p>
+        <p class="vestba-text"></p>
+        <p class="vestba-podpis">— <span></span></p>
+        <dl class="vestba-rubriky"></dl>
+        <div class="vestba-akce">
+          <button type="button" class="tlacitko vestba-privazat">Přivázat k ořechu</button>
+          <button type="button" class="tlacitko tlacitko-obrys vestba-znovu">Losovat znovu</button>
+        </div>
+        <p class="vestba-poznamka">
+          Špatné věštby se v Japonsku nechávají přivázané ve svatyni, ať smůla
+          zůstane tam. Losovat znovu se prý nemá. Ale nikdo se nedívá.
+        </p>
+      </article>
+    </div>
+  </div>
+
+  <div class="omikuji-provaz">
+    <svg class="omikuji-lano" viewBox="0 0 1000 140" preserveAspectRatio="none" aria-hidden="true">
+      <rect x="8" y="10" width="22" height="130" rx="3" fill="#7A5A3C" />
+      <rect x="970" y="10" width="22" height="130" rx="3" fill="#6A4E34" />
+      <path d="M24 30 Q500 90 976 30" stroke="#B59C6E" stroke-width="7" fill="none" vector-effect="non-scaling-stroke" />
+      <path d="M24 30 Q500 90 976 30" stroke="#E8D7AE" stroke-width="4" fill="none" vector-effect="non-scaling-stroke" />
+    </svg>
+    <div class="omikuji-uzliky" aria-hidden="true"></div>
+    <Skryty id="cedulka" class="na-provaze" x={63} y={26} w={4.4} />
+    <p class="omikuji-pocet">Na provaze visí <b>0</b> věšteb.</p>
+  </div>
+</section>

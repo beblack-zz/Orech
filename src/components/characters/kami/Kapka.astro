@@ -1,0 +1,52 @@
+---
+import Kresba from "./Kresba.astro";
+import { uid } from "../dospele/uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+const u = uid();
+---
+{/*
+  KAMI VODY. Skok i squash & stretch zůstávají. Místo stínu teď při
+  dopadu rozbíhá kruhy po hladině — vlnky jedou ve stejném 2,8s cyklu
+  jako skok a rozjedou se přesně v okamžiku dopadu (52 %).
+  Oči jsou otevřené s odleskem: Kapka je ta zvědavá.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <Kresba id={u} />
+    <radialGradient id={`${u}-telo`} cx="0.36" cy="0.42" r="0.75">
+      <stop offset="0" stop-color="#EBBDB7" />
+      <stop offset="0.5" stop-color="#D79A94" />
+      <stop offset="1" stop-color="#BE7F79" />
+    </radialGradient>
+  </defs>
+
+  <ellipse class="kapka-stin" cx="90" cy="160" rx="22" ry="5" fill="#D79A94" opacity="0.15" />
+  <g stroke="#C98C86" fill="none">
+    <ellipse class="kami-vlnka" cx="90" cy="160" rx="26" ry="5" stroke-width="1.4" />
+    <ellipse class="kami-vlnka kami-vlnka-2" cx="90" cy="160" rx="26" ry="5" stroke-width="1" />
+  </g>
+
+  <g class="kapka-telo">
+    <g filter={`url(#${u}-tah)`}>
+      <path d="M90 38 Q60 85 56 108 Q52 132 72 146 Q82 152 90 152 Q98 152 108 146 Q128 132 124 108 Q120 85 90 38 Z" fill={`url(#${u}-telo)`} stroke="#B47670" stroke-width="1.5" />
+      <ellipse cx="76" cy="98" rx="7" ry="15" fill="#FBE7E3" opacity="0.5" transform="rotate(-15 76 98)" />
+      <ellipse cx="52" cy="118" rx="7" ry="5" fill="#D79A94" stroke="#B47670" stroke-width="1" />
+      <ellipse cx="128" cy="118" rx="7" ry="5" fill="#D79A94" stroke="#B47670" stroke-width="1" />
+      <ellipse cx="80" cy="154" rx="8" ry="4" fill="#B87C76" />
+      <ellipse cx="100" cy="154" rx="8" ry="4" fill="#B87C76" />
+    </g>
+    <g class="tvar">
+      <g filter={`url(#${u}-mlha)`} fill="#B86A64" opacity="0.5">
+        <ellipse cx="71" cy="118" rx="6" ry="4" />
+        <ellipse cx="109" cy="118" rx="6" ry="4" />
+      </g>
+      <ellipse cx="79" cy="107" rx="3.4" ry="4.4" fill="#5E3430" />
+      <ellipse cx="101" cy="107" rx="3.4" ry="4.4" fill="#5E3430" />
+      <circle cx="78" cy="105.2" r="1.3" fill="#FFF8F2" />
+      <circle cx="100" cy="105.2" r="1.3" fill="#FFF8F2" />
+      <path d="M85 120 Q90 124 95 120" stroke="#8C5751" stroke-width="2" stroke-linecap="round" fill="none" />
+    </g>
+  </g>
+</svg>

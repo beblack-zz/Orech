@@ -1,0 +1,63 @@
+---
+/**
+ * Jeden kus keramiky do kresby: miska, váza, hrnek nebo talíř opřený
+ * o hranu, v barvě glazury. Kreslí se jako <g> do cizího <svg>, pata
+ * kusu stojí v bodě (x, y). Tvary odpovídají těm v obchodě (obchod.ts),
+ * barvy glazurám z kruhu nanečisto (kurzy2.ts), takže „Hrnek Ranní,
+ * celadon“ je v kresbě opravdu celadonový.
+ */
+import { glazury } from "../../data/kurzy2";
+import type { Tvar } from "../../data/obchod";
+
+interface Props {
+  tvar: Tvar;
+  x: number;
+  y: number;
+  /** Měřítko — 1 je miska široká 52 jednotek */
+  s?: number;
+  /** Název glazury z obchod.ts („Celadon“, „Matná bílá“…) */
+  glazura: string;
+  class?: string;
+}
+const { tvar, x, y, s = 1, glazura, class: cls = "" } = Astro.props;
+const g = glazury.find((z) => z.nazev === glazura.toLowerCase()) ?? glazury[3];
+const obrys = "#3B2A1B";
+---
+<g class={cls} transform={`translate(${x} ${y}) scale(${s})`}>
+  {tvar === "bowl" && (
+    <>
+      <ellipse cx="0" cy="1" rx="22" ry="3" fill="#2B2420" opacity="0.18" />
+      <path d="M-26 -22 C-25 -8 -14 0 0 0 C14 0 25 -8 26 -22 Z" fill={g.stred} stroke={obrys} stroke-width="1" stroke-opacity="0.45" />
+      <ellipse cx="0" cy="-22" rx="26" ry="5" fill={g.svetlo} stroke={obrys} stroke-width="1" stroke-opacity="0.45" />
+      <ellipse cx="0" cy="-21.4" rx="22.5" ry="3.4" fill={g.stin} opacity="0.75" />
+      <path d="M-21 -17 C-19 -9 -13 -4 -6 -2.5" stroke={g.svetlo} stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7" />
+    </>
+  )}
+  {tvar === "vase" && (
+    <>
+      <ellipse cx="0" cy="1" rx="14" ry="2.6" fill="#2B2420" opacity="0.18" />
+      <path d="M-8 -64 C-8 -58 -6 -54 -10 -46 C-19 -32 -17 -8 -8 0 L8 0 C17 -8 19 -32 10 -46 C6 -54 8 -58 8 -64 Z" fill={g.stred} stroke={obrys} stroke-width="1" stroke-opacity="0.45" />
+      <ellipse cx="0" cy="-64" rx="8" ry="2.2" fill={g.stin} stroke={obrys} stroke-width="1" stroke-opacity="0.45" />
+      <path d="M-11 -40 C-15 -28 -14 -14 -8 -6" stroke={g.svetlo} stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7" />
+      <path d="M-13 -30 C-4 -27 4 -27 13 -30" stroke={g.stin} stroke-width="1.4" fill="none" opacity="0.5" />
+    </>
+  )}
+  {tvar === "mug" && (
+    <>
+      <ellipse cx="0" cy="1" rx="15" ry="2.6" fill="#2B2420" opacity="0.18" />
+      <path d="M14 -27 C26 -27 26 -9 13 -9" stroke={g.stred} stroke-width="4.5" fill="none" stroke-linecap="round" />
+      <path d="M-15 -34 L-14 -2 Q-14 0 -11 0 L11 0 Q14 0 14 -2 L15 -34 Z" fill={g.stred} stroke={obrys} stroke-width="1" stroke-opacity="0.45" />
+      <ellipse cx="0" cy="-34" rx="15" ry="3.2" fill={g.stin} stroke={obrys} stroke-width="1" stroke-opacity="0.45" />
+      <path d="M-10 -29 L-9.5 -6" stroke={g.svetlo} stroke-width="3" stroke-linecap="round" opacity="0.65" />
+    </>
+  )}
+  {tvar === "plate" && (
+    <>
+      <ellipse cx="0" cy="1" rx="18" ry="2.6" fill="#2B2420" opacity="0.18" />
+      <ellipse cx="0" cy="-25" rx="24" ry="25" fill={g.stred} stroke={obrys} stroke-width="1" stroke-opacity="0.45" />
+      <ellipse cx="0" cy="-25" rx="15" ry="16" fill={g.svetlo} opacity="0.55" />
+      <ellipse cx="0" cy="-25" rx="15" ry="16" fill="none" stroke={g.stin} stroke-width="1.2" opacity="0.6" />
+      <path d="M-16 -40 C-12 -45 -5 -48 2 -48" stroke="#FFFFFF" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.4" />
+    </>
+  )}
+</g>

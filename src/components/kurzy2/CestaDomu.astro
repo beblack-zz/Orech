@@ -1,0 +1,40 @@
+---
+/**
+ * Od kruhu domů — co se s kusem děje po kurzu. Kolem trati jede miska
+ * podle toho, kolik ze sekce je vidět (scripts/kurzy2/cesta-domu.ts).
+ * Délky jednotlivých kroků schválně nepíšu: dílna slibuje jen celek,
+ * 2–3 týdny, a ten tu stojí.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import Naradi from "./Naradi.astro";
+import type { PostavaId } from "../../data/parta";
+
+const kroky: { kdo: PostavaId; nazev: string; text: string }[] = [
+  { kdo: "vazicka", nazev: "Točíš", text: "Na kurzu. Tvar vznikne za hodinu, hotový kus ještě ne." },
+  { kdo: "kachlik", nazev: "Suší se", text: "Pomalu a přikrytý, aby se nezkroutil." },
+  { kdo: "samotka", nazev: "Přežah", text: "První výpal. Z hlíny je střep." },
+  { kdo: "kapka", nazev: "Glazura", text: "Kus dostane barvu a lesk." },
+  { kdo: "pecinka", nazev: "Ostrý výpal", text: "Glazura se v peci taví ve sklo." },
+  { kdo: "cedulka", nazev: "Vyzvedneš", text: "Podle jména na dně. Dáme vědět, až je hotovo." },
+];
+---
+<div class="domu" data-domu>
+  <div class="domu-trat" aria-hidden="true">
+    <span class="domu-prubeh"></span>
+    <span class="domu-miska">
+      <svg viewBox="0 0 60 40"><path d="M4 8 Q6 36 30 36 Q54 36 56 8 Z" class="domu-miska-telo" /><ellipse cx="30" cy="8" rx="26" ry="5" class="domu-miska-okraj" /></svg>
+    </span>
+  </div>
+  <ol class="domu-kroky">
+    {kroky.map((k, i) => (
+      <li class="domu-krok" data-krok={i}>
+        <span class="domu-kami"><Postavicka id={k.kdo} size={90} varianta="kami" /></span>
+        <span class="domu-cislo">{i + 1}</span>
+        <b>{k.nazev}</b>
+        <span class="domu-text">{k.text}</span>
+      </li>
+    ))}
+  </ol>
+  <p class="domu-celkem"><span>Celkem</span> <b>2–3 týdny</b></p>
+  <Naradi id="drat" x={30} y={8} w={6} u={-10} />
+</div>

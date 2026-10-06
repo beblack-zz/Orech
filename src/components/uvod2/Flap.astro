@@ -1,0 +1,19 @@
+---
+/**
+ * Jedna klapka odjezdové tabule. Horní a dolní půlka nesou stejný text,
+ * každá ukáže jen svou polovinu — ve chvíli překlapnutí přidá skript
+ * (scripts/uvod2/tabule.ts) dvě pohyblivé půlky, padající a vstávající.
+ * Bez skriptu je to prostě nápis na tmavé destičce.
+ */
+interface Props {
+  text?: string;
+  /** cislice — úzká destička na jeden znak, slovo — celý nápis */
+  druh?: "cislice" | "slovo";
+  class?: string;
+}
+const { text = "", druh = "slovo", class: cls = "" } = Astro.props;
+---
+<span class={`flap flap-${druh} ${cls}`} data-flap>
+  <span class="flap-p flap-hore"><span class="flap-t">{text}</span></span>
+  <span class="flap-p flap-dole"><span class="flap-t">{text}</span></span>
+</span>

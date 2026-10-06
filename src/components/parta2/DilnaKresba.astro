@@ -1,0 +1,76 @@
+---
+/** Kresba dílny bez obalu — sdílí ji samostatná i vnořená podoba (Dilna.astro). */
+import { chomac } from "./tvary";
+
+const tasky = Array.from({ length: 6 }, (_, i) => {
+  const t = (i + 1) / 7;
+  return `M${270 - 80 * t} ${175 - 70 * t} L${400 - 78 * t} ${168 - 68 * t}`;
+});
+---
+<g>
+  <ellipse cx="250" cy="302" rx="236" ry="12" fill="#2E3B25" opacity="0.22" />
+
+  {/* Sakura u domu */}
+  <path d="M58 302 C62 262 54 232 64 196" stroke="#5A4636" stroke-width="9" stroke-linecap="round" fill="none" />
+  <path d="M62 232 C46 214 36 204 26 200 M64 214 C78 200 90 194 100 192" stroke="#5A4636" stroke-width="4" stroke-linecap="round" fill="none" />
+  <path d={chomac(62, 176, 64, 48, 13, 501)} fill="#D98C8A" />
+  <path d={chomac(54, 166, 48, 36, 11, 502)} fill="#EBA9A6" />
+  <path d={chomac(44, 156, 28, 20, 9, 503)} fill="#F7CFCB" />
+  <g fill="#F2B8B4">
+    <circle cx="104" cy="236" r="2.4" /><circle cx="120" cy="262" r="2" /><circle cx="22" cy="246" r="2.2" />
+  </g>
+
+  {/* Komín na střeše a kouř */}
+  <rect x="296" y="82" width="18" height="38" fill="#C9BCA8" />
+  <rect x="292" y="78" width="26" height="7" fill="#A89A86" />
+  <circle class="kour kour-1" cx="305" cy="72" r="7" fill="#EDE6DA" />
+  <circle class="kour kour-2" cx="305" cy="72" r="6" fill="#EDE6DA" />
+  <circle class="kour kour-3" cx="305" cy="72" r="5" fill="#EDE6DA" />
+
+  {/* Střecha — boční rovina */}
+  <path d="M190 105 L270 175 L400 168 L322 100 Z" fill="#B4523A" />
+  <g stroke="#8E3D2A" stroke-width="1.6" opacity="0.65">
+    {tasky.map((d) => <path d={d} />)}
+  </g>
+  <path d="M196 110 L322 103" stroke="#D27458" stroke-width="2" opacity="0.6" />
+  <path d="M190 101 L322 96" stroke="#7A3424" stroke-width="4" stroke-linecap="round" />
+
+  {/* Boční zeď ve stínu */}
+  <path d="M270 300 L270 175 L400 168 L400 296 Z" fill="#DCD2C1" />
+  <rect x="300" y="232" width="30" height="66" fill="#7A5A3C" />
+  <path d="M296 232 L334 232" stroke="#5E452E" stroke-width="4" stroke-linecap="round" />
+  <circle cx="324" cy="268" r="2" fill="#E8C66A" />
+  <rect x="350" y="212" width="32" height="36" fill="var(--dilna-okno, #A9C2D2)" stroke="#6B5540" stroke-width="3" />
+  <path d="M366 212 V248 M350 230 H382" stroke="#6B5540" stroke-width="2" />
+  {/* Cedulka u dveří */}
+  <rect x="336" y="244" width="40" height="14" rx="2" fill="#EFE3CC" stroke="#8A6A48" stroke-width="1" transform="rotate(-3 356 251)" />
+  <text x="356" y="254" text-anchor="middle" font-size="7.5" fill="#3A2E28" font-family="Fraunces Variable, Georgia, serif" transform="rotate(-3 356 251)">JIRO saku</text>
+
+  {/* Štít do ulice */}
+  <path d="M110 300 L110 175 L190 105 L270 175 L270 300 Z" fill="#F4EEE2" />
+  <path d="M104 180 L190 100 L276 180" stroke="#8E3D2A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <rect x="180" y="140" width="20" height="22" fill="var(--dilna-okno, #A9C2D2)" stroke="#6B5540" stroke-width="2.5" />
+  <rect x="138" y="200" width="34" height="42" fill="var(--dilna-okno, #A9C2D2)" stroke="#6B5540" stroke-width="3" />
+  <rect x="208" y="200" width="34" height="42" fill="var(--dilna-okno, #A9C2D2)" stroke="#6B5540" stroke-width="3" />
+  <path d="M155 200 V242 M138 221 H172 M225 200 V242 M208 221 H242" stroke="#6B5540" stroke-width="2" />
+  <path d="M134 244 H176 M204 244 H246" stroke="#B9AE9C" stroke-width="3" />
+  <path d="M118 290 C150 286 220 288 262 292" stroke="#D9CFBE" stroke-width="6" opacity="0.7" />
+
+  {/* Kůlna s pecí a plechovým komínem */}
+  <rect x="452" y="150" width="9" height="80" fill="#70767B" />
+  <rect x="448" y="146" width="17" height="6" fill="#5B6166" />
+  <circle class="kour kour-2" cx="456" cy="138" r="6" fill="#E3DDD2" />
+  <circle class="kour kour-3" cx="456" cy="138" r="5" fill="#E3DDD2" />
+  <rect x="404" y="232" width="68" height="68" fill="#8A6A48" />
+  <g stroke="#6E5236" stroke-width="2">
+    <path d="M418 234 V300 M432 234 V300 M446 234 V300 M460 234 V300" />
+  </g>
+  <path d="M398 234 L476 222 L476 230 L398 242 Z" fill="#5B4A3C" />
+  <rect x="420" y="262" width="22" height="22" fill="#2E2420" />
+  <rect x="424" y="266" width="14" height="14" fill="#E88A3A" opacity="0.55" class="dilna-zar" />
+
+  {/* Plot */}
+  <g stroke="#8A6A48" stroke-width="3" stroke-linecap="round">
+    <path d="M96 304 H20 M100 296 V310 M80 296 V310 M60 296 V310 M40 296 V310 M20 296 V310" />
+  </g>
+</g>

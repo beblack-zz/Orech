@@ -1,0 +1,108 @@
+---
+/**
+ * Hlavička nového vzhledu: plovoucí papírový pruh nad oblohou. Vpravo
+ * sbírka schovaných věcí (na Partě omamori s kami, na Kurzech bedýnka
+ * s nářadím, na Úvodu 2 sešit razítek) a zvonek fūrin, kterým se zapíná
+ * zvuk.
+ */
+import { razitka } from "../../data/uvod2";
+
+interface Props {
+  /** zadny — stránka bez sbírky (třeba rezervace) */
+  sber?: "omamori" | "naradi" | "razitka" | "zadny";
+}
+const { sber = "omamori" } = Astro.props;
+const odkazy = [
+  { href: "/", label: "Úvod" },
+  { href: "/uvod-2", label: "Úvod 2" },
+  { href: "/kurzy", label: "Kurzy" },
+  { href: "/kurzy-2", label: "Kurzy 2" },
+  { href: "/parta", label: "Parta" },
+  { href: "/parta-2", label: "Parta 2" },
+  { href: "/open-studio", label: "Open studio" },
+  { href: "/rezervace", label: "Rezervace" },
+  { href: "/obchod", label: "Obchod" },
+  { href: "/dizajn-2", label: "Dizajn 2.0" },
+  { href: "/o-nas", label: "O nás" },
+];
+const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
+const listek = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
+---
+<header class="hlava">
+  <a href="/" class="hlava-znacka" aria-label="JIRO saku — úvod">
+    <svg viewBox="-20 -20 40 40" aria-hidden="true">
+      <circle r="19" fill="#F7F1E3" stroke="#2B2420" stroke-width="1.2" />
+      <circle r="11" fill="none" stroke="#2B2420" stroke-width="0.6" opacity="0.4" />
+      <g fill="#C4432B" transform="rotate(12) scale(1.15)">
+        {[0, 72, 144, 216, 288].map((u) => <path d={listek} transform={`rotate(${u}) translate(0 -1.6)`} />)}
+      </g>
+    </svg>
+    <span>JIRO <em>saku</em></span>
+  </a>
+
+  <nav class="hlava-nav" aria-label="Hlavní navigace">
+    {odkazy.map((o) => (
+      <a href={o.href} aria-current={tady === o.href ? "page" : undefined}>{o.label}</a>
+    ))}
+  </nav>
+
+  <div class="hlava-akce">
+    {sber === "zadny" ? null : sber === "razitka" ? (
+    <button type="button" class="razitka-tlacitko" aria-haspopup="dialog" aria-label="Sešit razítek">
+      <svg viewBox="0 0 44 40" aria-hidden="true">
+        <rect x="6" y="5" width="32" height="31" rx="3" class="razitka-desky" />
+        <rect x="6" y="5" width="5" height="31" rx="1.5" fill="#2B2420" opacity="0.3" />
+        <rect x="16" y="10" width="17" height="21" rx="1.5" fill="#FBF6EA" />
+        <circle cx="24.5" cy="20.5" r="6" fill="none" stroke="#C4432B" stroke-width="1.4" />
+        <text x="24.5" y="23.4" text-anchor="middle" font-size="8" fill="#C4432B" font-family="Yuji Syuku, Yu Mincho, serif">印</text>
+      </svg>
+      <span class="omamori-pocet razitka-pocet"><b>0</b>/{razitka.length}</span>
+    </button>
+    ) : sber === "naradi" ? (
+    <button type="button" class="naradi-tlacitko" aria-haspopup="dialog" aria-label="Bedýnka: nalezené nářadí">
+      <svg viewBox="0 0 48 40" aria-hidden="true">
+        <path d="M16 12 V7 Q16 4 19 4 H29 Q32 4 32 7 V12" stroke="#5C5047" stroke-width="2.6" fill="none" stroke-linecap="round" />
+        <rect x="4" y="12" width="40" height="24" rx="3" class="naradi-bedna" />
+        <path d="M4 20 H44" stroke="#2B2420" stroke-width="1.4" opacity="0.4" />
+        <rect x="20" y="17" width="8" height="6" rx="1.5" fill="#D6A23A" />
+      </svg>
+      <span class="omamori-pocet naradi-pocet"><b>0</b>/6</span>
+    </button>
+    ) : (
+    <button type="button" class="omamori-tlacitko" aria-haspopup="dialog" aria-label="Omamori: nalezení kami">
+      <svg viewBox="0 0 40 54" aria-hidden="true">
+        <path d="M14 8 C10 2 16 0 20 5 C24 0 30 2 26 8" stroke="#D6A23A" stroke-width="2" fill="none" stroke-linecap="round" />
+        <path d="M7 16 Q7 9 13 9 L27 9 Q33 9 33 16 L33 45 Q33 51 27 51 L13 51 Q7 51 7 45 Z" class="omamori-latka" />
+        <path d="M7 16 Q20 22 33 16" stroke="#D6A23A" stroke-width="1.6" fill="none" />
+        <rect x="14" y="22" width="12" height="22" rx="1.5" fill="#FBF6EA" />
+        <text x="20" y="38" text-anchor="middle" font-size="11" font-family="Yuji Syuku, Yu Mincho, serif" fill="#2B2420">守</text>
+        <g fill="#D6A23A" opacity="0.8"><circle cx="10.5" cy="26" r="1.2" /><circle cx="29.5" cy="30" r="1.2" /><circle cx="10.5" cy="40" r="1.2" /><circle cx="29.5" cy="44" r="1.2" /></g>
+      </svg>
+      <span class="omamori-pocet"><b>0</b>/9</span>
+    </button>
+    )}
+
+    <button type="button" class="zvuk-tlacitko" aria-pressed="false" aria-label="Zapnout zvuk">
+      <svg viewBox="0 0 32 44" aria-hidden="true">
+        <path d="M16 1 V6" stroke="currentColor" stroke-width="1.4" />
+        <g class="furin-zvon">
+          <path d="M7 18 Q7 6 16 6 Q25 6 25 18 Z" fill="#DCEBF0" stroke="currentColor" stroke-width="1.4" />
+          <path d="M10 13 Q12 10 15 9" stroke="#C4432B" stroke-width="1.6" fill="none" stroke-linecap="round" />
+          <path d="M16 18 V26" stroke="currentColor" stroke-width="1" />
+          <rect x="12" y="26" width="8" height="15" rx="1" fill="#C4432B" />
+        </g>
+      </svg>
+      <span class="zvuk-popis">Zvuk</span>
+    </button>
+
+    <button type="button" class="hlava-menu-tlacitko" aria-expanded="false" aria-controls="hlava-menu" aria-label="Otevřít menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8 H20 M4 16 H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+    </button>
+  </div>
+</header>
+
+<nav id="hlava-menu" class="hlava-menu" aria-label="Menu" hidden>
+  {odkazy.map((o) => (
+    <a href={o.href} aria-current={tady === o.href ? "page" : undefined}>{o.label}</a>
+  ))}
+</nav>

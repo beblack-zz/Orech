@@ -1,0 +1,84 @@
+---
+/**
+ * 七 Police — pohled do otevřené pece při západu slunce. Dole leží
+ * Šamotka, na ní a na polici nad ní přibývají hrnky, jak se stanoviště
+ * posouvá oknem (scripts/parta2/sceny.ts). Mezi hrnky se schovala Vázička.
+ */
+import Kami from "../Kami.astro";
+import Skryty from "../Skryty.astro";
+
+const tvary = {
+  miska: { telo: "M4 26 Q6 58 30 58 Q54 58 56 26 Z", okraj: [30, 26, 26, 5] },
+  hrnek: { telo: "M14 8 L46 8 L43 58 L17 58 Z", okraj: [30, 8, 16, 3] },
+  vaza: { telo: "M25 4 L35 4 L36 14 Q52 28 45 48 Q41 58 30 58 Q19 58 15 48 Q8 28 24 14 Z", okraj: [30, 4, 5, 1.6] },
+  talir: { telo: "M2 50 Q30 62 58 50 L57 45 Q30 53 3 45 Z", okraj: [30, 45, 27, 4] },
+  dza: { telo: "M14 16 Q8 40 16 54 Q22 59 30 59 Q38 59 44 54 Q52 40 46 16 Z", okraj: [30, 16, 16, 3] },
+} as const;
+
+type Tvar = keyof typeof tvary;
+
+/** [tvar, střed x, šířka, základna y, glazura, světlo glazury, práh] — souřadnice okna 600×600 */
+const hrnky: [Tvar, number, number, number, string, string, number][] = [
+  ["hrnek", 168, 40, 400, "#9DB8A0", "#C4D8C6", 0.12],
+  ["vaza", 290, 54, 400, "#3A2A22", "#8A5A34", 0.2],
+  ["miska", 348, 46, 400, "#EDE3D3", "#E39A6A", 0.28],
+  ["dza", 405, 50, 400, "#5F7FA8", "#9DB6D4", 0.36],
+  ["miska", 140, 44, 250, "#8C9A5B", "#B8C27E", 0.44],
+  ["hrnek", 196, 48, 250, "#D79A94", "#F0C6C0", 0.52],
+  ["talir", 252, 44, 250, "#C9A04E", "#E8CC86", 0.6],
+  ["vaza", 384, 52, 250, "#3E7D5A", "#7DB28C", 0.68],
+  ["dza", 440, 46, 250, "#A8542E", "#D98A5C", 0.76],
+];
+const pct = (n: number) => `${((n / 600) * 100).toFixed(2)}%`;
+---
+<div class="scena scena-police" data-police>
+  <svg class="scena-pozadi" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <pattern id="police-cihly" width="60" height="30" patternUnits="userSpaceOnUse">
+        <rect width="60" height="30" fill="#C99E74" />
+        <path d="M0 0 H60 M0 15 H60 M30 0 V15 M0 15 V30 M60 15 V30" stroke="#A97F58" stroke-width="2" />
+      </pattern>
+      <radialGradient id="police-lampa" cx="0.5" cy="0.25" r="0.75">
+        <stop offset="0" stop-color="#FFD9A0" stop-opacity="0.75" />
+        <stop offset="1" stop-color="#4A2E22" stop-opacity="0.55" />
+      </radialGradient>
+    </defs>
+    <rect width="600" height="600" fill="url(#police-cihly)" />
+    {/* Boční stěny v perspektivě */}
+    <path d="M0 0 L90 70 L90 540 L0 600 Z" fill="#8E6A4C" />
+    <path d="M600 0 L510 70 L510 540 L600 600 Z" fill="#7A5A40" />
+    <path d="M90 540 L510 540 L600 600 L0 600 Z" fill="#9C7A5A" />
+    <rect width="600" height="600" fill="url(#police-lampa)" />
+    {/* Spirála topné spirály po stěnách */}
+    <g stroke="#6E5A4C" stroke-width="3" fill="none" opacity="0.7">
+      <path d="M20 120 l50 30 M20 220 l50 30 M20 320 l50 30 M20 420 l50 30" />
+      <path d="M530 150 l50 -30 M530 250 l50 -30 M530 350 l50 -30 M530 450 l50 -30" />
+    </g>
+    {/* Sloupky a horní police */}
+    <rect x="128" y="264" width="16" height="138" rx="4" fill="#E2D2B6" />
+    <rect x="460" y="264" width="16" height="138" rx="4" fill="#D6C5A7" />
+    <rect x="106" y="250" width="388" height="16" rx="3" fill="#E6D7BE" stroke="#8A7A66" stroke-width="1.5" />
+    <rect x="106" y="262" width="388" height="5" fill="#C3B197" />
+  </svg>
+
+  <Kami id="samotka" class="scena-kami police-samotka" style="left:20%;top:41.7%;width:60%" />
+
+  {hrnky.map(([tvar, x, w, zaklad, glazura, svetlo, prah]) => {
+    const t = tvary[tvar];
+    const [ox, oy, orx, ory] = t.okraj;
+    return (
+      <div class="hrnek" data-prah={prah} style={`left:${pct(x - w / 2)};top:${pct(zaklad - w)};width:${pct(w)}`} aria-hidden="true">
+        <svg viewBox="0 0 60 60">
+          <path d={t.telo} fill={glazura} />
+          <path d={t.telo} fill={svetlo} opacity="0.35" transform="translate(-4 -2) scale(0.92)" style="transform-origin:30px 30px" />
+          <ellipse cx={ox} cy={oy} rx={orx} ry={ory} fill={svetlo} />
+          <ellipse cx={ox} cy={oy + ory * 0.3} rx={orx * 0.8} ry={ory * 0.6} fill="#2E2420" opacity="0.35" />
+          {tvar === "dza" && <path d="M16 16 Q30 6 44 16 Z" fill={glazura} />}
+          {tvar === "dza" && <circle cx="30" cy="9" r="3" fill={svetlo} />}
+        </svg>
+      </div>
+    );
+  })}
+
+  <Skryty id="vazicka" x={51} y={36.7} w={6} />
+</div>

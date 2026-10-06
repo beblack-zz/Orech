@@ -1,0 +1,1270 @@
+---
+import { Image } from "astro:assets";
+import Enso from "../components/navrhy-loga/Enso.astro";
+import KruhKvet from "../components/navrhy-loga/KruhKvet.astro";
+import Hanko from "../components/navrhy-loga/Hanko.astro";
+import Kintsugi from "../components/navrhy-loga/Kintsugi.astro";
+import Odznak from "../components/navrhy-loga/Odznak.astro";
+import Vetvicka from "../components/navrhy-loga/Vetvicka.astro";
+import fotoHagi from "../images/zdaleka-2.webp";
+import fotoShigaraki from "../images/zdaleka-4.webp";
+import fotoDilna from "../images/o-dilne-2.webp";
+
+/**
+ * Pracovní list: šest návrhů značky vedle sebe.
+ *
+ * Každý návrh má stejnou sadu — velkou scénu s animací, varianty
+ * (světlá, tmavá, jednobarevná, malé velikosti) a ukázky z provozu.
+ * Stejné ukázky u všech jsou schválně: porovnává se značka, ne aranžmá.
+ */
+
+type Navrh = {
+  cislo: string;
+  kotva: string;
+  jmeno: string;
+  podtitul: string;
+  typ: "kruh" | "volny";
+  stitek: string;
+  Logo: any;
+  scena: string;
+  /** Téma pro velkou scénu a avatar — kintsugi patří na tmavou. */
+  tema: "svetle" | "tmave";
+  /** Velikost na scéně. U Větvičky je to výška × 0,45 — nápis je široký. */
+  velikost: number;
+  slogan?: string;
+  pribeh: string;
+  proc: string[];
+  pozor: string[];
+  /** Co navíc potřebuje značka v hlavičce webu. */
+  hlavicka?: Record<string, unknown>;
+};
+
+const navrhy: Navrh[] = [
+  {
+    cislo: "01",
+    kotva: "enso",
+    jmeno: "Ensō",
+    podtitul: "Kruh jedním tahem",
+    typ: "kruh",
+    stitek: "sakura + kruh",
+    Logo: Enso,
+    scena: "papir",
+    tema: "svetle",
+    velikost: 280,
+    pribeh:
+      "Hrnčířský kruh nakreslený jako ensō – zenový kruh, který se maluje jedním tahem štětce a nikdy se úplně neuzavře. V mezeře, kterou tah nechal, vykvetla sakura a jeden plátek už spadl dovnitř. Uvnitř je druhý, rychlejší tah: rýha na hlavě kruhu, která dává tušit, že se točí.",
+    proc: [
+      "Navazuje na „tušový tah“, ve kterém je postavený celý web.",
+      "Říká přesně to, co dílna: ruka, čas a nedokonalost, která je v pořádku.",
+      "Tah a květ jdou použít i zvlášť – tah jako dekor přes fotky, květ jako ikona.",
+    ],
+    pozor: [
+      "Suchý štětec a roztřepené hrany pod 32 px zmizí, na favicon je potřeba zjednodušená kresba.",
+      "Ensō je častý motiv. Síla je v provedení tahu, ne v nápadu – na finál by ho měl namalovat skutečný štětec.",
+    ],
+  },
+  {
+    cislo: "02",
+    kotva: "kruh-kvet",
+    jmeno: "Kruh-květ",
+    podtitul: "Kruh je střed květu",
+    typ: "kruh",
+    stitek: "sakura + kruh",
+    Logo: KruhKvet,
+    scena: "ruzova",
+    tema: "svetle",
+    velikost: 280,
+    pribeh:
+      "Dnešní značka obrácená naruby. Místo květu na kruhu je kruh uprostřed květu: ocelová hlava hrnčířského kruhu s hroudou hlíny je pestík, kolem ní tyčinky s pylem a pět velkých plátků. Točí se proti směru hodin, tak jako kruh u praváka – a když na něj najedeš myší, roztočí se naplno.",
+    proc: [
+      "Nejčitelnější ze všech – funguje na ceduli i v 16 px.",
+      "Drží barvy dnešní značky, ocel a sakuru, takže přechod je hladký.",
+      "Hotová ikona na Instagram a do záložky prohlížeče.",
+    ],
+    pozor: [
+      "Symetrický květ je bezpečná volba. Bez šedého kruhu by mohl působit jako květinářství.",
+      "Nejméně vypráví – je to značka, ne příběh.",
+    ],
+  },
+  {
+    cislo: "03",
+    kotva: "pecet",
+    jmeno: "Pečeť",
+    podtitul: "Razítko na dno",
+    typ: "volny",
+    stitek: "volný směr",
+    Logo: Hanko,
+    scena: "bila",
+    tema: "svetle",
+    velikost: 250,
+    pribeh:
+      "Japonští keramici značí každý kus razítkem na dně. Tady je razítko rovnou značkou: ve vyřezané pečeti znak 咲 – japonsky „saku“, kvést – a vedle něj sakura nad svisle psaným JIRO. Na web, na papírový sáček, do hlíny: pokaždé stejný otisk.",
+    proc: [
+      "Jediná značka, která má fyzickou podobu: razítko se dá vyřezat a tisknout přímo do hlíny.",
+      "Skrytý význam ve jménu – saku znamená kvést.",
+      "Funguje jednobarevně, v malém i na kraftovém papíře.",
+    ],
+    pozor: [
+      "Znak 咲 by měl zkontrolovat někdo, kdo umí japonsky, a ideálně ho napsat kaligraf – tady je to sázené písmo.",
+      "Pro většinu lidí to bez vysvětlení bude „čínský znak“. Patří k němu věta na webu.",
+    ],
+  },
+  {
+    cislo: "04",
+    kotva: "kintsugi",
+    jmeno: "Kintsugi",
+    podtitul: "Každá chyba svůj tvar",
+    typ: "volny",
+    stitek: "volný směr",
+    Logo: Kintsugi,
+    scena: "tma",
+    tema: "tmave",
+    velikost: 290,
+    slogan: "každá chyba svůj tvar",
+    pribeh:
+      "Na webu stojí: dílna, kde má hlína čas a každá chyba svůj tvar. Kintsugi je japonská oprava rozbité keramiky zlatem – prasklina se neschovává, ale zvýrazní. Tady zlatá spára roste po misce jako větvička a na jejím konci kvete sakura.",
+    proc: [
+      "Příběh, který sedí na začátečníky: chyba není konec, ale ozdoba.",
+      "Nejvíc „keramická“ ze všech – miska, stékající glazura, režná nožka.",
+      "Zlato je barva, kterou web zatím nemá. Přinese tu jiskru, která mu chybí.",
+    ],
+    pozor: [
+      "Je to spíš ilustrace než značka. V 16 px zbyde miska se zlatou čárou.",
+      "Zlatá v tisku stojí víc; na razítko zbyde jen silueta.",
+    ],
+  },
+  {
+    cislo: "05",
+    kotva: "odznak",
+    jmeno: "Odznak",
+    podtitul: "Nášivka na zástěru",
+    typ: "volny",
+    stitek: "volný směr",
+    Logo: Odznak,
+    scena: "tepla",
+    tema: "svetle",
+    velikost: 300,
+    pribeh:
+      "Kulatý odznak jako ze staré manufaktury. Jméno a místo obíhají dokola jako kruh, uprostřed stojí váza a z ní rozkvetlá větev. Má v sobě všechno – jméno, místo, rok i květ – takže obstojí sám na nálepce, krabici nebo zástěře.",
+    proc: [
+      "Hotová nálepka, nášivka a razítko na krabice.",
+      "Řekne jméno i místo bez dalšího textu.",
+      "Nápis v kruhu se může pomalu točit – kruh, který běží.",
+    ],
+    pozor: [
+      "Hodně detailů. Pod 64 px se nápis slije, do hlavičky webu zbyde jen váza s větví.",
+      "Odznaky jsou u řemeslných značek časté – působí poctivě, ale ne originálně.",
+    ],
+    hlavicka: { maly: true },
+  },
+  {
+    cislo: "06",
+    kotva: "vetvicka",
+    jmeno: "Větvička",
+    podtitul: "Písmeno, které kvete",
+    typ: "volny",
+    stitek: "volný směr · bonus",
+    Logo: Vetvicka,
+    scena: "krem",
+    tema: "svetle",
+    velikost: 330,
+    pribeh:
+      "Čistě písmová značka: J ve jménu je větev sakury. Kmen dělá dřík, háček je ohyb větve a nahoře kvete. Zbytek jména je v Cormorantu jako dnes, takže se na webu nic nerozbije – a samotné J s květy je hotový monogram.",
+    proc: [
+      "Jméno se přečte hned, což je u nové dílny důležité.",
+      "Samotné J je ikona na avatar i favicon.",
+      "Nejmenší skok od dnešního webu.",
+    ],
+    pozor: ["Chybí kruh, tedy odkaz na točení.", "Větev potřebuje dobrou ruku – tady je to náčrt, ne finál."],
+    hlavicka: { size: 70 },
+  },
+];
+
+/**
+ * Stopa po struně na dně hrnku: když se hotový kus odřízne od kruhu
+ * strunou, zůstane na dně spirála jako ulita. Kreslí se pod otisk značky.
+ */
+const struna = (() => {
+  const body: string[] = [];
+  for (let i = 0; i <= 420; i++) {
+    const th = (i / 420) * Math.PI * 9;
+    const r = 4 + (10.5 * th) / Math.PI;
+    const x = 100 - (1.9 * th) / Math.PI + r * Math.cos(th);
+    const y = 100 + r * Math.sin(th) * 0.96;
+    body.push(`${x.toFixed(1)} ${y.toFixed(1)}`);
+  }
+  return `M${body.join(" L")}`;
+})();
+
+const pisma =
+  "https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Shippori+Mincho+B1:wght@800&display=swap";
+---
+
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Návrhy značky — JIRO saku</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pisma} />
+    <script is:inline>document.documentElement.classList.add("js");</script>
+    <style is:global>
+      :root {
+        --krem: #f4ebdd;
+        --krem-tepla: #efe3d0;
+        --espresso: #3a2e28;
+        --sakura: #b84a2b;
+        --ocel: #5c666b;
+        --kapka: #edd5ce;
+        --mustard: #e8b440;
+        --linka: rgba(58, 46, 40, 0.12);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        background: var(--krem);
+        color: var(--espresso);
+      }
+      body {
+        margin: 0;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 17px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      /* Vlákna ručního papíru — stejná jako na webu */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 50;
+        opacity: 0.45;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7 0.04' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23v)' opacity='0.3'/%3E%3C/svg%3E");
+      }
+      a {
+        color: inherit;
+      }
+
+      /* ——— Značky: společný základ všech šesti ——— */
+
+      .lg {
+        display: inline-flex;
+        align-items: center;
+        line-height: 1;
+        vertical-align: middle;
+        max-width: 100%;
+      }
+      .lg > svg {
+        display: block;
+        flex: none;
+        overflow: visible;
+        max-width: 100%;
+        height: auto;
+      }
+      .lg-pod {
+        flex-direction: column;
+        gap: calc(var(--s) * 0.09);
+      }
+      .lg-vedle {
+        flex-direction: row;
+        gap: calc(var(--s) * 0.14);
+      }
+      .lg-nazev {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 500;
+        white-space: nowrap;
+        letter-spacing: 0.03em;
+        word-spacing: -0.06em;
+      }
+      .lg-pod .lg-nazev {
+        font-size: calc(var(--s) * 0.17);
+      }
+      .lg-vedle .lg-nazev {
+        font-size: calc(var(--s) * 0.42);
+      }
+      /* Animace na scéně začne, až když na ni čtenář doscrolluje */
+      html.js [data-logo].anim:not(.hraje) * {
+        animation-play-state: paused !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        [data-logo] * {
+          animation: none !important;
+        }
+      }
+
+      /* ——— Úvod ——— */
+
+      .obal {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 0 clamp(16px, 4vw, 48px);
+      }
+      .stitek {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(58, 46, 40, 0.55);
+      }
+      .uvod {
+        padding: clamp(48px, 9vw, 120px) 0 clamp(40px, 6vw, 72px);
+      }
+      .uvod h1 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 300;
+        font-size: clamp(52px, 9vw, 128px);
+        line-height: 0.92;
+        letter-spacing: -0.015em;
+        margin: 18px 0 28px;
+      }
+      .uvod h1 em {
+        font-style: italic;
+        font-weight: 400;
+        color: var(--sakura);
+      }
+      .uvod p {
+        max-width: 60ch;
+        font-size: 19px;
+        margin: 0;
+      }
+      .rozcestnik {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 40px;
+      }
+      .rozcestnik a {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 16px 7px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.5);
+        box-shadow: inset 0 0 0 1px var(--linka);
+        text-decoration: none;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+      .rozcestnik a:hover {
+        background: #fff;
+        transform: translateY(-2px);
+      }
+      .rozcestnik b {
+        font-weight: 600;
+        color: var(--sakura);
+      }
+
+      /* ——— Návrh ——— */
+
+      .navrh {
+        padding: clamp(56px, 8vw, 112px) 0;
+        border-top: 1px solid var(--linka);
+      }
+      .navrh-hlava {
+        display: grid;
+        gap: clamp(28px, 4vw, 56px);
+        align-items: start;
+      }
+      @media (min-width: 980px) {
+        .navrh-hlava {
+          grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.3fr);
+        }
+        .navrh-text {
+          position: sticky;
+          top: 32px;
+        }
+      }
+      .navrh-cislo {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 300;
+        font-size: 104px;
+        line-height: 0.8;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(58, 46, 40, 0.38);
+      }
+      .navrh h2 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 400;
+        font-size: clamp(44px, 5vw, 68px);
+        line-height: 1;
+        margin: 18px 0 6px;
+      }
+      .podtitul {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-style: italic;
+        font-size: 27px;
+        line-height: 1.2;
+        color: var(--sakura);
+        margin: 0 0 18px;
+      }
+      .typ {
+        display: inline-block;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding: 6px 12px;
+        border-radius: 999px;
+        margin-bottom: 18px;
+      }
+      .typ-kruh {
+        background: var(--kapka);
+        color: #7d3420;
+      }
+      .typ-volny {
+        background: #e4e0d4;
+        color: #4e555a;
+      }
+      .navrh-text > p {
+        margin: 0;
+        max-width: 54ch;
+      }
+      .seznam h3 {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-weight: 400;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(58, 46, 40, 0.6);
+        margin: 28px 0 8px;
+      }
+      .seznam ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        max-width: 54ch;
+      }
+      .seznam li {
+        position: relative;
+        padding-left: 22px;
+        margin: 7px 0;
+        font-size: 16px;
+      }
+      .seznam li::before {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: 0.62em;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--sakura);
+      }
+      .seznam.pozor li::before {
+        background: transparent;
+        box-shadow: inset 0 0 0 1.5px var(--ocel);
+      }
+
+      /* ——— Scéna ——— */
+
+      .scena {
+        position: relative;
+        border-radius: 32px;
+        min-height: clamp(400px, 50vw, 580px);
+        display: grid;
+        place-items: center;
+        padding: 64px 20px 56px;
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(58, 46, 40, 0.08), 0 40px 70px -50px rgba(58, 46, 40, 0.55);
+      }
+      .scena-papir {
+        background: radial-gradient(circle at 50% 42%, #fbf6ee, #f0e6d6);
+      }
+      .scena-ruzova {
+        background: radial-gradient(circle at 50% 42%, #f7e8e1, #ebcfc4);
+      }
+      .scena-bila {
+        background: radial-gradient(circle at 50% 42%, #fffdf9, #f2ebe0);
+      }
+      .scena-tma {
+        background: radial-gradient(circle at 50% 38%, #4c3d35, #261e1a);
+        color: var(--krem);
+      }
+      .scena-tepla {
+        background: radial-gradient(circle at 50% 42%, #f6ecdc, #e7d6bd);
+      }
+      .scena-krem {
+        background: radial-gradient(circle at 50% 45%, #faf4ea, #efe3d0);
+      }
+      .scena-vodoznak {
+        position: absolute;
+        right: 22px;
+        bottom: -42px;
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 300;
+        font-size: 240px;
+        line-height: 1;
+        opacity: 0.06;
+        pointer-events: none;
+      }
+      .scena-obsah {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 22px;
+        max-width: 100%;
+      }
+      .slogan {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-style: italic;
+        font-weight: 300;
+        font-size: 24px;
+        opacity: 0.8;
+      }
+      .prehrat {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        z-index: 2;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 10px 14px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.65);
+        color: var(--espresso);
+        cursor: pointer;
+        box-shadow: inset 0 0 0 1px rgba(58, 46, 40, 0.15);
+        transition: background 0.2s ease;
+      }
+      .prehrat:hover {
+        background: #fff;
+      }
+      .scena-tma .prehrat {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--krem);
+        box-shadow: inset 0 0 0 1px rgba(244, 235, 221, 0.25);
+      }
+      .scena-tma .prehrat:hover {
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      /* ——— Varianty ——— */
+
+      .mezititulek {
+        margin: 44px 0 14px;
+      }
+      .pas {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      }
+      .dlazdice {
+        border-radius: 22px;
+        padding: 30px 18px 16px;
+        min-height: 250px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        box-shadow: inset 0 0 0 1px rgba(58, 46, 40, 0.08);
+        min-width: 0;
+      }
+      .dlazdice > .stitek {
+        margin-top: auto;
+        text-align: center;
+      }
+      .dlazdice > .lg {
+        margin-top: auto;
+      }
+      .d-krem {
+        background: #f9f3ea;
+      }
+      .d-espresso {
+        background: var(--espresso);
+      }
+      .d-espresso > .stitek {
+        color: rgba(244, 235, 221, 0.55);
+      }
+      .d-mono {
+        background: #fff;
+      }
+      .velikosti {
+        margin-top: auto;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .velikosti figure {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10px;
+        color: rgba(58, 46, 40, 0.5);
+      }
+
+      /* ——— Ukázky ——— */
+
+      .ukazky {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .mk {
+        grid-column: span 12;
+        border-radius: 22px;
+        background: #ece2d3;
+        box-shadow: inset 0 0 0 1px rgba(58, 46, 40, 0.08);
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+        overflow: hidden;
+      }
+      @media (min-width: 720px) {
+        .mk-dno,
+        .mk-ig {
+          grid-column: span 6;
+        }
+      }
+      @media (min-width: 1100px) {
+        .mk-dno,
+        .mk-ig,
+        .mk-vizitky {
+          grid-column: span 4;
+        }
+      }
+
+      /* Prohlížeč s hlavičkou webu */
+      .mk-prohlizec {
+        padding: 0;
+        gap: 0;
+        background: #d9cfc0;
+      }
+      .pr-lista {
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+        padding: 10px 14px 0;
+      }
+      .pr-tecky {
+        display: flex;
+        gap: 6px;
+        padding-bottom: 12px;
+      }
+      .pr-tecky i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #c2b6a5;
+      }
+      .pr-zalozka {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+        max-width: 280px;
+        padding: 9px 14px;
+        border-radius: 10px 10px 0 0;
+        background: #f6efe4;
+        font: 12px/1 system-ui, sans-serif;
+        color: #4a3f38;
+      }
+      .pr-zalozka span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .pr-adresa {
+        padding: 6px 12px 10px;
+        background: #f6efe4;
+      }
+      .pr-adresa div {
+        background: #fff;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font: 12px/1.4 system-ui, sans-serif;
+        color: #7a6f66;
+      }
+      .pr-web {
+        background: var(--krem);
+      }
+      .pr-hlavicka {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 14px 22px;
+        border-bottom: 1px solid rgba(58, 46, 40, 0.1);
+      }
+      .pr-nav {
+        display: flex;
+        gap: 20px;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-weight: 300;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+      }
+      .pr-pill {
+        flex: none;
+        padding: 9px 15px;
+        border-radius: 999px;
+        background: var(--sakura);
+        color: var(--krem);
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-weight: 600;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      @media (max-width: 860px) {
+        .pr-nav {
+          display: none;
+        }
+      }
+      @media (max-width: 520px) {
+        .pr-pill {
+          display: none;
+        }
+      }
+      .pr-hero {
+        padding: 30px 22px 36px;
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 300;
+        font-size: clamp(28px, 3.6vw, 44px);
+        line-height: 1.05;
+      }
+      .pr-hero em {
+        font-style: italic;
+        font-weight: 400;
+        color: var(--sakura);
+      }
+
+      /* Dno hrnku */
+      .hrnek {
+        position: relative;
+        width: min(230px, 78%);
+        aspect-ratio: 1;
+        margin: 8px auto 4px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: radial-gradient(circle at 40% 36%, #dfbc96 0%, #c99f77 44%, #a6744c 100%);
+        box-shadow:
+          inset 0 0 0 9px rgba(120, 70, 35, 0.08),
+          inset 0 0 0 10px rgba(255, 240, 220, 0.28),
+          inset 0 10px 20px rgba(70, 35, 15, 0.35),
+          0 16px 30px -16px rgba(58, 46, 40, 0.6);
+      }
+      .hrnek::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        mix-blend-mode: multiply;
+        opacity: 0.6;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      }
+      .hrnek-struna {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      /* Otisk: vtlačený do hlíny — světlo na spodní hraně, stín na horní */
+      .hrnek .lg {
+        position: relative;
+        opacity: 0.82;
+        mix-blend-mode: multiply;
+        filter: drop-shadow(0.8px 1px 0 rgba(255, 236, 210, 0.5)) drop-shadow(-0.6px -0.8px 0.3px rgba(60, 28, 10, 0.5));
+      }
+
+      /* Instagram */
+      .ig {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        font-family: system-ui, sans-serif;
+        color: #262626;
+      }
+      .ig-profil {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .ig-avatar {
+        flex: none;
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+        padding: 3px;
+        background: conic-gradient(from 210deg, #e8b440, #b84a2b, #d79a94, #e8b440);
+      }
+      .ig-avatar > div {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .ig-jmeno {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .ig-sub {
+        font-size: 13px;
+        color: #737373;
+      }
+      .ig-bio {
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      .ig-mrizka {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3px;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .ig-mrizka img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+      }
+
+      /* Vizitky */
+      .vizitky {
+        position: relative;
+        height: 250px;
+      }
+      .vizitka {
+        position: absolute;
+        left: 50%;
+        width: min(250px, 78%);
+        aspect-ratio: 85 / 55;
+        border-radius: 8px;
+        padding: 16px 18px;
+        display: flex;
+        box-shadow: 0 18px 30px -18px rgba(58, 46, 40, 0.7), 0 2px 4px rgba(58, 46, 40, 0.12);
+      }
+      .vizitka-zadni {
+        top: 14px;
+        background: var(--espresso);
+        align-items: center;
+        justify-content: center;
+        transform: translateX(-36%) rotate(7deg);
+      }
+      .vizitka-predni {
+        top: 76px;
+        background: #fbf6ee;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-start;
+        transform: translateX(-64%) rotate(-4deg);
+      }
+      .viz-kontakt {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 9.5px;
+        line-height: 1.55;
+        letter-spacing: 0.03em;
+        color: #6a5d53;
+      }
+
+      /* ——— Srovnání ——— */
+
+      .srovnani {
+        padding: clamp(56px, 8vw, 112px) 0;
+        border-top: 1px solid var(--linka);
+      }
+      .srovnani h2,
+      .dal h2 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 300;
+        font-size: clamp(44px, 6vw, 80px);
+        line-height: 1;
+        margin: 14px 0 28px;
+      }
+      .srovnani h2 em,
+      .dal h2 em {
+        font-style: italic;
+        font-weight: 400;
+        color: var(--sakura);
+      }
+      .mrizka {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        margin-bottom: 12px;
+      }
+      .bunka {
+        border-radius: 20px;
+        min-height: 230px;
+        padding: 24px 14px 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        text-decoration: none;
+        background: #f9f3ea;
+        box-shadow: inset 0 0 0 1px rgba(58, 46, 40, 0.08);
+        transition: transform 0.2s ease;
+        min-width: 0;
+      }
+      .bunka:hover {
+        transform: translateY(-3px);
+      }
+      .bunka > .lg {
+        margin: auto 0;
+      }
+      .mrizka-tma .bunka {
+        background: var(--espresso);
+      }
+      .mrizka-tma .stitek {
+        color: rgba(244, 235, 221, 0.55);
+      }
+      .mrizka-male .bunka {
+        min-height: 130px;
+        background: #fff;
+      }
+      .male {
+        margin: auto 0;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .dal {
+        padding: clamp(48px, 7vw, 96px) 0 clamp(80px, 10vw, 140px);
+        border-top: 1px solid var(--linka);
+      }
+      .dal p {
+        max-width: 60ch;
+        font-size: 19px;
+        margin: 0 0 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="obal uvod">
+      <span class="stitek">Pracovní list · značka · říjen 2026</span>
+      <h1>Šest cest<br />pro <em>JIRO saku</em></h1>
+      <p>
+        Dvě drží hrnčířský kruh a sakuru, čtyři jdou jinudy – ale květ mají všechny. Každý návrh je
+        nejdřív na velké scéně v pohybu, pak na světlém i tmavém podkladu, jednou barvou, v malých
+        velikostech a nakonec v provozu: hlavička webu, otisk na dně hrnku, Instagram a vizitky.
+      </p>
+      <nav class="rozcestnik" aria-label="Návrhy">
+        {navrhy.map((n) => {
+          const L = n.Logo;
+          return (
+            <a href={`#${n.kotva}`}>
+              <L size={30} maly />
+              <b>{n.cislo}</b> {n.jmeno}
+            </a>
+          );
+        })}
+      </nav>
+    </header>
+
+    <main>
+      {navrhy.map((n) => {
+        const L = n.Logo;
+        return (
+          <section class="navrh" id={n.kotva}>
+            <div class="obal">
+              <div class="navrh-hlava">
+                <div class="navrh-text">
+                  <div class="navrh-cislo" aria-hidden="true">{n.cislo}</div>
+                  <h2>{n.jmeno}</h2>
+                  <p class="podtitul">{n.podtitul}</p>
+                  <span class={`typ typ-${n.typ}`}>{n.stitek}</span>
+                  <p>{n.pribeh}</p>
+                  <div class="seznam">
+                    <h3>Proč to funguje</h3>
+                    <ul>
+                      {n.proc.map((p) => (
+                        <li>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div class="seznam pozor">
+                    <h3>Na co si dát pozor</h3>
+                    <ul>
+                      {n.pozor.map((p) => (
+                        <li>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div class={`scena scena-${n.scena}`}>
+                  <button class="prehrat" type="button" data-prehrat>↻ Přehrát znovu</button>
+                  <span class="scena-vodoznak" aria-hidden="true">{n.cislo}</span>
+                  <div class="scena-obsah">
+                    <L size={n.velikost} nazev="pod" tema={n.tema} anim />
+                    {n.slogan && <span class="slogan">{n.slogan}</span>}
+                  </div>
+                </div>
+              </div>
+
+              <p class="stitek mezititulek">Varianty</p>
+              <div class="pas">
+                <div class="dlazdice d-krem">
+                  <L size={124} nazev="pod" tema="svetle" />
+                  <span class="stitek">na krémové</span>
+                </div>
+                <div class="dlazdice d-espresso">
+                  <L size={124} nazev="pod" tema="tmave" />
+                  <span class="stitek">na espressu</span>
+                </div>
+                <div class="dlazdice d-mono">
+                  <L size={124} tema="mono" mono="#3A2E28" />
+                  <span class="stitek">jednou barvou — razítko, výšivka</span>
+                </div>
+                <div class="dlazdice d-krem">
+                  <div class="velikosti">
+                    <figure>
+                      <L size={96} />
+                      <figcaption>96</figcaption>
+                    </figure>
+                    <figure>
+                      <L size={48} />
+                      <figcaption>48</figcaption>
+                    </figure>
+                    <figure>
+                      <L size={32} maly />
+                      <figcaption>32</figcaption>
+                    </figure>
+                    <figure>
+                      <L size={16} maly />
+                      <figcaption>16</figcaption>
+                    </figure>
+                  </div>
+                  <span class="stitek">malé velikosti</span>
+                </div>
+              </div>
+
+              <p class="stitek mezititulek">V provozu</p>
+              <div class="ukazky">
+                <div class="mk mk-prohlizec">
+                  <div class="pr-lista">
+                    <div class="pr-tecky" aria-hidden="true">
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                    </div>
+                    <div class="pr-zalozka">
+                      <L size={16} maly />
+                      <span>JIRO saku — keramická dílna, Ořech</span>
+                    </div>
+                  </div>
+                  <div class="pr-adresa">
+                    <div>jirosaku.cz</div>
+                  </div>
+                  <div class="pr-web">
+                    <div class="pr-hlavicka">
+                      <L size={46} nazev="vedle" {...n.hlavicka} />
+                      <nav class="pr-nav" aria-hidden="true">
+                        <span>Kurzy</span>
+                        <span>Open studio</span>
+                        <span>Obchod</span>
+                        <span>O nás</span>
+                      </nav>
+                      <span class="pr-pill">Rezervovat</span>
+                    </div>
+                    <div class="pr-hero">
+                      Tvoříme keramiku
+                      <br />
+                      tam, kde má hlína <em>čas.</em>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mk mk-dno">
+                  <span class="stitek">otisk do hlíny na dně hrnku</span>
+                  <div class="hrnek">
+                    <svg class="hrnek-struna" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                      <path d={struna} stroke="rgba(70, 35, 15, 0.16)" stroke-width="1.1" />
+                    </svg>
+                    <L size={92} tema="mono" mono="#5B3A26" />
+                  </div>
+                </div>
+
+                <div class="mk mk-ig">
+                  <span class="stitek">Instagram</span>
+                  <div class="ig">
+                    <div class="ig-profil">
+                      <div class="ig-avatar">
+                        <div style={`background:${n.tema === "tmave" ? "#3A2E28" : "#F4EBDD"}`}>
+                          <L size={68} tema={n.tema} maly={n.kotva === "odznak"} />
+                        </div>
+                      </div>
+                      <div>
+                        <div class="ig-jmeno">jirosaku</div>
+                        <div class="ig-sub">JIRO saku · keramická dílna</div>
+                        <div class="ig-bio">Kurzy točení a open studio v Ořechu.</div>
+                      </div>
+                    </div>
+                    <div class="ig-mrizka">
+                      <Image src={fotoHagi} alt="" width={240} />
+                      <Image src={fotoDilna} alt="" width={240} />
+                      <Image src={fotoShigaraki} alt="" width={240} />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mk mk-vizitky">
+                  <span class="stitek">vizitky</span>
+                  <div class="vizitky">
+                    <div class="vizitka vizitka-zadni">
+                      <L size={74} tema="tmave" />
+                    </div>
+                    <div class="vizitka vizitka-predni">
+                      <L size={34} nazev="vedle" {...n.hlavicka} />
+                      <div class="viz-kontakt">
+                        Luční 235, Ořech
+                        <br />
+                        ahoj@jirosaku.cz
+                        <br />
+                        +420 777 000 000
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })}
+
+      <section class="srovnani">
+        <div class="obal">
+          <span class="stitek">Všech šest najednou</span>
+          <h2>Vedle <em>sebe</em></h2>
+          <div class="mrizka">
+            {navrhy.map((n) => {
+              const L = n.Logo;
+              return (
+                <a class="bunka" href={`#${n.kotva}`}>
+                  <L size={118} nazev="pod" />
+                  <span class="stitek">
+                    {n.cislo} {n.jmeno}
+                  </span>
+                </a>
+              );
+            })}
+          </div>
+          <div class="mrizka mrizka-tma">
+            {navrhy.map((n) => {
+              const L = n.Logo;
+              return (
+                <a class="bunka" href={`#${n.kotva}`}>
+                  <L size={118} nazev="pod" tema="tmave" />
+                  <span class="stitek">
+                    {n.cislo} {n.jmeno}
+                  </span>
+                </a>
+              );
+            })}
+          </div>
+          <div class="mrizka mrizka-male">
+            {navrhy.map((n) => {
+              const L = n.Logo;
+              return (
+                <a class="bunka" href={`#${n.kotva}`}>
+                  <div class="male">
+                    <L size={48} />
+                    <L size={32} maly />
+                    <L size={16} maly />
+                  </div>
+                  <span class="stitek">
+                    {n.cislo} {n.jmeno}
+                  </span>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section class="dal">
+        <div class="obal">
+          <span class="stitek">Co dál</span>
+          <h2>Vybrat a <em>dotáhnout</em></h2>
+          <p>
+            Další krok je vybrat dva tři směry, které chytly. Ty pak dotáhnu: přesné tahy, barvy pro
+            tisk, verzi na razítko a export do SVG a PNG.
+          </p>
+          <p>
+            Směry jdou i kombinovat – třeba Kruh-květ jako hlavní značka na web a Pečeť jako razítko,
+            které se tiskne na dna hrnků a na sáčky.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // Animace na scéně se spustí, až když je scéna z větší části vidět.
+      const hlidac = new IntersectionObserver(
+        (zaznamy) => {
+          for (const z of zaznamy) {
+            if (!z.isIntersecting) continue;
+            z.target.classList.add("hraje");
+            hlidac.unobserve(z.target);
+          }
+        },
+        { threshold: 0.45 },
+      );
+      document.querySelectorAll("[data-logo].anim").forEach((el) => hlidac.observe(el));
+
+      // Přehrát znovu: sundat a vrátit třídu, mezi tím vynutit přepočet stylů.
+      document.querySelectorAll<HTMLButtonElement>("[data-prehrat]").forEach((tlacitko) => {
+        tlacitko.addEventListener("click", () => {
+          const logo = tlacitko.closest(".scena")?.querySelector<HTMLElement>("[data-logo]");
+          if (!logo) return;
+          logo.classList.remove("anim");
+          void logo.getBoundingClientRect();
+          logo.classList.add("anim", "hraje");
+        });
+      });
+
+      // Nápis u Větvičky má šířku podle písma — změřit, až se písmo načte.
+      const zmer = () => {
+        document.querySelectorAll<SVGSVGElement>("svg[data-fit]").forEach((svg) => {
+          const obsah = svg.querySelector<SVGGraphicsElement>("[data-fit-obsah]");
+          if (!obsah) return;
+          const b = obsah.getBBox();
+          if (!b.width || !b.height) return;
+          const okraj = Number(svg.dataset.fit) || 0;
+          const w = b.width + 2 * okraj;
+          const h = b.height + 2 * okraj;
+          svg.setAttribute("viewBox", `${b.x - okraj} ${b.y - okraj} ${w} ${h}`);
+          const vyska = Number(svg.getAttribute("height"));
+          svg.setAttribute("width", String(Math.round((vyska * w) / h)));
+        });
+      };
+      zmer();
+      document.fonts?.ready.then(zmer);
+    </script>
+  </body>
+</html>

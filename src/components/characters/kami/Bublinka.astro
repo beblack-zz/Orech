@@ -1,0 +1,55 @@
+---
+import Kresba from "./Kresba.astro";
+import { uid } from "../dospele/uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+const u = uid();
+---
+{/*
+  YŌKAI, ne kami. Jediná raubířka v partě, takže jako jediná nemá nic
+  svatého — místo toho kolem ní plavou dvě bludičky onibi. Tělo je napůl
+  průhledné, je to přece vzduch. Oči jsou přivřené shora: ví něco, co ty ne.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <Kresba id={u} />
+    <radialGradient id={`${u}-telo`} cx="0.38" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#FBF6EE" stop-opacity="0.75" />
+      <stop offset="0.7" stop-color="#EFE3D0" stop-opacity="0.85" />
+      <stop offset="1" stop-color="#D9C9B2" stop-opacity="0.95" />
+    </radialGradient>
+  </defs>
+
+  <ellipse class="bublinka-stin" cx="90" cy="156" rx="20" ry="5" fill="#6B5D4F" opacity="0.18" />
+
+  {/* Bludičky — záře pod, světlé jádro navrch */}
+  <g class="kami-onibi">
+    <path d="M36 72 C30 64 32 54 38 46 C38 54 44 58 44 66 C44 72 40 76 36 72 Z" fill="#8C949B" opacity="0.55" filter={`url(#${u}-mlha)`} />
+    <path d="M37 70 C33 64 34 57 38 51 C39 57 42 60 42 65 C42 69 40 72 37 70 Z" fill="#E6EBED" />
+  </g>
+  <g class="kami-onibi kami-onibi-2">
+    <path d="M146 58 C141 51 142 43 147 37 C147 43 152 47 152 53 C152 58 149 61 146 58 Z" fill="#8C949B" opacity="0.55" filter={`url(#${u}-mlha)`} />
+    <path d="M147 57 C144 52 144 47 147 42 C148 47 150 49 150 53 C150 56 149 58 147 57 Z" fill="#E6EBED" />
+  </g>
+
+  <g class="bublinka-telo">
+    <g filter={`url(#${u}-tah)`}>
+      <circle cx="90" cy="96" r="46" fill={`url(#${u}-telo)`} stroke="#6B5D4F" stroke-width="1.6" />
+      <path d="M126 112 A40 40 0 0 1 98 136" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
+      <ellipse cx="71" cy="76" rx="13" ry="8" fill="#FFFFFF" opacity="0.85" transform="rotate(-35 71 76)" />
+    </g>
+    <g class="tvar">
+      <g filter={`url(#${u}-mlha)`} fill="#C87E4E" opacity="0.4">
+        <ellipse cx="69" cy="108" rx="6" ry="4" />
+        <ellipse cx="111" cy="108" rx="6" ry="4" />
+      </g>
+      <path d="M73 92 h10 a5 5 0 0 1 -10 0 Z" fill="#3A2E28" />
+      <path d="M97 92 h10 a5 5 0 0 1 -10 0 Z" fill="#3A2E28" />
+      <circle cx="80" cy="94.6" r="1.2" fill="#FFF8F2" />
+      <circle cx="104" cy="94.6" r="1.2" fill="#FFF8F2" />
+      <path d="M71 89 L84 91 M96 91 L109 89" stroke="#3A2E28" stroke-width="1.4" stroke-linecap="round" />
+      <path d="M79 110 Q85 116 90 110 Q95 104 101 110" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none" />
+    </g>
+  </g>
+</svg>

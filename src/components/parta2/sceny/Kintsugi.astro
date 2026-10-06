@@ -1,0 +1,106 @@
+---
+/**
+ * 九 Střep — svítání po výpalu. Miska vyšla z pece prasklá na čtyři kusy.
+ * Scrollováním se střepy sjedou k sobě a spáry se zalijí zlatem.
+ * Každý střep je celá miska oříznutá na svůj díl, takže hrany do sebe
+ * zapadnou přesně. Řídí scripts/parta2/sceny.ts (kintsugi).
+ */
+import Kami from "../Kami.astro";
+
+const miska = "M118 250 C124 330 168 372 300 376 C432 372 476 330 482 250 Z";
+const dily = [
+  { id: "l", body: "0,0 236,0 236,250 262,318 248,380 248,600 0,600", posun: [-46, 14], uhel: -9, stred: [190, 320] },
+  { id: "h", body: "236,0 410,0 410,250 368,296 262,318 236,250", posun: [6, -48], uhel: 6, stred: [320, 280] },
+  { id: "s", body: "262,318 368,296 356,376 356,600 248,600 248,380", posun: [12, 44], uhel: 7, stred: [305, 350] },
+  { id: "p", body: "410,0 600,0 600,600 356,600 356,376 368,296 410,250", posun: [52, 8], uhel: 10, stred: [420, 320] },
+];
+const spary = [
+  "M236 200 L236 250 L262 318 L248 380 L248 400",
+  "M262 318 L368 296 L410 250 L410 200",
+  "M368 296 L356 376 L356 400",
+];
+---
+<div class="scena scena-kintsugi" data-kintsugi>
+  <svg class="scena-pozadi" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="kin-rano" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F7D7CB" />
+        <stop offset="1" stop-color="#E9BFAE" />
+      </linearGradient>
+      <radialGradient id="kin-svetlo" cx="0.3" cy="0.1" r="0.9">
+        <stop offset="0" stop-color="#FFF4DC" stop-opacity="0.95" />
+        <stop offset="1" stop-color="#FFF4DC" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="kin-glazura" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#2C3A44" />
+        <stop offset="0.35" stop-color="#4E6A78" />
+        <stop offset="0.6" stop-color="#3E5664" />
+        <stop offset="1" stop-color="#22303A" />
+      </linearGradient>
+      <linearGradient id="kin-vnitrek" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1E2A32" />
+        <stop offset="1" stop-color="#3E5664" />
+      </linearGradient>
+      <linearGradient id="kin-zlato" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FFF0B0" />
+        <stop offset="0.5" stop-color="#E2B04A" />
+        <stop offset="1" stop-color="#A87A1C" />
+      </linearGradient>
+      <g id="kin-miska">
+        <path d={miska} fill="url(#kin-glazura)" />
+        <path d="M150 250 C160 300 190 326 214 334" stroke="#9FC0CE" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.35" />
+        {/* Glazura stekla v kapkách přes okraj — tenmoku tak dělá */}
+        <path d="M130 250 C134 268 140 272 142 286 C144 272 150 266 156 250 Z M214 250 C216 270 222 276 224 292 C226 276 232 268 236 250 Z M330 250 C332 272 338 280 340 298 C342 280 348 270 352 250 Z M440 250 C442 266 446 272 448 284 C450 270 456 264 460 250 Z" fill="#8A5A34" opacity="0.8" />
+        <ellipse cx="300" cy="250" rx="182" ry="34" fill="url(#kin-vnitrek)" />
+        <ellipse cx="300" cy="250" rx="182" ry="34" fill="none" stroke="#B37A48" stroke-width="5" />
+        <path d="M250 376 L256 392 L344 392 L350 376 Z" fill="#B89470" />
+      </g>
+      {dily.map((d) => (
+        <clipPath id={`kin-dil-${d.id}`}><polygon points={d.body} /></clipPath>
+      ))}
+      <clipPath id="kin-obrys"><path d={miska} /><ellipse cx="300" cy="250" rx="184" ry="36" /></clipPath>
+    </defs>
+
+    <rect width="600" height="600" fill="url(#kin-rano)" />
+    <rect width="600" height="600" fill="url(#kin-svetlo)" />
+    {/* Otevřená pec za stolem — ráno po výpalu */}
+    <rect x="30" y="90" width="150" height="190" rx="22" fill="#B84A2B" opacity="0.85" />
+    <rect x="50" y="120" width="110" height="130" rx="10" fill="#3A2E28" opacity="0.7" />
+    <rect x="160" y="110" width="70" height="150" rx="10" fill="#A8432A" opacity="0.8" transform="rotate(-18 160 110)" />
+    {/* Stůl s ubrusem */}
+    <rect x="0" y="400" width="600" height="200" fill="#C9A37A" />
+    <path d="M60 410 L540 410 L590 600 L10 600 Z" fill="#F4EBDD" />
+    <path d="M100 450 H500 M80 520 H520" stroke="#E2D4BC" stroke-width="3" />
+    <ellipse cx="300" cy="400" rx="200" ry="16" fill="#6B5D4F" opacity="0.18" />
+    {/* Mistička se zlatým práškem a štětec */}
+    <ellipse cx="110" cy="440" rx="34" ry="10" fill="#3A2E28" />
+    <ellipse cx="110" cy="437" rx="26" ry="6" fill="#E2B04A" />
+    <path d="M150 470 L230 432" stroke="#8A6A48" stroke-width="6" stroke-linecap="round" />
+    <path d="M230 432 L246 425" stroke="#2B2420" stroke-width="7" stroke-linecap="round" />
+
+    {/* Střepy */}
+    {dily.map((d) => (
+      <g class="kin-dil" data-dil={d.id} data-posun={d.posun.join(",")} data-uhel={d.uhel} data-stred={d.stred.join(",")} transform={`translate(${d.posun[0]} ${d.posun[1]}) rotate(${d.uhel} ${d.stred[0]} ${d.stred[1]})`}>
+        <g clip-path={`url(#kin-dil-${d.id})`}><use href="#kin-miska" /></g>
+      </g>
+    ))}
+
+    {/* Zlaté spáry — kreslí se, až střepy zapadnou */}
+    <g class="kin-spary" clip-path="url(#kin-obrys)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      {spary.map((d) => (
+        <g>
+          <path class="kin-spara" d={d} stroke="url(#kin-zlato)" stroke-width="6" />
+          <path class="kin-spara kin-spara-lesk" d={d} stroke="#FFF6D0" stroke-width="1.6" transform="translate(-1 -1)" />
+        </g>
+      ))}
+    </g>
+    <g class="kin-jiskry" opacity="0">
+      <g transform="translate(262 318)"><path class="jiskra jiskra-1" d="M0,-9 Q2.3,-2.3 9,0 Q2.3,2.3 0,9 Q-2.3,2.3 -9,0 Q-2.3,-2.3 0,-9 Z" fill="#FFF3C4" /></g>
+      <g transform="translate(368 296)"><path class="jiskra jiskra-2" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#FFF3C4" /></g>
+      <g transform="translate(410 252)"><path class="jiskra jiskra-3" d="M0,-6 Q1.5,-1.5 6,0 Q1.5,1.5 0,6 Q-1.5,1.5 -6,0 Q-1.5,-1.5 0,-6 Z" fill="#FFF3C4" /></g>
+    </g>
+  </svg>
+
+  <Kami id="stripek" class="scena-kami" style="left:72%;top:46%;width:22%" />
+  <p class="scena-stitek kin-stitek" aria-hidden="true">Střepy</p>
+</div>

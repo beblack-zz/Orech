@@ -1,0 +1,1404 @@
+/*
+ * ——— Úvod 2 ———
+ *
+ * Staví na parta2.css (barvy, písmo, papír, obloha, hlavička, kami,
+ * bubliny, oznámení, dialog) a přidává, co potřebuje vstupní brána:
+ * noren, fasádu, dílnu v řezu s kamerou, odjezdovou tabuli, razítka,
+ * rok dílny a noční průvod. Míry a zaoblení drží řeč Party 2 a Kurzů 2.
+ */
+
+.u2 .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.preskocit {
+  position: fixed;
+  left: 12px;
+  top: -80px;
+  z-index: 100;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--inkoust);
+  color: var(--papir) !important;
+  font-family: var(--f-display);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.preskocit:focus { top: 12px; }
+
+.odkaz-tlacitko {
+  display: inline;
+  color: var(--rumelka) !important;
+  font-weight: 600 !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.stanice-odkaz {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--rumelka);
+  text-decoration: none;
+}
+.stanice-odkaz:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ——— Roční období ———
+ * Stromy, země a sníh v kresbách berou barvy z proměnných. Každá scéna
+ * má vlastní data-sezona (fasáda a prohlídka podle dneška, rok dílny
+ * podle měsíce), takže se nepřebíjejí.
+ */
+[data-sezona] {
+  --sak-1: #D98C8A;
+  --sak-2: #EBA9A6;
+  --sak-3: #F7CFCB;
+  --ore-1: #3B5C33;
+  --ore-2: #578241;
+  --ore-3: #84AC56;
+  --zem-1: #8DB35C;
+  --zem-2: #55803B;
+  --koruna: 1;
+  --koruna-orech: 1;
+  --snih: 0;
+  --kvetiny: 1;
+  --zem-listi: 1;
+}
+[data-sezona="zima"] { --koruna: 0; --koruna-orech: 0; --snih: 1; --kvetiny: 0; --zem-listi: 0; --zem-1: #CAD5D2; --zem-2: #9CAEA6; }
+[data-sezona="predjari"] { --koruna: 0; --koruna-orech: 0; --kvetiny: 0.25; --zem-listi: 0; --zem-1: #9DB36A; --zem-2: #6B8A48; }
+[data-sezona="jaro"] { --ore-1: #5E8A3E; --ore-2: #7FAE52; --ore-3: #A9CE72; }
+[data-sezona="leto"] { --sak-1: #4E7A3A; --sak-2: #6E9A4B; --sak-3: #94BC64; --zem-listi: 0; }
+[data-sezona="podzim"] {
+  --sak-1: #B5532E;
+  --sak-2: #D9773A;
+  --sak-3: #EDA552;
+  --ore-1: #A9822A;
+  --ore-2: #CFA23A;
+  --ore-3: #E8C35A;
+  --kvetiny: 0.2;
+  --zem-1: #A3AE5E;
+  --zem-2: #6E7E3A;
+}
+.sak-1 { fill: var(--sak-1); }
+.sak-2 { fill: var(--sak-2); }
+.sak-3 { fill: var(--sak-3); }
+.ore-1 { fill: var(--ore-1); }
+.ore-2 { fill: var(--ore-2); }
+.ore-3 { fill: var(--ore-3); }
+.sak-1, .sak-2, .sak-3, .ore-1, .ore-2, .ore-3 { transition: fill 0.9s; }
+.koruna { opacity: var(--koruna); transition: opacity 0.9s; }
+.koruna-orech { opacity: var(--koruna-orech); transition: opacity 0.9s; }
+.snih { opacity: var(--snih); transition: opacity 0.9s; }
+.koruna-zem { opacity: var(--zem-listi); transition: opacity 0.9s; }
+.rez-kvetiny { opacity: var(--kvetiny); transition: opacity 0.9s; }
+
+/* Padající sníh, plátky a listí. Sloupec je vysoký jako scéna a padá
+ * celý (translate v procentech jeho výšky); točí se jen vločka v ::before. */
+.castice { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 2; }
+.castice-kus {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 1.1%;
+  display: none;
+  animation: castice-pad var(--d) linear infinite;
+  animation-delay: var(--z);
+}
+.castice-kus::before {
+  content: "";
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  animation: castice-toc 2.8s ease-in-out infinite alternate;
+}
+.castice-velky { width: 1.5%; }
+[data-sezona="zima"] .castice-kus,
+[data-sezona="jaro"] .castice-kus,
+[data-sezona="podzim"] .castice-kus { display: block; }
+[data-sezona="zima"] .castice-kus { width: 0.6%; }
+[data-sezona="zima"] .castice-kus::before { border-radius: 50%; background: #FFFFFF; opacity: 0.9; animation: none; }
+[data-sezona="jaro"] .castice-kus::before { border-radius: 80% 0 80% 0; background: #F2B8B4; }
+[data-sezona="podzim"] .castice-kus::before { border-radius: 0 80% 0 80%; background: #E2A33A; }
+[data-sezona="podzim"] .castice-kus:nth-child(3n)::before { background: #C9772E; }
+@keyframes castice-pad {
+  from { transform: translate(0, -12%); }
+  to { transform: translate(var(--dx), 100%); }
+}
+@keyframes castice-toc {
+  from { transform: rotate(-35deg) scaleX(1); }
+  to { transform: rotate(50deg) scaleX(0.45); }
+}
+
+/* ——— Noren ——— */
+
+.noren {
+  position: absolute;
+  display: block;
+  container-type: inline-size;
+  color: #F6F1E6;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.noren:focus-visible { outline: 3px solid #FFE2A6; outline-offset: 6px; border-radius: 8px; }
+.noren-tyc {
+  position: absolute;
+  z-index: 3;
+  left: -4%;
+  right: -4%;
+  top: 0;
+  height: 4.4cqw;
+  border-radius: 99px;
+  background: linear-gradient(#B08A62, #6E5236);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+.noren-pul {
+  position: absolute;
+  top: 2.4cqw;
+  bottom: 0;
+  width: 48.8%;
+  transition: transform 0.18s linear;
+}
+.noren-levy {
+  left: 0.6%;
+  transform-origin: 0 0;
+  transform: skewX(calc(var(--rozhrnuti, 0) * -26deg)) scaleX(calc(1 - var(--rozhrnuti, 0) * 0.55));
+}
+.noren-pravy {
+  right: 0.6%;
+  transform-origin: 100% 0;
+  transform: skewX(calc(var(--rozhrnuti, 0) * 26deg)) scaleX(calc(1 - var(--rozhrnuti, 0) * 0.55));
+}
+.noren-latka {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0 0 2.6cqw 2.6cqw;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1.1cqw, transparent 1.1cqw 2.4cqw),
+    linear-gradient(#30407D, #212C5C);
+  box-shadow: inset 0 -2.6cqw 0 rgba(0, 0, 0, 0.18), 0 10px 22px -10px rgba(10, 10, 30, 0.6);
+  transform-origin: 50% 0;
+  animation: noren-vitr 5.4s ease-in-out infinite;
+}
+.noren-pravy .noren-latka { animation-duration: 4.5s; animation-delay: -1.7s; }
+.noren:hover .noren-latka { animation-duration: 1.5s; }
+@keyframes noren-vitr {
+  0%, 100% { transform: skewX(0deg); }
+  35% { transform: skewX(-2.8deg); }
+  70% { transform: skewX(1.9deg); }
+}
+.noren-ocka { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; justify-content: space-around; }
+.noren-ocka i { width: 7cqw; height: 3.6cqw; border-radius: 0 0 2cqw 2cqw; background: rgba(0, 0, 0, 0.28); }
+.noren-erb { position: absolute; top: 13%; width: 40cqw; aspect-ratio: 1; }
+.noren-levy .noren-erb { right: -20.8cqw; }
+.noren-pravy .noren-erb { left: -20.8cqw; }
+.noren-erb svg { width: 100%; height: 100%; display: block; }
+.noren-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 57%;
+  text-align: center;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 96;
+  font-weight: 500;
+  font-size: 15cqw;
+  line-height: 1;
+  letter-spacing: 0.03em;
+}
+.noren-text em { font-style: italic; font-weight: 400; }
+.noren-mala {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 9%;
+  text-align: center;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 3.6cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+/* ——— Brána ——— */
+
+.brana { position: relative; z-index: 2; height: 250vh; height: 250svh; }
+.brana-scena { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: clip; }
+.brana-kopce { position: absolute; left: 0; bottom: 0; width: 100%; height: 48%; }
+.brana-orech { position: absolute; right: -7vw; bottom: 26%; height: 92%; aspect-ratio: 1000 / 1100; }
+.brana-louka { position: absolute; left: 0; right: 0; bottom: 0; height: 19%; }
+.brana .castice { z-index: 6; }
+.brana .castice-kus { width: 0.7%; }
+.brana .castice-velky { width: 0.95%; }
+/* Ořech z Party 2 je kreslený zeleně — na podzim zežloutne, v zimě a v předjaří je holý */
+[data-sezona="podzim"] .brana-orech .orech-koruna { filter: hue-rotate(-30deg) saturate(1.2) brightness(1.06); }
+[data-sezona="zima"] .brana-orech .orech-koruna,
+[data-sezona="predjari"] .brana-orech .orech-koruna { opacity: 0; }
+
+.brana-svet {
+  --w: min(60vw, 118svh);
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  width: var(--w);
+  aspect-ratio: 1000 / 800;
+  transform-origin: 0 0;
+}
+.brana-svet.jede { will-change: transform; }
+.brana-fasada { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.brana-svetlo {
+  position: absolute;
+  left: 47%;
+  top: 34.5%;
+  width: 18%;
+  height: 59.3%;
+  background: radial-gradient(ellipse at 50% 58%, #FFFBEF 0%, #FFE7B4 42%, rgba(255, 214, 150, 0) 78%);
+  opacity: var(--svetlo, 0);
+  pointer-events: none;
+}
+.brana-noren { left: 45.2%; top: 34.6%; width: 21.6%; height: 31.4%; }
+.brana-schranka {
+  position: absolute;
+  left: 29.2%;
+  top: 54.7%;
+  width: 9.6%;
+  height: 13.1%;
+  border-radius: 8px;
+  transition: box-shadow 0.2s;
+}
+.brana-schranka:hover,
+.brana-schranka:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 252, 240, 0.9), 0 0 22px 4px rgba(255, 220, 150, 0.85); }
+.brana-kami { position: absolute; }
+.brana-kami-bublinka { left: 90.4%; bottom: 44.3%; width: 4.8%; }
+.brana-kami-kapka { left: 82.6%; bottom: 12.4%; width: 4.4%; }
+.brana-cedulka {
+  position: absolute;
+  left: 22.6%;
+  top: 71.4%;
+  width: 19.5%;
+  margin: 0;
+  padding: 0.5em 0.7em 0.6em;
+  border-radius: 4px;
+  background: #FFFDF6;
+  box-shadow: 0 6px 14px -6px rgba(40, 30, 20, 0.45), 0 0 0 1px rgba(43, 36, 32, 0.08);
+  font-size: clamp(9px, 0.82vw, 12.5px);
+  line-height: 1.35;
+  color: var(--inkoust-2);
+  transform: rotate(-2deg);
+  pointer-events: none;
+}
+.brana-cedulka span { display: block; font-family: var(--f-kanji); font-size: 1.5em; line-height: 1.1; color: var(--rumelka); }
+.brana-cedulka::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--rumelka);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.brana-text {
+  position: absolute;
+  z-index: 5;
+  left: clamp(20px, 6vw, 96px);
+  top: clamp(92px, 15vh, 160px);
+  width: min(560px, 38vw);
+  opacity: calc(1 - var(--text-pryc, 0));
+  transform: translateY(calc(var(--text-pryc, 0) * -48px));
+}
+.brana-text { text-shadow: 0 0 22px rgba(255, 249, 238, 0.75), 0 0 6px rgba(255, 249, 238, 0.5); }
+.brana-text .stitek {
+  display: inline-block;
+  padding: 5px 12px 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--papir) 86%, transparent);
+  text-shadow: none;
+}
+.brana.uvnitr .brana-text,
+.brana.uvnitr .brana-dolu { pointer-events: none; visibility: hidden; }
+.brana-nadpis {
+  margin: 14px 0 20px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: clamp(40px, min(5.1vw, 8.2vh), 92px);
+  line-height: 0.98;
+  letter-spacing: -0.024em;
+  text-wrap: balance;
+}
+.brana-nadpis em { color: #A9321D; font-weight: 300; }
+.brana-perex { margin: 0 0 22px; max-width: 40ch; color: var(--inkoust); font-size: clamp(16px, min(1.25vw, 2.2vh), 19px); }
+.brana-akce { display: flex; flex-wrap: wrap; gap: 10px; text-shadow: none; }
+.brana-akce .tlacitko-obrys { background: color-mix(in srgb, var(--papir) 70%, transparent); }
+.brana-dolu {
+  position: absolute;
+  z-index: 5;
+  left: clamp(20px, 6vw, 96px);
+  bottom: clamp(18px, 5vh, 48px);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px 9px 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--papir) 84%, transparent);
+  box-shadow: 0 10px 24px -14px rgba(28, 20, 44, 0.5);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  opacity: calc(1 - var(--text-pryc, 0));
+}
+.brana-dolu svg { width: 12px; height: 20px; animation: dolu 2.2s ease-in-out infinite; }
+.brana-zar {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  opacity: var(--zar, 0);
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 58%, #FFFCF2 0%, #FFF1D2 45%, #F9DFAE 100%);
+}
+
+@media (max-width: 860px) {
+  .brana { height: 215vh; height: 215svh; }
+  .brana-svet { --w: min(60svh, 130vw); right: auto; left: calc(50% - var(--w) * 0.56); }
+  .brana-text { left: 20px; right: 20px; top: 82px; width: auto; }
+  .brana-nadpis { font-size: clamp(32px, min(9.4vw, 5.2svh), 50px); margin: 8px 0 12px; }
+  .brana-perex { font-size: 15px; margin-bottom: 14px; }
+  .brana-akce .tlacitko { padding: 10px 17px; font-size: 14.5px; }
+  .brana-orech { right: -52vw; height: 62%; bottom: 34%; }
+  .brana-cedulka,
+  .brana-dolu { display: none; }
+}
+@media (max-width: 860px) and (max-height: 700px) {
+  .brana-perex { display: none; }
+}
+/* Telefon na šířku: zpátky text vlevo a dům vpravo */
+@media (max-width: 960px) and (max-height: 520px) and (orientation: landscape) {
+  .brana-svet { --w: min(52vw, 120svh); left: auto; right: 0; }
+  .brana-text { left: 20px; right: auto; top: 70px; width: 44vw; }
+  .brana-nadpis { font-size: clamp(26px, 7svh, 38px); }
+  .brana-perex { display: none; }
+}
+
+/* ——— Prohlídka ——— */
+
+.prohlidka {
+  position: relative;
+  z-index: 2;
+  padding: 0 20px;
+  background: linear-gradient(to bottom, #FFF8EA 0, rgba(255, 248, 234, 0.7) 22vh, rgba(255, 248, 234, 0) 70vh);
+}
+.prohlidka-mriz {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(20px, 3vw, 48px);
+}
+.prohlidka-scena {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding: 86px 0 18px;
+}
+.prohlidka-ram {
+  position: relative;
+  min-height: 0;
+}
+.prohlidka-okno {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: url(#katomado);
+}
+.prohlidka-svet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  transform-origin: 0 0;
+}
+.prohlidka-svet.jede { will-change: transform; }
+.prohlidka-ramecek { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.prohlidka-ram::after {
+  content: "";
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  bottom: -10px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(#A9835C, #6E5236);
+  box-shadow: 0 10px 20px -10px rgba(20, 14, 30, 0.6);
+}
+.prohlidka-mapa { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; padding-top: 22px; }
+.prohlidka-mapa a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--papir) 82%, transparent);
+  box-shadow: 0 6px 14px -10px rgba(28, 20, 44, 0.6);
+  font-size: 13.5px;
+  color: var(--inkoust-2);
+  text-decoration: none;
+  transition: background 0.25s, color 0.25s;
+}
+.prohlidka-mapa a span { font-family: var(--f-kanji); font-size: 15px; line-height: 1; color: var(--rumelka); }
+.prohlidka-mapa a:hover { background: var(--papir); color: var(--inkoust); }
+.prohlidka-mapa a.je { background: var(--inkoust); color: var(--papir); }
+.prohlidka-mapa a.je span { color: #FFB45A; }
+
+.prohlidka-karty {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  align-content: start;
+  gap: 36vh;
+  padding: 22vh 0 34vh;
+}
+.stanice { position: relative; padding: clamp(22px, 2.4vw, 34px); scroll-margin-top: 18vh; }
+.stanice:nth-child(odd) { transform: rotate(-0.35deg); }
+.stanice:nth-child(even) { transform: rotate(0.3deg); }
+.stanice p { margin: 0 0 12px; }
+.stanice-uvod .nadpis-2 { margin-bottom: 14px; }
+.stanice-perex { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 36; font-size: 19px; line-height: 1.4; }
+.stanice-pokyn { font-family: var(--f-ruka); font-size: 23px; line-height: 1.15; color: var(--inkoust-2); transform: rotate(-1deg); }
+.stanice-poradi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 !important;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--inkoust-2);
+}
+.stanice-znak { font-family: var(--f-kanji); font-size: 32px; font-weight: 400; letter-spacing: 0; line-height: 1; color: var(--rumelka); }
+.stanice-nazev {
+  margin: 8px 0 4px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 500;
+  font-size: clamp(36px, 3.4vw, 52px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.stanice-meta { margin: 0 0 12px !important; font-family: var(--f-ruka); font-size: 24px; line-height: 1.12; color: var(--rumelka); }
+.stanice-nejblizsi { padding: 10px 14px; border-radius: 14px; background: var(--papir-2); font-size: 15.5px; line-height: 1.5; }
+.stanice-nejblizsi a { color: inherit; }
+.stanice-akce { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 2px; }
+
+.inventar { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 16px 0 14px; }
+.inventar a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 16px 8px;
+  border-radius: 999px;
+  background: var(--papir-2);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 17px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+}
+.inventar a b { font-size: 22px; color: var(--rumelka); }
+.inventar a:hover,
+.inventar a:focus-visible { background: #F3E3C6; transform: translateY(-2px); }
+
+/* Krátký rozhovor s partou — otázky z kurzy2.ts */
+.stanice-chat { display: grid; gap: 10px; margin: 6px 0 4px; }
+.chat-q {
+  justify-self: end;
+  max-width: 82%;
+  margin: 0 !important;
+  padding: 8px 15px;
+  border-radius: 18px 18px 6px 18px;
+  background: var(--inkoust);
+  color: var(--papir);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 15.5px;
+}
+.chat-a { display: flex; align-items: flex-end; gap: 8px; margin-top: 6px; }
+.chat-a-kami { flex: none; width: 48px; }
+.chat-a-kami svg { width: 100%; height: auto; display: block; }
+.chat-a p {
+  margin: 0 !important;
+  padding: 8px 14px 10px;
+  border-radius: 18px 18px 18px 6px;
+  background: #FFFDF6;
+  box-shadow: 0 8px 18px -14px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(43, 36, 32, 0.08);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.chat-a b { display: block; font-family: var(--f-display); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rumelka); }
+
+/* Ceník open studia */
+.cenik { margin: 4px 0 6px; padding: 4px 14px; border-radius: 16px; background: #FFFDF6; box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.08); }
+.cenik div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 14px; padding: 10px 0; }
+.cenik div + div { border-top: 1px dashed rgba(43, 36, 32, 0.18); }
+.cenik dt { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 17px; }
+.cenik dt small { display: block; font-family: var(--f-text); font-weight: 400; font-size: 13.5px; line-height: 1.4; color: var(--inkoust-3); max-width: 34ch; }
+.cenik dd { margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 22px; white-space: nowrap; }
+.cenik .cenik-mesic { margin: 6px -14px -4px; padding: 12px 14px; border-radius: 0 0 16px 16px; background: var(--inkoust); color: var(--papir); border-top: 0 !important; }
+.cenik .cenik-mesic small { color: rgba(247, 241, 227, 0.72); }
+.cenik-platnost { margin: 0 0 6px !important; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--inkoust-3); }
+.pravidla { margin: 0 0 6px; padding-left: 18px; font-size: 14.5px; line-height: 1.5; color: var(--inkoust-2); }
+
+/* Pec */
+.pec-ovladani { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 12px 0 6px; padding: 12px 14px; border-radius: 16px; background: var(--papir-2); }
+.pec-stav { flex: 1 1 200px; margin: 0 !important; font-family: var(--f-ruka); font-size: 22px; line-height: 1.1; }
+.pec-teplomer { flex: 0 0 100%; order: 3; height: 8px; border-radius: 99px; background: rgba(43, 36, 32, 0.12); overflow: hidden; }
+.pec-sloupec {
+  display: block;
+  height: 100%;
+  width: calc(var(--zar, 0) * 100%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, #E8B440, #E2702E 60%, #C4432B);
+  transition: width 0.15s linear;
+}
+.pec-tlacitko:disabled { opacity: 0.55; cursor: progress; transform: none; }
+
+/* Kusy z police */
+.kusy { list-style: none; display: grid; gap: 6px; padding: 0; margin: 8px 0 4px; }
+.kus-radek { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.kus-vzit {
+  flex: 1 1 240px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--papir-2) !important;
+  text-align: left;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.kus-vzit:hover { background: #F3E8D2 !important; }
+.kus-vzit[aria-pressed="true"] { background: #FFFDF6 !important; box-shadow: inset 0 0 0 2px var(--inkoust); }
+.kus-barva { grid-row: span 2; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--g1), var(--g2) 55%, var(--g3)); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.kus-nazev { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 16px; }
+.kus-glazura { grid-column: 2; font-size: 13px; color: var(--inkoust-3); }
+.kus-cena { grid-column: 3; grid-row: 1 / span 2; font-family: var(--f-display); font-weight: 600; font-size: 17px; white-space: nowrap; }
+.kus-mail { font-size: 14px; font-weight: 600; color: var(--rumelka); }
+
+/* Lístek o workshopech, připíchnutý v kartě nástěnky */
+.listek {
+  position: relative;
+  margin: 18px 4px 4px;
+  padding: 16px 18px 14px;
+  background: #FFFDF6;
+  box-shadow: 0 12px 24px -16px rgba(40, 30, 20, 0.55), 0 0 0 1px rgba(43, 36, 32, 0.06);
+  transform: rotate(1.2deg);
+}
+.listek::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 11px;
+  height: 11px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: #5B7FD1;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+.listek.vlaje { animation: listek-vlaje 0.9s ease-in-out; }
+@keyframes listek-vlaje { 30% { transform: rotate(-3deg); } 60% { transform: rotate(3deg); } }
+.listek p { font-size: 14.5px; line-height: 1.5; color: var(--inkoust-2); }
+.listek-stitek { margin: 0 0 2px !important; font-family: var(--f-display); font-size: 11px !important; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #5B7FD1 !important; }
+.listek-nazev { margin: 0 0 6px !important; font-family: var(--f-ruka); font-size: 28px !important; line-height: 1 !important; color: var(--inkoust) !important; }
+.listek a { font-weight: 600; font-size: 14.5px; color: var(--rumelka); }
+
+.stanice-foto { margin: 14px 0 6px; }
+.stanice-foto img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 32%; display: block; border-radius: 14px; }
+.stanice-foto figcaption { margin-top: 6px; font-family: var(--f-ruka); font-size: 20px; color: var(--inkoust-2); }
+
+@media (max-width: 860px) {
+  .prohlidka { padding: 0 14px; }
+  .prohlidka-mriz { display: block; }
+  .prohlidka-scena {
+    z-index: 3;
+    height: 52vh;
+    height: 52svh;
+    margin: 0 -14px;
+    padding: 70px 14px 6px;
+    background: linear-gradient(to bottom, var(--nebe-nahore) 0%, color-mix(in srgb, var(--nebe-nahore) 35%, var(--nebe-stred)) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+  }
+  .prohlidka-mapa { padding-top: 14px; gap: 3px; }
+  .prohlidka-mapa a { padding: 4px 8px; font-size: 0; gap: 0; }
+  .prohlidka-mapa a span { font-size: 16px; }
+  .prohlidka-karty { position: relative; z-index: 2; gap: 24vh; padding: 4vh 0 30vh; }
+  .stanice { scroll-margin-top: calc(52svh + 16px); }
+  .stanice:nth-child(n) { transform: none; }
+  .stanice-nazev { font-size: 38px; }
+}
+
+/* ——— Dílna v řezu ——— */
+
+.rez { position: relative; width: 100%; aspect-ratio: 1600 / 1000; container-type: inline-size; }
+.rez-kresba { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.rez-mista,
+.rez-parta { position: absolute; inset: 0; pointer-events: none; }
+.rez-parta { z-index: 3; }
+.rez-mista { z-index: 4; }
+.rez-misto {
+  position: absolute;
+  pointer-events: auto;
+  border-radius: 0.6cqw;
+  transition: box-shadow 0.2s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rez-misto:hover,
+.rez-misto:focus-visible,
+.rez-misto.ukazane {
+  outline: none;
+  background: rgba(255, 246, 220, 0.16);
+  box-shadow: 0 0 0 0.14cqw rgba(255, 252, 240, 0.95), 0 0 1.2cqw 0.2cqw rgba(255, 210, 130, 0.85);
+}
+.rez-kami { position: absolute; pointer-events: auto; }
+.rez-bublinka,
+.rez-samotka {
+  opacity: 0;
+  transform: scale(0.3);
+  pointer-events: none !important;
+  transition: opacity 0.4s, transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.rez.bublinka-venku .rez-bublinka,
+.rez[data-pec="otevrena"] .rez-samotka { opacity: 1; transform: none; pointer-events: auto !important; }
+
+/* Ukázat 1 pec · 2 stoly · 3 kruhy */
+.rez-misto.ukazane { animation: ukazane 1.2s ease-in-out infinite; }
+@keyframes ukazane { 50% { box-shadow: 0 0 0 0.3cqw rgba(255, 252, 240, 0.95), 0 0 2.4cqw 0.5cqw rgba(255, 210, 130, 0.95); } }
+
+/* Kruhy: čtyři podoby hlíny, točení proužky */
+.kruh-faze { display: none; transform-box: fill-box; transform-origin: 50% 100%; }
+.kruh[data-faze="0"] .kruh-faze[data-f="0"],
+.kruh[data-faze="1"] .kruh-faze[data-f="1"],
+.kruh[data-faze="2"] .kruh-faze[data-f="2"],
+.kruh[data-faze="3"] .kruh-faze[data-f="3"] { display: inline; }
+.kruh.roste .kruh-faze { animation: kruh-roste 0.55s cubic-bezier(0.3, 1.5, 0.5, 1); }
+@keyframes kruh-roste { from { transform: scale(0.72, 0.4); } }
+.kruh.toci .kruh-krouzek { animation: kruh-krouzek 0.45s linear infinite; }
+@keyframes kruh-krouzek { to { stroke-dashoffset: -26; } }
+.kruh.toci .kruh-pruhy { animation: kruh-pruhy 0.26s linear infinite; }
+@keyframes kruh-pruhy { to { transform: translateX(-20px); } }
+
+/* Hrouda na stole */
+.hrouda-telo { transform-box: fill-box; transform-origin: 50% 100%; }
+.hrouda.hnete .hrouda-telo { animation: hnet 0.42s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.hrouda-kiku { transition: opacity 0.5s; }
+.rez.kiku .hrouda-kiku { opacity: 0.7; }
+
+/* Pec */
+.pec-zar { opacity: var(--zar, 0); transition: opacity 0.3s; }
+.pec-horko { opacity: calc(var(--zar, 0) * 0.95); }
+.pec-horko path { animation: pec-horko 1.6s ease-in-out infinite; }
+.pec-horko path:nth-child(2) { animation-delay: -0.5s; }
+.pec-horko path:nth-child(3) { animation-delay: -1s; }
+@keyframes pec-horko { 50% { transform: translateY(-6px); opacity: 0.4; } }
+.pec-viko { transform-box: view-box; transform-origin: 1056px 702px; transition: transform 0.75s cubic-bezier(0.3, 1.3, 0.5, 1); }
+.rez[data-pec="otevrena"] .pec-viko { transform: rotate(-64deg); }
+.pec-uvnitr { opacity: 0; transition: opacity 0.4s 0.3s; }
+.rez[data-pec="otevrena"] .pec-uvnitr { opacity: 1; }
+.rez-pec.tres { animation: pec-tres 0.5s ease-in-out; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes pec-tres { 20% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } 80% { transform: rotate(-0.8deg); } }
+
+/* Kusy na polici */
+.kus { transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.kus.vzaty { transform: translateY(-14px); }
+.kus-cedulka {
+  position: absolute;
+  z-index: 5;
+  margin: 0;
+  padding: 0.3cqw 0.5cqw 0.35cqw;
+  border-radius: 0.35cqw;
+  background: #FFFDF6;
+  box-shadow: 0 0.4cqw 0.9cqw -0.4cqw rgba(0, 0, 0, 0.45), 0 0 0 0.06cqw rgba(43, 36, 32, 0.15);
+  font-size: 0.5cqw;
+  line-height: 1.25;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(0.4cqw) rotate(-3deg);
+  transition: opacity 0.3s, transform 0.4s cubic-bezier(0.3, 1.5, 0.5, 1);
+  pointer-events: none;
+}
+.kus-cedulka b { display: block; font-family: var(--f-display); font-size: 1.05em; }
+.kus-cedulka span { color: var(--rumelka); font-weight: 600; }
+.kus-cedulka.je { opacity: 1; transform: rotate(-3deg); }
+
+/* Poukaz a lístek na nástěnce */
+.nastenka-poukaz { transform-box: fill-box; transform-origin: 50% 50%; }
+.nastenka-poukaz.otaci { animation: poukaz-otoc 0.6s ease-in-out; }
+@keyframes poukaz-otoc { 50% { transform: scaleX(0.02); } }
+.pz-zadek { opacity: 0; }
+.nastenka-poukaz.otoceny .pz-predek { opacity: 0; }
+.nastenka-poukaz.otoceny .pz-zadek { opacity: 1; }
+.nastenka-workshop.vlaje { animation: listek-vlaje 0.9s ease-in-out; transform-box: fill-box; transform-origin: 50% 0; }
+
+/* Kávovar */
+.kafe-para { opacity: 0; }
+.kavovar.vari .kafe-para { opacity: 1; }
+.kavovar.vari .kafe-para path { animation: kafe-para 1.4s ease-out infinite; }
+.kavovar.vari .kafe-para path:nth-child(2) { animation-delay: 0.3s; }
+.kavovar.vari .kafe-para path:nth-child(3) { animation-delay: 0.6s; }
+@keyframes kafe-para { from { transform: translateY(4px); opacity: 0; } 40% { opacity: 0.9; } to { transform: translateY(-14px); opacity: 0; } }
+
+/* Režim „rok“: věci se objevují s měsícem, kdy přibyly */
+.rez-rok [data-od] { transition: opacity 0.5s; }
+.rez-rok [data-od]:not(.je) { opacity: 0; }
+.rez-rok .rok-kami:not(.je) { display: none; }
+.rok-kapka { animation: rok-kapka 1.6s ease-in infinite; }
+.rok-kapka-2 { animation-delay: 0.8s; }
+@keyframes rok-kapka { from { transform: translateY(0); opacity: 1; } 90% { opacity: 1; } to { transform: translateY(330px); opacity: 0; } }
+.rok-vlnka { transform-box: fill-box; transform-origin: center; animation: rok-vlnka 1.6s ease-out infinite; }
+@keyframes rok-vlnka { from { transform: scale(0.2); opacity: 0.9; } to { transform: scale(1.6); opacity: 0; } }
+.rok-nahrava { animation: rok-nahrava 1s steps(2) infinite; }
+@keyframes rok-nahrava { 50% { opacity: 0.15; } }
+
+/* ——— Odjezdová tabule ——— */
+
+.odjezdy { position: relative; z-index: 2; padding: 14vh 20px 10vh; }
+.tabule { position: relative; width: min(1140px, 100%); margin: 0 auto; padding-top: 52px; }
+.tabule-tyc {
+  position: absolute;
+  top: 0;
+  width: 9px;
+  height: 58px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #5E666C, #CDD3D7 45%, #5E666C);
+}
+.tabule-tyc-l { left: 16%; }
+.tabule-tyc-p { right: 16%; }
+.tabule-deska {
+  --sloupce: 46px 110px 102px minmax(0, 1fr) 96px 118px 64px;
+  position: relative;
+  padding: clamp(16px, 2.4vw, 30px);
+  border-radius: 18px;
+  background: linear-gradient(#262A30, #1A1D22);
+  box-shadow: 0 0 0 5px #3B4148, 0 0 0 7px #15171A, 0 44px 90px -36px rgba(8, 10, 30, 0.8);
+  color: #EDE6D6;
+}
+.tabule-hlava {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(237, 230, 214, 0.14);
+}
+.tabule-titul {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 96;
+  font-weight: 500;
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  color: #FFF7E6;
+}
+.tabule-titul [lang="ja"] { margin-right: 10px; font-family: var(--f-kanji); font-weight: 400; color: #FFB45A; }
+.tabule-hodiny { display: none; align-items: center; gap: 3px; margin: 0; font-size: 18px; }
+.js-hodiny .tabule-hodiny { display: flex; }
+.tabule-hodiny > span { margin-right: 8px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(237, 230, 214, 0.55); }
+.tabule-hodiny i,
+.tb i { font-style: normal; color: #FFB45A; padding: 0 1px; }
+.tabule-filtry { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.tabule-filtr {
+  padding: 6px 14px !important;
+  border-radius: 999px;
+  border: 1px solid rgba(237, 230, 214, 0.28) !important;
+  font-size: 14px !important;
+  color: #EDE6D6 !important;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.tabule-filtr:hover { border-color: rgba(237, 230, 214, 0.7) !important; }
+.tabule-filtr[aria-pressed="true"] { background: #FFB45A !important; border-color: #FFB45A !important; color: #1A1D22 !important; font-weight: 600; }
+.tabule-sloupce {
+  display: grid;
+  grid-template-columns: var(--sloupce);
+  gap: 10px;
+  padding: 0 8px 8px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(237, 230, 214, 0.5);
+}
+.tabule-sloupce > span:nth-child(1) { grid-column: 1 / 4; }
+.tabule-sloupce > span:nth-child(4) { grid-column: 6 / 8; }
+.tabule-sloupce [lang="ja"] { font-family: var(--f-kanji); letter-spacing: 0.04em; font-size: 13px; color: rgba(255, 180, 90, 0.75); margin-right: 4px; }
+.tabule-radky { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tabule-odkaz {
+  display: grid;
+  grid-template-columns: var(--sloupce);
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.tabule-odkaz[href]:hover,
+.tabule-odkaz[href]:focus-visible { background: rgba(255, 255, 255, 0.06); }
+.tb { display: flex; align-items: center; gap: 3px; min-width: 0; }
+.tb-cedulka {
+  justify-self: start;
+  padding: 2px 5px;
+  border: 1.5px solid #FF8A5A;
+  border-radius: 4px;
+  font-family: var(--f-kanji);
+  font-size: 13px;
+  line-height: 1.2;
+  color: #FF9A6A;
+  transform: rotate(-4deg);
+}
+.tb-cedulka:empty { display: none; }
+.tabule-prazdno { margin: 10px 0 0; font-family: var(--f-ruka); font-size: 22px; color: #FFE2B8; }
+.tabule-pata { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(237, 230, 214, 0.14); font-size: 14px; color: rgba(237, 230, 214, 0.7); }
+.tabule-pata p { margin: 0; }
+.tabule-pata [lang="ja"] { font-family: var(--f-kanji); color: #FF9A6A; }
+.tabule-pata a { color: #FFB45A; font-weight: 600; text-decoration: none; }
+.tabule-pata a:hover { text-decoration: underline; }
+.tabule-razitko { width: min(1140px, 100%); margin: 18px auto 0; padding: 12px 18px; border-top: 0; border-radius: 16px; background: color-mix(in srgb, var(--papir) 92%, transparent); box-shadow: 0 14px 30px -20px rgba(28, 20, 44, 0.6); }
+
+/* Klapka: dvě pevné půlky a při překlapnutí dvě pohyblivé */
+.flap {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  height: 2.05em;
+  border-radius: 4px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 50, "opsz" 36;
+  font-weight: 600;
+  font-size: 17px;
+  color: #F3EBDC;
+  perspective: 260px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
+}
+.flap-cislice { width: 1.45em; font-size: 21px; font-variant-numeric: tabular-nums; }
+.flap-slovo { width: 100%; }
+.flap-p { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; backface-visibility: hidden; }
+.flap-hore { top: 0; border-radius: 4px 4px 0 0; background: #1B1E23; }
+.flap-dole { bottom: 0; border-radius: 0 0 4px 4px; background: #15171B; }
+.flap-t {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 200%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.42em;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1.1;
+}
+.flap-slovo .flap-t { justify-content: flex-start; text-overflow: ellipsis; }
+.flap-hore .flap-t,
+.flap-pada .flap-t { top: 0; }
+.flap-dole .flap-t,
+.flap-vstava .flap-t { top: -100%; }
+.flap::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  margin-top: -0.5px;
+  background: rgba(0, 0, 0, 0.85);
+}
+.flap-pada {
+  z-index: 3;
+  top: 0;
+  border-radius: 4px 4px 0 0;
+  background: #1B1E23;
+  transform-origin: 50% 100%;
+  animation: flap-pada var(--klap, 64ms) ease-in forwards;
+}
+.flap-vstava {
+  z-index: 3;
+  bottom: 0;
+  border-radius: 0 0 4px 4px;
+  background: #15171B;
+  transform-origin: 50% 0;
+  transform: rotateX(90deg);
+  animation: flap-vstava var(--klap, 64ms) ease-out var(--klap, 64ms) forwards;
+}
+@keyframes flap-pada { to { transform: rotateX(-90deg); } }
+@keyframes flap-vstava { from { transform: rotateX(90deg); } to { transform: rotateX(0deg); } }
+/* Stejné animace pod druhým jménem — přepnutím jména se animace spustí znovu */
+.flap.liche .flap-pada { animation-name: flap-pada-2; }
+.flap.liche .flap-vstava { animation-name: flap-vstava-2; }
+@keyframes flap-pada-2 { to { transform: rotateX(-90deg); } }
+@keyframes flap-vstava-2 { from { transform: rotateX(90deg); } to { transform: rotateX(0deg); } }
+.tabule-odkaz:not([href]) .flap { opacity: 0.7; }
+
+@media (max-width: 760px) {
+  .tabule-tyc { display: none; }
+  .tabule { padding-top: 0; }
+  .tabule-sloupce { display: none; }
+  .tabule-odkaz {
+    grid-template-columns: auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      "den datum cas stav"
+      "kurz kurz kurz kurz"
+      "lektor lektor ced ced";
+    row-gap: 6px;
+    padding: 10px 6px 12px;
+    border-bottom: 1px solid rgba(237, 230, 214, 0.1);
+    border-radius: 0;
+  }
+  .tb-den { grid-area: den; width: 42px; }
+  .tb-datum { grid-area: datum; }
+  .tb-cas { grid-area: cas; }
+  .tb-stav { grid-area: stav; }
+  .tb-kurz { grid-area: kurz; }
+  .tb-lektor { grid-area: lektor; width: 120px; }
+  .tb-cedulka { grid-area: ced; justify-self: end; }
+  .flap { font-size: 15px; }
+  .flap-cislice { font-size: 17px; width: 1.4em; }
+  .tb-kurz .flap { height: 2.3em; font-size: 16px; }
+}
+
+/* ——— Lidé ——— */
+
+.lide { position: relative; z-index: 2; padding: 10vh 20px; }
+.lide-papir {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: start;
+}
+.lide-fotky { display: grid; grid-template-columns: 1fr 1fr; gap: 7%; padding: 24px 2% 12%; }
+.foto {
+  position: relative;
+  margin: 0;
+  padding: 5% 5% 0;
+  background: #FFFDF8;
+  box-shadow: 0 20px 36px -18px rgba(28, 20, 44, 0.6), 0 0 0 1px rgba(43, 36, 32, 0.06);
+  transform: rotate(-3deg);
+}
+.foto-1 { transform: rotate(2.6deg) translateY(22%); }
+.foto-obraz { display: block; aspect-ratio: 1; overflow: hidden; background: #E9E1D2; }
+.foto-obraz img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0.2;
+  filter: sepia(0.7) brightness(1.8) contrast(0.42) blur(2px);
+  transition: opacity 1.6s ease, filter 3s ease;
+}
+.lide.vyvolano .foto-obraz img { opacity: 1; filter: none; }
+.foto-1 .foto-obraz img { transition-delay: 0.5s; }
+.foto figcaption { padding: 9px 4px 13px; text-align: center; font-family: var(--f-ruka); font-size: 23px; line-height: 1.1; color: var(--inkoust-2); }
+.foto-paska {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: -11px;
+  width: 44%;
+  height: 22px;
+  transform: translateX(-50%) rotate(-4deg);
+  background: rgba(232, 212, 160, 0.72);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.foto-1 .foto-paska { transform: translateX(-50%) rotate(5deg); background: rgba(196, 218, 238, 0.75); }
+.lide-perex { margin: 0 0 6px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 36; font-size: 19px; }
+.clovek { padding: 14px 0 10px; border-top: 1px dashed rgba(43, 36, 32, 0.2); }
+.clovek p { margin: 0 0 8px; }
+.clovek-jmeno {
+  margin: 0 0 6px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 96;
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1;
+}
+.clovek-jmeno small {
+  margin-left: 10px;
+  vertical-align: middle;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--inkoust-3);
+}
+.clovek-vede { font-size: 15px; color: var(--inkoust-2); }
+.clovek-vede a { color: var(--rumelka); font-weight: 600; }
+.podpis { display: block; width: min(330px, 100%); height: auto; margin: 6px 0 0; overflow: visible; }
+.podpis-text {
+  font-family: var(--f-ruka);
+  font-size: 54px;
+  fill: transparent;
+  stroke: var(--rumelka);
+  stroke-width: 1.1;
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+}
+.lide.vyvolano .podpis-text { animation: podpis 3.2s ease 0.8s forwards; }
+@keyframes podpis {
+  70% { stroke-dashoffset: 0; fill: transparent; }
+  100% { stroke-dashoffset: 0; fill: var(--rumelka); }
+}
+@media (max-width: 860px) {
+  .lide { padding: 8vh 14px; }
+  .lide-papir { grid-template-columns: minmax(0, 1fr); }
+  .lide-fotky { width: min(440px, 100%); margin: 0 auto; padding-bottom: 14%; }
+}
+
+/* ——— Rok dílny ——— */
+
+.rok { position: relative; z-index: 2; height: calc(var(--kroku) * 44vh + 100vh); height: calc(var(--kroku) * 44svh + 100svh); }
+.rok-kotva { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; }
+.rok-scena { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: clip; }
+.rok-ram { position: absolute; inset: 0; overflow: hidden; }
+.rok-svet { position: absolute; left: 0; top: 0; width: 100%; transform-origin: 0 0; }
+.rok-svet.jede { will-change: transform; }
+.rok-hlava {
+  position: absolute;
+  z-index: 4;
+  left: clamp(14px, 4vw, 60px);
+  top: 82px;
+  max-width: min(520px, calc(100% - 28px));
+  padding: 14px 22px 16px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--papir) 93%, transparent);
+  box-shadow: 0 20px 44px -26px rgba(22, 16, 40, 0.6);
+}
+.rok-hlava .nadpis-2 { margin: 6px 0 0; font-size: clamp(26px, 3vw, 42px); }
+.rok-kroky {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 16px;
+  width: min(1120px, calc(100% - 24px));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 4px;
+  transform: translateX(-50%);
+}
+.rok-mesic {
+  width: 100%;
+  padding: 8px 2px !important;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--papir) 68%, transparent) !important;
+  box-shadow: 0 6px 14px -10px rgba(22, 16, 40, 0.6);
+  font-family: var(--f-display) !important;
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 13px !important;
+  white-space: nowrap;
+  transition: background 0.3s, color 0.3s;
+}
+.rok-krok.bylo .rok-mesic { background: color-mix(in srgb, var(--papir) 92%, transparent) !important; }
+.rok-krok.je .rok-mesic { background: var(--inkoust) !important; color: var(--papir) !important; }
+.rok-text {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 12px);
+  width: min(600px, 100%);
+  margin: 0;
+  padding: 16px 22px 18px;
+  border-radius: 18px;
+  background: var(--papir);
+  box-shadow: 0 24px 50px -26px rgba(22, 16, 40, 0.65);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 48;
+  font-size: clamp(19px, 1.9vw, 27px);
+  line-height: 1.22;
+  text-wrap: balance;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.35s, transform 0.35s;
+  pointer-events: none;
+}
+.rok-text b {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rumelka);
+}
+.rok-krok.je .rok-text { opacity: 1; transform: none; }
+.rok.foto .rok-text { opacity: 0; }
+.rok-foto {
+  position: absolute;
+  z-index: 5;
+  right: clamp(16px, 6vw, 110px);
+  top: 50%;
+  width: min(30vw, 380px);
+  margin: 0;
+  padding: 12px 12px 0;
+  background: #FFFDF8;
+  box-shadow: 0 30px 60px -24px rgba(16, 12, 30, 0.7);
+  opacity: 0;
+  transform: translateY(-44%) rotate(4deg) scale(0.92);
+  transition: opacity 0.6s, transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1);
+  pointer-events: none;
+}
+.rok.foto .rok-foto { opacity: 1; transform: translateY(-50%) rotate(2.5deg); }
+.rok-foto img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; display: block; }
+.rok-foto figcaption { padding: 8px 4px 12px; text-align: center; font-family: var(--f-ruka); font-size: 22px; line-height: 1.1; }
+@media (max-width: 860px) {
+  .rok-hlava { top: 70px; padding: 10px 16px 12px; }
+  .rok-hlava .nadpis-2 { font-size: 24px; }
+  .rok-kroky { left: 12px; right: 12px; width: auto; bottom: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); transform: none; }
+  .rok-mesic { padding: 6px 2px !important; font-size: 12.5px !important; }
+  .rok-text { width: 100%; bottom: calc(100% + 8px); padding: 11px 15px 13px; font-size: 17px; }
+  .rok-foto { left: 50%; right: auto; width: min(64vw, 300px); transform: translate(-50%, -44%) rotate(4deg) scale(0.92); }
+  .rok.foto .rok-foto { transform: translate(-50%, -50%) rotate(2.5deg); }
+}
+
+/* ——— Noc ——— */
+
+.noc {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 14vh 20px 0;
+  overflow-x: clip;
+}
+.noc-karta {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: start;
+  z-index: 5;
+  width: min(520px, 100%);
+  margin-left: max(0px, calc((100% - 1240px) / 2));
+}
+.noc-scena { grid-row: 1; grid-column: 1; position: relative; height: max(80vh, 640px); margin: 0 -20px; align-self: end; }
+.noc-kopce { position: absolute; left: 0; bottom: 0; width: 100%; height: 46%; }
+.noc-dum { position: absolute; z-index: 2; right: 1vw; bottom: 9%; width: min(58vw, 820px); aspect-ratio: 1000 / 800; }
+.noc-fasada { width: 100%; height: 100%; display: block; }
+.noc-louka { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 17%; filter: brightness(0.32) saturate(0.55) hue-rotate(18deg); }
+.pruvod { position: absolute; z-index: 4; left: 0; right: 0; bottom: 3%; height: clamp(80px, 11vw, 140px); }
+.pruvod-clen {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: clamp(56px, 7vw, 100px);
+  animation: pruvod 60s linear infinite;
+  animation-delay: calc(var(--i) * -6.67s);
+}
+@keyframes pruvod { from { transform: translateX(-14vw); } to { transform: translateX(104vw); } }
+.pruvod:hover .pruvod-clen,
+.pruvod:focus-within .pruvod-clen { animation-play-state: paused; }
+.pruvod-kami { position: relative; z-index: 2; width: 100%; animation: pruvod-krok 0.8s ease-in-out infinite alternate; }
+.pruvod-clen:nth-child(even) .pruvod-kami { animation-delay: -0.4s; }
+@keyframes pruvod-krok { from { transform: translateY(0) rotate(-2.5deg); } to { transform: translateY(-5%) rotate(2.5deg); } }
+.lucerna {
+  position: absolute;
+  z-index: 3;
+  left: 46%;
+  bottom: 36%;
+  width: 66%;
+  overflow: visible;
+  filter: drop-shadow(0 0 10px rgba(255, 176, 80, 0.9));
+  pointer-events: none;
+}
+.lucerna-telo { transform-box: fill-box; transform-origin: 50% 0; animation: lucerna-houp 1.6s ease-in-out infinite alternate; }
+@keyframes lucerna-houp { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+.noc-perex { margin: 0 0 18px; color: var(--inkoust-2); }
+.noc-akce { display: flex; flex-wrap: wrap; gap: 10px; }
+.noc-adresa { margin: 18px 0 0; font-family: var(--f-ruka); font-size: 23px; line-height: 1.2; }
+.noc-adresa a { color: var(--rumelka); }
+.noc-sesit { margin-top: 16px; }
+.noc-sesit .razitko-misto { margin-top: 0; }
+.noc-sesit > p { margin: 10px 0 0; font-size: 15px; color: var(--inkoust-2); }
+.noc-parta { margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed rgba(43, 36, 32, 0.2); font-size: 15px; color: var(--inkoust-2); }
+.noc-parta a { color: var(--rumelka); font-weight: 600; }
+@media (max-width: 860px) {
+  .noc { padding: 12vh 14px 0; }
+  .noc-karta { grid-row: 1; margin: 0; }
+  .noc-scena { grid-row: 2; height: 70vh; min-height: 460px; margin: -6vh -14px 0; }
+  .noc-dum { width: 112vw; right: -30vw; bottom: 12%; }
+  .pruvod { height: 86px; }
+  .pruvod-clen { width: 62px; }
+}
+
+/* ——— Sešit razítek ——— */
+
+.razitka-tlacitko {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px 5px 6px;
+  border-radius: 999px;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.razitka-tlacitko:hover { background: rgba(43, 36, 32, 0.07); }
+.razitka-tlacitko svg { width: 31px; height: 28px; }
+.razitka-desky { fill: var(--rumelka); transition: fill 0.6s; }
+.je-vse-razitka .razitka-desky { fill: var(--zlato); }
+.razitka-tlacitko.cinkne svg { animation: cinkne 0.7s cubic-bezier(0.3, 1.6, 0.5, 1); }
+
+.razitka-dialog { --rz-papir: #FBF6EA; }
+.sesit { list-style: none; padding: 0; margin: 22px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.sesit-pole {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  padding: 14px 10px 16px;
+  border-radius: 16px;
+  background: #FBF6EA;
+  border: 1.5px dashed rgba(43, 36, 32, 0.18);
+  text-align: center;
+}
+.sesit-pole:nth-child(3n + 1) { --u: -9deg; }
+.sesit-pole:nth-child(3n + 2) { --u: 6deg; }
+.sesit-pole:nth-child(3n) { --u: -3deg; }
+.sesit-otisk { width: 96px; aspect-ratio: 1; color: var(--rumelka); opacity: 0.09; filter: grayscale(1); transition: opacity 0.4s, transform 0.4s; }
+.sesit-otisk svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.sesit-pole.je { border-style: solid; border-color: rgba(43, 36, 32, 0.06); }
+.sesit-pole.je .sesit-otisk { opacity: 0.94; filter: none; transform: rotate(var(--u)); }
+.otisk-noc { color: #2F4C8E; }
+.sesit-nazev { font-family: var(--f-display); font-weight: 600; font-size: 16px; }
+.sesit-ukol { font-size: 13px; line-height: 1.4; color: var(--inkoust-3); }
+.sesit-pole.je .sesit-ukol { display: none; }
+.sesit-datum { display: none; font-family: var(--f-ruka); font-size: 19px; line-height: 1; color: var(--rumelka); }
+.sesit-pole.je .sesit-datum { display: block; }
+.sesit-jinde { margin: 0 0 18px; padding: 14px 16px; border-radius: 16px; background: var(--papir-2); }
+.sesit-jinde-nadpis { margin: 0 0 6px; font-family: var(--f-display); font-size: 11.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--inkoust-3); }
+.sesit-jinde ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.sesit-jinde li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 15px; }
+.sesit-jinde a { font-family: var(--f-display); font-weight: 600; color: var(--rumelka); }
+@media (max-width: 600px) {
+  .sesit { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sesit-otisk { width: 80px; }
+}
+
+/* Políčko na razítko v kartě */
+.razitko-misto {
+  --rz-papir: var(--papir);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(43, 36, 32, 0.2);
+}
+.razitko-otisk {
+  position: relative;
+  flex: none;
+  width: 66px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(43, 36, 32, 0.25);
+  color: var(--rumelka);
+}
+.razitko-otisk svg {
+  position: absolute;
+  inset: -5px;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+  overflow: visible;
+  opacity: 0.07;
+  filter: grayscale(1);
+  transition: opacity 0.25s;
+}
+.razitko-misto.je .razitko-otisk { border-color: transparent; }
+.razitko-misto.je .razitko-otisk svg { opacity: 0.94; filter: none; transform: rotate(-8deg); }
+.razitko-misto.ted .razitko-otisk svg { animation: razitko-buch 0.55s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes razitko-buch {
+  0% { opacity: 0; transform: rotate(-22deg) scale(1.9); }
+  55% { opacity: 1; transform: rotate(-6deg) scale(0.9); }
+  100% { transform: rotate(-8deg) scale(1); }
+}
+.razitko-popis { display: grid; gap: 2px; margin: 0 !important; font-size: 14.5px; line-height: 1.35; }
+.razitko-popis b { font-family: var(--f-display); font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--inkoust-3); }
+.razitko-popis b [lang="ja"] { font-family: var(--f-kanji); font-size: 15px; letter-spacing: 0; color: var(--rumelka); }
+.razitko-hotovo { display: none; font-family: var(--f-ruka); font-size: 21px; color: var(--rumelka); }
+.razitko-misto.je .razitko-ukol { display: none; }
+.razitko-misto.je .razitko-hotovo { display: block; }
+
+/* Oznámení o razítku — tvar má z parta2.css, tady jen otisk */
+.u2 .oznameni { --rz-papir: #2B2420; }
+.oznameni .oznameni-otisk { width: 40px; height: 40px; color: var(--zlato-2); }
+.oslava-razitka { --rz-papir: var(--papir); flex-wrap: wrap; gap: 0; color: var(--rumelka); }
+.oslava-razitka svg { width: 42px !important; height: 42px; margin: 0 -2px !important; }
+.oslava-razitka svg:nth-child(odd) { transform: rotate(-8deg); }
+.oslava-razitka svg:nth-child(even) { transform: rotate(6deg); }
+.rez-ukaz { pointer-events: none !important; }
+
+/* ——— Méně pohybu ——— */
+
+@media (prefers-reduced-motion: reduce) {
+  .brana { height: auto; }
+  .brana-scena { position: relative; }
+  .rok { height: auto; }
+  .rok-scena { position: relative; }
+  .noren-latka,
+  .castice,
+  .kruh.toci .kruh-krouzek,
+  .kruh.toci .kruh-pruhy,
+  .pec-horko path,
+  .rok-kapka,
+  .rok-vlnka,
+  .rok-nahrava,
+  .kafe-para path,
+  .pruvod-clen,
+  .pruvod-kami,
+  .lucerna-telo,
+  .brana-dolu svg,
+  .rez-misto.ukazane { animation: none !important; }
+  .castice { display: none; }
+  .pruvod-clen { left: calc(4vw + var(--i) * 10vw); }
+  .foto-obraz img { opacity: 1; filter: none; transition: none; }
+  .podpis-text { fill: var(--rumelka); stroke: none; }
+  .razitko-misto.ted .razitko-otisk svg { animation: none; }
+  .noren-pul,
+  .kus,
+  .pec-viko,
+  .rez-rok [data-od] { transition: none; }
+}

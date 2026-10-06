@@ -1,0 +1,264 @@
+---
+/**
+ * Návrh 02 — Kruh-květ. Dnešní značka obrácená naruby: místo květu
+ * na kruhu je kruh uprostřed květu. Ocelová hlava hrnčířského kruhu
+ * s hroudou je pestík, kolem tyčinky s pylem a pět velkých plátků.
+ *
+ * Točí se proti směru hodin, jako kruh u praváka. Na najetí myší se
+ * roztočí naplno.
+ */
+import { BARVY, UHLY_KVETU, PLATEK, posun, noveId, cara, rad, type Bod, type LogoProps } from "./sdilene";
+
+const {
+  size = 160,
+  tema = "svetle",
+  mono = BARVY.espresso,
+  anim = false,
+  nazev = "zadny",
+  maly = false,
+  class: trida = "",
+} = Astro.props as LogoProps;
+
+const id = noveId("kk");
+const jeMono = tema === "mono";
+const tmave = tema === "tmave";
+const barva = tmave ? BARVY.sakuraSvetla : BARVY.sakura;
+const textBarva = jeMono ? mono : tmave ? BARVY.krem : BARVY.espresso;
+const ocel = BARVY.ocel;
+const hlina = BARVY.ocelTmava;
+
+/** Plátek je ten ze značky, jen 5,4× větší. Pata se schová pod desku. */
+const SKALA = 5.4;
+const PATA = 16;
+const DESKA = 33;
+
+/** Tyčinky: střídavě delší a kratší, ať netvoří pravidelný věnec. */
+const tycinky = Array.from({ length: 15 }, (_, i) => {
+  const u = rad((i * 360) / 15 + 12);
+  const konec = DESKA + 6.5 + (i % 2 ? 2.4 : 0) - (i % 3 === 0 ? 1.4 : 0);
+  return {
+    x1: ((DESKA - 2) * Math.sin(u)).toFixed(2),
+    y1: (-(DESKA - 2) * Math.cos(u)).toFixed(2),
+    x2: (konec * Math.sin(u)).toFixed(2),
+    y2: (-konec * Math.cos(u)).toFixed(2),
+  };
+});
+
+/** Stopa po prstech na hroudě — jediné, na čem je vidět, že se kruh točí. */
+const spirala = cara(
+  Array.from({ length: 100 }, (_, i): Bod => {
+    const s = i / 99;
+    const th = s * Math.PI * 2 * 2.3;
+    const r = 2.4 + 10 * s;
+    return [r * Math.cos(th), r * Math.sin(th)];
+  }),
+);
+---
+
+<span class={`lg lg-${nazev} kk ${anim ? "anim" : ""} ${trida}`} data-logo style={`--s:${size}px`}>
+  <svg width={size} height={size} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JIRO saku">
+    <defs>
+      {!jeMono && (
+        <>
+          <linearGradient id={`${id}-pt`} gradientUnits="userSpaceOnUse" x1="0" y1="0.5" x2="0" y2="-12.6">
+            <stop offset="0" stop-color={posun(barva, -0.2)} />
+            <stop offset="0.5" stop-color={barva} />
+            <stop offset="1" stop-color={posun(barva, 0.38)} />
+          </linearGradient>
+          <linearGradient id={`${id}-po`} gradientUnits="userSpaceOnUse" x1="0" y1="0.5" x2="0" y2="-12.6">
+            <stop offset="0" stop-color={posun(barva, -0.38)} />
+            <stop offset="0.5" stop-color={posun(barva, -0.22)} />
+            <stop offset="1" stop-color={posun(barva, 0.08)} />
+          </linearGradient>
+          <radialGradient id={`${id}-deska`} cx="0.38" cy="0.34" r="0.75">
+            <stop offset="0" stop-color={posun(ocel, 0.24)} />
+            <stop offset="0.55" stop-color={ocel} />
+            <stop offset="1" stop-color={posun(ocel, -0.28)} />
+          </radialGradient>
+          <radialGradient id={`${id}-hlina`} cx="0.4" cy="0.36" r="0.72">
+            <stop offset="0" stop-color={posun(hlina, 0.28)} />
+            <stop offset="0.5" stop-color={hlina} />
+            <stop offset="1" stop-color={posun(hlina, -0.3)} />
+          </radialGradient>
+          <linearGradient id={`${id}-lem`} gradientUnits="userSpaceOnUse" x1="-24" y1="-26" x2="24" y2="26">
+            <stop offset="0" stop-color={posun(ocel, -0.04)} />
+            <stop offset="1" stop-color={posun(ocel, -0.45)} />
+          </linearGradient>
+        </>
+      )}
+      <path
+        id={`${id}-platek`}
+        d={PLATEK}
+        fill={jeMono ? mono : `url(#${id}-pt)`}
+        stroke={jeMono ? undefined : `url(#${id}-po)`}
+        stroke-width={jeMono ? undefined : "0.15"}
+        stroke-linejoin="round"
+      />
+      {/* Jednobarevně by plátky splynuly s deskou — mezera kolem ní je vyříznutá. */}
+      {jeMono && (
+        <mask id={`${id}-vyrez`} maskUnits="userSpaceOnUse" x="-100" y="-100" width="200" height="200">
+          <rect x="-100" y="-100" width="200" height="200" fill="#fff" />
+          <circle r={DESKA + 3.2} fill="#000" />
+        </mask>
+      )}
+    </defs>
+
+    <g transform="translate(100 100)">
+      <g class="kk-hover">
+        <g class="kk-otacec">
+          <g mask={jeMono ? `url(#${id}-vyrez)` : undefined}>
+            {UHLY_KVETU.map((u, i) => (
+              <g transform={`rotate(${u})`}>
+                <g class="kk-platek" style={`--i:${i}`}>
+                  <g transform={`translate(0 -${PATA}) scale(${SKALA})`}>
+                    <use href={`#${id}-platek`} />
+                    {/* Žilky — vidět jsou až ve velkém, v malém nevadí */}
+                    {!maly && !jeMono && (
+                      <g stroke={posun(barva, 0.5)} stroke-linecap="round">
+                        <path d="M0 -1.6 L0 -8.6" stroke-width="0.12" opacity="0.45" />
+                        <path d="M-0.4 -2.4 Q-1.7 -5.3 -2.7 -8.1" stroke-width="0.09" opacity="0.3" />
+                        <path d="M0.4 -2.4 Q1.7 -5.3 2.7 -8.1" stroke-width="0.09" opacity="0.3" />
+                      </g>
+                    )}
+                  </g>
+                </g>
+              </g>
+            ))}
+            {!maly && (
+              <g class="kk-tycinky">
+                {tycinky.map((t) => (
+                  <line
+                    x1={t.x1}
+                    y1={t.y1}
+                    x2={t.x2}
+                    y2={t.y2}
+                    stroke={jeMono ? mono : posun(barva, tmave ? 0.1 : -0.3)}
+                    stroke-width="0.8"
+                    stroke-linecap="round"
+                  />
+                ))}
+                {tycinky.map((t) => (
+                  <circle
+                    cx={t.x2}
+                    cy={t.y2}
+                    r="1.55"
+                    fill={jeMono ? mono : BARVY.mustard}
+                    stroke={jeMono ? undefined : posun(BARVY.mustard, -0.35)}
+                    stroke-width="0.35"
+                  />
+                ))}
+              </g>
+            )}
+          </g>
+        </g>
+      </g>
+
+      <g class="kk-deska">
+        {jeMono ? (
+          <>
+            <circle r={DESKA - 1.2} stroke={mono} stroke-width="2.4" />
+            <circle r="25.5" stroke={mono} stroke-width="1.1" />
+            <circle r="15" fill={mono} />
+          </>
+        ) : (
+          <>
+            <circle r={DESKA} fill={`url(#${id}-deska)`} />
+            {/* Rýha v desce: tmavá stopa a pod ní světlý břit */}
+            <circle r="26.6" stroke={posun(ocel, -0.32)} stroke-width="1.3" />
+            <circle r="27.5" stroke={posun(ocel, 0.32)} stroke-width="0.55" opacity="0.8" />
+            <circle r={DESKA - 0.55} stroke={`url(#${id}-lem)`} stroke-width="1.1" />
+            <circle r="15" fill={`url(#${id}-hlina)`} />
+            {!maly && (
+              <g class="kk-spirala">
+                <path d={spirala} stroke={posun(hlina, 0.42)} stroke-width="0.85" stroke-linecap="round" opacity="0.75" />
+              </g>
+            )}
+          </>
+        )}
+      </g>
+    </g>
+  </svg>
+
+  {nazev !== "zadny" && (
+    <span class="lg-nazev" style={`color:${textBarva}`}>
+      <span class="kk-jiro">JIRO</span> saku
+    </span>
+  )}
+</span>
+
+<style>
+  .kk-jiro {
+    letter-spacing: -0.01em;
+  }
+
+  /* Na najetí myší se kruh roztočí — kdekoli na stránce, i v malé ukázce */
+  .kk-hover,
+  .kk-otacec,
+  .kk-spirala {
+    transform-origin: 0 0;
+  }
+  .kk-hover {
+    animation: kk-toc 1.2s linear infinite paused;
+  }
+  .kk:hover .kk-hover {
+    animation-play-state: running;
+  }
+
+  .anim .kk-otacec {
+    animation: kk-toc 70s linear infinite;
+  }
+  .anim .kk-spirala {
+    animation: kk-toc 3.5s linear infinite;
+  }
+  .anim .kk-deska {
+    transform-origin: 0 0;
+    animation: kk-deska 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) 0.1s both;
+  }
+  .anim .kk-platek {
+    transform-origin: 0 0;
+    animation: kk-platek 0.85s cubic-bezier(0.25, 1.35, 0.5, 1) both;
+    animation-delay: calc(0.45s + var(--i) * 0.1s);
+  }
+  .anim .kk-tycinky {
+    transform-origin: 0 0;
+    animation: kk-tycinky 0.6s ease-out 1.15s both;
+  }
+
+  /* Proti směru hodin — tak se točí kruh u praváka */
+  @keyframes kk-toc {
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+  @keyframes kk-deska {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+  @keyframes kk-platek {
+    from {
+      transform: scale(0.15) rotate(-35deg);
+      opacity: 0;
+    }
+    40% {
+      opacity: 1;
+    }
+    to {
+      transform: scale(1) rotate(0);
+      opacity: 1;
+    }
+  }
+  @keyframes kk-tycinky {
+    from {
+      transform: scale(0.7);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+</style>

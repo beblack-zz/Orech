@@ -1,0 +1,35 @@
+---
+/**
+ * Dva lektoři, každý s vlastním rukopisem. Kolik termínů kdo vede, se
+ * počítá z kurzy.ts — žádné číslo tu není napsané ručně.
+ */
+import LektorFoto from "./LektorFoto.astro";
+import { kurzy } from "../../data/kurzy";
+import { pocetKurzu } from "../../data/pocty";
+
+const lektori = [
+  { jmeno: "Jiřík", kde: "u kruhu", znak: "轆" },
+  { jmeno: "Renča", kde: "u pece", znak: "窯" },
+];
+const jejich = (jmeno: string) => kurzy.map((k, i) => ({ k, i })).filter((x) => x.k.lektor === jmeno);
+---
+<div class="lektori">
+  {lektori.map((l, n) => (
+    <article class={`lektor lektor-${n % 2 ? "vpravo" : "vlevo"}`}>
+      <div class="lektor-okno">
+        <LektorFoto jmeno={l.jmeno} velka />
+        <span class="lektor-znak" lang="ja" aria-hidden="true">{l.znak}</span>
+      </div>
+      <div class="lektor-text">
+        <p class="stitek">{l.kde}</p>
+        <h3 class="lektor-jmeno">{l.jmeno}</h3>
+        <p class="lektor-pocet">Teď vede {pocetKurzu(jejich(l.jmeno).length)}:</p>
+        <ul class="lektor-kurzy">
+          {jejich(l.jmeno).map(({ k, i }) => (
+            <li><a href={`#kurz-${i}`}><span>{k.date.getDate()}. {k.date.getMonth() + 1}.</span> {k.title}</a></li>
+          ))}
+        </ul>
+      </div>
+    </article>
+  ))}
+</div>

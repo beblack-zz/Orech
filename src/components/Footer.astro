@@ -4,8 +4,9 @@ import Hlinka from "./characters/Hlinka.astro";
 const year = new Date().getFullYear();
 ---
 
-<footer class="bg-espresso text-cream mt-16 relative">
-  <div class="container-x py-10 md:py-12">
+<footer class="denni-paleta bg-espresso text-cream mt-16 relative">
+  {/* Spodek je vyšší, aby poslední řádek nezakryl plovoucí Rezervovat */}
+  <div class="container-x pt-10 pb-24 md:pt-12 md:pb-40">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8 relative">
       <div class="absolute -top-[64px] right-0 lg:-top-[157px] lg:left-3/4 lg:right-auto lg:-translate-x-1/2 pointer-events-none z-10">
         <Hlinka size={200} class="w-[80px] lg:w-[200px] h-auto" />

@@ -1,0 +1,151 @@
+---
+/**
+ * Náhled instagramového příspěvku ve stylu Parta 2: Pecinka, skutečná
+ * pec z fotky dílny a jeden kus z obchodu. Příspěvek má 4 : 5 (1080 × 1350)
+ * a všechny míry jsou v cqw, takže se dá zvětšit na plné rozlišení
+ * a vyfotit beze změny rozvržení.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/ig-prispevek.css";
+import { Image } from "astro:assets";
+import Postavicka from "../components/characters/Postavicka.astro";
+import Shimenawa from "../components/characters/kami/Shimenawa.astro";
+import { produkty } from "../data/obchod";
+import { body } from "../components/parta2/tvary";
+import foto from "../../fotoorech/fotodilna.jpg";
+
+const hrnek = produkty.find((p) => p.name === "Hrnek Ranní")!;
+const hvezdy = body(60, 13, 100, 46);
+const jiskry = body(14, 17, 100, 100);
+const pismo = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("火八神")}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instagram — Pecinka · JIRO saku</title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href={pismo} />
+  </head>
+  <body class="ig-stranka">
+    <article class="ig">
+      <header class="ig-hlava">
+        <span class="ig-avatar" aria-hidden="true">
+          <svg viewBox="-20 -20 40 40">
+            <circle r="19" fill="#F7F1E3" />
+            <g fill="#C4432B" transform="rotate(12) scale(1.15)">
+              {[0, 72, 144, 216, 288].map((u) => (
+                <path d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z" transform={`rotate(${u}) translate(0 -1.6)`} />
+              ))}
+            </g>
+          </svg>
+        </span>
+        <span class="ig-ucet"><b>jiro.saku</b><small>Ořech · keramická dílna</small></span>
+        <span class="ig-tecky" aria-hidden="true">•••</span>
+      </header>
+
+      {/* ——— Samotný příspěvek 4 : 5 ——— */}
+      <div class="post">
+        <div class="post-nebe" aria-hidden="true">
+          {hvezdy.map((h) => (
+            <i style={`left:${h.x}%;top:${h.y}%;--s:${(0.15 + h.s * 0.3).toFixed(2)}cqw;opacity:${(0.35 + h.t * 0.65).toFixed(2)}`}></i>
+          ))}
+        </div>
+        <p class="post-znak" lang="ja" aria-hidden="true">火</p>
+        <Shimenawa class="post-provaz" />
+
+        <p class="post-stitek"><span lang="ja">八</span> Oheň · Kamado-gami</p>
+
+        <div class="post-okno">
+          <span class="post-orez">
+            <Image src={foto} alt="Dílna JIRO saku v Ořechu s elektrickou pecí" width={1600} loading="eager" class="post-foto" />
+          </span>
+          <span class="post-zar" aria-hidden="true"></span>
+          <svg class="post-ram" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="ig-ram" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#A9835C" />
+                <stop offset="0.5" stop-color="#7A5A3C" />
+                <stop offset="1" stop-color="#4E3824" />
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="48.2" fill="none" stroke="url(#ig-ram)" stroke-width="3.6" />
+            <circle cx="50" cy="50" r="46.2" fill="none" stroke="#3B2A1B" stroke-width="0.6" opacity="0.7" />
+            <path d="M14 22 A46 46 0 0 1 40 5" fill="none" stroke="#E2C59A" stroke-width="0.8" stroke-linecap="round" opacity="0.7" />
+          </svg>
+        </div>
+
+        <div class="post-jiskry" aria-hidden="true">
+          {jiskry.map((j) => <i style={`left:${(55 + j.x * 0.4).toFixed(1)}%;top:${(40 + j.y * 0.3).toFixed(1)}%;--s:${(0.3 + j.s * 0.5).toFixed(2)}cqw`}></i>)}
+        </div>
+
+        <div class="post-pecinka">
+          <p class="post-bublina">Ta pec na fotce? To jsem já. Tenhle hrnek jsem pekla celou noc.</p>
+          <Postavicka id="pecinka" size={300} varianta="kami" />
+        </div>
+
+        {/* Hrnek z obchodu na papírové cedulce */}
+        <div class="post-produkt">
+          <svg class="post-hrnek" viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="ig-celadon" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#6F8F7A" />
+                <stop offset="0.35" stop-color="#B5CDB6" />
+                <stop offset="0.55" stop-color="#94B39C" />
+                <stop offset="1" stop-color="#5E7C68" />
+              </linearGradient>
+            </defs>
+            <ellipse cx="58" cy="108" rx="40" ry="6" fill="#1B1330" opacity="0.35" />
+            <path d="M88 44 C110 44 112 78 88 80" stroke="#7FA08A" stroke-width="7" fill="none" stroke-linecap="round" />
+            <path d="M24 30 L92 30 L88 98 C87 106 30 106 28 98 Z" fill="url(#ig-celadon)" />
+            <path d="M26 82 C40 88 76 88 90 82 L88 98 C87 106 30 106 28 98 Z" fill="#C9A27E" />
+            <path d="M27 83 C40 86 50 88 60 87" stroke="#7FA08A" stroke-width="2.4" fill="none" opacity="0.8" />
+            <g stroke="#4E6A58" stroke-width="0.7" fill="none" opacity="0.45">
+              <path d="M34 40 L44 48 L40 60 L52 66 M64 38 L70 52 L82 56 M58 70 L66 76 L78 72" />
+            </g>
+            <ellipse cx="58" cy="30" rx="34" ry="6" fill="#4E6A58" />
+            <ellipse cx="58" cy="30" rx="34" ry="6" fill="none" stroke="#C9DCCB" stroke-width="2" />
+            <path d="M36 38 C34 56 36 72 40 84" stroke="#E4F0E4" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5" />
+          </svg>
+          <div class="post-cedulka">
+            <p class="post-cedulka-co">Z obchodu</p>
+            <p class="post-cedulka-jmeno">{hrnek.name}</p>
+            <p class="post-cedulka-info">{hrnek.glaze.toLowerCase()} · ručně točený</p>
+            <p class="post-cedulka-cena">{hrnek.price}</p>
+          </div>
+        </div>
+
+        <footer class="post-pata">
+          <span>JIRO <em>saku</em></span>
+          <span>kami z dílny v Ořechu · 8 / 9</span>
+        </footer>
+      </div>
+
+      <div class="ig-akce" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 21 C5 15 2 12 2 8 A5 5 0 0 1 12 6 A5 5 0 0 1 22 8 C22 12 19 15 12 21 Z" /></svg>
+        <svg viewBox="0 0 24 24"><path d="M21 12 A9 9 0 1 1 17 4.5 L21 3 L20 8" /></svg>
+        <svg viewBox="0 0 24 24"><path d="M22 3 L2 10 L10 13 L13 21 Z M10 13 L22 3" /></svg>
+        <svg class="ig-ulozit" viewBox="0 0 24 24"><path d="M5 3 H19 V21 L12 16 L5 21 Z" /></svg>
+      </div>
+      <div class="ig-popis">
+        <p><b>Pecince</b> a dalším osmi z party se to líbí</p>
+        <p>
+          <b>jiro.saku</b> Tohle je Pecinka. Naše pec — a podle japonské tradice taky
+          kami ohniště, Kamado-gami. Přes noc rozpálí hlínu na 1 280 °C a ráno z ní
+          vyndáme tohle: {hrnek.name} v celadonové glazuře.
+        </p>
+        <p>Celou partu devíti kami najdeš na webu. Pár se jich schovává.</p>
+        <p>{hrnek.name} · {hrnek.price} · odkaz v biu</p>
+        <p class="ig-tagy">#keramika #celadon #kamadogami #kami #rucnidilo #orech #jirosaku</p>
+      </div>
+    </article>
+
+  </body>
+</html>

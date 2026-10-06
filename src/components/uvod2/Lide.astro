@@ -1,0 +1,59 @@
+---
+/**
+ * Jiřík a Renča. Fotky jako dvě instantní fotky přilepené páskou —
+ * při prvním pohledu se „vyvolají“ (scripts/uvod2/lide.ts). Texty jsou
+ * ze stránky O nás, počet kurzů se počítá z kurzy.ts a odkaz u něj
+ * přepne odjezdovou tabuli na kurzy toho lektora.
+ */
+import { Image } from "astro:assets";
+import jirik from "../../../fotoorech/jirik.jpg";
+import renca from "../../../fotoorech/ren.jpg";
+import { lide, oDilne } from "../../data/uvod2";
+import { kurzy } from "../../data/kurzy";
+import { pocetKurzu } from "../../data/pocty";
+
+/** Kde na fotce je to podstatné — stejné body jako LektorFoto na Kurzech 2 */
+const fotky: Record<string, { src: ImageMetadata; alt: string; kde: string }> = {
+  "Jiřík": { src: jirik, alt: "Jiřík u hrnčířského kruhu obrábí hrnek", kde: "60% 36%" },
+  "Renča": { src: renca, alt: "Renča u velké pece z cihel", kde: "40% 48%" },
+};
+---
+<section class="lide" id="lide" data-hodina="15.8" aria-labelledby="lide-nadpis">
+  <div class="lide-papir papir">
+    <div class="lide-fotky">
+      {lide.map((l, i) => fotky[l.jmeno] && (
+        <figure class={`foto foto-${i}`}>
+          <span class="foto-paska" aria-hidden="true"></span>
+          <span class="foto-obraz">
+            <Image src={fotky[l.jmeno].src} alt={fotky[l.jmeno].alt} width={760} widths={[320, 520, 760]} sizes="(min-width: 861px) 300px, 64vw" format="webp" style={`object-position:${fotky[l.jmeno].kde}`} />
+          </span>
+          <figcaption>{l.jmeno} {l.kde}</figcaption>
+        </figure>
+      ))}
+    </div>
+
+    <div class="lide-text">
+      <p class="stitek">Kdo tu točí</p>
+      <h2 id="lide-nadpis" class="nadpis-2">Dva lektoři, dva rukopisy</h2>
+      <p class="lide-perex">{oDilne.lektori}</p>
+      {lide.map((l) => {
+        const n = kurzy.filter((k) => k.lektor === l.jmeno).length;
+        return (
+          <div class="clovek">
+            <h3 class="clovek-jmeno">{l.jmeno} <small>{l.role}</small></h3>
+            <p>{l.bio}</p>
+            {n > 0 && (
+              <p class="clovek-vede">
+                Teď vede {pocetKurzu(n)}. <a href="#odjezdy" data-filtr-tabule={`lektor:${l.jmeno}`}>Ukázat na tabuli <span aria-hidden="true">↑</span></a>
+              </p>
+            )}
+          </div>
+        );
+      })}
+      <svg class="podpis" viewBox="0 0 400 76" role="img" aria-label="Jiřík a Renča">
+        <text class="podpis-text" x="6" y="56">— Jiřík &amp; Renča</text>
+      </svg>
+      <a class="stanice-odkaz" href="/o-nas">Víc o dílně a o nás <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,171 @@
+---
+/**
+ * Razítka z dílny. Kresby otisků jsou tu jednou jako <symbol> a všude
+ * jinde se na ně jen odkazuje (karty zastavení, sešit, oznámení). Otisk
+ * je jako nádražní razítko v Japonsku: kulatý, nahoře „JIRO SAKU ·
+ * OŘECH“ do oblouku, uprostřed obrázek, dole znak. Inkoust není
+ * dokonalý — filtr rz-inkoust ho rozvlní a vykousne z něj zrno.
+ *
+ * Pod tím sešit (dialog): devět políček, u prázdných úkol, u plných
+ * datum. Dole, kolik toho člověk našel na ostatních stránkách nového
+ * vzhledu — úvod je brána, tak ať je vidět celá cesta.
+ */
+import { razitka, jineSbirky } from "../../data/uvod2";
+
+const papir = "var(--rz-papir, #F7F1E3)";
+---
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <path id="rz-oblouk" d="M17.5 50 A32.5 32.5 0 0 1 82.5 50" />
+    <g id="rz-ramecek">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="3.6" />
+      <circle cx="50" cy="50" r="40.5" fill="none" stroke="currentColor" stroke-width="1.1" />
+      <text font-size="7.2" letter-spacing="1.2" fill="currentColor" font-family="Fraunces Variable, Fraunces, Georgia, serif" font-weight="700">
+        <textPath href="#rz-oblouk" startOffset="50%" text-anchor="middle">JIRO SAKU · OŘECH</textPath>
+      </text>
+      <circle cx="13.6" cy="60" r="1.5" fill="currentColor" />
+      <circle cx="86.4" cy="60" r="1.5" fill="currentColor" />
+    </g>
+    <filter id="rz-inkoust" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="3" result="vlna" />
+      <feDisplacementMap in="SourceGraphic" in2="vlna" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="tvar" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="9" result="zrno" />
+      <feColorMatrix in="zrno" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -11 0 0 0 7.1" result="diry" />
+      <feComposite in="tvar" in2="diry" operator="in" />
+    </filter>
+  </defs>
+
+  <symbol id="razitko-brana" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <rect x="31" y="27" width="38" height="3.4" rx="1.4" fill="currentColor" />
+    <path d="M33 31 H49 V56 Q41 58.5 33 56 Z M51 31 H67 V56 Q59 58.5 51 56 Z" fill="currentColor" />
+    <circle cx="50" cy="40" r="6.4" fill={papir} />
+    <circle cx="50" cy="40" r="2.4" fill="currentColor" />
+    <path d="M37 63 H63" stroke="currentColor" stroke-width="2" />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">門</text>
+  </symbol>
+
+  <symbol id="razitko-kruh" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <path d="M41 50 C38 44 39 38 44 35 C46 33 46 31 45 28 L55 28 C54 31 54 33 56 35 C61 38 62 44 59 50 Z" fill="currentColor" />
+    <ellipse cx="50" cy="52" rx="19" ry="4.4" fill="currentColor" />
+    <path d="M36 55.5 L64 55.5 L61 63 L39 63 Z" fill="currentColor" />
+    <path d="M29 60 C25 55 25 47 29 42 M71 60 C75 55 75 47 71 42" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">轆</text>
+  </symbol>
+
+  <symbol id="razitko-stul" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <path d="M38 46 C37 38 43 32 50 32 C57 32 63 38 62 46 Z" fill="currentColor" />
+    <path d="M43 39 C45 36 49 35 52 35.5" stroke={papir} stroke-width="1.8" fill="none" stroke-linecap="round" />
+    <rect x="27" y="46" width="46" height="4.4" rx="1.4" fill="currentColor" />
+    <path d="M31.5 50 L30.5 63 M68.5 50 L69.5 63" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" />
+    <path d="M32 57 H68" stroke="currentColor" stroke-width="1.6" />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">机</text>
+  </symbol>
+
+  <symbol id="razitko-pec" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <rect x="36" y="38" width="28" height="22" rx="3" fill="currentColor" />
+    <ellipse cx="50" cy="38" rx="15" ry="4" fill="currentColor" />
+    <ellipse cx="50" cy="38" rx="11" ry="2.2" fill={papir} />
+    <path d="M36 46 H64 M36 53 H64" stroke={papir} stroke-width="1.2" />
+    <rect x="39" y="60" width="3" height="4" fill="currentColor" />
+    <rect x="58" y="60" width="3" height="4" fill="currentColor" />
+    <path d="M43 32 C40 29 45 27 42 23 M50 31 C47 27 52 25 49 20.5 M57 32 C54 29 59 27 56 23" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">窯</text>
+  </symbol>
+
+  <symbol id="razitko-police" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <rect x="29" y="44" width="42" height="2.8" fill="currentColor" />
+    <rect x="29" y="61" width="42" height="2.8" fill="currentColor" />
+    <path d="M30 44 V64 M70 44 V64" stroke="currentColor" stroke-width="2" />
+    <path d="M33 37 C33 42 37 44 41 44 C45 44 49 42 49 37 Z" fill="currentColor" />
+    <path d="M57 44 C53 41 53 35 56 32 C57 31 57 29 56 27 L62 27 C61 29 61 31 62 32 C65 35 65 41 61 44 Z" fill="currentColor" />
+    <path d="M36 51 L37 61 H45 L46 51 Z" fill="currentColor" />
+    <path d="M46 53 C50 53 50 58 46 58" stroke="currentColor" stroke-width="1.8" fill="none" />
+    <ellipse cx="59" cy="54.5" rx="7" ry="6.4" fill="currentColor" />
+    <ellipse cx="59" cy="54.5" rx="3.6" ry="3.2" fill={papir} />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">棚</text>
+  </symbol>
+
+  <symbol id="razitko-poukaz" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <rect x="30" y="35" width="40" height="26" rx="2" fill="currentColor" />
+    <path d="M30 46 H70 M52 35 V61" stroke={papir} stroke-width="2.4" />
+    <path d="M52 35 C46 27 39 29 44 33.5 C46 35 49 35 52 35 C55 35 58 35 60 33.5 C65 29 58 27 52 35 Z" fill="currentColor" />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">贈</text>
+  </symbol>
+
+  <symbol id="razitko-pauza" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <path d="M38 40 L40 60 Q40 62.5 42.5 62.5 H57.5 Q60 62.5 60 60 L62 40 Z" fill="currentColor" />
+    <ellipse cx="50" cy="40" rx="12" ry="3" fill={papir} />
+    <path d="M40.5 51 H59.5" stroke={papir} stroke-width="1.4" />
+    <path d="M44 34 C41 30 46 28 43 24 M50 33 C47 28 52 26 49 21 M56 34 C53 30 58 28 55 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">茶</text>
+  </symbol>
+
+  <symbol id="razitko-odjezdy" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <path d="M40 33 L37 26 M60 33 L63 26" stroke="currentColor" stroke-width="1.8" />
+    <rect x="29" y="33" width="42" height="26" rx="2" fill="currentColor" />
+    <path d="M33 40 H44 M47 40 H67 M33 46 H44 M47 46 H63 M33 52 H44 M47 52 H66" stroke={papir} stroke-width="2.4" />
+    <path d="M31 63 H69" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2" />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">発</text>
+  </symbol>
+
+  <symbol id="razitko-noc" viewBox="0 0 100 100">
+    <use href="#rz-ramecek" />
+    <circle cx="41" cy="39" r="11" fill="currentColor" />
+    <circle cx="46.5" cy="35" r="9.4" fill={papir} />
+    <path d="M60 30 V40" stroke="currentColor" stroke-width="1.6" />
+    <rect x="55.5" y="40" width="9" height="2.6" rx="1" fill="currentColor" />
+    <ellipse cx="60" cy="50.5" rx="8.2" ry="8.6" fill="currentColor" />
+    <path d="M52.6 47.5 H67.4 M52 50.5 H68 M52.6 53.5 H67.4" stroke={papir} stroke-width="1" />
+    <rect x="55.5" y="58.6" width="9" height="2.6" rx="1" fill="currentColor" />
+    <circle cx="33" cy="55" r="1.4" fill="currentColor" />
+    <circle cx="40" cy="61" r="1" fill="currentColor" />
+    <text x="50" y="81" text-anchor="middle" font-size="15" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">夜</text>
+  </symbol>
+</svg>
+
+<dialog class="omamori-dialog razitka-dialog" aria-labelledby="razitka-nadpis">
+  <div class="omamori-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <p class="stitek"><span lang="ja">スタンプ帳</span> · sešit razítek</p>
+    <h2 id="razitka-nadpis" class="nadpis-2">Razítka z dílny</h2>
+    <p class="omamori-perex">
+      Projdi dílnu od rána do noci. U každého zastavení se dá něco udělat — a za to
+      je razítko. Kachlík razítkuje úředně, sešit si pamatuje prohlížeč.
+    </p>
+    <ol class="sesit">
+      {razitka.map((r) => (
+        <li class="sesit-pole" data-sesit={r.id}>
+          <span class={`sesit-otisk otisk-${r.id}`} aria-hidden="true">
+            <svg viewBox="0 0 100 100"><g filter="url(#rz-inkoust)"><use href={`#razitko-${r.id}`} /></g></svg>
+          </span>
+          <span class="sesit-nazev">{r.nazev}</span>
+          <span class="sesit-ukol">{r.ukol}</span>
+          <span class="sesit-datum"></span>
+        </li>
+      ))}
+    </ol>
+    <div class="sesit-jinde">
+      <p class="sesit-jinde-nadpis">A na dalších stránkách</p>
+      <ul>
+        {jineSbirky.map((s) => (
+          <li>
+            <a href={s.href}>{s.kde}</a>
+            <span>nalezeno <b data-jinde={s.klic}>0</b> z {s.celkem} {s.co}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="omamori-pata">
+      <p class="omamori-stav">Orazítkováno <b class="razitka-stav">0</b> z {razitka.length}.</p>
+      <button type="button" class="tlacitko tlacitko-obrys razitka-reset">Začít nový sešit</button>
+    </div>
+  </div>
+</dialog>

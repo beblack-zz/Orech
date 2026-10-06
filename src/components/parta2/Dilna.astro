@@ -1,0 +1,33 @@
+---
+/**
+ * Dílna v Ořechu: vesnický dům štítem do ulice, vedle kůlna s pecí
+ * a plechovým komínem, u domu sakura. Kouř z obou komínů jede na stejných
+ * třídách jako kouř Pecinky (postavicky.css).
+ */
+import DilnaKresba from "./DilnaKresba.astro";
+
+interface Props {
+  class?: string;
+  /**
+   * Vnořená podoba do jiného <svg> (krajina v úvodu): pozice a šířka
+   * v souřadnicích rodiče. Bez nich se dílna kreslí jako samostatný prvek
+   * se slotem, do kterého se dá schovat kami.
+   */
+  x?: number;
+  y?: number;
+  sirka?: number;
+}
+const { class: cls = "", x, y, sirka } = Astro.props;
+---
+{sirka !== undefined ? (
+  <svg x={x} y={y} width={sirka} height={(sirka * 320) / 480} viewBox="0 0 480 320" class={cls}>
+    <DilnaKresba />
+  </svg>
+) : (
+  <div class={`dilna ${cls}`}>
+    <svg viewBox="0 0 480 320" aria-hidden="true">
+      <DilnaKresba />
+    </svg>
+    <slot />
+  </div>
+)}

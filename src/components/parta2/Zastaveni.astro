@@ -1,0 +1,75 @@
+---
+/**
+ * Jedno stanoviště cesty hlíny: kulaté okno marumado se scénou a vedle
+ * něj „svatyně“ — papírová karta pod shimenawou s profilem kami.
+ *
+ * `delka` > 1 udělá ze stanoviště scrollovací scénu: sekce je tolikrát
+ * vyšší než okno prohlížeče a obsah v ní stojí (sticky), zatímco se
+ * scéna odvíjí podle toho, kolik z ní už člověk projel.
+ */
+import Shimenawa from "../characters/kami/Shimenawa.astro";
+import { parta } from "../../data/parta";
+import { kamiInfo } from "../../data/kami";
+import type { Zastaveni } from "../../data/kami";
+
+interface Props {
+  z: Zastaveni;
+  strana?: "vlevo" | "vpravo";
+  delka?: number;
+  /** Název scény pro čtečky — co se v okně děje */
+  popis: string;
+}
+const { z, strana = "vlevo", delka = 1, popis } = Astro.props;
+const p = parta.find((x) => x.id === z.id)!;
+const k = kamiInfo[z.id];
+const scroll = delka > 1;
+---
+<section
+  class={`zast zast-${strana} ${scroll ? "zast-scroll" : ""}`}
+  id={z.id}
+  data-hodina={z.hodina}
+  data-zast={z.id}
+  style={scroll ? `--delka:${delka}` : undefined}
+  aria-labelledby={`${z.id}-jmeno`}
+>
+  <p class="zast-znak" lang="ja" aria-hidden="true">{z.znak}</p>
+  <div class="zast-mriz">
+    <div class="okno-obal">
+      <div class="okno" role="group" aria-label={popis}>
+        <slot />
+      </div>
+      <svg class="okno-ram" viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <linearGradient id={`ram-${z.id}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#A9835C" />
+            <stop offset="0.5" stop-color="#7A5A3C" />
+            <stop offset="1" stop-color="#4E3824" />
+          </linearGradient>
+        </defs>
+        <circle cx="50" cy="50" r="48.2" fill="none" stroke={`url(#ram-${z.id})`} stroke-width="3.6" />
+        <circle cx="50" cy="50" r="46.2" fill="none" stroke="#3B2A1B" stroke-width="0.6" opacity="0.7" />
+        <circle cx="50" cy="50" r="50" fill="none" stroke="#3B2A1B" stroke-width="0.5" opacity="0.5" />
+        <path d="M14 22 A46 46 0 0 1 40 5" fill="none" stroke="#E2C59A" stroke-width="0.8" stroke-linecap="round" opacity="0.7" />
+      </svg>
+    </div>
+
+    <article class="svatyne">
+      <Shimenawa class="svatyne-provaz" />
+      <p class="zast-poradi">
+        <span class="zast-cislo" lang="ja">{z.cislo}</span>
+        <span>{z.nazev}</span>
+        <span class="zast-cteni"><span lang="ja">{z.znak}</span> · <i lang="ja-Latn">{z.cteni}</i></span>
+      </p>
+      <h2 class="zast-jmeno" id={`${z.id}-jmeno`}>{p.name}</h2>
+      <p class="zast-druh"><b>{k.druh}</b> · {k.kdo}</p>
+      <p class="zast-text">{z.text}</p>
+      <slot name="ovladani" />
+      <dl class="zast-fakta">
+        <div><dt>Hlídá</dt><dd>{p.hlida.replace(/^hlídá /, "")}</dd></div>
+        <div><dt>{p.muz ? "Má rád" : "Má ráda"}</dt><dd>{p.oblibene}</dd></div>
+      </dl>
+      <blockquote class="zast-replika">„{p.replika}“</blockquote>
+      <span class="hanko" lang="ja" aria-hidden="true">{z.znak}</span>
+    </article>
+  </div>
+</section>

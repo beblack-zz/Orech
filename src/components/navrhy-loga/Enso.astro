@@ -1,0 +1,270 @@
+---
+/**
+ * Návrh 01 — Ensō. Hrnčířský kruh jedním tahem štětce, v mezeře sakura.
+ *
+ * Tah je vyplněný tvar s proměnnou šířkou: na začátku štětec dosedne
+ * (kapka), pak drží sílu a ke konci se vytahuje do suchého štětce —
+ * proto má ocas podélné struhy, kudy už tuš nedošla. Uvnitř druhý,
+ * rychlejší tah: rýha hlavy kruhu, která dává tušit, že se točí.
+ */
+import {
+  BARVY,
+  UHLY_KVETU,
+  ODSUN,
+  kvetDefs,
+  noveId,
+  tah,
+  cara,
+  rad,
+  type Bod,
+  type LogoProps,
+} from "./sdilene";
+
+const {
+  size = 160,
+  tema = "svetle",
+  mono = BARVY.espresso,
+  anim = false,
+  nazev = "zadny",
+  maly = false,
+  class: trida = "",
+} = Astro.props as LogoProps;
+
+const id = noveId("enso");
+const jeMono = tema === "mono";
+const tus = jeMono ? mono : tema === "tmave" ? BARVY.krem : BARVY.tus;
+const kvetBarva = tema === "tmave" ? BARVY.sakuraSvetla : BARVY.sakura;
+const textBarva = jeMono ? mono : tema === "tmave" ? BARVY.krem : BARVY.espresso;
+const akcent = jeMono ? mono : kvetBarva;
+
+const S = 100;
+const R = 68;
+const W = 19;
+/** Tah začíná kousek nad třetí hodinou a jde po směru hodin. */
+const ZACATEK = -26;
+const ROZSAH = 308;
+
+/** Ruka nevede kruh dokonale: poloměr mírně dýchá a konec se stáčí ven. */
+const polomer = (u: number, t: number) =>
+  R * (1 + 0.022 * Math.sin(rad(u) * 2 + 0.6) + 0.01 * Math.sin(rad(u) * 5 + 1.3)) +
+  3.5 * Math.pow(Math.max(0, t - 0.8) / 0.2, 2);
+
+const naKruhu = (u: number, t: number, o = 0): Bod => {
+  const r = polomer(u, t) + o;
+  return [S + r * Math.cos(rad(u)), S + r * Math.sin(rad(u))];
+};
+const stred = (t: number) => naKruhu(ZACATEK + ROZSAH * t, t);
+const sirka = (t: number) => {
+  if (t < 0.05) return W * (0.62 + 0.38 * (t / 0.05));
+  if (t < 0.5) return W * (1 - 0.1 * ((t - 0.05) / 0.45));
+  return W * 0.9 * (1 - 0.86 * Math.pow((t - 0.5) / 0.5, 1.5));
+};
+const hlavni = tah(stred, sirka, 160);
+
+/** Kapka, kde štětec dosedl — o kousek za začátkem tahu. */
+const [ax, ay] = stred(0);
+const [bx, by] = stred(0.01);
+const smer = Math.atan2(by - ay, bx - ax);
+const kapka = {
+  x: (ax - Math.cos(smer) * 1.6).toFixed(2),
+  y: (ay - Math.sin(smer) * 1.6).toFixed(2),
+  uhel: ((smer * 180) / Math.PI).toFixed(1),
+};
+
+/** Střední čára pro odkrývání v animaci — o kousek delší na obou koncích. */
+const odhal = cara(
+  Array.from({ length: 121 }, (_, i) => {
+    const t = -0.035 + (1.05 * i) / 120;
+    return naKruhu(ZACATEK + ROZSAH * t, Math.min(1, Math.max(0, t)));
+  }),
+);
+
+/**
+ * Suchý štětec: podélné struhy v ocasu tahu. Leží v pevné vzdálenosti
+ * od středu, takže jak se tah zužuje, vypadávají z něj jedna po druhé.
+ */
+const struhy = [
+  { o: -6.0, od: 0.6, w: 0.9, dash: "16 2.4 7 1.6 22 3" },
+  { o: -2.3, od: 0.7, w: 0.7, dash: "9 1.8 30 2.6 12 2" },
+  { o: 1.9, od: 0.56, w: 1.0, dash: "24 3 11 2 17 2.2" },
+  { o: 5.4, od: 0.66, w: 0.8, dash: "12 2.2 20 3.2 8 1.6" },
+].map((s) => ({
+  ...s,
+  d: cara(
+    Array.from({ length: 51 }, (_, i) => {
+      const t = s.od + ((1.02 - s.od) * i) / 50;
+      return naKruhu(ZACATEK + ROZSAH * t, Math.min(1, t), s.o);
+    }),
+  ),
+}));
+
+/** Rýha hlavy kruhu — vlevo dole, naproti mezeře s květem. */
+const R2 = 35;
+const ryhaStred = (t: number): Bod => {
+  const u = 62 + 150 * t;
+  const r = R2 * (1 + 0.03 * Math.sin(rad(u) * 3));
+  return [S + r * Math.cos(rad(u)), S + r * Math.sin(rad(u))];
+};
+const ryhaSirka = (t: number) => 0.6 + 4.4 * Math.pow(Math.sin(Math.PI * t), 0.6) * (1 - 0.35 * t);
+const ryha = tah(ryhaStred, ryhaSirka, 70);
+const ryhaOdhal = cara(Array.from({ length: 61 }, (_, i) => ryhaStred(-0.03 + (1.06 * i) / 60)));
+
+/** Květ sedí přesně v mezeře mezi koncem a začátkem tahu. */
+const uKvetu = ZACATEK - (360 - ROZSAH) / 2;
+const kvet = { x: S + (R + 3) * Math.cos(rad(uKvetu)), y: S + (R + 3) * Math.sin(rad(uKvetu)) };
+/** Jeden plátek už spadl dovnitř kruhu. */
+const volny = { x: S + 40 * Math.cos(rad(uKvetu)), y: S + 40 * Math.sin(rad(uKvetu)) };
+---
+
+<span class={`lg lg-${nazev} enso ${anim ? "anim" : ""} ${trida}`} data-logo style={`--s:${size}px`}>
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 200 200"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-label="JIRO saku"
+  >
+    <defs>
+      <Fragment set:html={kvetDefs(id, { barva: kvetBarva, mono: jeMono ? mono : null })} />
+      {!maly && (
+        <filter id={`${id}-hrana`} filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+          <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7" result="hrube" />
+          <feDisplacementMap in="SourceGraphic" in2="hrube" scale="3.4" xChannelSelector="R" yChannelSelector="G" result="a" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed="3" result="jemne" />
+          <feDisplacementMap in="a" in2="jemne" scale="1.3" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      )}
+      {!maly && !jeMono && (
+        <filter id={`${id}-vpij`} filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+          <feGaussianBlur stdDeviation="1.8" />
+        </filter>
+      )}
+      <mask id={`${id}-maska`} maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+        <path class="enso-odhal" d={odhal} pathLength="1" stroke="#fff" stroke-width={W * 1.9} />
+        <path class="enso-odhal-ryha" d={ryhaOdhal} pathLength="1" stroke="#fff" stroke-width="13" />
+        {!maly &&
+          struhy.map((s) => (
+            <path d={s.d} stroke="#000" stroke-width={s.w} stroke-dasharray={s.dash} stroke-linecap="round" />
+          ))}
+      </mask>
+    </defs>
+
+    <g mask={`url(#${id}-maska)`} fill={tus}>
+      {/* Tuš se vpíjí do papíru — rozpitý stín pod tahem */}
+      {!maly && !jeMono && (
+        <g filter={`url(#${id}-vpij)`} opacity="0.16">
+          <path d={hlavni} />
+          <path d={ryha} />
+        </g>
+      )}
+      <g filter={maly ? undefined : `url(#${id}-hrana)`}>
+        <path d={hlavni} />
+        <ellipse
+          cx={kapka.x}
+          cy={kapka.y}
+          rx={(W * 0.6).toFixed(2)}
+          ry={(W * 0.53).toFixed(2)}
+          transform={`rotate(${kapka.uhel} ${kapka.x} ${kapka.y})`}
+        />
+        <path d={ryha} />
+      </g>
+    </g>
+
+    {!maly && (
+      <g transform={`translate(${volny.x.toFixed(2)} ${volny.y.toFixed(2)})`}>
+        <g
+          class="enso-volny"
+          style={`--dx:${(kvet.x - volny.x).toFixed(1)}px; --dy:${(kvet.y - volny.y).toFixed(1)}px`}
+        >
+          <use href={`#${id}-platek`} transform="rotate(205) scale(1.05) translate(0 6.3)" />
+        </g>
+      </g>
+    )}
+
+    <g transform={`translate(${kvet.x.toFixed(2)} ${kvet.y.toFixed(2)}) rotate(14) scale(1.3)`}>
+      {UHLY_KVETU.map((u, i) => (
+        <g class="enso-platek" style={`--i:${i}`}>
+          <use href={`#${id}-platek`} transform={`rotate(${u}) translate(0 -${ODSUN})`} />
+        </g>
+      ))}
+    </g>
+  </svg>
+
+  {nazev !== "zadny" && (
+    <span class="lg-nazev" style={`color:${textBarva}`}>
+      <span class="enso-jiro">JIRO</span> <em style={`color:${akcent}`}>saku</em>
+    </span>
+  )}
+</span>
+
+<style>
+  .enso-jiro {
+    letter-spacing: 0.14em;
+  }
+  em {
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .anim .enso-odhal {
+    stroke-dasharray: 1 1;
+    animation: enso-kresli 1.5s cubic-bezier(0.62, 0.04, 0.3, 1) 0.15s both;
+  }
+  .anim .enso-odhal-ryha {
+    stroke-dasharray: 1 1;
+    animation: enso-kresli 0.75s cubic-bezier(0.5, 0, 0.3, 1) 1.05s both;
+  }
+  .anim .enso-platek {
+    transform-origin: 0 0;
+    animation: enso-platek 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+    animation-delay: calc(1.45s + var(--i) * 0.09s);
+  }
+  .anim .enso-volny {
+    transform-origin: 0 0;
+    animation: enso-pad 2.4s cubic-bezier(0.4, 0, 0.4, 1) 2.2s both;
+  }
+
+  @keyframes enso-kresli {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes enso-platek {
+    from {
+      transform: scale(0) rotate(-50deg);
+      opacity: 0;
+    }
+    60% {
+      opacity: 1;
+    }
+    to {
+      transform: scale(1) rotate(0);
+      opacity: 1;
+    }
+  }
+  /* Plátek se utrhne z květu a sklouzne dovnitř kruhu, kde zůstane ležet */
+  @keyframes enso-pad {
+    0% {
+      transform: translate(var(--dx), var(--dy)) rotate(-80deg);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    45% {
+      transform: translate(calc(var(--dx) * 0.3), calc(var(--dy) * 0.5)) rotate(12deg);
+    }
+    72% {
+      transform: translate(calc(var(--dx) * 0.2), calc(var(--dy) * 0.15)) rotate(-10deg);
+    }
+    100% {
+      transform: translate(0, 0) rotate(0);
+      opacity: 1;
+    }
+  }
+</style>

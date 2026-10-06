@@ -1,0 +1,26 @@
+---
+/**
+ * Políčko na razítko v kartě zastavení. Dokud je prázdné, je v něm jen
+ * přerušovaný kruh a úkol; po orazítkování (scripts/uvod2/razitka.ts)
+ * do něj dopadne otisk. Kresby otisků jsou v Razitka.astro.
+ */
+import { razitka } from "../../data/uvod2";
+import type { RazitkoId } from "../../data/uvod2";
+
+interface Props {
+  id: RazitkoId;
+  class?: string;
+}
+const { id, class: cls = "" } = Astro.props;
+const r = razitka.find((x) => x.id === id)!;
+---
+<div class={`razitko-misto ${cls}`} data-razitko={id}>
+  <span class={`razitko-otisk otisk-${id}`} aria-hidden="true">
+    <svg viewBox="0 0 100 100"><g filter="url(#rz-inkoust)"><use href={`#razitko-${id}`} /></g></svg>
+  </span>
+  <p class="razitko-popis">
+    <b>Razítko <span lang="ja">{r.znak}</span></b>
+    <span class="razitko-ukol">{r.ukol}</span>
+    <span class="razitko-hotovo">Orazítkováno.</span>
+  </p>
+</div>

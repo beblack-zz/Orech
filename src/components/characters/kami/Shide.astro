@@ -1,0 +1,19 @@
+---
+/**
+ * Papírek shide — klikatý pruh, který visí ze shimenawy. Kreslí se kolem
+ * horního úchytu (0,0), takže se houpe z místa, kde je přivázaný.
+ * `zpozdeni` posune druhý papírek o půl cyklu, ať se nehoupou unisono.
+ */
+interface Props { x: number; y: number; scale?: number; zpozdeni?: boolean; }
+const { x, y, scale = 1, zpozdeni = false } = Astro.props;
+---
+<g transform={`translate(${x} ${y}) scale(${scale})`}>
+  <path
+    class={`kami-shide ${zpozdeni ? "kami-shide-2" : ""}`}
+    d="M-4 0 h5 v6 h3 v6 h-3 v6 h3 v6 h-5 v-6 h-3 v-6 h3 v-6 h-3 Z"
+    fill="#FBF7EE"
+    stroke="#8A7A69"
+    stroke-width="0.7"
+    stroke-linejoin="round"
+  />
+</g>

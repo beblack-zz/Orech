@@ -1,0 +1,71 @@
+---
+/**
+ * Kalendář vedle jízdenek: měsíce, ve kterých něco začíná. Den s kurzem
+ * je odkaz na jeho jízdenku a tečky mají barvu kami, který kurz hlídá.
+ * Víkendový workshop svítí oba dny. Při scrollu se rozsvítí den té
+ * jízdenky, která je právě vidět (scripts/kurzy2/terminy.ts).
+ */
+import { kurzy } from "../../data/kurzy";
+import { navic, pocetDni } from "../../data/kurzy2";
+import { parta } from "../../data/parta";
+
+const barvy = Object.fromEntries(parta.map((p) => [p.id, p.tint])) as Record<string, string>;
+const dvoj = (x: number) => String(x).padStart(2, "0");
+const isoZ = (d: Date) => `${d.getFullYear()}-${dvoj(d.getMonth() + 1)}-${dvoj(d.getDate())}`;
+const MESICE = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
+const MESICE_2 = ["ledna", "února", "března", "dubna", "května", "června", "července", "srpna", "září", "října", "listopadu", "prosince"];
+
+const dny = new Map<string, { i: number; nazev: string; barva: string }[]>();
+kurzy.forEach((k, i) => {
+  for (let d = 0; d < pocetDni(k); d++) {
+    const den = new Date(k.date);
+    den.setDate(den.getDate() + d);
+    const iso = isoZ(den);
+    const patron = navic[k.title]?.patron;
+    if (!dny.has(iso)) dny.set(iso, []);
+    dny.get(iso)!.push({ i, nazev: k.title, barva: patron ? barvy[patron] : "#C4432B" });
+  }
+});
+
+const mesice = [...new Set([...dny.keys()].map((iso) => iso.slice(0, 7)))].sort().map((klic) => {
+  const [rok, mes] = klic.split("-").map(Number);
+  const prvni = new Date(rok, mes - 1, 1);
+  const posun = (prvni.getDay() + 6) % 7; // pondělí první
+  const pocet = new Date(rok, mes, 0).getDate();
+  const bunky: ({ den: number; iso: string } | null)[] = [
+    ...Array.from({ length: posun }, () => null),
+    ...Array.from({ length: pocet }, (_, k) => ({ den: k + 1, iso: `${klic}-${dvoj(k + 1)}` })),
+  ];
+  return { nazev: `${MESICE[mes - 1]} ${rok}`, mes: mes - 1, bunky };
+});
+---
+<div class="kal" aria-label="Kalendář termínů">
+  {mesice.map((m) => (
+    <div class="kal-mesic">
+      <p class="kal-nazev">{m.nazev}</p>
+      <div class="kal-mriz" role="presentation">
+        {["Po", "Út", "St", "Čt", "Pá", "So", "Ne"].map((d) => <span class="kal-hlava" aria-hidden="true">{d}</span>)}
+        {m.bunky.map((b) =>
+          !b ? (
+            <span class="kal-prazdno" aria-hidden="true"></span>
+          ) : dny.has(b.iso) ? (
+            <a
+              class="kal-den je-kurz"
+              href={`#kurz-${dny.get(b.iso)![0].i}`}
+              data-den={b.iso}
+              aria-label={`${b.den}. ${MESICE_2[m.mes]}: ${dny.get(b.iso)!.map((x) => x.nazev).join(", ")}`}
+            >
+              {b.den}
+              <span class="kal-tecky" aria-hidden="true">
+                {dny.get(b.iso)!.map((x) => <i style={`background:${x.barva}`}></i>)}
+              </span>
+            </a>
+          ) : (
+            <span class="kal-den" data-den={b.iso}>{b.den}</span>
+          ),
+        )}
+      </div>
+    </div>
+  ))}
+  <p class="kal-pozn">Klikni na den a skočíš na jízdenku. Tečky mají barvu kami, který kurz hlídá.</p>
+</div>

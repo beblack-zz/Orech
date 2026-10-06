@@ -1,0 +1,83 @@
+---
+/**
+ * Dárkový poukaz, který si člověk poskládá sám: částka, kdo z party na něm
+ * bude, pro koho a vzkaz. Náhled se mění při psaní, kliknutím se otočí.
+ * „Objednat“ otevře e-mail s vyplněnými údaji — stránka sama nic
+ * neodesílá. Částky a podmínky jsou ze stávající stránky Kurzy.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import Shimenawa from "../characters/kami/Shimenawa.astro";
+import Naradi from "./Naradi.astro";
+import { parta } from "../../data/parta";
+import { castkyPoukazu } from "../../data/kurzy2";
+---
+<div class="poukaz">
+  <form class="poukaz-form" onsubmit="return false">
+    <fieldset class="poukaz-skupina">
+      <legend>Hodnota</legend>
+      <div class="pilulky">
+        {castkyPoukazu.map((c) => (
+          <label class="pilulka"><input type="radio" name="castka" value={c} checked={c === "1 500"} /><span>{c} Kč</span></label>
+        ))}
+        <label class="pilulka"><input type="radio" name="castka" value="vlastni" /><span>Vlastní</span></label>
+      </div>
+      <input type="number" class="poukaz-vlastni" name="vlastni" min="300" step="100" inputmode="numeric" placeholder="Částka v Kč" aria-label="Vlastní částka v korunách" hidden />
+    </fieldset>
+
+    <fieldset class="poukaz-skupina">
+      <legend>Kdo na poukazu bude</legend>
+      <div class="poukaz-parta">
+        {parta.map((p) => (
+          <label class="poukaz-kami-volba" title={p.name}>
+            <input type="radio" name="kami" value={p.id} checked={p.id === "kachlik"} />
+            <span class="poukaz-kami-obr"><Postavicka id={p.id} size={56} varianta="kami" /></span>
+            <span class="sr-only">{p.name}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <label class="pole">Pro koho <input type="text" name="pro" maxlength="30" autocomplete="off" placeholder="Jméno obdarovaného" /></label>
+    <label class="pole">Vzkaz <textarea name="vzkaz" maxlength="110" rows="2" placeholder="Ať se ti točí."></textarea></label>
+    <label class="pole">Od koho <input type="text" name="od" maxlength="30" autocomplete="off" placeholder="Tvoje jméno" /></label>
+
+    <div class="poukaz-akce">
+      <a class="tlacitko poukaz-objednat" href="mailto:ahoj@jirosaku.cz?subject=D%C3%A1rkov%C3%BD%20poukaz">Objednat poukaz</a>
+      <button type="button" class="tlacitko tlacitko-obrys poukaz-tisk">Vytisknout náhled</button>
+    </div>
+    <p class="poukaz-pozn">
+      Platí na jakýkoli kurz, workshop i open studio — obdarovaný si vybere sám.
+      Platnost 12 měsíců. Vytiskneme ho na papír, nebo pošleme v PDF.
+    </p>
+  </form>
+
+  <div class="poukaz-nahled">
+    <button type="button" class="poukaz-karta" aria-label="Otočit poukaz">
+      <span class="poukaz-strana poukaz-predek">
+        <Shimenawa class="poukaz-provaz" />
+        <span class="poukaz-hanko" lang="ja" aria-hidden="true">贈</span>
+        <span class="stitek">Dárkový poukaz</span>
+        <span class="poukaz-castka"><b>1 500</b> Kč</span>
+        <span class="poukaz-pro">pro <b>někoho milého</b></span>
+        <span class="poukaz-vzkaz">„Ať se ti točí.“</span>
+        <span class="poukaz-od" hidden>— <b></b></span>
+        <span class="poukaz-postava" aria-hidden="true">
+          {parta.map((p) => (
+            <span data-postava={p.id} hidden={p.id !== "kachlik"}><Postavicka id={p.id} size={150} varianta="kami" /></span>
+          ))}
+        </span>
+        <span class="poukaz-znacka">JIRO <em>saku</em> · Ořech</span>
+      </span>
+      <span class="poukaz-strana poukaz-zadek">
+        <span class="stitek">Jak ho uplatnit</span>
+        <span class="poukaz-zadek-text">
+          Vyber si kurz, workshop nebo open studio a napiš na ahoj@jirosaku.cz.
+          Poukaz platí 12 měsíců.
+        </span>
+        <span class="poukaz-zadek-znak" lang="ja" aria-hidden="true">陶芸</span>
+      </span>
+    </button>
+    <p class="poukaz-otoc">Klikni na poukaz a otoč ho.</p>
+    <Naradi id="stetec" x={84} y={86} w={9} u={-30} />
+  </div>
+</div>

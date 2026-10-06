@@ -1,0 +1,109 @@
+---
+/**
+ * Pracovní náhled: parta jako japonští kami, hravě a pro dospělé.
+ * Nahoře každá postavička v nové podobě s původní kresbou v rohu, ať je
+ * vidět, kolik zůstalo. Dole jedna profilová karta, jak by vypadala
+ * na /parta — pod shimenawou jako malá svatyně.
+ */
+import Layout from "../layouts/Layout.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
+import Shimenawa from "../components/characters/kami/Shimenawa.astro";
+import { parta } from "../data/parta";
+import type { PostavaId } from "../data/parta";
+
+type Druh = "kami" | "tsukumogami" | "yōkai";
+
+/**
+ * Kým postavička je a co jí přibylo. Až se směr potvrdí, `druh` a `jp`
+ * se přestěhují do data/parta.ts a ukážou se na profilu vedle „hlídá“.
+ */
+const kami: Record<PostavaId, { druh: Druh; jp: string; pribylo: string }> = {
+  hlinka:   { druh: "kami",        jp: "kami země",         pribylo: "výhonek na temeni, světýlka kolem spánku" },
+  kapka:    { druh: "kami",        jp: "kami vody",         pribylo: "kruhy na hladině při dopadu, otevřené oči" },
+  pecinka:  { druh: "kami",        jp: "Kamado-gami",       pribylo: "shimenawa s papírky shide, záře z ohniště" },
+  stripek:  { druh: "tsukumogami", jp: "rozbitý hrnek s duší", pribylo: "kintsugi — zlatá prasklina místo náplasti" },
+  vazicka:  { druh: "tsukumogami", jp: "nejstarší kus",     pribylo: "popraskaná glazura kannyū, šňůrka na hrdle" },
+  bublinka: { druh: "yōkai",       jp: "raubířka",          pribylo: "bludičky onibi, průsvitné tělo, přivřený pohled" },
+  kachlik:  { druh: "tsukumogami", jp: "rovný kachel",      pribylo: "rovné obočí, razítko hanko se znakem 正" },
+  cedulka:  { druh: "tsukumogami", jp: "ema",               pribylo: "stříška, dřevo, červenobílá šňůrka" },
+  samotka:  { druh: "tsukumogami", jp: "police z pece",     pribylo: "cizí miska na zádech, jiskry ze žáru" },
+};
+
+const pecinka = parta.find((p) => p.id === "pecinka")!;
+---
+
+<Layout title="Parta jako kami — JIRO saku" description="Pracovní náhled: parta jako japonští kami.">
+  <section class="py-8 md:py-12">
+    <div class="container-x">
+      <div class="max-w-[640px]">
+        <p class="mono-meta mb-3">Pracovní náhled</p>
+        <h1 class="hero-title text-espresso text-[38px] md:text-[48px] mb-5">
+          Parta jako <span class="serif-italic-sakura">kami.</span>
+        </h1>
+        <p class="text-stone text-[16px] leading-[1.75] mb-3">
+          Tvary, barvy, proporce a tváře zůstávají. Mění se zpracování: ruční linka místo
+          kružítka, zrno papíru, měkké světlo a tvářičky bez hrany. Každá postavička navíc
+          dostala jeden atribut, podle kterého se pozná, kým v japonské tradici je.
+        </p>
+        <p class="text-stone/80 text-[14px] leading-[1.7]">
+          <strong class="text-espresso font-medium">Kami</strong> jsou duchové míst a živlů.
+          <strong class="text-espresso font-medium">Tsukumogami</strong> jsou předměty, které
+          po letech služby dostaly duši. <strong class="text-espresso font-medium">Yōkai</strong>
+          jsou ti, kdo dělají neplechu. V rohu každé karty je dnešní podoba.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-10">
+        {parta.map((p) => (
+          <div class="relative rounded-2xl border border-espresso/10 bg-white/50 p-4 sm:p-5 flex flex-col items-center text-center">
+            <Postavicka id={p.id} size={72} class="absolute top-2 right-2 w-[38px] sm:w-[48px] h-auto opacity-60" />
+            <Postavicka id={p.id} size={170} varianta="kami" class="w-[124px] sm:w-[170px] h-auto" />
+            <span class="font-serif text-[22px] leading-none mt-2">{p.name}</span>
+            <span class="font-mono text-[11px] tracking-wider uppercase text-sakura mt-2">
+              {kami[p.id].druh} · {kami[p.id].jp}
+            </span>
+            <span class="text-stone text-[13px] leading-[1.5] mt-2 max-w-[28ch]">
+              {kami[p.id].pribylo}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="pb-14 md:pb-16">
+    <div class="container-x">
+      <h2 class="font-serif font-light text-[28px] md:text-[32px] leading-none mb-2">
+        Profil jako <em class="italic font-light text-sakura">svatyně</em>
+      </h2>
+      <p class="text-stone/80 text-[14px] leading-[1.6] mb-6 max-w-[52ch]">
+        Takhle by vypadala jedna karta na stránce Party. Nad každou visí shimenawa,
+        pod jménem stojí, kým postavička je.
+      </p>
+
+      <article class="relative rounded-2xl border border-espresso/10 overflow-hidden px-6 pb-8 pt-2 sm:px-8 flex flex-col">
+        <span class="absolute inset-0 pointer-events-none" style={`background:${pecinka.tint}; opacity:0.09;`} aria-hidden="true"></span>
+        <Shimenawa class="relative w-full h-auto -mt-1 mb-2" />
+        <div class="relative flex flex-col gap-5 md:flex-row md:gap-10 md:items-center">
+          <div class="flex justify-center flex-shrink-0">
+            <Postavicka id="pecinka" size={200} varianta="kami" class="w-[160px] sm:w-[200px] h-auto" />
+          </div>
+          <div class="flex-1">
+            <h3 class="font-serif text-[28px] md:text-[34px] font-medium leading-none mb-1.5" style="font-variation-settings: 'opsz' 72;">
+              {pecinka.name}
+            </h3>
+            <p class="font-hand text-[24px] text-sakura leading-none mb-3">{pecinka.tagline}</p>
+            <p class="font-mono text-[11px] tracking-wider uppercase text-espresso mb-1">
+              {kami.pecinka.druh} · {kami.pecinka.jp}
+            </p>
+            <p class="mono-meta mb-4">{pecinka.hlida}</p>
+            <p class="text-stone text-[16px] leading-[1.7] mb-5 max-w-[52ch]">{pecinka.bio}</p>
+            <blockquote class="border-l-2 border-stone/60 pl-4">
+              <p class="font-hand text-[23px] text-espresso leading-[1.3]">„{pecinka.replika}“</p>
+            </blockquote>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,90 @@
+---
+/**
+ * Termín kurzu jako jízdenka. Útržek vlevo nese datum a čas a je obarvený
+ * nebem té hodiny, kdy kurz začíná — ranní kurz má ranní oblohu, večerní
+ * večerní. Stejnou hodinu dostává obloha celé stránky, když je jízdenka
+ * uprostřed obrazovky (data-hodina).
+ *
+ * Razítko je jako cedulka na dveřích japonského obchodu: 準備中 připravujeme,
+ * 受付中 zápis běží, 満員 plno.
+ */
+import Kami from "../parta2/Kami.astro";
+import LektorFoto from "./LektorFoto.astro";
+import { paleta } from "../../scripts/parta2/paleta";
+import { stavPopis, tlacitkoPopis, lzeRezervovat } from "../../data/kurzy";
+import type { Kurz } from "../../data/kurzy";
+import { navic, cas, hodinaKurzu, denVTydnu, temata, japonskaCedulka } from "../../data/kurzy2";
+
+interface Props {
+  kurz: Kurz;
+  index: number;
+}
+const { kurz, index } = Astro.props;
+const n = navic[kurz.title];
+const hodina = hodinaKurzu(kurz);
+const c = cas(kurz);
+const dvoj = (x: number) => String(x).padStart(2, "0");
+const casText = c ? `${c.od[0]}:${dvoj(c.od[1])}${c.do ? `–${c.do[0]}:${dvoj(c.do[1])}` : ""}` : "";
+const MESICE = ["ledna", "února", "března", "dubna", "května", "června", "července", "srpna", "září", "října", "listopadu", "prosince"];
+const d = kurz.date;
+const datumText = `${d.getDate()}. ${MESICE[d.getMonth()]} ${d.getFullYear()}`;
+const iso = `${d.getFullYear()}-${dvoj(d.getMonth() + 1)}-${dvoj(d.getDate())}`;
+const nebe = paleta(hodina).barvy;
+const razitko = japonskaCedulka(kurz);
+const radky = kurz.desc.split("\n");
+const poznamka = radky.slice(1).join(" ");
+
+const predmet =
+  kurz.state === "pripravujeme" ? "Dejte mi vědět" : kurz.state === "full" ? "Náhradník" : "Rezervace";
+const telo =
+  kurz.state === "pripravujeme"
+    ? `Ahoj, dejte mi prosím vědět, až se otevře zápis na: ${kurz.title} (${datumText}, ${kurz.format}). Díky!`
+    : kurz.state === "full"
+      ? `Ahoj, zapište mě prosím mezi náhradníky na: ${kurz.title} (${datumText}). Díky!`
+      : `Ahoj, chci si rezervovat místo na: ${kurz.title} (${datumText}, ${kurz.format}). Díky!`;
+const mailto = `mailto:ahoj@jirosaku.cz?subject=${encodeURIComponent(`${predmet}: ${kurz.title} — ${datumText}`)}&body=${encodeURIComponent(telo)}`;
+---
+<article
+  class={`jizdenka jizdenka-${kurz.state}`}
+  id={`kurz-${index}`}
+  data-hodina={hodina.toFixed(2)}
+  data-den={iso}
+  aria-labelledby={`kurz-${index}-nazev`}
+  style={`--nebe-a:${nebe[0]};--nebe-b:${nebe[1]};--nebe-c:${nebe[2]}`}
+>
+  <div class="jizdenka-utrzek">
+    <p class="jizdenka-den">{denVTydnu(d)}</p>
+    <p class="jizdenka-cislo">{d.getDate()}</p>
+    <p class="jizdenka-mesic">{MESICE[d.getMonth()]}</p>
+    {casText && <p class="jizdenka-cas">{casText}</p>}
+    <span class="jizdenka-slunce" aria-hidden="true"></span>
+  </div>
+
+  <div class="jizdenka-telo">
+    <p class="jizdenka-razitko"><span lang="ja">{razitko.znak}</span><span>{razitko.cesky}</span></p>
+    <h3 class="jizdenka-nazev" id={`kurz-${index}-nazev`}>{kurz.title}</h3>
+    <p class="jizdenka-format">{kurz.format}</p>
+    <p class="jizdenka-lektor"><LektorFoto jmeno={kurz.lektor} /> <span>vede <b>{kurz.lektor}</b></span></p>
+    <ul class="jizdenka-temata">
+      {temata(kurz).map((t) => <li>{t}</li>)}
+    </ul>
+    {poznamka && <p class="jizdenka-poznamka">{poznamka}</p>}
+    <div class="jizdenka-pata">
+      <p class={`jizdenka-cena ${kurz.price ? "" : "jizdenka-cena-stav"}`}>{stavPopis(kurz)}</p>
+      <div class="jizdenka-akce">
+        <a class={`tlacitko tlacitko-maly ${lzeRezervovat(kurz) ? "" : "tlacitko-obrys"}`} href={mailto}>{tlacitkoPopis(kurz)}</a>
+        <button
+          type="button"
+          class="tlacitko tlacitko-maly tlacitko-obrys jizdenka-ics"
+          data-nazev={kurz.title}
+          data-den={iso}
+          data-od={c ? `${dvoj(c.od[0])}${dvoj(c.od[1])}` : ""}
+          data-do={c?.do ? `${dvoj(c.do[0])}${dvoj(c.do[1])}` : ""}
+          data-popis={`${kurz.format} · vede ${kurz.lektor}. ${radky[0]}`}
+        >Do kalendáře</button>
+      </div>
+    </div>
+    {n && <Kami id={n.patron} class="jizdenka-patron" />}
+    <slot />
+  </div>
+</article>

@@ -1,0 +1,54 @@
+---
+import Kresba from "./Kresba.astro";
+import { uid } from "../dospele/uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+const u = uid();
+---
+{/*
+  TSUKUMOGAMI — kachel, co si zakládá na rovnosti. Má rovná i obočí
+  a v rohu červené razítko hanko se znakem 正 (sei, „rovný, správný“).
+  Úřední potvrzení, že je v pořádku. Kdo umí japonsky, zasměje se,
+  kdo ne, vidí aspoň razítko.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <Kresba id={u} />
+    <radialGradient id={`${u}-telo`} cx="0.32" cy="0.28" r="0.85">
+      <stop offset="0" stop-color="#D99A6E" />
+      <stop offset="0.55" stop-color="#C87E4E" />
+      <stop offset="1" stop-color="#AA663B" />
+    </radialGradient>
+  </defs>
+
+  <ellipse cx="90" cy="154" rx="36" ry="6" fill="#3A2E28" opacity="0.14" />
+  <g filter={`url(#${u}-tah)`}>
+    <ellipse cx="72" cy="147" rx="11" ry="5" fill="#B84A2B" />
+    <ellipse cx="108" cy="147" rx="11" ry="5" fill="#B84A2B" />
+  </g>
+  <g class="kachlik-telo">
+    <g filter={`url(#${u}-tah)`}>
+      <rect x="44" y="50" width="92" height="94" rx="7" fill={`url(#${u}-telo)`} stroke="#94542C" stroke-width="1.6" />
+      <rect x="53" y="59" width="74" height="76" rx="4" fill="none" stroke="#B84A2B" stroke-width="2" opacity="0.55" />
+      <path d="M50 58 L50 136" stroke="#E9B892" stroke-width="2" stroke-linecap="round" opacity="0.5" />
+      {/* Hanko */}
+      <rect x="108" y="116" width="14" height="14" rx="1.5" fill="#B84A2B" transform="rotate(-4 115 123)" />
+      <g stroke="#F4EBDD" stroke-width="1.3" stroke-linecap="square" transform="rotate(-4 115 123)">
+        <path d="M110.5 119 H119.5 M115 119 V127.5 M115 123 H118.5 M112 123.5 V127.5 M110 127.5 H120" />
+      </g>
+    </g>
+    <g class="tvar">
+      <g filter={`url(#${u}-mlha)`} fill="#B84A2B" opacity="0.35">
+        <ellipse cx="68" cy="102" rx="6" ry="4" />
+        <ellipse cx="112" cy="102" rx="6" ry="4" />
+      </g>
+      <path d="M72 82 H84 M96 82 H108" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" />
+      <ellipse cx="78" cy="91" rx="3.3" ry="4.2" fill="#3A2E28" />
+      <ellipse cx="102" cy="91" rx="3.3" ry="4.2" fill="#3A2E28" />
+      <circle cx="77" cy="89.3" r="1.3" fill="#FFF3E6" />
+      <circle cx="101" cy="89.3" r="1.3" fill="#FFF3E6" />
+      <path d="M84 106 H96" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" />
+    </g>
+  </g>
+</svg>

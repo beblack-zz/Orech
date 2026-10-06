@@ -1,0 +1,57 @@
+---
+import Kresba from "./Kresba.astro";
+import { uid } from "../dospele/uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+const u = uid();
+---
+{/*
+  KAMI ZEMĚ. Hrouda, spánek i „z z z“ zůstávají. Přibyl výhonek na temeni
+  — jediná zelená v partě, protože hlína je jediná, co je opravdu živá —
+  a dvě světýlka, která kolem ní líně plavou, dokud spí.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={`char-breathe ${cls}`} aria-hidden="true">
+  <defs>
+    <Kresba id={u} />
+    <radialGradient id={`${u}-telo`} cx="0.36" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#8A7A69" />
+      <stop offset="0.55" stop-color="#6B5D4F" />
+      <stop offset="1" stop-color="#52463B" />
+    </radialGradient>
+  </defs>
+
+  <g filter={`url(#${u}-tah)`}>
+    {/* Výhonek je za tělem, aby vyrůstal z hroudy, ne z ní trčel */}
+    <path d="M90 54 C89 44 91 38 95 32" stroke="#6E7A4E" stroke-width="2.2" stroke-linecap="round" />
+    <path d="M94 36 C100 28 110 28 114 31 C108 37 100 39 94 36 Z" fill="#8A9466" stroke="#6E7A4E" stroke-width="1" />
+    <path d="M92 42 C86 35 78 35 74 38 C79 43 87 45 92 42 Z" fill="#9AA375" stroke="#6E7A4E" stroke-width="1" />
+
+    <circle cx="90" cy="98" r="48" fill={`url(#${u}-telo)`} stroke="#4A3F35" stroke-width="1.6" />
+    <circle cx="70" cy="80" r="8" fill="#9A8A78" opacity="0.4" />
+    <circle cx="108" cy="112" r="6" fill="#7d6e5f" opacity="0.4" />
+    <circle cx="82" cy="120" r="5" fill="#5a4e42" opacity="0.3" />
+    <ellipse cx="76" cy="144" rx="11" ry="5" fill="#4F443A" />
+    <ellipse cx="104" cy="144" rx="11" ry="5" fill="#4F443A" />
+  </g>
+
+  <g class="tvar">
+    <g filter={`url(#${u}-mlha)`} fill="#C87E4E" opacity="0.45">
+      <ellipse cx="68" cy="104" rx="7" ry="4.5" />
+      <ellipse cx="112" cy="104" rx="7" ry="4.5" />
+    </g>
+    <path d="M72 94 Q78 90 84 94" stroke="#F4EBDD" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <path d="M96 94 Q102 90 108 94" stroke="#F4EBDD" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <path d="M85 108 Q90 112 95 108" stroke="#F4EBDD" stroke-width="1.8" stroke-linecap="round" fill="none" />
+    <text class="zzz zzz-1" x="130" y="70" fill="#6B5D4F" font-size="14" font-family="sans-serif" font-weight="500">z</text>
+    <text class="zzz zzz-2" x="130" y="70" fill="#6B5D4F" font-size="13" font-family="sans-serif" font-weight="500">z</text>
+    <text class="zzz zzz-3" x="130" y="70" fill="#6B5D4F" font-size="12" font-family="sans-serif" font-weight="500">z</text>
+  </g>
+
+  <g fill="#F2DC94">
+    <circle class="kami-svetlo" cx="42" cy="118" r="2.2" filter={`url(#${u}-mlha)`} />
+    <circle class="kami-svetlo kami-svetlo-2" cx="140" cy="128" r="1.8" filter={`url(#${u}-mlha)`} />
+    <circle class="kami-svetlo" cx="42" cy="118" r="1" />
+    <circle class="kami-svetlo kami-svetlo-2" cx="140" cy="128" r="0.8" />
+  </g>
+</svg>

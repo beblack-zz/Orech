@@ -1,0 +1,29 @@
+---
+/**
+ * Sdílené filtry kami party. Vkládá se do <defs> každé kresby a dostává
+ * její unikátní prefix — viz ../dospele/uid.ts, proč se id nesmějí opakovat.
+ *
+ * `${id}-tah`  — ruční linka a zrno papíru. Geometrie zůstává stejná jako
+ *                u původní party, jen se o pár desetin rozvlní, takže kruh
+ *                přestane být kružítkem a začne být malovaný. Zrno je
+ *                v barvě espressa a drží se jen uvnitř tvarů.
+ * `${id}-mlha` — měkké rozostření na tvářičky, záři a světýlka. Ghibli
+ *                světlo nemá hranu.
+ */
+interface Props { id: string; posun?: number; }
+const { id, posun = 2.6 } = Astro.props;
+---
+<filter id={`${id}-tah`} x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4" result="vlna" />
+  <feDisplacementMap in="SourceGraphic" in2="vlna" scale={posun} xChannelSelector="R" yChannelSelector="G" result="tah" />
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" result="zrno" />
+  <feColorMatrix in="zrno" type="matrix" values="0 0 0 0 0.23  0 0 0 0 0.18  0 0 0 0 0.16  0.6 0 0 0 -0.26" result="skvrny" />
+  <feComposite in="skvrny" in2="tah" operator="in" result="zrnoVTvaru" />
+  <feMerge>
+    <feMergeNode in="tah" />
+    <feMergeNode in="zrnoVTvaru" />
+  </feMerge>
+</filter>
+<filter id={`${id}-mlha`} x="-50%" y="-50%" width="200%" height="200%">
+  <feGaussianBlur stdDeviation="2.6" />
+</filter>

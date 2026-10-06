@@ -1,0 +1,134 @@
+---
+/**
+ * Kruh nanečisto. Hlína na hlavě kruhu, pedál, kyblík s vodou a Vázička,
+ * která radí. Centruje se držením, otevírá stiskem shora, vytahuje tahem
+ * nahoru a tvaruje tahem do strany. Kdo spěchá nebo zapomene na vodu,
+ * tomu hlína spadne. Fyziku řeší scripts/kurzy2/simulator.ts.
+ */
+import Kami from "../parta2/Kami.astro";
+import Naradi from "./Naradi.astro";
+---
+<div class="sim" data-simulator>
+  <div class="sim-okno-obal">
+    <div class="sim-okno">
+      <svg class="sim-svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="sim-zed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#F3EEE3" />
+            <stop offset="1" stop-color="#DDD2BE" />
+          </linearGradient>
+          <linearGradient id="sim-paprsek" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#FFF6DA" stop-opacity="0.85" />
+            <stop offset="1" stop-color="#FFF6DA" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="sim-hlava" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#7E858C" />
+            <stop offset="0.35" stop-color="#C9CFD4" />
+            <stop offset="0.6" stop-color="#A3AAB0" />
+            <stop offset="1" stop-color="#6B7278" />
+          </linearGradient>
+          <linearGradient id="sim-hlina" x1="0" y1="0" x2="1" y2="0">
+            <stop class="sim-hlina-1" offset="0" stop-color="#5E4334" />
+            <stop class="sim-hlina-2" offset="0.3" stop-color="#9C7860" />
+            <stop class="sim-hlina-3" offset="0.43" stop-color="#C9A184" />
+            <stop class="sim-hlina-2" offset="0.55" stop-color="#9C7860" />
+            <stop class="sim-hlina-1" offset="1" stop-color="#4E3729" />
+          </linearGradient>
+          <radialGradient id="sim-vnitrek" cx="0.5" cy="0.35" r="0.7">
+            <stop offset="0" stop-color="#3A291F" />
+            <stop offset="1" stop-color="#6E5040" />
+          </radialGradient>
+          <pattern id="sim-toceni" width="46" height="600" patternUnits="userSpaceOnUse">
+            <rect x="0" width="5" height="600" fill="#FFFFFF" opacity="0.13" />
+            <rect x="21" width="2" height="600" fill="#2E2018" opacity="0.15" />
+          </pattern>
+          <clipPath id="sim-orez"><path class="sim-tvar" d="M200 468 L400 468 L300 360 Z" /></clipPath>
+        </defs>
+
+        <rect width="600" height="600" fill="url(#sim-zed)" />
+        <path d="M0 0 L240 0 L560 600 L170 600 Z" fill="url(#sim-paprsek)" opacity="0.5" />
+        {/* Police s hotovými kusy a okno */}
+        <rect x="380" y="70" width="150" height="120" rx="4" fill="#BFD4E6" stroke="#8A6A48" stroke-width="8" />
+        <path d="M455 70 V190 M380 130 H530" stroke="#8A6A48" stroke-width="5" />
+        <rect x="40" y="170" width="250" height="8" fill="#9A7350" />
+        <path d="M60 170 C58 146 72 138 86 138 C100 138 110 148 108 170 Z" fill="#93B39B" />
+        <path d="M130 170 L132 128 L160 128 L162 170 Z" fill="#E9D5C0" />
+        <path d="M186 170 C182 152 192 142 210 142 C228 142 236 152 232 170 Z" fill="#3A2A22" />
+        <path d="M250 170 C248 140 256 130 268 128 C280 130 288 140 286 170 Z" fill="#C46A4E" />
+        <rect x="0" y="520" width="600" height="80" fill="#CDBFA6" />
+
+        {/* Vana kruhu a hlava */}
+        <ellipse cx="300" cy="476" rx="236" ry="66" fill="#53595E" />
+        <ellipse cx="300" cy="472" rx="222" ry="58" fill="#3F4448" />
+        <ellipse cx="300" cy="480" rx="172" ry="36" fill="#5E656B" />
+        <ellipse cx="300" cy="472" rx="172" ry="36" fill="url(#sim-hlava)" />
+        <ellipse cx="300" cy="472" rx="120" ry="25" fill="none" stroke="#6B7278" stroke-width="1.5" opacity="0.6" />
+        <g fill="#4E555B">
+          <circle class="sim-znacka" cx="300" cy="490" r="4" />
+          <circle class="sim-znacka" cx="300" cy="490" r="4" />
+          <circle class="sim-znacka" cx="300" cy="490" r="4" />
+        </g>
+        <ellipse class="sim-slikr" cx="300" cy="474" rx="110" ry="20" fill="#8E6E58" opacity="0.3" />
+
+        {/* Hlína — tvar přepisuje skript */}
+        <g class="sim-hlina-skupina">
+          <path class="sim-tvar sim-hlina" d="M200 468 L400 468 L300 360 Z" fill="url(#sim-hlina)" />
+          <g clip-path="url(#sim-orez)">
+            <rect class="sim-prouzky" x="-46" y="0" width="700" height="600" fill="url(#sim-toceni)" />
+            <g class="sim-ryhy" stroke="#3E2C22" stroke-width="1.6" fill="none" opacity="0.28"></g>
+          </g>
+          <ellipse class="sim-okraj" cx="300" cy="360" rx="0" ry="0" fill="url(#sim-vnitrek)" stroke="#C9A184" stroke-width="3" opacity="0" />
+        </g>
+        <circle class="sim-prst" cx="300" cy="400" r="14" fill="#FFF6E8" opacity="0" stroke="#C9A184" stroke-width="2" />
+
+        {/* Vana — přední okraj */}
+        <path d="M64 476 C80 540 520 540 536 476 L536 500 C520 566 80 566 64 500 Z" fill="#6B7176" />
+        <path d="M64 476 C80 540 520 540 536 476" stroke="#8C949B" stroke-width="3" fill="none" />
+        {/* Kyblík */}
+        <path d="M478 540 L486 600 L566 600 L574 540 Z" fill="#7E8C96" />
+        <ellipse cx="526" cy="540" rx="48" ry="10" fill="#9DB4C2" stroke="#5E6A72" stroke-width="3" />
+      </svg>
+
+      <div class="sim-dotyk" role="application" aria-label="Hlína na kruhu. Drž a táhni myší nebo prstem; na klávesnici mezerník a šipky." aria-roledescription="simulátor kruhu"></div>
+
+      <Kami id="kapka" class="scena-kami sim-kapka" style="left:76%;top:62%;width:16%" />
+      <div class="sim-voda" aria-hidden="true"><span class="sim-voda-hladina"></span></div>
+      <Naradi id="houbicka" x={12} y={74} w={9} u={-14} />
+
+      <p class="scena-stitek sim-stitek" aria-hidden="true"><span class="sim-faze">Hlína čeká</span> · <span class="sim-otacky">0</span> ot./min</p>
+
+      <button type="button" class="sim-start">
+        <span class="sim-start-kruh" aria-hidden="true"></span>
+        <span>Zkusit nanečisto</span>
+      </button>
+    </div>
+    <svg class="okno-ram" viewBox="0 0 100 100" aria-hidden="true">
+      <defs>
+        <linearGradient id="sim-ram" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#A9835C" />
+          <stop offset="0.5" stop-color="#7A5A3C" />
+          <stop offset="1" stop-color="#4E3824" />
+        </linearGradient>
+      </defs>
+      <circle cx="50" cy="50" r="48.2" fill="none" stroke="url(#sim-ram)" stroke-width="3.6" />
+      <circle cx="50" cy="50" r="46.2" fill="none" stroke="#3B2A1B" stroke-width="0.6" opacity="0.7" />
+      <path d="M14 22 A46 46 0 0 1 40 5" fill="none" stroke="#E2C59A" stroke-width="0.8" stroke-linecap="round" opacity="0.7" />
+    </svg>
+  </div>
+
+  <div class="sim-ovladani">
+    <p class="sim-rada" aria-live="polite"><b>Vázička radí</b><span class="sim-rada-text">Zkus si to nanečisto. Hlína je na kruhu, voda v kyblíku.</span></p>
+    <div class="sim-radek">
+      <label class="sim-pedal">
+        <span>Pedál</span>
+        <input type="range" min="0" max="250" step="5" value="0" disabled />
+        <output><b>0</b> ot./min</output>
+      </label>
+      <div class="sim-tlacitka">
+        <button type="button" class="tlacitko tlacitko-maly sim-hotovo" disabled>Hotovo</button>
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys sim-znovu" disabled>Znovu</button>
+      </div>
+    </div>
+    <p class="sim-napoveda">Drž hlínu, dokud se nepřestane klepat · stiskni střed shora · táhni nahoru · táhni do strany. Na klávesnici: mezerník, šipky.</p>
+  </div>
+</div>

@@ -1,0 +1,69 @@
+---
+import Kresba from "./Kresba.astro";
+import { uid } from "../dospele/uid";
+
+interface Props {
+  class?: string;
+  size?: number;
+  /**
+   * Místo dvou čárek „textu“ nese prázdný <text class="cedulka-napis">,
+   * do kterého se dá psát (stanoviště Jméno na /parta-2). Čárky zůstanou,
+   * dokud je nápis prázdný.
+   */
+  napis?: boolean;
+}
+const { class: cls = "", size = 64, napis = false } = Astro.props;
+const u = uid();
+const tvar = "M56 66 L90 46 L124 66 L124 134 Q124 140 118 140 L62 140 Q56 140 56 134 Z";
+---
+{/*
+  EMA — dřevěná destička, na kterou se ve svatyni píše přání a pověsí
+  se na provázek. Cedulka byla destička na provázku už předtím, takže
+  stačilo jí dát stříšku, dřevo a červenobílou šňůrku.
+  Na rozdíl od emy si na ni nepíšeš přání, ale jméno. Za dva týdny se splní obojí.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <Kresba id={u} />
+    <linearGradient id={`${u}-drevo`} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F3E3C6" />
+      <stop offset="1" stop-color="#E2C9A0" />
+    </linearGradient>
+    <clipPath id={`${u}-orez`}><path d={tvar} /></clipPath>
+  </defs>
+
+  <ellipse cx="90" cy="154" rx="26" ry="5" fill="#3A2E28" opacity="0.12" />
+  <g class="cedulka-telo">
+    <g filter={`url(#${u}-tah)`}>
+      <path d="M90 22 Q80 40 90 60" stroke="#B84A2B" stroke-width="2.6" fill="none" stroke-linecap="round" />
+      <path d="M90 22 Q80 40 90 60" stroke="#FBF7EE" stroke-width="2.6" fill="none" stroke-dasharray="3 3" />
+      <path d={tvar} fill={`url(#${u}-drevo)`} stroke="#8A6A48" stroke-width="1.6" stroke-linejoin="round" />
+      <g clip-path={`url(#${u}-orez)`} stroke="#B89466" stroke-width="0.8" fill="none" opacity="0.45">
+        <path d="M56 80 Q74 77 90 81 T124 79" />
+        <path d="M56 100 Q70 97 86 101 T124 98" />
+        <path d="M56 132 Q76 129 92 133 T124 130" />
+      </g>
+      {/* Stříška emy */}
+      <path d="M52 68 L90 45 L128 68" stroke="#8A6A48" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      <circle cx="90" cy="62" r="3.6" fill="#8A6A48" opacity="0.5" />
+      <g class="cedulka-radky">
+        <path d="M68 118 L112 118" stroke="#3A2E28" stroke-width="2.6" stroke-linecap="round" opacity="0.55" />
+        <path d="M68 127 L98 127" stroke="#3A2E28" stroke-width="2.2" stroke-linecap="round" opacity="0.35" />
+      </g>
+    </g>
+    {napis && (
+      <text class="cedulka-napis" x="90" y="127" text-anchor="middle" font-family="Caveat, cursive" font-size="20" font-weight="600" fill="#3A2E28"></text>
+    )}
+    <g class="tvar">
+      <g filter={`url(#${u}-mlha)`} fill="#C87E4E" opacity="0.4">
+        <ellipse cx="72" cy="98" rx="6" ry="4" />
+        <ellipse cx="108" cy="98" rx="6" ry="4" />
+      </g>
+      <ellipse cx="80" cy="88" rx="3.3" ry="4.2" fill="#3A2E28" />
+      <ellipse cx="100" cy="88" rx="3.3" ry="4.2" fill="#3A2E28" />
+      <circle cx="79" cy="86.3" r="1.3" fill="#FFF8EE" />
+      <circle cx="99" cy="86.3" r="1.3" fill="#FFF8EE" />
+      <path d="M85 100 Q90 104 95 100" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none" />
+    </g>
+  </g>
+</svg>

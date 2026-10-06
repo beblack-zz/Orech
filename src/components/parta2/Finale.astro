@@ -1,0 +1,53 @@
+---
+/**
+ * Konec cesty — ráno po výpalu, celá parta zpátky pod ořechem.
+ * Pecinka se schovává v okně dílny. Pod textem stojí, kolik schovaných
+ * kami už člověk našel (scripts/parta2/sber.ts).
+ */
+import Dilna from "./Dilna.astro";
+import Orech from "./Orech.astro";
+import Louka from "./Louka.astro";
+import Kami from "./Kami.astro";
+import Skryty from "./Skryty.astro";
+import type { PostavaId } from "../../data/parta";
+
+const parta: { id: PostavaId; v: number; dole: number }[] = [
+  { id: "hlinka", v: 0.9, dole: 6 },
+  { id: "kapka", v: 0.82, dole: 14 },
+  { id: "kachlik", v: 0.9, dole: 4 },
+  { id: "stripek", v: 0.88, dole: 12 },
+  { id: "pecinka", v: 1.1, dole: 0 },
+  { id: "cedulka", v: 0.95, dole: 8 },
+  { id: "vazicka", v: 1.0, dole: 3 },
+  { id: "bublinka", v: 0.84, dole: 16 },
+  { id: "samotka", v: 1.0, dole: 2 },
+];
+---
+<section class="finale" id="dilna" data-hodina="33" aria-labelledby="finale-nadpis">
+  <div class="finale-text papir">
+    <p class="stitek">Konec cesty · začátek další</p>
+    <h2 id="finale-nadpis" class="nadpis-2">Najdeš je v dílně.</h2>
+    <p>
+      Všech devět bydlí v Ořechu doopravdy — vypálení z hlíny, schovaní po
+      policích, u kruhu a u pece. Až přijdeš, zkus je najít. Tentokrát ne myší.
+    </p>
+    <p class="sber-stav" aria-live="polite">Schovaných kami nalezeno: <b>0</b> z 9.</p>
+    <div class="finale-akce">
+      <a class="tlacitko" href="/kurzy">Vybrat kurz</a>
+      <a class="tlacitko tlacitko-obrys" href="/open-studio">Open studio</a>
+    </div>
+  </div>
+
+  <div class="finale-scena">
+    <Dilna class="finale-dilna">
+      <Skryty id="pecinka" class="v-okne" x={28.9} y={63} w={7} />
+    </Dilna>
+    <Orech class="finale-orech" />
+    <Louka class="finale-louka" seed={2} />
+    <div class="finale-parta">
+      {parta.map((k) => (
+        <Kami id={k.id} class="uvod-kami" style={`--v:${k.v};--dole:${k.dole}px`} />
+      ))}
+    </div>
+  </div>
+</section>

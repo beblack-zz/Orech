@@ -1,0 +1,237 @@
+---
+/**
+ * Parta 2 — návrh nového vzhledu webu, postavený na partě jako
+ * japonských kami. Stránka je jedna cesta hlíny přes den a noc:
+ * od svítání nad Ořechem přes devět stanovišť až k ránu po výpalu.
+ *
+ * Na starém global.css nezávisí — má vlastní písmo, barvy i hlavičku
+ * (styles/parta2.css). Animace postaviček jdou z postavicky.css.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Uvod from "../components/parta2/Uvod.astro";
+import Zastaveni from "../components/parta2/Zastaveni.astro";
+import Omikuji from "../components/parta2/Omikuji.astro";
+import Finale from "../components/parta2/Finale.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Omamori from "../components/parta2/Omamori.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
+
+import Hrouda from "../components/parta2/sceny/Hrouda.astro";
+import Hneteni from "../components/parta2/sceny/Hneteni.astro";
+import Voda from "../components/parta2/sceny/Voda.astro";
+import Kruh from "../components/parta2/sceny/Kruh.astro";
+import Rovina from "../components/parta2/sceny/Rovina.astro";
+import Jmeno from "../components/parta2/sceny/Jmeno.astro";
+import Police from "../components/parta2/sceny/Police.astro";
+import Pec from "../components/parta2/sceny/Pec.astro";
+import Kintsugi from "../components/parta2/sceny/Kintsugi.astro";
+
+import { cesta, stupne, rubriky, krivka, milniky } from "../data/kami";
+import type { PostavaId } from "../data/parta";
+
+const z = Object.fromEntries(cesta.map((c) => [c.id, c])) as Record<PostavaId, (typeof cesta)[number]>;
+
+/*
+ * Štětcové písmo na japonské znaky se stahuje jen s těmi znaky, které na
+ * stránce opravdu jsou (parametr text=) — pár kilobajtů místo celé sady.
+ */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+cesta.forEach((c) => { pridej(c.znak); pridej(c.cislo); });
+Object.values(stupne).forEach((s) => pridej(s.znak));
+rubriky.forEach((r) => pridej(r.znak));
+pridej("八百万の神御神籤第番お守り正土から器へ一二三四五六七八九十");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+
+const cas = (h: number) => {
+  const x = ((h % 24) + 24) % 24;
+  const hod = Math.floor(x);
+  return `${hod}:${String(Math.round((x - hod) * 60)).padStart(2, "0")}`;
+};
+
+/* Pálicí křivka do malého grafu 300×120: čas vodorovně, teplota svisle */
+const T_MAX = krivka[krivka.length - 1][0];
+const kx = (t: number) => 20 + (t / T_MAX) * 270;
+const ky = (T: number) => 108 - (T / 1320) * 96;
+const krivkaD = krivka.map(([t, T], i) => `${i ? "L" : "M"}${kx(t).toFixed(1)} ${ky(T).toFixed(1)}`).join(" ");
+const casPro = (T: number) => {
+  for (let i = 1; i < krivka.length; i++) {
+    const [t0, T0] = krivka[i - 1];
+    const [t1, T1] = krivka[i];
+    if (T1 !== T0 && T >= T0 && T <= T1) return t0 + ((T - T0) / (T1 - T0)) * (t1 - t0);
+  }
+  return T_MAX;
+};
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Parta — kami z dílny v Ořechu · JIRO saku</title>
+    <meta name="description" content="Devět kami z keramické dílny v Ořechu. Projdi s nimi cestu hlíny od hroudy po výpal — a najdi ty, co se schovávají." />
+    <meta name="theme-color" content="#4F5E9C" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+  </head>
+  <body class="p2">
+    <Nebe />
+    <Hlavicka />
+
+    <main>
+      <Uvod />
+
+      <section class="cesta-uvod" id="cesta" data-hodina="6.4" aria-labelledby="cesta-nadpis">
+        <div class="papir">
+          <p class="stitek">Cesta hlíny · <span lang="ja">土から器へ</span></p>
+          <h2 id="cesta-nadpis" class="nadpis-2">Od hroudy po hotový kus vede devět zastavení.</h2>
+          <p class="cesta-perex">
+            Na každém někdo hlídá. Cesta trvá den a noc — začíná ráno u hroudy
+            a končí za svítání, když se otevře pec. Obloha nad stránkou jde s tebou.
+          </p>
+          <ol class="cesta-mapa">
+            {cesta.map((c) => (
+              <li>
+                <a href={`#${c.id}`}>
+                  <span class="mapa-cas">{cas(c.hodina)}</span>
+                  <span class="mapa-obr"><Postavicka id={c.id} size={64} varianta="kami" /></span>
+                  <span class="mapa-cislo" lang="ja">{c.cislo}</span>
+                  <span class="mapa-nazev">{c.nazev}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <div class="pout">
+        <svg class="pout-cesta" aria-hidden="true">
+          <defs>
+            <mask id="pout-maska" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+              <path class="pout-maska-cara" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" />
+            </mask>
+          </defs>
+          <path class="pout-podklad" />
+          <path class="pout-jas" mask="url(#pout-maska)" />
+        </svg>
+
+        <Zastaveni z={z.hlinka} strana="vlevo" popis="Ranní dílna: Hlínka spí na zabalené hroudě, oknem padá světlo.">
+          <Hrouda />
+        </Zastaveni>
+
+        <Zastaveni z={z.bublinka} strana="vpravo" popis="Hnětací stůl s hroudou hlíny, ve které se schovává Bublinka.">
+          <Hneteni />
+          <div slot="ovladani" class="hra-panel">
+            <p class="hra-stav">Hnětení <b class="hneteni-pocet">0</b> / 8</p>
+            <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys hneteni-znovu" hidden>Nová hrouda</button>
+          </div>
+        </Zastaveni>
+
+        <Zastaveni z={z.kapka} strana="vlevo" popis="Dřevěná káď s vodou na dvoře, na okraji sedí Kapka.">
+          <Voda />
+          <div slot="ovladani" class="hra-panel">
+            <p class="hra-stav">Kruhů na vodě <b class="voda-pocet">0</b></p>
+          </div>
+        </Zastaveni>
+
+        <Zastaveni z={z.vazicka} strana="vpravo" delka={2.6} popis="Hrnčířský kruh: z hroudy roste váza, Vázička radí.">
+          <Kruh />
+          <div slot="ovladani">
+            <p class="kruh-rada" aria-live="polite"><b>Vázička radí</b><span class="kruh-rada-text">Lokty opřít o kolena. Hlína se musí uklidnit dřív než ty.</span></p>
+            <ol class="kroky">
+              <li>Centrování</li>
+              <li>Otevírání</li>
+              <li>Vytahování</li>
+              <li>Tvarování</li>
+            </ol>
+          </div>
+        </Zastaveni>
+
+        <Zastaveni z={z.kachlik} strana="vlevo" popis="Kachlík na prkně s vodováhou. Prkno se naklání podle pohybu myši nebo prstu.">
+          <Rovina />
+          <div slot="ovladani" class="hra-panel">
+            <p class="hra-stav">Nejdéle v rovině <b class="rovina-rekord">0,0</b> s</p>
+          </div>
+        </Zastaveni>
+
+        <Zastaveni z={z.cedulka} strana="vpravo" popis="Police s miskami v odpoledním světle, na hřebíku visí Cedulka.">
+          <Jmeno />
+          <label slot="ovladani" class="jmeno-pole">
+            Napiš se na Cedulku
+            <input type="text" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Tvoje jméno" />
+          </label>
+        </Zastaveni>
+
+        <Zastaveni z={z.samotka} strana="vlevo" popis="Pohled do otevřené pece, na Šamotku se skládají hrnky.">
+          <Police />
+          <div slot="ovladani" class="hra-panel">
+            <p class="hra-stav">Naloženo <b class="police-pocet">0</b> z 9 kusů</p>
+          </div>
+        </Zastaveni>
+
+        <Zastaveni z={z.pecinka} strana="vpravo" delka={3.4} popis="Noc v kůlně: Pecinka se rozpaluje, vedle stojí žároměrky.">
+          <Pec />
+          <div slot="ovladani" class="pec-panel">
+            <p class="pec-cislo"><span class="pec-teplota">20</span><small>°C</small></p>
+            <p class="pec-cas"><span class="pec-cas-hod">0 h 00 min</span> výpalu</p>
+            <svg class="pec-krivka" viewBox="0 0 300 120" aria-hidden="true">
+              <defs>
+                <clipPath id="pec-krivka-orez"><rect class="pec-krivka-orez" x="0" y="0" width="20" height="120" /></clipPath>
+              </defs>
+              <path d="M20 108 H292 M20 12 V108" stroke="#D8CCB6" stroke-width="1" fill="none" />
+              <path d={krivkaD} stroke="#D8CCB6" stroke-width="2" fill="none" stroke-dasharray="3 4" />
+              <path d={krivkaD} stroke="#C4432B" stroke-width="2.6" fill="none" stroke-linejoin="round" clip-path="url(#pec-krivka-orez)" />
+              {milniky.map((m, i) => (
+                <circle class="pec-milnik-bod" data-milnik={i} cx={kx(casPro(m.teplota)).toFixed(1)} cy={ky(m.teplota).toFixed(1)} r="3" />
+              ))}
+              <circle class="pec-krivka-tecka" cx="20" cy={ky(20).toFixed(1)} r="5" fill="#C4432B" stroke="#FFFDF6" stroke-width="2" />
+              <text x="20" y="119">0 h</text>
+              <text x="292" y="119" text-anchor="end">{Math.round(T_MAX * 10) / 10} h</text>
+              <text x="16" y="15" text-anchor="end">1 300</text>
+            </svg>
+            <div class="pec-milnik" aria-live="polite">
+              <p class="pec-milnik-kdo">Pecinka · 20 °C</p>
+              <p class="pec-milnik-text">Pec je studená. Sjeď dolů a začni topit.</p>
+              <p class="pec-milnik-replika">„Brr.“</p>
+            </div>
+          </div>
+        </Zastaveni>
+
+        <Zastaveni z={z.stripek} strana="vlevo" delka={2.2} popis="Ráno po výpalu: rozbitá miska se skládá a spáry se zalévají zlatem.">
+          <Kintsugi />
+          <ol slot="ovladani" class="kroky">
+            <li>Střepy se slepí lakem urushi.</li>
+            <li>Spára se vyplní a uhladí.</li>
+            <li>Na poslední vrstvu laku se nasype zlato.</li>
+          </ol>
+        </Zastaveni>
+      </div>
+
+      <Omikuji />
+      <Finale />
+    </main>
+
+    <Paticka />
+    <Omamori />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/parta2/hlavni.ts";
+    </script>
+  </body>
+</html>

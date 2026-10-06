@@ -1,0 +1,117 @@
+---
+/**
+ * Odjezdová tabule — na Kurzech 2 jsou termíny jízdenky, tak tady visí
+ * tabule s nejbližšími odjezdy. Japonci jí říkají pata-pata, podle zvuku,
+ * který klapky dělají. Datum a čas mají klapku na každou číslici, název
+ * kurzu, lektor a stav jsou celé nápisy — jako na starých nádražích.
+ *
+ * Všechno je z kurzy.ts (a „pro začátečníky“ z kurzy2.ts). Filtr překlapne
+ * řádky na jiné termíny; řádek vede na jízdenku na /kurzy-2. Klapání řídí
+ * scripts/uvod2/tabule.ts — bez skriptu tabule ukazuje nejbližší termíny.
+ */
+import Flap from "./Flap.astro";
+import Razitko from "./Razitko.astro";
+import { kurzy, stavPopis } from "../../data/kurzy";
+import { navic, cas, denVTydnu, japonskaCedulka } from "../../data/kurzy2";
+
+const dvoj = (n: number) => String(n).padStart(2, "0");
+const DNY = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
+
+interface RadekTabule {
+  i: number;
+  den: string;
+  datum: string;
+  cas: string;
+  kurz: string;
+  lektor: string;
+  stav: string;
+  cedulka: string;
+  zacatek: boolean;
+  popis: string;
+  href: string;
+}
+
+const radky: RadekTabule[] = kurzy.map((k, i) => {
+  const c = cas(k);
+  const ced = japonskaCedulka(k);
+  return {
+    i,
+    den: DNY[k.date.getDay()],
+    datum: `${dvoj(k.date.getDate())}${dvoj(k.date.getMonth() + 1)}`,
+    cas: c ? `${dvoj(c.od[0])}${dvoj(c.od[1])}` : "    ",
+    kurz: k.title,
+    lektor: k.lektor,
+    stav: stavPopis(k),
+    cedulka: ced.znak,
+    zacatek: navic[k.title]?.uroven.includes("zacatek") ?? false,
+    popis: `${denVTydnu(k.date)} ${k.date.getDate()}. ${k.date.getMonth() + 1}.${c ? ` v ${c.od[0]}:${dvoj(c.od[1])}` : ""}: ${k.title}, vede ${k.lektor}, ${stavPopis(k)}${stavPopis(k) === ced.cesky ? "" : ` (${ced.cesky})`}`,
+    href: `/kurzy-2#kurz-${i}`,
+  };
+});
+const SLOTY = Math.min(6, Math.max(radky.length, 3));
+const sloty = Array.from({ length: SLOTY }, (_, s) => radky[s]);
+const lektori = [...new Set(kurzy.map((k) => k.lektor))];
+const pripravujeme = kurzy.some((k) => k.state === "pripravujeme");
+const znak = (s: string, i: number) => s.charAt(i) || " ";
+---
+<div class="tabule" data-tabule>
+  <span class="tabule-tyc tabule-tyc-l" aria-hidden="true"></span>
+  <span class="tabule-tyc tabule-tyc-p" aria-hidden="true"></span>
+  <div class="tabule-deska">
+    <div class="tabule-hlava">
+      <p class="tabule-titul"><span lang="ja">発車</span> Odjezdy z Ořechu</p>
+      <p class="tabule-hodiny" aria-hidden="true">
+        <span>teď</span>
+        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>:</i><Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" />
+      </p>
+    </div>
+
+    <div class="tabule-filtry" role="group" aria-label="Které odjezdy ukázat">
+      <button type="button" class="tabule-filtr" data-filtr="vse" aria-pressed="true">Všechny</button>
+      <button type="button" class="tabule-filtr" data-filtr="zacatek" aria-pressed="false">Pro začátečníky</button>
+      {lektori.map((l) => (
+        <button type="button" class="tabule-filtr" data-filtr={`lektor:${l}`} aria-pressed="false">Vede {l}</button>
+      ))}
+    </div>
+
+    <div class="tabule-sloupce" aria-hidden="true">
+      <span><span lang="ja">時刻</span> odjezd</span>
+      <span><span lang="ja">行先</span> kurz</span>
+      <span><span lang="ja">担当</span> vede</span>
+      <span><span lang="ja">備考</span> pozn.</span>
+    </div>
+
+    <ol class="tabule-radky">
+      {sloty.map((r, s) => (
+        <li class="tabule-radek" data-slot={s}>
+          <a class="tabule-odkaz" href={r?.href} aria-label={r?.popis} tabindex={r ? undefined : -1} aria-hidden={r ? undefined : "true"}>
+            <span class="tb tb-den"><Flap text={r?.den ?? ""} /></span>
+            <span class="tb tb-datum">
+              <Flap druh="cislice" text={znak(r?.datum ?? "", 0)} /><Flap druh="cislice" text={znak(r?.datum ?? "", 1)} /><i>.</i><Flap druh="cislice" text={znak(r?.datum ?? "", 2)} /><Flap druh="cislice" text={znak(r?.datum ?? "", 3)} /><i>.</i>
+            </span>
+            <span class="tb tb-cas">
+              <Flap druh="cislice" text={znak(r?.cas ?? "", 0)} /><Flap druh="cislice" text={znak(r?.cas ?? "", 1)} /><i>:</i><Flap druh="cislice" text={znak(r?.cas ?? "", 2)} /><Flap druh="cislice" text={znak(r?.cas ?? "", 3)} />
+            </span>
+            <span class="tb tb-kurz"><Flap text={r?.kurz ?? ""} /></span>
+            <span class="tb tb-lektor"><Flap text={r?.lektor ?? ""} /></span>
+            <span class="tb tb-stav"><Flap text={r?.stav ?? ""} /></span>
+            <span class="tb tb-cedulka" lang="ja">{r?.cedulka ?? ""}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+
+    <p class="sr-only tabule-hlaseni" aria-live="polite"></p>
+
+    {radky.length === 0 && (
+      <p class="tabule-prazdno">Zrovna teď nemáme vypsaný žádný termín — chystáme další.</p>
+    )}
+
+    <div class="tabule-pata">
+      {pripravujeme && <p><span lang="ja">準備中</span> = termín je vypsaný, ale zápis ještě neběží. Na jízdence si můžeš nechat dát vědět, až se otevře.</p>}
+      <a href="/kurzy-2#terminy">Všechny jízdenky{radky.length > SLOTY && <> · ještě {radky.length - SLOTY} další</>} <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+  <Razitko id="odjezdy" class="tabule-razitko" />
+</div>
+<script is:inline type="application/json" id="tabule-data" set:html={JSON.stringify({ radky, sloty: SLOTY })} />

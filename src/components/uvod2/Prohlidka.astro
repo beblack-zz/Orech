@@ -1,0 +1,259 @@
+---
+/**
+ * Prohlídka dílny — „den otevřených dveří“, který neskončil. Vedle karet
+ * stojí dílna v řezu a kamera v ní jezdí od zastavení k zastavení podle
+ * toho, která karta je zrovna uprostřed obrazovky (data-kamera: střed
+ * x, y a kolik ze scény má být vidět, ve viewBoxu DilnaRez 1600 × 1000).
+ *
+ * Každé zastavení je jedna věc z nabídky na místě, kde se v dílně děje:
+ * kruhy → kurzy, stoly → open studio, pec → výpal, police → obchod,
+ * nástěnka → poukaz, kuchyňka → kafe. A u každého je razítko.
+ *
+ * Všechno, co je tu vidět, je z dat: termíny z kurzy.ts, kusy z obchod.ts,
+ * otázky a částky poukazu z kurzy2.ts, ceník open studia a texty z uvod2.ts.
+ */
+import { Image } from "astro:assets";
+import DilnaRez from "./DilnaRez.astro";
+import Razitko from "./Razitko.astro";
+import Postavicka from "../characters/Postavicka.astro";
+import kuchynka from "../../../fotoorech/fotodilnacastkuchyne.jpg";
+import { kurzy } from "../../data/kurzy";
+import { navic, otazky, castkyPoukazu, denVTydnu, glazury } from "../../data/kurzy2";
+import { produkty } from "../../data/obchod";
+import { parta } from "../../data/parta";
+import { pocetKurzu, pocetKusu } from "../../data/pocty";
+import { nabidka, openStudio, poukazText, oDilne, kontakt } from "../../data/uvod2";
+import type { Sezona } from "../../data/uvod2";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+const otazka = (q: string) => otazky.find((o) => o.q === q);
+const pecinka = parta.find((p) => p.id === "pecinka");
+
+const k0 = kurzy[0];
+const datum = (d: Date) => `${denVTydnu(d)} ${d.getDate()}. ${d.getMonth() + 1}.`;
+const proZacatecniky = kurzy.filter((k) => navic[k.title]?.uroven.includes("zacatek")).length;
+
+const mail = (predmet: string, telo: string) =>
+  `mailto:${kontakt.email}?subject=${encodeURIComponent(predmet)}&body=${encodeURIComponent(telo)}`;
+const kusy = produkty.slice(0, 4);
+const glazura = (nazev: string) => glazury.find((g) => g.nazev === nazev.toLowerCase());
+
+/** Zastavení v pořadí, jak jdou v dílně zleva doprava */
+const mapa = [
+  { id: "prehled", znak: "工", nazev: "Dílna" },
+  { id: "kruhy", znak: "轆", nazev: "Kruhy" },
+  { id: "stoly", znak: "机", nazev: "Stoly" },
+  { id: "pec", znak: "窯", nazev: "Pec" },
+  { id: "police", znak: "棚", nazev: "Police" },
+  { id: "nastenka", znak: "贈", nazev: "Nástěnka" },
+  { id: "kuchynka", znak: "茶", nazev: "Kuchyňka" },
+];
+/** Obrys okna katōmado v procentech: rovné boky, nahoře zvon do špičky */
+const katomado =
+  "M0 100 L0 36 C0 30 0 27 4 23 C8 19 18 18 26 14 C36 9 44 6 50 0 C56 6 64 9 74 14 C82 18 92 19 96 23 C100 27 100 30 100 36 L100 100 Z";
+const katomadoJednotky = katomado.replace(/\d+(\.\d+)?/g, (n) => String(Number(n) / 100));
+const chat = [
+  [otazka("Musím umět točit?"), otazka("Kolik nás bude?")],
+  [otazka("Kdy bude moje keramika hotová?")],
+  [otazka("Co si mám vzít s sebou?")],
+];
+---
+<section class="prohlidka" id="prohlidka" data-sezona={sezona} aria-labelledby="prohlidka-nadpis">
+  <div class="prohlidka-mriz">
+    <div class="prohlidka-scena">
+      {/*
+        Okno má tvar katōmado — zvonovitého okna zenových chrámů. Na Partě 2
+        jsou scény v kulatých oknech marumado, tady se dílna dívá ven tímhle.
+      */}
+      <div class="prohlidka-ram" role="group" aria-label="Dílna v řezu. Na kruhy, hroudu, pec, kusy na polici, nástěnku a kávovar se dá kliknout.">
+        <div class="prohlidka-okno">
+          <div class="prohlidka-svet">
+            <DilnaRez rezim="prohlidka" />
+          </div>
+        </div>
+        <svg class="prohlidka-ramecek" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d={katomado} fill="none" stroke="#7A5A3C" stroke-width="7" vector-effect="non-scaling-stroke" />
+          <path d={katomado} fill="none" stroke="#3B2A1B" stroke-width="1" vector-effect="non-scaling-stroke" opacity="0.6" />
+        </svg>
+      </div>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <clipPath id="katomado" clipPathUnits="objectBoundingBox">
+          <path d={katomadoJednotky} />
+        </clipPath>
+      </svg>
+      <nav class="prohlidka-mapa" aria-label="Zastavení prohlídky">
+        {mapa.map((m) => (
+          <a href={`#stanice-${m.id}`} data-mapa={m.id}><span lang="ja" aria-hidden="true">{m.znak}</span>{m.nazev}</a>
+        ))}
+      </nav>
+    </div>
+
+    <div class="prohlidka-karty">
+      {/* ——— Úvod prohlídky ——— */}
+      <article class="stanice stanice-uvod papir" id="stanice-prehled" data-stanice="prehled" data-hodina="9" data-kamera="800,560,1680,1040">
+        <p class="stitek"><span lang="ja">工房見学</span> · prohlídka dílny</p>
+        <h2 id="prohlidka-nadpis" class="nadpis-2">Jedna pec, dva stoly, tři kruhy.</h2>
+        <p class="stanice-perex">{oDilne.zacatek}</p>
+        <p>{oDilne.pristup}</p>
+        <ul class="inventar" aria-label="Co v dílně je">
+          <li><a href="#stanice-pec" data-ukaz="pec"><b>1</b> pec</a></li>
+          <li><a href="#stanice-stoly" data-ukaz="stoly"><b>2</b> stoly</a></li>
+          <li><a href="#stanice-kruhy" data-ukaz="kruhy"><b>3</b> kruhy</a></li>
+        </ul>
+        <p class="stanice-pokyn">Obejdi dílnu zleva doprava. U každého zastavení se dá něco udělat — a za to je razítko do sešitu.</p>
+        <Razitko id="brana" />
+      </article>
+
+      {/* ——— Kruhy: kurzy ——— */}
+      <article class="stanice papir" id="stanice-kruhy" data-stanice="kruhy" data-hodina="9.8" data-kamera="437,716,460,340" aria-labelledby="kruhy-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">轆</span> Tři kruhy</p>
+        <h3 class="stanice-nazev" id="kruhy-nadpis">Kurzy</h3>
+        <p class="stanice-meta">{nabidka.kurzy.rozsah}</p>
+        <p>{nabidka.kurzy.text}</p>
+        {k0 ? (
+          <p class="stanice-nejblizsi">
+            V kalendáři {kurzy.length >= 2 && kurzy.length <= 4 ? "jsou" : "je"} {pocetKurzu(kurzy.length)}{proZacatecniky > 0 && <>, z toho {proZacatecniky === 1 ? "jeden" : proZacatecniky} i pro úplné začátečníky</>}.
+            Nejbližší: <a href="#odjezdy"><b>{k0.title}</b>, {datum(k0.date)}</a>, vede {k0.lektor}.
+          </p>
+        ) : (
+          <p class="stanice-nejblizsi">Zrovna teď nemáme vypsaný žádný termín — chystáme další.</p>
+        )}
+        <div class="stanice-chat">
+          {chat[0].map((o) => o && (
+            <div class="chat-radek">
+              <p class="chat-q">{o.q}</p>
+              <div class="chat-a">
+                <span class="chat-a-kami" aria-hidden="true"><Postavicka id={o.kdo} size={52} varianta="kami" /></span>
+                <p><b>{jmeno(o.kdo)}</b>{o.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="stanice-akce">
+          <a class="tlacitko tlacitko-maly" href="/kurzy-2#hledac">Najít svůj kurz</a>
+          <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-akce="kruh" data-kruh="1">Roztočit kruh</button>
+        </div>
+        <Razitko id="kruh" />
+      </article>
+
+      {/* ——— Stoly: open studio ——— */}
+      <article class="stanice papir" id="stanice-stoly" data-stanice="stoly" data-hodina="10.6" data-kamera="768,738,420,320" aria-labelledby="stoly-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">机</span> Dva stoly</p>
+        <h3 class="stanice-nazev" id="stoly-nadpis">Open studio</h3>
+        <p class="stanice-meta">{nabidka.openStudio.rozsah}</p>
+        <p>{nabidka.openStudio.text}</p>
+        <dl class="cenik">
+          {openStudio.cenik.map((c) => (
+            <div class={c.mesicni ? "cenik-mesic" : undefined}>
+              <dt>{c.nazev}<small>{c.popis}</small></dt>
+              <dd>{c.cena}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="cenik-platnost">{openStudio.platnost}</p>
+        <ul class="pravidla">
+          {openStudio.pravidla.map((p) => <li>{p}</li>)}
+        </ul>
+        <div class="stanice-akce">
+          <a class="tlacitko tlacitko-maly" href={mail("Open studio — rezervace slotu", "Ahoj, chci si rezervovat slot v open studiu. Kdy a na jak dlouho: ")}>Rezervovat slot</a>
+          <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-akce="hrouda">Prohníst hroudu</button>
+        </div>
+        <a class="stanice-odkaz" href="/open-studio">Víc o open studiu <span aria-hidden="true">→</span></a>
+        <Razitko id="stul" />
+      </article>
+
+      {/* ——— Pec: výpal ——— */}
+      <article class="stanice papir" id="stanice-pec" data-stanice="pec" data-hodina="11.4" data-kamera="1024,742,330,290" aria-labelledby="pec-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">窯</span> Jedna pec</p>
+        <h3 class="stanice-nazev" id="pec-nadpis">Výpal</h3>
+        {pecinka && <p class="stanice-meta">Pecinka · {pecinka.hlida}</p>}
+        {pecinka && <p>{pecinka.bio}</p>}
+        {chat[1][0] && <p>{chat[1][0].a}</p>}
+        <div class="pec-ovladani">
+          <p class="pec-stav" aria-live="polite">Pec je studená.</p>
+          <div class="pec-teplomer" aria-hidden="true"><span class="pec-sloupec"></span></div>
+          <button type="button" class="tlacitko tlacitko-maly pec-tlacitko" data-akce="pec">Zapálit pec</button>
+        </div>
+        <a class="stanice-odkaz" href="/parta-2#pecinka">Co se v peci děje, stupeň po stupni <span aria-hidden="true">→</span></a>
+        <Razitko id="pec" />
+      </article>
+
+      {/* ——— Police: obchod ——— */}
+      <article class="stanice papir" id="stanice-police" data-stanice="police" data-hodina="12.2" data-kamera="1138,640,280,300" aria-labelledby="police-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">棚</span> Police</p>
+        <h3 class="stanice-nazev" id="police-nadpis">Z našich rukou</h3>
+        <p class="stanice-meta">{nabidka.obchod.rozsah} · obchod připravujeme</p>
+        <p>{nabidka.obchod.text}</p>
+        <ul class="kusy">
+          {kusy.map((k, i) => {
+            const g = glazura(k.glaze);
+            return (
+              <li class="kus-radek" data-kus-radek={i}>
+                <button type="button" class="kus-vzit" data-akce="kus" data-kus={i} aria-pressed="false">
+                  <span class="kus-barva" style={g ? `--g1:${g.svetlo};--g2:${g.stred};--g3:${g.stin}` : undefined} aria-hidden="true"></span>
+                  <span class="kus-nazev">{k.name}</span>
+                  <span class="kus-glazura">{k.glaze}</span>
+                  <span class="kus-cena">{k.price}</span>
+                </button>
+                <a class="kus-mail" href={mail(`Obchod: ${k.name}`, `Ahoj, mám zájem o ${k.name} (${k.glaze}, ${k.price}). Je ještě k mání?`)} aria-label={`Napsat si o ${k.name}`}>Napsat si o něj</a>
+              </li>
+            );
+          })}
+        </ul>
+        <a class="stanice-odkaz" href="/obchod">Celý obchod · {pocetKusu(produkty.length)} <span aria-hidden="true">→</span></a>
+        <Razitko id="police" />
+      </article>
+
+      {/* ——— Nástěnka: poukaz a co chystáme ——— */}
+      <article class="stanice papir" id="stanice-nastenka" data-stanice="nastenka" data-hodina="13" data-kamera="1240,628,240,210" aria-labelledby="nastenka-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">贈</span> Nástěnka</p>
+        <h3 class="stanice-nazev" id="nastenka-nadpis">Dárkový poukaz</h3>
+        <p class="stanice-meta">{castkyPoukazu.join(" · ")} Kč nebo vlastní částka</p>
+        <p>{poukazText}</p>
+        <div class="stanice-akce">
+          <a class="tlacitko tlacitko-maly" href="/kurzy-2#poukaz">Poskládat poukaz</a>
+          <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-akce="poukaz">Otočit poukaz</button>
+        </div>
+        <div class="listek" data-listek>
+          <p class="listek-stitek">Připravujeme · {nabidka.workshopy.rozsah}</p>
+          <p class="listek-nazev">Workshopy</p>
+          <p>{nabidka.workshopy.text}</p>
+          <a href={mail("Workshop na míru", "Dobrý den, zajímá nás workshop. Kolik nás bude, kdy a při jaké příležitosti: ")}>Napsat o workshop <span aria-hidden="true">→</span></a>
+        </div>
+        <Razitko id="poukaz" />
+      </article>
+
+      {/* ——— Kuchyňka ——— */}
+      <article class="stanice papir" id="stanice-kuchynka" data-stanice="kuchynka" data-hodina="13.8" data-kamera="1358,650,290,270" aria-labelledby="kuchynka-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">茶</span> Kuchyňka</p>
+        <h3 class="stanice-nazev" id="kuchynka-nadpis">{oDilne.vitani}</h3>
+        <p class="stanice-meta">{oDilne.kafe}</p>
+        <div class="stanice-chat">
+          {chat[2].map((o) => o && (
+            <div class="chat-radek">
+              <p class="chat-q">{o.q}</p>
+              <div class="chat-a">
+                <span class="chat-a-kami" aria-hidden="true"><Postavicka id={o.kdo} size={52} varianta="kami" /></span>
+                <p><b>{jmeno(o.kdo)}</b>{o.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <figure class="stanice-foto">
+          <Image src={kuchynka} alt="Kuchyňka v dílně: tmavé skříňky, dřevěná deska, dřez a na horní polici řada zelených misek" width={820} widths={[360, 560, 820]} sizes="(min-width: 861px) 380px, 86vw" format="webp" />
+          <figcaption>Tohle je kresba. Tohle je kuchyňka doopravdy.</figcaption>
+        </figure>
+        <div class="stanice-akce">
+          <button type="button" class="tlacitko tlacitko-maly" data-akce="kafe">Postavit na kafe</button>
+          <a class="tlacitko tlacitko-maly tlacitko-obrys" href="#kontakt">Kudy k nám</a>
+        </div>
+        <Razitko id="pauza" />
+      </article>
+    </div>
+  </div>
+</section>

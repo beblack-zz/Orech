@@ -1,0 +1,97 @@
+---
+/**
+ * Úvod 2 — návrh nového úvodu webu. Vstupní brána do světa Party 2
+ * a Kurzů 2: jeden den otevřených dveří v dílně v Ořechu.
+ *
+ *   ráno     — u dveří visí noren, scrollem se jím prochází dovnitř
+ *   dopoledne — prohlídka dílny v řezu: kruhy, stoly, pec, police, nástěnka, kuchyňka
+ *   poledne  — odjezdová tabule s nejbližšími termíny
+ *   odpoledne — Jiřík a Renča
+ *   večer    — rok dílny: z garáže po havárii až do teď
+ *   noc      — noren je uvnitř, parta jde s lucerničkami, kontakt
+ *
+ * Celou cestou se sbírají razítka do sešitu (v hlavičce). Na starém
+ * global.css nezávisí: písmo, barvy, obloha a hlavička jsou z Party 2,
+ * vlastní věci v styles/uvod2.css. Všechny termíny, ceny a texty jsou
+ * z dat (kurzy.ts, obchod.ts, parta.ts, kurzy2.ts, uvod2.ts).
+ */
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/uvod2.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Brana from "../components/uvod2/Brana.astro";
+import Prohlidka from "../components/uvod2/Prohlidka.astro";
+import Tabule from "../components/uvod2/Tabule.astro";
+import Lide from "../components/uvod2/Lide.astro";
+import Rok from "../components/uvod2/Rok.astro";
+import Noc from "../components/uvod2/Noc.astro";
+import Razitka from "../components/uvod2/Razitka.astro";
+
+import { kurzy } from "../data/kurzy";
+import { japonskaCedulka } from "../data/kurzy2";
+import { razitka, sezonaMesice } from "../data/uvod2";
+
+/** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška */
+const sezona = sezonaMesice(new Date().getMonth() + 1);
+
+/*
+ * Štětcové písmo na japonské znaky se stahuje jen se znaky, které na
+ * stránce opravdu jsou — stejně jako na Partě 2.
+ */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+razitka.forEach((r) => pridej(r.znak));
+kurzy.forEach((k) => pridej(japonskaCedulka(k).znak));
+pridej("暖簾工房見学轆轤机窯棚贈茶発車時刻行先担当備考準備中印スタンプ帳");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JIRO saku — keramická dílna v Ořechu</title>
+    <meta name="description" content="Keramická dílna v Ořechu. Kurzy pro začátečníky i pokročilé, open studio, pec a malý obchod. Projdi si dílnu, podívej se na nejbližší termíny a ozvi se." />
+    <meta name="theme-color" content="#6F8FC8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+  </head>
+  <body class="p2 u2">
+    <a class="preskocit" href="#prohlidka">Přeskočit na prohlídku dílny</a>
+    <Nebe />
+    <Hlavicka sber="razitka" />
+
+    <main>
+      <Brana sezona={sezona} />
+      <Prohlidka sezona={sezona} />
+      <section class="odjezdy" id="odjezdy" data-hodina="14.2" aria-label="Odjezdy z Ořechu — nejbližší termíny kurzů">
+        <Tabule />
+      </section>
+      <Lide />
+      <Rok />
+      <Noc sezona={sezona} />
+    </main>
+
+    <Paticka poznamka="Úvod 2 je návrh nového vzhledu webu. Krajina, dílna v řezu i zvuky se kreslí a skládají přímo v prohlížeči — skutečné jsou jen fotky." />
+    <Razitka />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/uvod2/hlavni.ts";
+    </script>
+  </body>
+</html>

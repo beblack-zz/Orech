@@ -1,0 +1,31 @@
+---
+/**
+ * Schovaný kami. Malý, napůl za něčím, a dokud ho nikdo nenajde, trochu
+ * splývá. Po kliknutí se uloží do omamori (scripts/parta2/sber.ts).
+ * Pozice jde v procentech rodiče — scény jsou čtvercové, takže left/top
+ * i šířka sedí na stejnou mřížku.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import type { PostavaId } from "../../data/parta";
+
+interface Props {
+  id: PostavaId;
+  /** left, top a šířka v procentech rodiče */
+  x: number;
+  y: number;
+  w: number;
+  /** Natočení ve stupních — schovaný kami málokdy stojí rovně */
+  u?: number;
+  class?: string;
+}
+const { id, x, y, w, u = 0, class: cls = "" } = Astro.props;
+---
+<button
+  type="button"
+  class={`skryty ${cls}`}
+  data-skryty={id}
+  aria-label="Někdo se tu schovává"
+  style={`left:${x}%;top:${y}%;width:${w}%;--u:${u}deg`}
+>
+  <Postavicka id={id} size={60} varianta="kami" class="skryty-svg" />
+</button>

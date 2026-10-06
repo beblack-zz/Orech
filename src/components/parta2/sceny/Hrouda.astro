@@ -1,0 +1,88 @@
+---
+/**
+ * 一 Hrouda — ráno v dílně. Oknem padá světlo, v paprscích se točí prach
+ * a na ponku spí Hlínka na zabalené hroudě. Pod ponkem leží Střípek,
+ * tam kam nikdo nezametá.
+ */
+import Kami from "../Kami.astro";
+import Skryty from "../Skryty.astro";
+import { body } from "../tvary";
+
+const prach = body(16, 51, 300, 330);
+---
+<div class="scena scena-hrouda">
+  <svg class="scena-pozadi" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="hrouda-zed" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#EFE3CB" />
+        <stop offset="1" stop-color="#D8C6A5" />
+      </linearGradient>
+      <linearGradient id="hrouda-venku" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#BFD4E6" />
+        <stop offset="1" stop-color="#F6D9BE" />
+      </linearGradient>
+      <linearGradient id="hrouda-paprsek" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FFF6DE" stop-opacity="0.9" />
+        <stop offset="1" stop-color="#FFF6DE" stop-opacity="0" />
+      </linearGradient>
+      <linearGradient id="hrouda-ponk" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#B08660" />
+        <stop offset="1" stop-color="#8A6544" />
+      </linearGradient>
+    </defs>
+
+    <rect width="600" height="600" fill="url(#hrouda-zed)" />
+    {/* Okno a za ním ráno */}
+    <rect x="70" y="70" width="170" height="190" fill="url(#hrouda-venku)" />
+    <path d="M70 200 C110 186 150 196 190 184 C210 178 228 182 240 180 L240 260 L70 260 Z" fill="#9DB58A" opacity="0.8" />
+    <rect x="70" y="70" width="170" height="190" fill="none" stroke="#7A5A3C" stroke-width="10" />
+    <path d="M155 70 V260 M70 165 H240" stroke="#7A5A3C" stroke-width="6" />
+    <rect x="62" y="258" width="186" height="12" fill="#8A6A48" />
+
+    {/* Police s nádobami */}
+    <rect x="352" y="150" width="210" height="10" fill="#8A6A48" />
+    <path d="M372 150 C370 122 382 112 396 112 C410 112 420 124 418 150 Z" fill="#9AA79A" />
+    <path d="M436 150 L438 106 L470 106 L472 150 Z" fill="#C9B59A" />
+    <path d="M492 150 C488 132 494 124 512 124 C530 124 536 132 532 150 Z" fill="#6E5A4C" />
+    <rect x="540" y="118" width="14" height="32" rx="3" fill="#B84A2B" opacity="0.8" />
+
+    {/* Paprsky z okna */}
+    <g class="hrouda-paprsky" style="mix-blend-mode:screen">
+      <path d="M78 78 L150 78 L420 600 L250 600 Z" fill="url(#hrouda-paprsek)" opacity="0.55" />
+      <path d="M162 78 L234 78 L520 560 L380 600 Z" fill="url(#hrouda-paprsek)" opacity="0.4" />
+    </g>
+
+    {/* Podlaha a ponk */}
+    <rect x="0" y="540" width="600" height="60" fill="#B49C7E" />
+    <ellipse cx="300" cy="556" rx="270" ry="14" fill="#5A4636" opacity="0.25" />
+    <rect x="70" y="398" width="24" height="150" fill="#7A5A3C" />
+    <rect x="506" y="398" width="24" height="150" fill="#6A4E34" />
+    <rect x="70" y="470" width="460" height="10" fill="#6A4E34" opacity="0.8" />
+    <rect x="30" y="372" width="540" height="28" rx="3" fill="url(#hrouda-ponk)" />
+    <path d="M40 380 C160 376 300 384 560 378 M44 390 C200 386 380 394 556 388" stroke="#7A5A3C" stroke-width="1.2" opacity="0.5" fill="none" />
+
+    {/* Zabalená hrouda — mokrý hadr se záhyby */}
+    <path d="M212 374 C206 342 226 318 262 312 C296 306 342 306 372 318 C398 330 398 360 390 374 Z" fill="#DCD3C2" />
+    <path d="M232 372 C236 348 252 334 276 330 M300 372 C302 350 318 334 344 330 M356 372 C364 356 376 346 386 344" stroke="#B9AD98" stroke-width="3" fill="none" stroke-linecap="round" />
+    <path d="M250 340 C280 332 320 334 360 340" stroke="#C7BCA8" stroke-width="2" fill="none" opacity="0.8" />
+    <ellipse cx="320" cy="356" rx="30" ry="9" fill="#BCAF9A" opacity="0.6" />
+
+    {/* Nářadí: drát s kolíčky, houbička, jehla */}
+    <path d="M70 366 C100 360 130 368 160 362" stroke="#8C949B" stroke-width="1.4" fill="none" />
+    <rect x="58" y="360" width="14" height="8" rx="3" fill="#B08660" />
+    <rect x="158" y="356" width="14" height="8" rx="3" fill="#B08660" />
+    <rect x="440" y="354" width="42" height="18" rx="7" fill="#E8C35A" />
+    <path d="M500 368 L556 360" stroke="#8A6A48" stroke-width="5" stroke-linecap="round" />
+    <path d="M556 360 L572 358" stroke="#8C949B" stroke-width="2" stroke-linecap="round" />
+
+    {/* Prach v paprscích */}
+    <g fill="#FFF8E4">
+      {prach.map((p, i) => (
+        <circle class="prach" cx={120 + p.x} cy={150 + p.y} r={1 + p.s * 1.6} style={`--d:${(5 + p.t * 6).toFixed(1)}s;--z:${(-p.s * 8).toFixed(1)}s`} opacity={0.5 + p.t * 0.5} />
+      ))}
+    </g>
+  </svg>
+
+  <Kami id="hlinka" class="scena-kami" style="left:35%;top:29%;width:30%" />
+  <Skryty id="stripek" class="ve-stinu" x={78} y={83.5} w={7} u={-24} />
+</div>

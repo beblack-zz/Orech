@@ -1,0 +1,695 @@
+---
+/**
+ * Dílna v řezu — domeček bez přední stěny. Jedna pec, dva stoly, tři
+ * kruhy, výloha, kuchyňka, nástěnka a police, nad tím krov a střecha,
+ * venku sakura a ořech. Kreslí se ve dvou režimech:
+ *
+ *   prohlidka — dílna, jak je teď. Kruhy, hrouda, pec, kusy na polici,
+ *               poukaz a kávovar jsou tlačítka (scripts/uvod2/prohlidka.ts)
+ *               a parta bydlí každý u svého.
+ *   rok       — tatáž dílna, ale každá věc má data-od (a případně data-do):
+ *               měsíc roku 2026, kdy do dílny přibyla (nebo zmizela).
+ *               Navíc kaluž po havárii, vrata garáže, lešení s barvou,
+ *               páska „PEC“ na podlaze a šlápoty ze dne otevřených dveří.
+ *               Měsíce přepíná scripts/uvod2/rok.ts.
+ *
+ * Souřadnice jsou ve viewBoxu 1600 × 1000 a HTML vrstvy nad kresbou
+ * (tlačítka, parta) se počítají ze stejných čísel — proto ty helpery
+ * dole. Barvy stromů a země jedou z proměnných ročního období.
+ */
+import Kami from "../parta2/Kami.astro";
+import Nadoba from "./Nadoba.astro";
+import { chomac, body } from "../parta2/tvary";
+import { produkty, tvorba } from "../../data/obchod";
+import { kurzy } from "../../data/kurzy";
+import { denOtevrenychDveri } from "../../data/uvod2";
+import type { PostavaId } from "../../data/parta";
+
+interface Props {
+  rezim: "prohlidka" | "rok";
+}
+const { rezim } = Astro.props;
+const rok = rezim === "rok";
+const p = rok ? "rr" : "rp";
+
+/** Atributy pro režim „rok“: od kterého měsíce věc v dílně je (a do kterého) */
+const od = (m: number, doM?: number) => (rok ? { "data-od": m, ...(doM ? { "data-do": doM } : {}) } : {});
+
+/* ——— HTML vrstvy: procenta z viewBoxu ——— */
+const W = 1600;
+const H = 1000;
+const misto = (x0: number, y0: number, x1: number, y1: number) =>
+  `left:${((x0 / W) * 100).toFixed(3)}%;top:${((y0 / H) * 100).toFixed(3)}%;width:${(((x1 - x0) / W) * 100).toFixed(3)}%;height:${(((y1 - y0) / H) * 100).toFixed(3)}%`;
+/** Kami stojí patou na `pata`; kresby postaviček mají pod nohama asi osminu výšky vzduchu */
+const postava = (x: number, pata: number, w: number) =>
+  `left:${(((x - w / 2) / W) * 100).toFixed(3)}%;bottom:${(((H - pata - w * 0.12) / H) * 100).toFixed(3)}%;width:${((w / W) * 100).toFixed(3)}%`;
+
+/* ——— Kruhy ——— */
+const KRUHY = [330, 437, 544];
+const hlinaFaze = (c: number) => [
+  `M${c - 20} 807 C${c - 22} 792 ${c - 12} 782 ${c} 782 C${c + 12} 782 ${c + 22} 792 ${c + 20} 807 Z`,
+  `M${c - 15} 807 C${c - 16} 790 ${c - 14} 772 ${c - 13} 760 L${c + 13} 760 C${c + 14} 772 ${c + 16} 790 ${c + 15} 807 Z`,
+  `M${c - 12} 807 C${c - 23} 790 ${c - 21} 768 ${c - 9} 757 C${c - 6} 753 ${c - 7} 747 ${c - 8} 740 L${c + 8} 740 C${c + 7} 747 ${c + 6} 753 ${c + 9} 757 C${c + 21} 768 ${c + 23} 790 ${c + 12} 807 Z`,
+  `M${c - 27} 786 C${c - 25} 800 ${c - 14} 807 ${c} 807 C${c + 14} 807 ${c + 25} 800 ${c + 27} 786 Z`,
+];
+/** Okraj nahoře u každé fáze: [y, rx, ry] — hrouda žádný nemá */
+const hlinaOkraj: ([number, number, number] | null)[] = [null, [760, 13, 3], [740, 8, 2], [786, 27, 5]];
+/** Každý kruh začíná jinde, ať nejsou tři stejné hroudy vedle sebe */
+const startFaze = [0, 1, 2];
+
+/* ——— Police: první čtyři kusy z obchodu a pod nimi naše tvorba ——— */
+const kusy = produkty.slice(0, 4);
+const kusMista = [
+  { x: 1118, y: 560, s: 0.62, box: [1096, 528, 1142, 564] },
+  { x: 1162, y: 560, s: 0.58, box: [1144, 516, 1180, 564] },
+  { x: 1116, y: 630, s: 0.74, box: [1096, 598, 1138, 634] },
+  { x: 1158, y: 630, s: 0.62, box: [1139, 594, 1180, 634] },
+];
+const nase = tvorba.slice(0, 3);
+
+/* ——— Parta: kdo kde bydlí (x, pata, šířka) ——— */
+const parta: { id: PostavaId; x: number; pata: number; w: number; cls?: string }[] = rok
+  ? []
+  : [
+      { id: "vazicka", x: 470, pata: 758, w: 50 },
+      { id: "hlinka", x: 801, pata: 828, w: 52 },
+      { id: "pecinka", x: 1112, pata: 868, w: 60 },
+      { id: "stripek", x: 1148, pata: 774, w: 30 },
+      { id: "cedulka", x: 1258, pata: 668, w: 32 },
+      { id: "kapka", x: 1399, pata: 695, w: 34 },
+      { id: "kachlik", x: 906, pata: 201, w: 46 },
+    ];
+
+/* ——— Kalendář na zdi: měsíc nejbližšího termínu, kroužky na dnech s kurzem ——— */
+const MESICE = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
+const prvni = kurzy[0]?.date ?? new Date();
+const kalRok = prvni.getFullYear();
+const kalMes = prvni.getMonth();
+const posun = (new Date(kalRok, kalMes, 1).getDay() + 6) % 7;
+const dnuVMesici = new Date(kalRok, kalMes + 1, 0).getDate();
+const dnyKurzu = new Set(kurzy.filter((k) => k.date.getFullYear() === kalRok && k.date.getMonth() === kalMes).map((k) => k.date.getDate()));
+const kalBunky = Array.from({ length: dnuVMesici }, (_, i) => {
+  const n = posun + i;
+  return { den: i + 1, x: 852 + (n % 7) * 8.4, y: 590 + Math.floor(n / 7) * 8.2, kurz: dnyKurzu.has(i + 1) };
+});
+
+/* ——— Drobnosti ——— */
+const kvetiny = body(34, 977, 1600, 100).map((b) => ({ x: b.x, y: 896 + b.y * 0.9, druh: b.s < 0.45 ? "mak" : b.s < 0.7 ? "chrpa" : "kopretina", v: 0.7 + b.t * 0.6 }));
+const slapoty = Array.from({ length: 16 }, (_, i) => {
+  const t = i / 15;
+  return { x: 240 + t * 760 + (i % 2) * 6, y: 846 - Math.sin(t * Math.PI) * 30 + (i % 2) * 8, u: -8 + t * 20 };
+});
+const listy = body(10, 433, 100, 100);
+/** „Den otevřených dveří“ na plakátku na dva řádky — na jeden se nevejde */
+const denSlova = denOtevrenychDveri.nazev.split(" ");
+const denNazev = [denSlova.slice(0, -1).join(" "), denSlova[denSlova.length - 1]];
+---
+<div class={`rez rez-${rezim}`} data-rez={rezim}>
+  <svg class="rez-kresba" viewBox="0 0 1600 1000" aria-hidden="true">
+    <defs>
+      <linearGradient id={`${p}-trava`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style="stop-color:var(--zem-1)" />
+        <stop offset="1" style="stop-color:var(--zem-2)" />
+      </linearGradient>
+      <linearGradient id={`${p}-zed`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F3ECDF" />
+        <stop offset="1" stop-color="#E6DCCB" />
+      </linearGradient>
+      <linearGradient id={`${p}-podlaha`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#A3AA9E" />
+        <stop offset="1" stop-color="#C6CBC0" />
+      </linearGradient>
+      <linearGradient id={`${p}-ocel`} x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#7E868C" />
+        <stop offset="0.3" stop-color="#E8ECEE" />
+        <stop offset="0.55" stop-color="#B4BBC0" />
+        <stop offset="1" stop-color="#6A7278" />
+      </linearGradient>
+      <linearGradient id={`${p}-hlava`} x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#7E858C" />
+        <stop offset="0.38" stop-color="#D3D8DC" />
+        <stop offset="0.62" stop-color="#A3AAB0" />
+        <stop offset="1" stop-color="#6B7278" />
+      </linearGradient>
+      <linearGradient id={`${p}-hlina`} x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#5E4334" />
+        <stop offset="0.3" stop-color="#9C7860" />
+        <stop offset="0.44" stop-color="#C9A184" />
+        <stop offset="0.6" stop-color="#9C7860" />
+        <stop offset="1" stop-color="#4E3729" />
+      </linearGradient>
+      <linearGradient id={`${p}-dvere`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FFF6DD" />
+        <stop offset="1" stop-color="#F2D29C" />
+      </linearGradient>
+      <linearGradient id={`${p}-paprsek`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FFF4D6" stop-opacity="0.55" />
+        <stop offset="1" stop-color="#FFF4D6" stop-opacity="0" />
+      </linearGradient>
+      <radialGradient id={`${p}-zar`} cx="0.5" cy="0.6" r="0.6">
+        <stop offset="0" stop-color="#FFF2C0" />
+        <stop offset="0.4" stop-color="#FFB050" stop-opacity="0.85" />
+        <stop offset="1" stop-color="#E0501E" stop-opacity="0" />
+      </radialGradient>
+      <pattern id={`${p}-rez`} width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="10" height="10" fill="#8E7E6D" />
+        <rect width="3" height="10" fill="#7A6A5A" />
+      </pattern>
+      <pattern id={`${p}-pruhy`} width="20" height="120" patternUnits="userSpaceOnUse">
+        <rect x="0" width="4" height="120" fill="#FFFFFF" opacity="0.2" />
+        <rect x="11" width="2" height="120" fill="#2E2018" opacity="0.18" />
+      </pattern>
+      {!rok && KRUHY.map((c, i) => hlinaFaze(c).map((d, f) => <clipPath id={`${p}-k${i}-f${f}`}><path d={d} /></clipPath>))}
+    </defs>
+
+    {/* ——— Kopce za domem ——— */}
+    <path d="M0 760 C140 720 300 736 420 716 C640 690 900 728 1180 704 C1360 690 1500 712 1600 700 L1600 880 L0 880 Z" style="fill:var(--kopec-daleko)" opacity="0.85" />
+    <path d="M0 812 C200 788 380 800 600 790 C860 780 1100 806 1340 792 C1460 786 1540 794 1600 790 L1600 880 L0 880 Z" style="fill:var(--kopec-blizko)" opacity="0.7" />
+
+    {/* ——— Ořech za domem ——— */}
+    <g class="rez-orech">
+      <path d="M1512 880 C1520 800 1514 700 1526 600 C1530 560 1532 540 1530 520 L1574 520 C1572 548 1574 570 1578 610 C1590 700 1584 800 1596 880 Z" fill="#6E5E50" />
+      <g stroke="#6E5E50" stroke-linecap="round" fill="none">
+        <path d="M1536 560 C1500 520 1470 500 1430 488" stroke-width="16" />
+        <path d="M1560 540 C1580 500 1590 470 1600 452" stroke-width="14" />
+        <path d="M1548 530 C1546 480 1552 440 1544 400" stroke-width="12" />
+      </g>
+      <path d="M1524 760 Q1552 772 1582 760" stroke="#E8D7AE" stroke-width="7" fill="none" />
+      <g class="koruna-orech">
+        <path class="ore-1" d={chomac(1520, 420, 170, 130, 18, 811)} />
+        <path class="ore-2" d={chomac(1500, 396, 130, 98, 15, 812)} />
+        <path class="ore-2" d={chomac(1580, 440, 90, 70, 12, 813)} />
+        <path class="ore-3" d={chomac(1474, 372, 70, 50, 11, 814)} />
+      </g>
+      <g class="snih" fill="#FBFDFF">
+        <path d="M1430 486 C1470 496 1500 516 1534 556 C1500 524 1468 506 1428 494 Z" />
+        <path d="M1542 402 C1550 440 1548 480 1550 528 L1544 528 C1542 480 1544 440 1536 404 Z" />
+      </g>
+    </g>
+
+    {/* ——— Sakura vlevo ——— */}
+    <g class="rez-sakura">
+      <path d="M44 880 C50 800 46 730 58 660 C62 636 64 620 66 600 L82 600 C80 626 80 646 78 672 C74 740 80 810 92 880 Z" fill="#5A4636" />
+      <g stroke="#5A4636" stroke-linecap="round" fill="none">
+        <path d="M66 660 C44 630 28 610 6 596" stroke-width="9" />
+        <path d="M72 640 C96 612 118 596 150 584" stroke-width="8" />
+        <path d="M70 612 C66 580 72 556 62 528" stroke-width="6" />
+      </g>
+      <g class="koruna">
+        <path class="sak-1" d={chomac(64, 546, 96, 72, 14, 821)} />
+        <path class="sak-2" d={chomac(46, 528, 70, 52, 12, 822)} />
+        <path class="sak-2" d={chomac(104, 516, 52, 40, 10, 823)} />
+        <path class="sak-3" d={chomac(36, 508, 38, 28, 9, 824)} />
+      </g>
+      <g class="snih" fill="#FBFDFF">
+        <path d="M4 594 C24 604 44 622 64 650 C46 630 28 614 4 602 Z" />
+        <path d="M70 636 C96 608 118 594 148 580 C120 598 98 614 74 642 Z" />
+      </g>
+    </g>
+
+    {/* ——— Zem ——— */}
+    <path d="M0 862 C220 852 420 866 800 860 C1100 856 1360 866 1600 858 L1600 1000 L0 1000 Z" fill={`url(#${p}-trava)`} />
+    <path class="snih" d="M0 860 C220 850 420 864 800 858 C1100 854 1360 864 1600 856 L1600 1000 L0 1000 Z" fill="#F4F8FB" />
+    <g class="rez-kvetiny">
+      {kvetiny.map((k) => (
+        <g transform={`translate(${k.x} ${k.y.toFixed(1)}) scale(${k.v.toFixed(2)})`}>
+          <path d="M0 0 L0 14" stroke="#4F7A36" stroke-width="2" />
+          {k.druh === "mak" && <circle cx="0" cy="-2" r="5" fill="#D9452E" />}
+          {k.druh === "chrpa" && <circle cx="0" cy="-2" r="4" fill="#5B7FD1" />}
+          {k.druh === "kopretina" && <g><ellipse cx="0" cy="-2" rx="6" ry="3" fill="#FBF7EC" /><circle cx="0" cy="-2" r="2" fill="#E8B440" /></g>}
+        </g>
+      ))}
+    </g>
+
+    {/* ——— Krov a střecha ——— */}
+    <path d="M150 446 L800 204 L1450 446 Z M800 300 m-28 0 a28 28 0 1 0 56 0 a28 28 0 1 0 -56 0 Z" fill="#D8CBB4" fill-rule="evenodd" />
+    <circle cx="800" cy="300" r="28" fill="none" stroke="#8A6A48" stroke-width="6" />
+    <path d="M800 272 V328 M772 300 H828" stroke="#8A6A48" stroke-width="3" />
+    <g stroke="#8A6A48" stroke-linecap="round">
+      <path d="M800 212 V432" stroke-width="12" />
+      <path d="M800 420 L560 336 M800 420 L1040 336" stroke-width="9" />
+      <path d="M470 330 L470 440 M1130 330 L1130 440" stroke-width="7" opacity="0.8" />
+    </g>
+    <g fill="#6E5236">
+      {[300, 420, 540, 660, 940, 1060, 1180, 1300].map((x) => {
+        const y = x < 800 ? 446 - ((x - 150) / 650) * 242 : 204 + ((x - 800) / 650) * 242;
+        return <rect x={x - 7} y={y - 4} width="14" height="14" rx="2" />;
+      })}
+    </g>
+    {/* Komínek od pece */}
+    <g {...od(8)}>
+      <rect x="1000" y="214" width="14" height="216" fill="#9AA3A8" />
+      <path d="M1003 214 V430" stroke="#D9E0E3" stroke-width="3" opacity="0.7" />
+      <rect x="994" y="206" width="26" height="9" rx="2" fill="#7E878C" />
+      <circle class="kour kour-1" cx="1007" cy="196" r="7" fill="#EFEAE2" />
+      <circle class="kour kour-2" cx="1007" cy="196" r="6" fill="#EFEAE2" />
+      <circle class="kour kour-3" cx="1007" cy="196" r="5" fill="#EFEAE2" />
+    </g>
+    {/* Střešní desky v řezu, tašky po obvodu */}
+    <path d="M86 448 L800 166 L1514 448 L1456 448 L800 204 L144 448 Z" fill={`url(#${p}-rez)`} />
+    <path d="M86 446 L800 164 L1514 446" stroke="#B4523A" stroke-width="16" stroke-linejoin="round" fill="none" />
+    <path d="M86 446 L800 164 L1514 446" stroke="#8E3D2A" stroke-width="16" stroke-dasharray="3 15" fill="none" />
+    <path d="M92 438 L800 158 L1508 438" stroke="#D27458" stroke-width="2.5" fill="none" opacity="0.7" />
+    <path class="snih" d="M84 438 L800 152 L1516 438" stroke="#FBFDFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    <ellipse cx="800" cy="166" rx="16" ry="9" fill="#8E3D2A" />
+
+    {/* ——— Zadní stěna s otvory pro výlohu ——— */}
+    <g class="rez-venku">
+      <path d="M282 704 C360 690 450 698 592 686 L592 752 L282 752 Z" style="fill:var(--kopec-daleko)" opacity="0.9" />
+      <path d="M282 724 C380 716 480 722 592 712 L592 752 L282 752 Z" fill={`url(#${p}-trava)`} />
+      <path class="snih" d="M282 724 C380 716 480 722 592 712 L592 752 L282 752 Z" fill="#F4F8FB" />
+      <g>
+        <path d="M528 752 L530 700" stroke="#5A4636" stroke-width="5" />
+        <path class="sak-1 koruna" d={chomac(530, 686, 30, 24, 10, 831)} />
+        <path class="sak-3 koruna" d={chomac(522, 680, 16, 12, 8, 832)} />
+      </g>
+    </g>
+    <path d="M170 446 H1430 V800 H170 Z M282 510 V752 H592 V510 Z" fill={`url(#${p}-zed)`} fill-rule="evenodd" />
+    {rok && (
+      <g data-od="2" data-do="3">
+        <path d="M170 446 H1430 V800 H170 Z M282 510 V752 H592 V510 Z" fill="#9C978D" fill-rule="evenodd" opacity="0.7" />
+        <g fill="#6E6A62" opacity="0.3">
+          <ellipse cx="700" cy="780" rx="160" ry="30" /><ellipse cx="1000" cy="770" rx="90" ry="24" /><ellipse cx="420" cy="460" rx="70" ry="10" />
+        </g>
+        <path d="M640 460 L652 500 L644 530 L660 570 M1180 470 L1172 520 L1186 548" stroke="#6E6A62" stroke-width="2" fill="none" />
+      </g>
+    )}
+    {/* Tmavší pruh za kuchyňkou */}
+    <rect x="1288" y="612" width="142" height="188" fill="#9E8A78" {...od(5)} />
+
+    {/* ——— Dveře s norenem ——— */}
+    <rect x="182" y="566" width="80" height="234" fill="#6B5540" />
+    <rect x="190" y="574" width="64" height="226" fill={`url(#${p}-dvere)`} />
+    <path d="M190 760 C210 752 236 754 254 760 L254 800 L190 800 Z" fill={`url(#${p}-trava)`} opacity="0.6" />
+    <g class="rez-noren" {...od(9)}>
+      <rect x="184" y="575" width="76" height="5" rx="2" fill="#8A6A48" />
+      <path d="M190 580 H220 V646 Q205 650 190 646 Z" fill="#283670" />
+      <path d="M224 580 H254 V646 Q239 650 224 646 Z" fill="#283670" />
+      <circle cx="222" cy="602" r="11" fill="none" stroke="#F6F1E6" stroke-width="1.6" />
+      <g fill="#F6F1E6">
+        {[0, 72, 144, 216, 288].map((u) => <ellipse cx="222" cy="597" rx="2.6" ry="5" transform={`rotate(${u} 222 602)`} />)}
+      </g>
+      <path d="M222 580 V650" stroke="#1C2650" stroke-width="3" />
+    </g>
+    <path d="M190 800 L254 800 L300 858 L150 858 Z" fill="#FFF0C8" opacity="0.35" />
+
+    {/* ——— Výloha ——— */}
+    <g {...od(3)}>
+      <rect x="276" y="504" width="322" height="254" fill="none" stroke="#6B5540" stroke-width="12" />
+      <path d="M385 510 V752 M489 510 V752" stroke="#6B5540" stroke-width="7" />
+      <g fill="#FFFFFF" opacity="0.18">
+        <path d="M300 510 L330 510 L292 590 L282 590 Z" /><path d="M402 510 L418 510 L392 560 L386 560 Z" />
+      </g>
+      <rect x="268" y="752" width="338" height="12" rx="2" fill="#D9CFBE" />
+      <path d="M282 764 L592 764 L700 858 L180 858 Z" fill={`url(#${p}-paprsek)`} />
+    </g>
+
+    {/* ——— Kalendář: měsíc nejbližšího termínu ——— */}
+    <g class="rez-kalendar" {...od(10)}>
+      <rect x="842" y="556" width="68" height="78" rx="2" fill="#FFFDF6" stroke="#C9B48A" stroke-width="1" />
+      <rect x="842" y="556" width="68" height="16" rx="2" fill="#C4432B" />
+      <circle cx="876" cy="552" r="2.4" fill="#5C5047" />
+      <text x="876" y="568" text-anchor="middle" font-size="10" fill="#FFF6EA" font-family="Fraunces Variable, Fraunces, Georgia, serif" font-weight="600">{MESICE[kalMes]} {kalRok}</text>
+      {kalBunky.map((b) => (
+        <g>
+          <text x={b.x.toFixed(1)} y={b.y.toFixed(1)} text-anchor="middle" font-size="5" fill={b.kurz ? "#C4432B" : "#8A7C70"} font-family="Newsreader Variable, Newsreader, Georgia, serif" font-weight={b.kurz ? 700 : 400}>{b.den}</text>
+          {b.kurz && <circle cx={b.x.toFixed(1)} cy={(b.y - 1.7).toFixed(1)} r="3.6" fill="none" stroke="#C4432B" stroke-width="0.9" />}
+        </g>
+      ))}
+    </g>
+
+    {/* ——— Zásuvky ——— */}
+    <g fill="#FBF8F1" stroke="#B9AE9C" stroke-width="1" {...od(7)}>
+      <rect x="640" y="760" width="14" height="14" rx="2" /><rect x="1066" y="742" width="14" height="14" rx="2" /><rect x="1300" y="604" width="14" height="14" rx="2" />
+    </g>
+
+    {/* ——— Podlaha, strop a stěny v řezu ——— */}
+    <path d="M170 800 H1430 V860 H170 Z" fill={`url(#${p}-podlaha)`} />
+    <path d="M170 830 H1430" stroke="#D3D8CE" stroke-width="2" opacity="0.6" />
+    {rok && <path data-od="2" data-do="3" d="M170 800 H1430 V860 H170 Z" fill="#9F9A90" />}
+    <rect x="140" y="430" width="1320" height="16" fill={`url(#${p}-rez)`} />
+    <rect x="140" y="430" width="30" height="456" fill={`url(#${p}-rez)`} />
+    <rect x="1430" y="430" width="30" height="456" fill={`url(#${p}-rez)`} />
+    <rect x="140" y="860" width="1320" height="26" fill={`url(#${p}-rez)`} />
+    <path d="M140 860 H1460" stroke="#5E5044" stroke-width="2" />
+
+    {/* ——— Lampy ——— */}
+    <g {...od(7)}>
+      {[[437, 520], [732, 540], [1360, 512]].map(([x, y]) => (
+        <g>
+          <path d={`M${x} 446 V${y - 14}`} stroke="#2B2420" stroke-width="1.6" />
+          <path d={`M${x - 20} ${y} L${x - 8} ${y - 16} L${x + 8} ${y - 16} L${x + 20} ${y} Z`} fill="#3E5A4C" />
+          <ellipse cx={x} cy={y} rx="20" ry="4" fill="#F6E7C2" />
+          <path d={`M${x - 20} ${y + 2} L${x - 80} ${y + 150} L${x + 80} ${y + 150} L${x + 20} ${y + 2} Z`} fill="#FFF4D6" opacity="0.12" />
+        </g>
+      ))}
+    </g>
+
+    {/* ——— Kuchyňka ——— */}
+    <g class="rez-kuchynka" {...od(5)}>
+      <rect x="1296" y="540" width="128" height="62" fill="#3D4246" />
+      <rect x="1338" y="546" width="44" height="50" fill="#26292C" />
+      <path d="M1338 570 H1382" stroke="#7E878C" stroke-width="1.5" />
+      <g>
+        {[["#C4432B", 3], ["#E8D7AE", 4], ["#3A2E28", 3], ["#5B7FD1", 4], ["#F3D27A", 3], ["#6E9A4B", 4]].map(([c, w], i) => (
+          <rect x={1342 + i * 6} y={i % 2 ? 552 : 554} width={w} height={i % 2 ? 16 : 14} fill={c as string} />
+        ))}
+        <rect x="1344" y="574" width="34" height="4" fill="#E8D7AE" /><rect x="1346" y="578" width="30" height="4" fill="#C4432B" /><rect x="1343" y="582" width="36" height="4" fill="#3A2E28" />
+      </g>
+      <path d="M1310 590 H1326 M1394 590 H1410" stroke="#111" stroke-width="2.4" />
+      <Nadoba tvar="bowl" x={1312} y={540} s={0.42} glazura="Celadon" />
+      <Nadoba tvar="mug" x={1340} y={540} s={0.42} glazura="Celadon" />
+      <Nadoba tvar="bowl" x={1366} y={540} s={0.36} glazura="Shino" />
+      <Nadoba tvar="mug" x={1390} y={540} s={0.4} glazura="Tenmoku" />
+      <Nadoba tvar="bowl" x={1412} y={540} s={0.34} glazura="Celadon" />
+      <rect x="1294" y="702" width="132" height="98" fill="#3D4246" />
+      <path d="M1338 704 V800 M1382 704 V800 M1382 738 H1426 M1382 770 H1426" stroke="#2B2F32" stroke-width="2" />
+      <path d="M1304 714 H1324 M1348 714 H1372 M1394 716 H1414 M1394 750 H1414 M1394 782 H1414" stroke="#111" stroke-width="2.4" />
+      <rect x="1290" y="692" width="140" height="11" rx="1" fill="#C49A6C" />
+      <path d="M1290 702 H1430" stroke="#9C744C" stroke-width="2" />
+      <rect x="1342" y="692" width="38" height="3" fill="#8C949B" />
+      <path d="M1372 692 V674 Q1372 666 1364 666 Q1357 666 1357 672" stroke="#B9C0C6" stroke-width="3" fill="none" stroke-linecap="round" />
+      <g class="kavovar">
+        <rect x="1298" y="648" width="30" height="44" rx="3" fill="#1F1F1F" />
+        <rect x="1302" y="654" width="22" height="8" rx="1.5" fill="#3A3A3A" />
+        <circle cx="1307" cy="658" r="1.4" fill="#7CFFA0" />
+        <rect x="1309" y="666" width="8" height="5" fill="#111" />
+        <Nadoba tvar="mug" x={1313} y={690} s={0.32} glazura="Celadon" />
+        <g class="kafe-para" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round">
+          <path d="M1309 676 C1305 668 1313 664 1309 656" />
+          <path d="M1316 676 C1312 666 1320 662 1316 652" />
+          <path d="M1323 678 C1319 670 1327 666 1323 658" />
+        </g>
+      </g>
+    </g>
+
+    {/* ——— Nástěnka ——— */}
+    <g class="rez-nastenka" {...od(9)}>
+      <rect x="1198" y="556" width="84" height="120" rx="3" fill="#8A6A48" />
+      <rect x="1203" y="561" width="74" height="110" fill="#C9A97A" />
+      <g fill="#A9895A" opacity="0.6">
+        <circle cx="1212" cy="610" r="1" /><circle cx="1230" cy="640" r="1.2" /><circle cx="1262" cy="620" r="1" /><circle cx="1218" cy="660" r="1.1" /><circle cx="1250" cy="582" r="0.9" />
+      </g>
+      {!rok && (
+        <>
+          <g class="nastenka-poukaz">
+            <g class="pz-predek">
+              <rect x="1207" y="569" width="42" height="28" rx="1.5" fill="#FBF6EA" stroke="#C9B48A" stroke-width="0.8" />
+              <path d="M1209 573 Q1228 577 1247 573" stroke="#C9B186" stroke-width="1.4" fill="none" />
+              <rect x="1238" y="578" width="8" height="8" rx="1" fill="#C4432B" />
+              <text x="1212" y="592" font-size="7" fill="#2B2420" font-family="Fraunces Variable, Fraunces, Georgia, serif">poukaz</text>
+            </g>
+            <g class="pz-zadek">
+              <rect x="1207" y="569" width="42" height="28" rx="1.5" fill="#3A2E28" />
+              <path d="M1212 578 H1242 M1212 584 H1236 M1212 590 H1240" stroke="#F3D27A" stroke-width="1" opacity="0.8" />
+            </g>
+            <circle cx="1228" cy="569" r="1.8" fill="#C4432B" />
+          </g>
+          <g class="nastenka-workshop" transform="rotate(5 1263 584)">
+            <rect x="1252" y="568" width="22" height="31" fill="#FFFDF6" stroke="#D8CCB6" stroke-width="0.6" />
+            <path d="M1255 576 H1270 M1255 581 H1268 M1255 586 H1271 M1255 591 H1266" stroke="#8A7C70" stroke-width="0.9" />
+            <circle cx="1263" cy="568" r="1.6" fill="#5B7FD1" />
+          </g>
+        </>
+      )}
+      {rok && (
+        <g data-od="9" data-do="10" transform="rotate(-3 1240 600)">
+          <rect x="1209" y="566" width="62" height="66" fill="#FFFDF6" stroke="#D8CCB6" stroke-width="0.8" />
+          <text x="1240" y="578" text-anchor="middle" font-size="6.4" fill="#C4432B" font-family="Fraunces Variable, Fraunces, Georgia, serif" font-weight="700">{denNazev[0]}</text>
+          <text x="1240" y="585.5" text-anchor="middle" font-size="6.4" fill="#C4432B" font-family="Fraunces Variable, Fraunces, Georgia, serif" font-weight="700">{denNazev[1]}</text>
+          {denOtevrenychDveri.terminy.map((t, i) => (
+            <g>
+              <text x="1240" y={597 + i * 8.6} text-anchor="middle" font-size="6.6" fill="#3A2E28" font-family="Newsreader Variable, Newsreader, Georgia, serif">pátek {t}</text>
+              <path d={`M1223 ${595 + i * 8.6} H1257`} stroke="#3A2E28" stroke-width="0.7" opacity="0.6" />
+            </g>
+          ))}
+          <circle cx="1240" cy="566" r="1.6" fill="#C4432B" />
+        </g>
+      )}
+      <g fill="#D9B98A" stroke="#8A6A48" stroke-width="0.6">
+        {[1212, 1232, 1252].map((x) => (
+          <g>
+            <path d={`M${x + 6} 671 V680`} stroke="#C4432B" stroke-width="0.8" />
+            <path d={`M${x} 684 L${x + 6} 679 L${x + 12} 684 L${x + 12} 694 L${x} 694 Z`} />
+          </g>
+        ))}
+      </g>
+    </g>
+
+    {/* ——— Regál s kusy ——— */}
+    <g class="rez-police" {...od(8)}>
+      <rect x="1094" y="512" width="5" height="288" fill="#3A3A3A" />
+      <rect x="1177" y="512" width="5" height="288" fill="#3A3A3A" />
+      {[560, 630, 700, 770].map((y) => (
+        <g>
+          <rect x="1090" y={y} width="96" height="6" fill="#B08660" />
+          <path d={`M1090 ${y + 6} H1186`} stroke="#7A5A3C" stroke-width="1.5" />
+        </g>
+      ))}
+      {kusy.map((k, i) => (
+        <g class="kus" data-kus={i}>
+          <Nadoba tvar={k.shape} x={kusMista[i].x} y={kusMista[i].y} s={kusMista[i].s} glazura={k.glaze} />
+        </g>
+      ))}
+      {nase.map((k, i) => (
+        <Nadoba tvar={k.shape} x={1110 + i * 28} y={700} s={k.shape === "vase" ? 0.5 : 0.56} glazura={k.glaze} />
+      ))}
+      <path d="M1100 770 h32 v-3 h-32 Z M1102 767 h28 v-3 h-28 Z" fill="#D8D6CC" stroke="#8A8A80" stroke-width="0.5" />
+    </g>
+
+    {/* ——— Stoly a židle ——— */}
+    <g {...od(4)}>
+      <g>
+        {[662, 800].map((x) => (
+          <g>
+            <rect x={x - 22} y="688" width="44" height="40" rx="5" fill="#1F1F1F" />
+            <rect x={x - 18} y="692" width="36" height="32" rx="4" fill="#2F4FA0" />
+            <path d={`M${x - 18} 760 L${x - 20} 842 M${x + 18} 760 L${x + 20} 842`} stroke="#1F1F1F" stroke-width="3" />
+            <rect x={x - 22} y="756" width="44" height="7" rx="2" fill="#2F4FA0" />
+          </g>
+        ))}
+      </g>
+      <rect x="640" y="756" width="6" height="84" fill="#4A4A4A" />
+      <rect x="818" y="756" width="6" height="84" fill="#4A4A4A" />
+      <rect x="612" y="740" width="240" height="12" rx="3" fill="#C79A68" />
+      <rect x="612" y="750" width="240" height="6" fill="#9C744C" />
+      <path d="M620 744 H700 M760 745 H846" stroke="#E2BE8E" stroke-width="1.5" opacity="0.7" />
+      <rect x="622" y="756" width="8" height="106" fill="#262626" />
+      <rect x="834" y="756" width="8" height="106" fill="#262626" />
+      {/* Na stole: hrouda (v ní Bublinka), plát, nástroje, malá miska */}
+      <g class="hrouda">
+        <path class="hrouda-telo" d="M700 740 C698 724 714 708 735 708 C756 708 772 724 770 740 Z" fill={`url(#${p}-hlina)`} stroke="#3B2A1B" stroke-width="1" stroke-opacity="0.35" />
+        <g class="hrouda-kiku" stroke="#5E4334" stroke-width="1.2" fill="none" opacity="0">
+          <path d="M735 712 C726 720 720 730 718 740 M735 712 C732 722 730 732 730 740 M735 712 C740 722 742 732 742 740 M735 712 C746 720 752 730 754 740" />
+        </g>
+      </g>
+      <rect x="780" y="734" width="52" height="6" rx="2" fill="#B08A6E" />
+      <path d="M786 737 H826" stroke="#8E6E58" stroke-width="0.8" stroke-dasharray="2 3" />
+      <path d="M792 728 H846" stroke="#C9A37A" stroke-width="7" stroke-linecap="round" />
+      <path d="M648 738 C652 732 662 732 664 738 Z" fill="#B08660" />
+      <path d="M672 739 L690 733" stroke="#8C949B" stroke-width="1.6" stroke-linecap="round" />
+      <Nadoba tvar="bowl" x={634} y={741} s={0.36} glazura="Matná bílá" />
+      {/* Malý stůl na klínování */}
+      <rect x="866" y="768" width="74" height="10" rx="2" fill="#B9A07E" />
+      <path d="M870 772 H936" stroke="#9A8462" stroke-width="1" />
+      <path d="M872 778 L868 860 M934 778 L938 860 M870 830 H936" stroke="#8E4A3A" stroke-width="4" stroke-linecap="round" />
+      <rect x="878" y="758" width="20" height="10" rx="3" fill="#7FA34A" />
+      <path d="M906 768 C906 756 918 752 924 760 C928 764 928 768 928 768 Z" fill="#9C7860" />
+    </g>
+
+    {/* ——— Pec ——— */}
+    <g class="rez-pec" {...od(8)}>
+      <rect x="962" y="832" width="92" height="6" fill="#2B2B2B" />
+      <rect x="968" y="836" width="6" height="26" fill="#2B2B2B" />
+      <rect x="1042" y="836" width="6" height="26" fill="#2B2B2B" />
+      <rect x="960" y="704" width="96" height="130" rx="6" fill={`url(#${p}-ocel)`} />
+      <rect x="958" y="716" width="100" height="6" rx="2" fill="#8C949B" />
+      <rect x="958" y="776" width="100" height="5" rx="2" fill="#8C949B" />
+      <rect x="958" y="822" width="100" height="6" rx="2" fill="#8C949B" />
+      <rect x="1050" y="756" width="10" height="5" rx="2" fill="#2B2B2B" />
+      <ellipse class="pec-otvor" cx="1008" cy="706" rx="46" ry="9" fill="#2B1A12" />
+      <ellipse class="pec-zar" cx="1008" cy="700" rx="60" ry="30" fill={`url(#${p}-zar)`} />
+      {!rok && (
+        <g class="pec-uvnitr">
+          <Nadoba tvar="bowl" x={986} y={708} s={0.42} glazura="Shino" />
+          <Nadoba tvar="vase" x={1012} y={712} s={0.38} glazura="Celadon" />
+          <Nadoba tvar="mug" x={1034} y={708} s={0.42} glazura="Tenmoku" />
+        </g>
+      )}
+      <g class="pec-viko">
+        <ellipse cx="1008" cy="704" rx="50" ry="11" fill="#C9CFD4" stroke="#8C949B" stroke-width="1.5" />
+        <ellipse cx="1008" cy="701" rx="42" ry="7.5" fill="#DDE2E5" />
+        <rect x="999" y="690" width="18" height="7" rx="2.5" fill="#2B2B2B" />
+      </g>
+      <g class="pec-horko" fill="none" stroke="#FFD9A0" stroke-width="2" stroke-linecap="round">
+        <path d="M986 684 C980 676 990 670 984 660" /><path d="M1008 680 C1002 670 1012 664 1006 652" /><path d="M1030 684 C1024 676 1034 670 1028 660" />
+      </g>
+      <rect x="1058" y="724" width="22" height="52" rx="3" fill="#D6DADD" stroke="#9AA3A8" stroke-width="1" />
+      <rect x="1061" y="730" width="16" height="11" rx="1.5" fill="#1E2A22" />
+      <text class="pec-displej" x="1069" y="738.6" text-anchor="middle" font-size="7" fill="#7CFFA0" font-family="ui-monospace, Consolas, monospace">20</text>
+      <circle cx="1065" cy="750" r="2" fill="#C4432B" /><circle cx="1073" cy="750" r="2" fill="#5C5047" />
+      <path d="M1069 776 C1070 800 1080 820 1078 858" stroke="#2B2B2B" stroke-width="2" fill="none" />
+    </g>
+
+    {/* ——— Pytel hlíny pod stolem ——— */}
+    <g {...od(8)}>
+      <path d="M766 858 L768 826 C770 818 830 816 836 826 L838 858 Z" fill="#F2F0EA" stroke="#B9B4A8" stroke-width="1" />
+      <rect x="772" y="836" width="62" height="9" fill="#3A63A8" />
+      <path d="M770 828 C790 822 816 822 834 828" stroke="#D9D5CA" stroke-width="2" fill="none" />
+    </g>
+
+    {/* ——— Kruhy se stoličkami ——— */}
+    <g {...od(4)}>
+      {KRUHY.map((c, i) => (
+        <g class="kruh" data-kruh={i} data-faze={startFaze[i]}>
+          <ellipse cx={c - 46} cy="790" rx="19" ry="5.5" fill="#A9835C" />
+          <rect x={c - 65} y="790" width="38" height="6" fill="#8A6A48" />
+          <path d={`M${c - 60} 796 L${c - 64} 838 M${c - 32} 796 L${c - 28} 838`} stroke="#6E5236" stroke-width="3.5" stroke-linecap="round" />
+          <path d={`M${c - 36} 812 L${c + 36} 812 L${c + 32} 852 L${c - 32} 852 Z`} fill="#5E656B" />
+          <path d={`M${c - 30} 818 L${c + 30} 818`} stroke="#7E868C" stroke-width="2" opacity="0.6" />
+          <rect x={c + 26} y="848" width="22" height="8" rx="3" fill="#3F4448" />
+          <ellipse cx={c} cy="812" rx="42" ry="11" fill="#4A5055" />
+          <ellipse cx={c} cy="811" rx="36" ry="8.5" fill="#6B7277" />
+          <ellipse cx={c} cy="809" rx="27" ry="6.5" fill={`url(#${p}-hlava)`} />
+          <ellipse class="kruh-krouzek" cx={c} cy="809" rx="19" ry="4.4" fill="none" stroke="#4E555B" stroke-width="1.4" stroke-dasharray="5 8" />
+          {!rok && hlinaFaze(c).map((d, f) => (
+            <g class="kruh-faze" data-f={f}>
+              <path d={d} fill={`url(#${p}-hlina)`} stroke="#3B2A1B" stroke-width="1" stroke-opacity="0.35" />
+              <g clip-path={`url(#${p}-k${i}-f${f})`}>
+                <rect class="kruh-pruhy" x={c - 60} y="730" width="140" height="80" fill={`url(#${p}-pruhy)`} />
+              </g>
+              {hlinaOkraj[f] && (
+                <ellipse cx={c} cy={hlinaOkraj[f]![0]} rx={hlinaOkraj[f]![1]} ry={hlinaOkraj[f]![2]} fill="#4A3426" stroke="#C9A184" stroke-width="1.2" />
+              )}
+            </g>
+          ))}
+          {rok && <path d={hlinaFaze(c)[0]} fill={`url(#${p}-hlina)`} />}
+        </g>
+      ))}
+    </g>
+
+    {/* ——— Jen v režimu „rok“: co bylo, než byla dílna ——— */}
+    {rok && (
+      <>
+        <g data-od="2" data-do="3">
+          {/* Vrata garáže */}
+          <rect x="276" y="506" width="424" height="294" fill="#8E9398" />
+          {Array.from({ length: 8 }, (_, i) => <path d={`M276 ${542 + i * 36} H700`} stroke="#6E7378" stroke-width="3" />)}
+          <path d="M276 506 H700" stroke="#5E6368" stroke-width="5" />
+          <rect x="474" y="770" width="28" height="6" rx="2" fill="#5E6368" />
+          <g fill="#A9673A" opacity="0.55">
+            <ellipse cx="330" cy="790" rx="26" ry="6" /><ellipse cx="640" cy="560" rx="10" ry="4" /><ellipse cx="560" cy="792" rx="18" ry="5" />
+          </g>
+          {/* Prasklá trubka pod stropem a kaluž */}
+          <path d="M170 474 H760" stroke="#8C949B" stroke-width="10" />
+          <path d="M170 474 H760" stroke="#B9C0C6" stroke-width="3" />
+          <path d="M612 468 L618 480 L624 470" stroke="#2B2420" stroke-width="2" fill="none" />
+          <circle class="rok-kapka" cx="618" cy="490" r="4" fill="#8FB3C9" />
+          <circle class="rok-kapka rok-kapka-2" cx="618" cy="490" r="3.4" fill="#8FB3C9" />
+          <ellipse cx="660" cy="836" rx="250" ry="17" fill="#8FB3C9" opacity="0.8" />
+          <ellipse cx="620" cy="833" rx="140" ry="8" fill="#C9DDE8" opacity="0.6" />
+          <ellipse class="rok-vlnka" cx="618" cy="836" rx="40" ry="6" fill="none" stroke="#FFFFFF" stroke-width="1.5" />
+        </g>
+        <g data-od="3" data-do="4">
+          {/* Suť ze zbourané zdi, kýbl s barvou a štafle */}
+          <g fill="#A89A86">
+            <rect x="300" y="842" width="22" height="12" rx="2" /><rect x="318" y="846" width="20" height="10" rx="2" transform="rotate(12 328 851)" />
+            <rect x="334" y="840" width="24" height="12" rx="2" transform="rotate(-8 346 846)" /><rect x="312" y="832" width="18" height="10" rx="2" transform="rotate(6 321 837)" />
+          </g>
+          <path d="M1000 822 L1004 858 L1036 858 L1040 822 Z" fill="#F4F1EA" stroke="#B9B4A8" />
+          <path d="M1004 824 C1012 832 1018 822 1026 830" stroke="#5B7FD1" stroke-width="3" fill="none" />
+          <path d="M1046 858 L1066 800 M1062 858 L1066 800" stroke="#C9A37A" stroke-width="3" />
+          <rect x="1058" y="792" width="20" height="10" rx="3" fill="#5B7FD1" />
+          <path d="M1250 860 L1286 560 M1300 860 L1330 560" stroke="#B08660" stroke-width="5" />
+          {Array.from({ length: 8 }, (_, i) => <path d={`M${1253 + i * 4.4} ${830 - i * 36} H${1302 + i * 3.6}`} stroke="#B08660" stroke-width="4" />)}
+        </g>
+        <g data-od="6" data-do="7">
+          {/* Mobil na stativu — začíná Instagram */}
+          <path d="M1000 858 L1012 790 L1024 858 M1012 790 L1012 858" stroke="#2B2420" stroke-width="2.5" fill="none" />
+          <rect x="998" y="752" width="28" height="44" rx="4" fill="#2B2420" />
+          <rect x="1001" y="756" width="22" height="34" rx="2" fill="#7DA7C9" />
+          <circle class="rok-nahrava" cx="1018" cy="760" r="2.4" fill="#E2452E" />
+        </g>
+        <g data-od="7" data-do="8">
+          {/* Místo pro novou pec */}
+          <path d="M958 820 L1062 820 L1070 858 L950 858 Z" fill="none" stroke="#E8B440" stroke-width="3" stroke-dasharray="10 6" />
+          <text x="1010" y="846" text-anchor="middle" font-size="18" fill="#B98A1C" font-family="Caveat, cursive" font-weight="600">PEC</text>
+        </g>
+        <g data-od="9" data-do="10">
+          {/* Šlápoty ze dne otevřených dveří */}
+          {slapoty.map((s) => (
+            <g transform={`translate(${s.x.toFixed(1)} ${s.y.toFixed(1)}) rotate(${s.u.toFixed(1)})`} fill="#7E6A58" opacity="0.4">
+              <ellipse cx="0" cy="0" rx="6" ry="3.4" /><ellipse cx="-9" cy="0.4" rx="3" ry="2.8" />
+            </g>
+          ))}
+        </g>
+      </>
+    )}
+
+    {/* Popředí: trs trávy před řezem */}
+    <g fill="#4C7634">
+      <path d="M120 1000 Q126 960 118 930 Q134 962 136 1000 Z" /><path d="M1480 1000 Q1488 962 1478 934 Q1496 966 1498 1000 Z" />
+      <path d="M760 1000 Q764 974 756 956 Q772 978 772 1000 Z" />
+    </g>
+  </svg>
+
+  {/* ——— Částice ročního období ——— */}
+  <div class="castice" aria-hidden="true">
+    {listy.map((l, i) => (
+      <span
+        class={`castice-kus ${i % 3 === 0 ? "castice-velky" : ""}`}
+        style={`left:${(l.x * 0.9 + 4).toFixed(1)}%;top:${(-8 - l.y * 0.3).toFixed(1)}%;--d:${(9 + l.s * 9).toFixed(1)}s;--z:${(-l.t * 18).toFixed(1)}s;--dx:${((l.s - 0.4) * 160).toFixed(0)}px;--r:${(220 + l.t * 400).toFixed(0)}deg`}
+      ></span>
+    ))}
+  </div>
+
+  {/* ——— Tlačítka v kresbě ——— */}
+  {!rok && (
+    <div class="rez-mista">
+      {/* Zvýraznění pro „1 pec · 2 stoly · 3 kruhy“ v úvodní kartě — jen kreslí, neklikají */}
+      <span class="rez-misto rez-ukaz" data-ukaz-v="pec" style={misto(950, 672, 1084, 864)} aria-hidden="true"></span>
+      <span class="rez-misto rez-ukaz" data-ukaz-v="stoly" style={misto(604, 684, 858, 866)} aria-hidden="true"></span>
+      <span class="rez-misto rez-ukaz" data-ukaz-v="stoly" style={misto(860, 750, 946, 866)} aria-hidden="true"></span>
+      {KRUHY.map((c) => (
+        <span class="rez-misto rez-ukaz" data-ukaz-v="kruhy" style={misto(c - 50, 738, c + 50, 864)} aria-hidden="true"></span>
+      ))}
+      {KRUHY.map((c, i) => (
+        <button type="button" class="rez-misto" data-akce="kruh" data-kruh={i} data-stanice="kruhy" style={misto(c - 48, 740, c + 48, 862)} aria-label={`Roztočit ${i + 1}. kruh`}></button>
+      ))}
+      <button type="button" class="rez-misto" data-akce="hrouda" data-stanice="stoly" style={misto(692, 700, 778, 748)} aria-label="Prohníst hroudu na stole"></button>
+      <button type="button" class="rez-misto" data-akce="pec" data-stanice="pec" style={misto(950, 672, 1084, 862)} aria-label="Pec"></button>
+      {kusy.map((k, i) => (
+        <button type="button" class="rez-misto" data-akce="kus" data-kus={i} data-stanice="police" style={misto(...(kusMista[i].box as [number, number, number, number]))} aria-label={`Vzít z police: ${k.name}`}></button>
+      ))}
+      <button type="button" class="rez-misto" data-akce="poukaz" data-stanice="nastenka" style={misto(1203, 562, 1251, 600)} aria-label="Otočit poukaz na nástěnce"></button>
+      <button type="button" class="rez-misto" data-akce="workshop" data-stanice="nastenka" style={misto(1250, 562, 1278, 604)} aria-label="Lístek na nástěnce: workshopy"></button>
+      <button type="button" class="rez-misto" data-akce="kafe" data-stanice="kuchynka" style={misto(1292, 640, 1334, 694)} aria-label="Postavit na kafe"></button>
+      {kusy.map((k, i) => (
+        <p class="kus-cedulka" data-cedulka={i} style={`left:${(((kusMista[i].x - 40) / W) * 100).toFixed(3)}%;top:${(((kusMista[i].box[1] - 34) / H) * 100).toFixed(3)}%`} aria-hidden="true">
+          <b>{k.name}</b><span>{k.price}</span>
+        </p>
+      ))}
+    </div>
+  )}
+
+  {/* ——— Parta ——— */}
+  <div class="rez-parta">
+    {parta.map((k) => (
+      <Kami id={k.id} class={`rez-kami rez-kami-${k.id}`} style={postava(k.x, k.pata, k.w)} />
+    ))}
+    {!rok && (
+      <>
+        <Kami id="bublinka" class="rez-kami rez-bublinka" style={postava(744, 716, 40)} />
+        <Kami id="samotka" class="rez-kami rez-samotka" style={postava(1008, 716, 44)} />
+      </>
+    )}
+    {rok && (
+      <>
+        <span class="rok-kami" data-od="2" data-do="5"><Kami id="kapka" class="rez-kami" style={postava(690, 842, 42)} /></span>
+        <span class="rok-kami" data-od="5"><Kami id="kapka" class="rez-kami" style={postava(1399, 695, 34)} /></span>
+        <span class="rok-kami" data-od="8"><Kami id="pecinka" class="rez-kami" style={postava(1112, 868, 60)} /></span>
+        <span class="rok-kami" data-od="8"><Kami id="hlinka" class="rez-kami" style={postava(801, 828, 52)} /></span>
+      </>
+    )}
+  </div>
+</div>

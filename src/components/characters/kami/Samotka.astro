@@ -1,0 +1,56 @@
+---
+import Kresba from "./Kresba.astro";
+import { uid } from "../dospele/uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+const u = uid();
+---
+{/*
+  TSUKUMOGAMI — police z pece. Pořád leží a nestěžuje si, jen teď nese
+  na zádech cizí misku (tenmoku s tekoucí glazurou) a ze žáru pod ní
+  stoupají jiskry. Oči zavřené: klid je její charakter.
+  Zvětšení na šířku je stejné jako u hravé verze, viz ../Samotka.astro.
+*/}
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <Kresba id={u} posun={2} />
+    <linearGradient id={`${u}-deska`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0E4CE" />
+      <stop offset="1" stop-color="#DDCBAE" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(90 102) scale(1.34) translate(-90 -102)">
+    <ellipse cx="90" cy="150" rx="54" ry="6" fill="#3A2E28" opacity="0.14" />
+    <g class="samotka-zar">
+      <ellipse cx="90" cy="134" rx="48" ry="10" fill="#E8B440" opacity="0.55" filter={`url(#${u}-mlha)`} />
+    </g>
+    <g fill="#F0C55E">
+      <circle class="kami-ohen" cx="62" cy="128" r="1.4" />
+      <circle class="kami-ohen kami-ohen-2" cx="96" cy="130" r="1.1" />
+      <circle class="kami-ohen kami-ohen-3" cx="122" cy="127" r="1.3" />
+    </g>
+
+    <g filter={`url(#${u}-tah)`}>
+      {/* Cizí miska na zádech */}
+      <path d="M50 70 L74 70 Q73 82 62 82 Q51 82 50 70 Z" fill="#3A2E28" stroke="#2A211C" stroke-width="0.8" />
+      <path d="M50 70 L74 70 L73.4 73 Q62 75 50.6 73 Z" fill="#8A5A34" />
+      <path d="M55 73 Q56 77 55.5 79 M63 74 Q64 79 63 81 M69 73.5 Q69.5 76 69 78" stroke="#8A5A34" stroke-width="1.1" stroke-linecap="round" />
+      <path d="M50 70 L74 70" stroke="#5A4535" stroke-width="1" stroke-linecap="round" />
+
+      <rect x="24" y="82" width="132" height="34" rx="5" fill={`url(#${u}-deska)`} stroke="#6B5D4F" stroke-width="1.6" />
+      <rect x="24" y="110" width="132" height="12" rx="4" fill="#C3B197" />
+      <ellipse cx="50" cy="94" rx="13" ry="6" fill="#6B5D4F" opacity="0.22" />
+      <ellipse cx="134" cy="100" rx="10" ry="5" fill="#6B5D4F" opacity="0.18" />
+    </g>
+    <g class="tvar">
+      <g filter={`url(#${u}-mlha)`} fill="#C87E4E" opacity="0.35">
+        <ellipse cx="72" cy="101" rx="5" ry="3" />
+        <ellipse cx="108" cy="101" rx="5" ry="3" />
+      </g>
+      <path d="M76 94 Q80 89 84 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+      <path d="M96 94 Q100 89 104 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+      <path d="M83 104 Q90 109 97 104" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none" />
+    </g>
+  </g>
+</svg>

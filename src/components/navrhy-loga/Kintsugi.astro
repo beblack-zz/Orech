@@ -1,0 +1,336 @@
+---
+/**
+ * Návrh 04 — Kintsugi. Na webu stojí „dílna, kde má hlína čas a každá
+ * chyba svůj tvar“. Kintsugi je japonská oprava keramiky zlatem: prasklina
+ * se nezakrývá, ale zvýrazní. Tady zlatá spára roste po misce jako
+ * větvička a na jejím konci kvete sakura.
+ *
+ * Miska čawan z boku: tmavá glazura stéká přes hnědou hlínu, nožka
+ * zůstala režná. Na tmavém podkladu je glazura šino — mléčná s oranžovým
+ * okrajem, kde zeslábla.
+ */
+import { BARVY, PLATEK, UHLY_KVETU, ODSUN, posun, kvetDefs, noveId, rad, type LogoProps } from "./sdilene";
+
+const {
+  size = 160,
+  tema = "svetle",
+  mono = BARVY.espresso,
+  anim = false,
+  nazev = "zadny",
+  maly = false,
+  class: trida = "",
+} = Astro.props as LogoProps;
+
+const id = noveId("ki");
+const jeMono = tema === "mono";
+const tmave = tema === "tmave";
+const textBarva = jeMono ? mono : tmave ? BARVY.krem : BARVY.espresso;
+/** „saku“ ve zlatě — na světlém tmavší, aby se dalo přečíst. */
+const akcent = jeMono ? mono : tmave ? "#E9C46A" : "#B0822A";
+
+const g = tmave
+  ? { glazura: ["#F2EADD", "#DCCBB2"], okraj: "#CB8A56", vnitrek: ["#E2D5C2", "#C5B39A"], kvet: BARVY.sakura }
+  : { glazura: ["#2A201B", "#46321F"], okraj: "#93572F", vnitrek: ["#1C1512", "#3B2C22"], kvet: "#C9573A" };
+const hlina = ["#B4774D", "#8C5434"];
+const nozka = "#CDA071";
+
+const telo =
+  "M36 60 A64 10.5 0 0 0 164 60 C 164 103 143 143 118 147 L 120 149 L 121 157 L 79 157 L 80 149 L 82 147 C 57 143 36 105 36 60 Z";
+/** Glazura stéká přes okraj a končí v kapkách. */
+const glazuraKonec =
+  "M 170 108 C 161 112 153 109 147 114 C 143 117 142 128 138 129 C 134 130 134 118 129 116 C 119 113 109 118 101 116 C 95 115 93 125 89 126 C 85 127 86 116 81 114 C 71 110 63 115 55 111 C 47 108 41 111 30 109";
+const glazura = `M 30 40 L 170 40 L ${glazuraKonec.slice(2)} Z`;
+
+/**
+ * Spáry: hlavní prasklina od okraje k nožce a tři odbočky. Zpoždění
+ * odpovídá tomu, kdy k odbočce doteče zlato po hlavní spáře.
+ */
+const spary = [
+  { d: "M122 70 L119 78 L122 84 L115 92 L117 98 L110 106 L112 113 L105 122 L107 129 L101 138 L103 146", w: 2.3, z: 0.3, doba: 1.3 },
+  { d: "M115 92 L108 89 L101 91 L96 89", w: 1.8, z: 0.65, doba: 0.5 },
+  { d: "M110 106 L118 110 L125 108 L132 113", w: 1.7, z: 0.9, doba: 0.5 },
+  { d: "M105 122 L97 124 L92 130", w: 1.4, z: 1.15, doba: 0.4 },
+];
+const styl = (s: (typeof spary)[number]) => `--z:${s.z}s; --doba:${s.doba}s`;
+/** Odštípnutý kousek okraje, vyplněný zlatem. */
+const odstipnuti = "M116.5 70.1 L127.5 69.4 L123 76.5 L120.6 74.8 Z";
+
+/** Železité tečky v režné hlíně. */
+const skvrnky = [
+  [70, 135, 0.8],
+  [90, 140, 0.6],
+  [112, 138, 0.7],
+  [128, 131, 0.6],
+  [60, 124, 0.5],
+  [138, 136, 0.5],
+  [98, 145, 0.5],
+];
+
+const jiskra = "M0 -6 L1.1 -1.1 L6 0 L1.1 1.1 L0 6 L-1.1 1.1 L-6 0 L-1.1 -1.1 Z";
+---
+
+<span class={`lg lg-${nazev} ki ${anim ? "anim" : ""} ${trida}`} data-logo style={`--s:${size}px`}>
+  <svg width={size} height={size} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JIRO saku">
+    {jeMono ? (
+      <>
+        <defs>
+          <mask id={`${id}-mono`} maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+            <path d={telo} fill="#fff" />
+            <ellipse cx="100" cy="60" rx="64" ry="10.5" fill="#fff" />
+            {/* Ústí misky — zbyde jen proužek okraje vepředu */}
+            <ellipse cx="100" cy="59" rx="59.5" ry="7.2" fill="#000" />
+            <g stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+              {spary.map((s) => (
+                <path d={s.d} stroke-width={s.w + 0.8} />
+              ))}
+            </g>
+            <path d={odstipnuti} fill="#000" />
+            <g transform="translate(84 88) rotate(-10)" fill="#000">
+              {UHLY_KVETU.map((u) => (
+                <path d={PLATEK} transform={`rotate(${u}) translate(0 -${ODSUN})`} />
+              ))}
+            </g>
+            <path d={PLATEK} fill="#000" transform="translate(133 114) rotate(118) scale(0.72)" />
+          </mask>
+        </defs>
+        <rect width="200" height="200" fill={mono} mask={`url(#${id}-mono)`} />
+      </>
+    ) : (
+      <>
+        <defs>
+          <Fragment set:html={kvetDefs(id, { barva: g.kvet, obrys: "#EBC066", sirkaObrysu: 0.55 })} />
+          <clipPath id={`${id}-telo`}>
+            <path d={telo} />
+          </clipPath>
+          <linearGradient id={`${id}-hlina`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color={hlina[0]} />
+            <stop offset="1" stop-color={hlina[1]} />
+          </linearGradient>
+          <linearGradient id={`${id}-glazura`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color={g.glazura[0]} />
+            <stop offset="1" stop-color={g.glazura[1]} />
+          </linearGradient>
+          <linearGradient id={`${id}-vnitrek`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color={g.vnitrek[0]} />
+            <stop offset="1" stop-color={g.vnitrek[1]} />
+          </linearGradient>
+          <linearGradient id={`${id}-zlato`} gradientUnits="userSpaceOnUse" x1="86" y1="64" x2="136" y2="150">
+            <stop offset="0" stop-color="#FFE9A6" />
+            <stop offset="0.35" stop-color="#E7B34C" />
+            <stop offset="0.7" stop-color="#B9852A" />
+            <stop offset="1" stop-color="#F2CF78" />
+          </linearGradient>
+          {!maly && (
+            <>
+              <filter id={`${id}-zare`} filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+                <feGaussianBlur stdDeviation="1.7" />
+              </filter>
+              <filter id={`${id}-mekce`} filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+                <feGaussianBlur stdDeviation="2.2" />
+              </filter>
+            </>
+          )}
+        </defs>
+
+        {!maly && <ellipse cx="100" cy="158" rx="36" ry="3.4" fill={tmave ? "#000" : BARVY.espresso} opacity={tmave ? 0.35 : 0.16} />}
+
+        {/* Vnitřek misky — vidět je jen zadní stěna, přední zakryje tělo */}
+        <ellipse cx="100" cy="60" rx="64" ry="10.5" fill={`url(#${id}-vnitrek)`} />
+        <path d="M36 60 A64 10.5 0 0 1 164 60" stroke="#fff" stroke-opacity="0.18" stroke-width="0.9" />
+
+        <g clip-path={`url(#${id}-telo)`}>
+          <rect x="30" y="50" width="140" height="112" fill={`url(#${id}-hlina)`} />
+          {!maly && skvrnky.map(([x, y, r]) => <circle cx={x} cy={y} r={r} fill="#4E2E1D" opacity="0.55" />)}
+          <rect x="70" y="147" width="60" height="12" fill={nozka} />
+          <path d="M70 147.5 L130 147.5" stroke="#000" stroke-opacity="0.15" />
+          <path d={glazura} fill={`url(#${id}-glazura)`} />
+          <path d={glazuraKonec} stroke={g.okraj} stroke-width="2.6" stroke-opacity="0.6" />
+          {!maly && (
+            <ellipse
+              cx="55"
+              cy="84"
+              rx="4.5"
+              ry="14"
+              fill="#fff"
+              opacity={tmave ? 0.4 : 0.16}
+              transform="rotate(14 55 84)"
+              filter={`url(#${id}-mekce)`}
+            />
+          )}
+        </g>
+        <path
+          d="M36 60 A64 10.5 0 0 0 164 60"
+          stroke={tmave ? "#fff" : posun(g.glazura[0], 0.35)}
+          stroke-opacity="0.5"
+          stroke-width="1.1"
+        />
+
+        {/* Zlato: záře, tmavý lem, zlatá spára a odlesk navrchu */}
+        {!maly && (
+          <g filter={`url(#${id}-zare)`} opacity="0.55" stroke="#F6C453" stroke-linecap="round" stroke-linejoin="round">
+            {spary.map((s) => (
+              <path class="ki-sev" d={s.d} pathLength="1" stroke-width={s.w + 3} style={styl(s)} />
+            ))}
+          </g>
+        )}
+        <g stroke-linecap="round" stroke-linejoin="round">
+          {spary.map((s) => (
+            <path
+              class="ki-sev"
+              d={s.d}
+              pathLength="1"
+              stroke="#5E400F"
+              stroke-opacity={tmave ? 0.7 : 0.4}
+              stroke-width={s.w + 1.1}
+              style={styl(s)}
+            />
+          ))}
+          {spary.map((s) => (
+            <path class="ki-sev" d={s.d} pathLength="1" stroke={`url(#${id}-zlato)`} stroke-width={s.w} style={styl(s)} />
+          ))}
+          {!maly &&
+            spary.map((s) => (
+              <path
+                class="ki-sev"
+                d={s.d}
+                pathLength="1"
+                stroke="#FFF7D6"
+                stroke-width="0.55"
+                stroke-opacity="0.8"
+                transform="translate(-0.35 -0.4)"
+                style={styl(s)}
+              />
+            ))}
+        </g>
+        <path class="ki-odstipnuti" d={odstipnuti} fill={`url(#${id}-zlato)`} stroke="#5E400F" stroke-opacity="0.35" stroke-width="0.5" />
+
+        <g transform="translate(84 88) rotate(-10)">
+          {UHLY_KVETU.map((u, i) => (
+            <g class="ki-platek" style={`--i:${i}`}>
+              <use href={`#${id}-platek`} transform={`rotate(${u}) translate(0 -${ODSUN})`} />
+            </g>
+          ))}
+          {!maly && (
+            <g class="ki-stred">
+              <circle r="1.5" fill="#F3CD6C" />
+              {UHLY_KVETU.map((u) => (
+                <circle
+                  cx={(3.3 * Math.sin(rad(u + 36))).toFixed(2)}
+                  cy={(-3.3 * Math.cos(rad(u + 36))).toFixed(2)}
+                  r="0.75"
+                  fill="#F3CD6C"
+                />
+              ))}
+            </g>
+          )}
+        </g>
+        <g transform="translate(133 114)">
+          <g class="ki-poupe">
+            <use href={`#${id}-platek`} transform="rotate(118) scale(0.72)" />
+            <circle r="1.2" fill="#E3B04B" />
+          </g>
+        </g>
+
+        {anim && (
+          <g fill="#FFF3C4">
+            <g transform="translate(99 77)">
+              <path class="ki-jiskra" d={jiskra} style="--z:2.3s" />
+            </g>
+            <g transform="translate(127 100) scale(0.7)">
+              <path class="ki-jiskra" d={jiskra} style="--z:3.5s" />
+            </g>
+            <g transform="translate(118 70) scale(0.55)">
+              <path class="ki-jiskra" d={jiskra} style="--z:4.4s" />
+            </g>
+          </g>
+        )}
+      </>
+    )}
+  </svg>
+
+  {nazev !== "zadny" && (
+    <span class="lg-nazev" style={`color:${textBarva}`}>
+      <span class="ki-jiro">JIRO</span> <em style={`color:${akcent}`}>saku</em>
+    </span>
+  )}
+</span>
+
+<style>
+  .ki-jiro {
+    letter-spacing: 0.06em;
+  }
+  em {
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  .anim .ki-sev {
+    stroke-dasharray: 1 1;
+    animation: ki-tec var(--doba) cubic-bezier(0.5, 0, 0.4, 1) both;
+    animation-delay: var(--z);
+  }
+  .anim .ki-odstipnuti {
+    animation: ki-objev 0.5s ease-out 0.2s both;
+  }
+  .anim .ki-platek {
+    transform-origin: 0 0;
+    animation: ki-platek 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+    animation-delay: calc(1.25s + var(--i) * 0.08s);
+  }
+  .anim .ki-stred {
+    animation: ki-objev 0.4s ease-out 1.75s both;
+  }
+  .anim .ki-poupe {
+    transform-origin: 0 0;
+    animation: ki-platek 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) 1.45s both;
+  }
+  .ki-jiskra {
+    opacity: 0;
+  }
+  .anim .ki-jiskra {
+    transform-origin: 0 0;
+    animation: ki-jiskra 3.6s ease-in-out infinite;
+    animation-delay: var(--z);
+  }
+
+  @keyframes ki-tec {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes ki-objev {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes ki-platek {
+    from {
+      transform: scale(0) rotate(-60deg);
+    }
+    to {
+      transform: scale(1) rotate(0);
+    }
+  }
+  /* Zlato se na okamžik zablýskne a zase zhasne */
+  @keyframes ki-jiskra {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0.2) rotate(0deg);
+    }
+    12% {
+      opacity: 1;
+      transform: scale(1) rotate(45deg);
+    }
+    26% {
+      opacity: 0;
+      transform: scale(0.2) rotate(90deg);
+    }
+  }
+</style>

@@ -1,0 +1,69 @@
+---
+/**
+ * Louka v popředí: zem s květy (vlčí máky, chrpy, kopretiny) a před ní
+ * vysoká tráva. Tráva je samostatný <svg>, protože se v ní opírá vítr —
+ * zkosení celého prvku zvládne grafická karta bez překreslování.
+ */
+import { trava, nahoda } from "./tvary";
+
+interface Props { class?: string; seed?: number; }
+const { class: cls = "", seed = 1 } = Astro.props;
+
+const zadni = trava(1600, 120, 70, 120, seed * 10 + 1);
+const predni = trava(1600, 300, 110, 150, seed * 10 + 2);
+const svetle = trava(1600, 300, 80, 60, seed * 10 + 3);
+
+const r = nahoda(seed * 10 + 4);
+const kvety = Array.from({ length: 46 }, () => {
+  const druh = r();
+  return {
+    x: Math.round(r() * 1600),
+    y: Math.round(120 + r() * 150),
+    v: 0.7 + r() * 0.6,
+    druh: druh < 0.4 ? "mak" : druh < 0.65 ? "chrpa" : "kopretina",
+  };
+}).sort((a, b) => a.y - b.y);
+---
+<div class={`louka ${cls}`} aria-hidden="true">
+  <svg class="louka-zem" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <linearGradient id={`louka-g-${seed}`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#8DB35C" />
+        <stop offset="1" stop-color="#55803B" />
+      </linearGradient>
+    </defs>
+    <path d="M0 74 C300 42 700 60 1000 44 C1250 30 1450 44 1600 34 L1600 300 L0 300 Z" fill={`url(#louka-g-${seed})`} />
+    <g fill="#6C9746">{zadni.map((d) => <path d={d} />)}</g>
+    {kvety.map((k) => (
+      <g transform={`translate(${k.x} ${k.y}) scale(${k.v.toFixed(2)})`}>
+        <path d="M0 0 L0 18" stroke="#4F7A36" stroke-width="2" />
+        {k.druh === "mak" && (
+          <g>
+            <circle cx="-3" cy="-2" r="6" fill="#D9452E" />
+            <circle cx="3" cy="-2" r="6" fill="#E25A3E" />
+            <circle cx="0" cy="-1" r="2.2" fill="#2B2420" />
+          </g>
+        )}
+        {k.druh === "chrpa" && (
+          <g fill="#5B7FD1">
+            <circle cx="0" cy="-2" r="4.5" />
+            <circle cx="-4" cy="-4" r="2.4" /><circle cx="4" cy="-4" r="2.4" /><circle cx="0" cy="-7" r="2.4" />
+          </g>
+        )}
+        {k.druh === "kopretina" && (
+          <g>
+            <ellipse cx="0" cy="-2" rx="7" ry="3.4" fill="#FBF7EC" />
+            <ellipse cx="0" cy="-2" rx="3.4" ry="6" fill="#FBF7EC" />
+            <circle cx="0" cy="-2" r="2.4" fill="#E8B440" />
+          </g>
+        )}
+      </g>
+    ))}
+  </svg>
+  <svg class="louka-trava louka-trava-1" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice">
+    <g fill="#4C7634">{predni.map((d) => <path d={d} />)}</g>
+  </svg>
+  <svg class="louka-trava louka-trava-2" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice">
+    <g fill="#7AA64B" opacity="0.85">{svetle.map((d) => <path d={d} />)}</g>
+  </svg>
+</div>

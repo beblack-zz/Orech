@@ -1,0 +1,141 @@
+/*
+ * ——— Rezervace ———
+ * Jedna papírová karta nad oblohou nového vzhledu (parta2.css):
+ * počet lidí, dny, hodiny a souhrn s cenou.
+ */
+
+.rz-sekce { position: relative; z-index: 2; min-height: 100svh; padding: 104px 20px 70px; }
+.rz-papir { width: min(860px, 100%); margin: 0 auto; }
+.rz-papir .nadpis-2 { font-size: clamp(34px, 4.4vw, 56px); }
+.rz-perex { margin: 0 0 8px; max-width: 58ch; color: var(--inkoust-2); }
+.rz-noscript { padding: 12px 16px; border-radius: 14px; background: var(--papir-2); }
+
+.rz-krok { margin-top: 26px; }
+.rz-otazka {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 48;
+  font-weight: 500;
+  font-size: 21px;
+}
+.rz-otazka span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--inkoust);
+  color: var(--papir);
+  font-size: 14px;
+  font-weight: 600;
+}
+.rz-otazka small { font-family: var(--f-text); font-size: 15px; color: var(--inkoust-3); }
+
+.rz-osoby { display: flex; flex-wrap: wrap; gap: 8px; }
+.rz-pilulka { position: relative; cursor: pointer; }
+.rz-pilulka input { position: absolute; opacity: 0; pointer-events: none; }
+.rz-pilulka span {
+  display: inline-block;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--papir-2);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 0.2s, color 0.2s;
+}
+.rz-pilulka input:checked + span { background: var(--inkoust); color: var(--papir); }
+.rz-pilulka input:focus-visible + span { outline: 2px solid var(--rumelka); outline-offset: 2px; }
+
+.rz-dny { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.rz-den,
+.rz-hodina {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 9px 6px 10px;
+  border-radius: 14px;
+  background: var(--papir-2) !important;
+  border: 2px solid transparent !important;
+  text-align: center;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.rz-den:not(:disabled):hover,
+.rz-hodina:not(:disabled):hover { background: #F3E3C6 !important; transform: translateY(-2px); }
+.rz-den b,
+.rz-hodina b { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 18px; line-height: 1.15; }
+.rz-den small,
+.rz-hodina small { font-size: 12.5px; line-height: 1.2; color: var(--inkoust-3); }
+.rz-den-zkr { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rumelka); }
+.rz-den[aria-pressed="true"] { background: var(--inkoust) !important; color: var(--papir) !important; }
+.rz-den[aria-pressed="true"] small,
+.rz-den[aria-pressed="true"] .rz-den-zkr { color: #F3D27A; }
+.rz-den:disabled,
+.rz-hodina:disabled { cursor: not-allowed; opacity: 0.5; }
+.rz-den.plno small { color: var(--rumelka); }
+
+.rz-den-nazev { margin: 0 0 10px; font-family: var(--f-ruka); font-size: 23px; line-height: 1.1; }
+.rz-den-nazev::first-letter { text-transform: uppercase; }
+.rz-hodiny { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.rz-hodina { position: relative; padding-left: 10px; }
+.rz-hodina::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6E9A4B;
+}
+.rz-hodina.malo::before { background: #E8B440; }
+.rz-hodina.plno::before { background: var(--rumelka); }
+.rz-hodina.probehlo::before { background: var(--inkoust-3); }
+.rz-hodina.plno small { color: var(--rumelka); }
+.rz-hodina[aria-pressed="true"] { background: #FFFDF6 !important; border-color: var(--inkoust) !important; }
+.rz-hodina[aria-pressed="true"]::after {
+  content: "✓";
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  font-weight: 700;
+  color: var(--rumelka);
+}
+.rz-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--inkoust-3); }
+.rz-legenda i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #6E9A4B; }
+.rz-legenda i.malo { background: #E8B440; }
+.rz-legenda i.plno { background: var(--rumelka); }
+
+.rz-souhrn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 18px;
+  margin-top: 28px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: #FFFDF6;
+  box-shadow: inset 0 0 0 1.5px rgba(43, 36, 32, 0.14);
+}
+.rz-souhrn-text { margin: 0; font-size: 15.5px; line-height: 1.45; }
+.rz-cena { margin: 0; text-align: right; white-space: nowrap; }
+.rz-cena span { display: block; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--inkoust-3); }
+.rz-cena b { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 30px; }
+.rz-odeslat { grid-column: 1 / -1; justify-self: start; cursor: pointer; }
+.rz-odeslat[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; transform: none; pointer-events: none; }
+.rz-pozn { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--inkoust-3); }
+
+@media (max-width: 600px) {
+  .rz-sekce { padding: 88px 12px 50px; }
+  .rz-dny { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+  .rz-hodiny { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rz-souhrn { grid-template-columns: minmax(0, 1fr); }
+  .rz-cena { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rz-den, .rz-hodina { transition: none; }
+}

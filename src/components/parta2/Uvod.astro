@@ -1,0 +1,117 @@
+---
+/**
+ * Úvod: svítání nad Ořechem. Kopce, pole, dílna na stráni, vpravo
+ * posvátný ořech a v trávě celá parta. Vrstvy jsou samostatné, aby
+ * každá mohla stát u spodního okraje jinak — na mobilu se krajina
+ * ořízne do středu a strom couvne napůl za okraj.
+ */
+import { chomac } from "./tvary";
+import Dilna from "./Dilna.astro";
+import Orech from "./Orech.astro";
+import Louka from "./Louka.astro";
+import Kami from "./Kami.astro";
+import Skryty from "./Skryty.astro";
+import type { PostavaId } from "../../data/parta";
+
+/** Pořadí v trávě a o kolik je kdo větší — Pecinka stojí uprostřed a je největší. */
+const skupina: { id: PostavaId; v: number; dole: number }[] = [
+  { id: "kachlik", v: 0.92, dole: 10 },
+  { id: "vazicka", v: 1.0, dole: 4 },
+  { id: "kapka", v: 0.86, dole: 14 },
+  { id: "pecinka", v: 1.16, dole: 2 },
+  { id: "hlinka", v: 0.95, dole: 8 },
+  { id: "stripek", v: 0.9, dole: 13 },
+  { id: "cedulka", v: 0.98, dole: 5 },
+  { id: "bublinka", v: 0.86, dole: 12 },
+  { id: "samotka", v: 1.06, dole: 3 },
+];
+
+/** Stromky na stráních: [x, y, velikost] */
+const stromky: [number, number, number][] = [
+  [980, 352, 34], [1024, 360, 26], [1300, 344, 30], [300, 384, 28], [340, 392, 20],
+  [1480, 330, 24], [140, 300, 22], [760, 290, 18],
+];
+const les = [
+  [80, 238, 70, 22], [260, 214, 90, 24], [520, 188, 80, 20], [700, 196, 100, 24],
+  [960, 196, 90, 22], [1180, 186, 110, 24], [1420, 182, 90, 20],
+];
+---
+<section class="uvod" data-hodina="5.6" aria-labelledby="uvod-nadpis">
+  <div class="uvod-krajina">
+    <svg class="uvod-kopce" viewBox="0 0 1600 560" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="uvod-opar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color:var(--nebe-obzor)" stop-opacity="0" />
+          <stop offset="0.5" style="stop-color:var(--nebe-obzor)" stop-opacity="0.5" />
+          <stop offset="1" style="stop-color:var(--nebe-obzor)" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+
+      <path d="M0 250 C150 205 300 215 450 190 C600 165 760 205 920 185 C1080 165 1260 200 1420 180 C1500 170 1560 175 1600 172 L1600 560 L0 560 Z" style="fill:var(--kopec-daleko)" />
+      <g style="fill:var(--kopec-blizko)" opacity="0.55">
+        {les.map(([x, y, rx, ry], i) => <path d={chomac(x, y, rx, ry, 12, 700 + i, 0.5, 0.7)} />)}
+      </g>
+      <rect x="0" y="170" width="1600" height="220" fill="url(#uvod-opar)" />
+
+      <path d="M0 330 C200 290 380 300 560 280 C760 258 940 300 1140 275 C1320 255 1470 280 1600 268 L1600 560 L0 560 Z" style="fill:var(--kopec-blizko)" />
+      <rect x="0" y="262" width="1600" height="120" fill="url(#uvod-opar)" opacity="0.6" />
+
+      <path d="M0 420 C220 372 470 392 720 372 C980 350 1240 392 1600 362 L1600 560 L0 560 Z" fill="#87A85C" />
+      <path d="M180 420 C300 400 420 404 520 396 L560 448 C440 456 300 462 200 470 Z" fill="#E2C35A" opacity="0.9" />
+      <path d="M600 392 C760 380 900 376 1020 370 L1060 418 C920 426 780 432 640 440 Z" fill="#A4BF6C" />
+      <path d="M1120 380 C1250 372 1380 368 1480 360 L1520 404 C1400 412 1260 418 1150 424 Z" fill="#A98A62" />
+      <g stroke="#8E7050" stroke-width="2" opacity="0.6">
+        <path d="M1150 392 L1490 372 M1155 402 L1500 382 M1160 412 L1508 392" />
+      </g>
+      <g fill="#5E7F45" opacity="0.8">
+        <path d={chomac(570, 436, 40, 10, 10, 731, 0.6, 0.7)} />
+        <path d={chomac(1090, 404, 46, 10, 10, 733, 0.6, 0.7)} />
+      </g>
+      <path d="M840 560 C812 520 770 480 712 452 C668 434 612 428 566 422" stroke="#D8C9A3" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.85" />
+
+      {stromky.map(([x, y, s], i) => (
+        <g>
+          <ellipse cx={x + s * 0.3} cy={y + s * 0.95} rx={s * 0.9} ry={s * 0.18} fill="#2E3B25" opacity="0.25" />
+          <path d={`M${x} ${y + s} L${x} ${y + s * 0.3}`} stroke="#4E4238" stroke-width={s * 0.16} />
+          <path d={chomac(x, y, s * 0.7, s * 0.8, 9, 760 + i, 0.8, 0.7)} fill="#4E7339" />
+          <path d={chomac(x - s * 0.15, y - s * 0.2, s * 0.42, s * 0.45, 8, 780 + i, 1, 0.7)} fill="#6E9A4B" />
+        </g>
+      ))}
+
+      <Dilna x={430} y={300} sirka={220} />
+    </svg>
+
+    <Orech class="uvod-orech">
+      <Skryty slot="za-kmenem" id="hlinka" x={54} y={86.5} w={8} u={-6} />
+    </Orech>
+
+    <Louka class="uvod-louka" seed={1} />
+  </div>
+
+  <div class="uvod-parta">
+    {skupina.map((k) => (
+      <Kami id={k.id} class="uvod-kami" style={`--v:${k.v};--dole:${k.dole}px`} />
+    ))}
+  </div>
+
+  <div class="uvod-text">
+    <p class="stitek stitek-svetly">Parta · kami z dílny v Ořechu</p>
+    <h1 id="uvod-nadpis" class="uvod-nadpis">
+      Kami je osm milionů.
+      <em>V naší dílně jich bydlí devět.</em>
+    </h1>
+    <p class="uvod-perex">
+      V Japonsku má duši všechno — hory, řeky, staré stromy i hrnek, který
+      slouží dost dlouho. Hrnčíři proto stavěli k peci figurky z hlíny, aby
+      hlídaly výpal. Říká se jim <i lang="ja-Latn">kama no kami</i>. Tohle jsou ty naše.
+    </p>
+    <p class="uvod-pokyn">Klikni na ně. A pár se jich schovává — najdeš všech devět?</p>
+    <a class="uvod-dolu" href="#cesta">
+      <span>Vydej se za nimi</span>
+      <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </a>
+  </div>
+
+  <p class="uvod-tategaki" lang="ja" aria-hidden="true">八百万の神</p>
+
+</section>

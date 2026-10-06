@@ -1,0 +1,121 @@
+---
+/**
+ * Průvodce výběrem: tři otázky a doporučení z termínů, které opravdu
+ * jsou. Body: úroveň 3, čas 2, s kým 2; obsazený kurz ztrácí bod.
+ * Bez JavaScriptu zůstanou vidět všechny otázky naráz a odkaz na termíny.
+ * Logika ve scripts/kurzy2/hledac.ts, data ze stránky (JSON níže).
+ */
+import { kurzy } from "../../data/kurzy";
+import { navic } from "../../data/kurzy2";
+import Postavicka from "../characters/Postavicka.astro";
+
+const otazky = [
+  {
+    jmeno: "uroven",
+    otazka: "Jak jsi na tom s hlínou?",
+    volby: [
+      { hodnota: "zacatek", nazev: "Úplně od nuly", popis: "Hlínu znám jen z obrázků.", ikona: "hrouda" },
+      { hodnota: "trochu", nazev: "Pár pokusů za sebou", popis: "Něco umím, chci to dotáhnout.", ikona: "hrnek" },
+      { hodnota: "pokrocily", nazev: "Točím pravidelně", popis: "Láká mě víc — víčka, sady, glazury.", ikona: "vaza" },
+    ],
+  },
+  {
+    jmeno: "cas",
+    otazka: "Kolik času tomu dáš?",
+    volby: [
+      { hodnota: "den", nazev: "Jeden den", popis: "Sobota u hlíny a hotovo.", ikona: "slunce" },
+      { hodnota: "vikend", nazev: "Víkend", popis: "Dva dny v kuse u kruhu.", ikona: "slunce2" },
+      { hodnota: "pravidelne", nazev: "Pravidelně", popis: "Jednou týdně, měsíc nebo trimestr.", ikona: "kalendar" },
+    ],
+  },
+  {
+    jmeno: "kdo",
+    otazka: "S kým přijdeš?",
+    volby: [
+      { hodnota: "ja", nazev: "Jen já", popis: "Hlína a klid.", ikona: "jeden" },
+      { hodnota: "dite", nazev: "S dítětem", popis: "Velký a malý u jednoho stolu.", ikona: "dva" },
+      { hodnota: "parta", nazev: "S kamarády", popis: "Ve skupině je to veselejší.", ikona: "tri" },
+    ],
+  },
+];
+
+const data = kurzy.map((k, i) => ({
+  i,
+  nazev: k.title,
+  datum: `${k.date.getDate()}. ${k.date.getMonth() + 1}.`,
+  format: k.format,
+  lektor: k.lektor,
+  cena: k.price ?? null,
+  stav: k.state,
+  popis: k.desc.split("\n")[0],
+  ...(navic[k.title] ?? { patron: null, uroven: [], cas: [], kdo: [] }),
+}));
+---
+<div class="hledac" data-hledac>
+  <ol class="hledac-tecky" aria-hidden="true"><li class="je"></li><li></li><li></li><li></li></ol>
+  <form class="hledac-form" onsubmit="return false">
+    {otazky.map((o, k) => (
+      <fieldset class="hledac-krok" data-krok={k}>
+        <legend class="hledac-otazka"><span>{k + 1} / 3</span>{o.otazka}</legend>
+        <div class="hledac-volby">
+          {o.volby.map((v) => (
+            <label class="hledac-volba">
+              <input type="radio" name={o.jmeno} value={v.hodnota} />
+              <span class="hledac-karta">
+                <svg viewBox="0 0 60 60" aria-hidden="true"><use href={`#ikona-${v.ikona}`} /></svg>
+                <b>{v.nazev}</b>
+                <small>{v.popis}</small>
+              </span>
+            </label>
+          ))}
+        </div>
+        {k > 0 && <button type="button" class="hledac-zpet">← Zpět</button>}
+      </fieldset>
+    ))}
+  </form>
+
+  <div class="hledac-vysledek" hidden aria-live="polite">
+    <div class="hledac-vitez">
+      <span class="hledac-patron"></span>
+      <div>
+        <p class="stitek">Tvůj kurz</p>
+        <h3 class="hledac-nazev"></h3>
+        <p class="hledac-kdy"></p>
+        <ul class="hledac-shody"></ul>
+        <p class="hledac-popis"></p>
+        <div class="hledac-akce">
+          <a class="tlacitko tlacitko-maly hledac-odkaz" href="#terminy">Ukázat jízdenku</a>
+          <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys hledac-znovu">Zkusit znovu</button>
+        </div>
+      </div>
+    </div>
+    <div class="hledac-dalsi">
+      <p class="hledac-dalsi-nadpis">Taky by sedlo</p>
+      <ul class="hledac-dalsi-seznam"></ul>
+    </div>
+  </div>
+
+  <noscript><p><a href="#terminy">Všechny termíny najdeš níž.</a></p></noscript>
+
+  <div class="hledac-patroni" hidden>
+    {[...new Set(Object.values(navic).map((n) => n.patron))].map((id) => (
+      <span data-patron={id}><Postavicka id={id} size={120} varianta="kami" /></span>
+    ))}
+  </div>
+
+  <script type="application/json" class="hledac-data" set:html={JSON.stringify(data)} />
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="ikona-hrouda" viewBox="0 0 60 60"><path d="M10 46 C8 30 20 18 32 18 C46 18 54 30 50 46 Z" fill="#9C7860" /><path d="M18 30 C24 24 34 22 42 26" stroke="#C9A184" stroke-width="3" fill="none" stroke-linecap="round" /></symbol>
+      <symbol id="ikona-hrnek" viewBox="0 0 60 60"><path d="M16 18 L42 18 L40 48 C40 52 18 52 18 48 Z" fill="#93B39B" /><path d="M42 24 C52 24 52 40 41 40" stroke="#93B39B" stroke-width="4" fill="none" /><ellipse cx="29" cy="18" rx="13" ry="3" fill="#5E7C68" /></symbol>
+      <symbol id="ikona-vaza" viewBox="0 0 60 60"><path d="M25 8 L35 8 L36 16 C50 26 46 50 30 52 C14 50 10 26 24 16 Z" fill="#C46A4E" /><ellipse cx="30" cy="8" rx="6" ry="2" fill="#8A4A2A" /></symbol>
+      <symbol id="ikona-slunce" viewBox="0 0 60 60"><circle cx="30" cy="30" r="10" fill="#E8B440" /><g stroke="#E8B440" stroke-width="3" stroke-linecap="round"><path d="M30 8 V14 M30 46 V52 M8 30 H14 M46 30 H52 M14 14 L18 18 M42 42 L46 46 M14 46 L18 42 M42 18 L46 14" /></g></symbol>
+      <symbol id="ikona-slunce2" viewBox="0 0 60 60"><circle cx="22" cy="30" r="9" fill="#E8B440" /><circle cx="40" cy="30" r="9" fill="#F3D27A" /><path d="M8 46 H52" stroke="#C9A184" stroke-width="3" stroke-linecap="round" /></symbol>
+      <symbol id="ikona-kalendar" viewBox="0 0 60 60"><rect x="10" y="14" width="40" height="36" rx="5" fill="#F7F1E3" stroke="#5C5047" stroke-width="2.5" /><path d="M10 24 H50" stroke="#C4432B" stroke-width="4" /><g fill="#5C5047"><circle cx="20" cy="33" r="2.4" /><circle cx="30" cy="33" r="2.4" /><circle cx="40" cy="33" r="2.4" /><circle cx="20" cy="42" r="2.4" /><circle cx="30" cy="42" r="2.4" /></g></symbol>
+      <symbol id="ikona-jeden" viewBox="0 0 60 60"><circle cx="30" cy="18" r="8" fill="#9C7860" /><path d="M16 50 C16 36 22 30 30 30 C38 30 44 36 44 50 Z" fill="#9C7860" /></symbol>
+      <symbol id="ikona-dva" viewBox="0 0 60 60"><circle cx="22" cy="16" r="8" fill="#9C7860" /><path d="M9 50 C9 34 14 28 22 28 C30 28 35 34 35 50 Z" fill="#9C7860" /><circle cx="44" cy="28" r="6" fill="#D79A94" /><path d="M35 50 C35 40 38 36 44 36 C50 36 53 40 53 50 Z" fill="#D79A94" /></symbol>
+      <symbol id="ikona-tri" viewBox="0 0 60 60"><circle cx="16" cy="22" r="6" fill="#93B39B" /><path d="M6 50 C6 38 10 32 16 32 C22 32 26 38 26 50 Z" fill="#93B39B" /><circle cx="44" cy="22" r="6" fill="#E8B440" /><path d="M34 50 C34 38 38 32 44 32 C50 32 54 38 54 50 Z" fill="#E8B440" /><circle cx="30" cy="16" r="7" fill="#9C7860" /><path d="M19 50 C19 34 24 28 30 28 C36 28 41 34 41 50 Z" fill="#9C7860" /></symbol>
+    </defs>
+  </svg>
+</div>

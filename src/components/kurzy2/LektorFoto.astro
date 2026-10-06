@@ -1,0 +1,35 @@
+---
+/**
+ * Fotka lektora v kulatém výřezu. Fotky jsou z dílny, ne portréty —
+ * Jiřík sedí u kruhu, Renča stojí u pece — takže výřez je přiblížený
+ * na obličej (avatar), nebo jen trochu, aby zůstalo vidět i místo (velká).
+ */
+import { Image } from "astro:assets";
+import jirik from "../../../fotoorech/jirik.jpg";
+import renca from "../../../fotoorech/ren.jpg";
+
+interface Props {
+  jmeno: string;
+  velka?: boolean;
+  class?: string;
+}
+const { jmeno, velka = false, class: cls = "" } = Astro.props;
+
+/** Kde na fotce je obličej (x, y v podílu šířky a výšky) */
+const fotky: Record<string, { src: ImageMetadata; oblicej: [number, number]; misto: [number, number]; alt: string }> = {
+  "Jiřík": { src: jirik, oblicej: [0.74, 0.19], misto: [0.6, 0.36], alt: "Jiřík u hrnčířského kruhu" },
+  "Renča": { src: renca, oblicej: [0.32, 0.52], misto: [0.44, 0.5], alt: "Renča u velké pece z cihel" },
+};
+const f = fotky[jmeno];
+const zoom = velka ? 1.3 : 3;
+const pomer = f ? f.src.height / f.src.width : 1;
+const [cx, cy] = f ? (velka ? f.misto : f.oblicej) : [0.5, 0.5];
+const styl = `width:${zoom * 100}%;left:${(50 - cx * zoom * 100).toFixed(1)}%;top:${(50 - cy * zoom * pomer * 100).toFixed(1)}%`;
+---
+<span class={`lektor-foto ${velka ? "lektor-foto-velka" : ""} ${cls}`}>
+  {f ? (
+    <Image src={f.src} alt={velka ? f.alt : ""} width={velka ? 900 : 360} style={styl} />
+  ) : (
+    <span class="lektor-iniciala" aria-hidden="true">{jmeno.slice(0, 1)}</span>
+  )}
+</span>

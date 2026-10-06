@@ -1,0 +1,28 @@
+---
+/**
+ * Časté otázky jako rozhovor s partou. Otázka je bublina vpravo, odpověď
+ * vlevo od toho z party, komu otázka patří. Postavené na <details>, takže
+ * bez JavaScriptu se dá rozkliknout taky; se skriptem kami nejdřív „píše“.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import { otazky } from "../../data/kurzy2";
+import { parta } from "../../data/parta";
+
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+---
+<div class="chat">
+  {otazky.map((o, i) => (
+    <details class="chat-vlakno" open={i === 0}>
+      <summary class="chat-otazka"><span>{o.q}</span></summary>
+      <div class="chat-odpoved">
+        <span class="chat-kami" aria-hidden="true"><Postavicka id={o.kdo} size={80} varianta="kami" /></span>
+        <div class="chat-bublina">
+          <span class="chat-kdo">{jmeno(o.kdo)}</span>
+          <span class="chat-pise" aria-hidden="true"><i></i><i></i><i></i></span>
+          <p>{o.a}</p>
+          {o.odkaz && <a class="chat-odkaz" href={o.odkaz.href}>{o.odkaz.text} →</a>}
+        </div>
+      </div>
+    </details>
+  ))}
+</div>

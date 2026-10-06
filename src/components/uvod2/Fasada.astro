@@ -1,0 +1,293 @@
+---
+/**
+ * Vchod do dílny z ulice: bílá zeď pod taškovou střechou, dveře, výloha
+ * s kusy z obchodu, smaltované cedule s ulicí a číslem domu, schránka
+ * a u rohu sakura. Ve dne jsou dveře otevřené (noren do nich vkládá
+ * Brana.astro), v noci zavřené s cedulkou 準備中 a ve výloze se svítí.
+ *
+ * Noc se nekreslí znovu: celá kresba projde barevnou maticí, která ji
+ * ztlumí do modra, a teprve přes ni se položí světla — lucerna, výloha,
+ * okénka ve dveřích. Barvy sakury jedou z proměnných podle ročního
+ * období (styles/uvod2.css), stejně jako v dílně v řezu.
+ */
+import Nadoba from "./Nadoba.astro";
+import { chomac } from "../parta2/tvary";
+import { produkty } from "../../data/obchod";
+
+interface Props {
+  noc?: boolean;
+  class?: string;
+}
+const { noc = false, class: cls = "" } = Astro.props;
+const p = noc ? "fan" : "fad";
+const vyloha = produkty.slice(0, 4);
+/* Kde v regálu výlohy stojí první čtyři kusy z obchodu: x, pata, měřítko */
+const mista = [
+  { x: 790, y: 440, s: 1.25 },
+  { x: 900, y: 440, s: 1.05 },
+  { x: 776, y: 560, s: 1.2 },
+  { x: 880, y: 560, s: 1.15 },
+];
+const kameny = Array.from({ length: 15 }, (_, i) => 176 + i * 58);
+---
+<svg class={`fasada ${noc ? "fasada-noc" : ""} ${cls}`} viewBox="0 0 1000 800" aria-hidden="true">
+  <defs>
+    <linearGradient id={`${p}-zed`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7F1E5" />
+      <stop offset="1" stop-color="#ECE2CF" />
+    </linearGradient>
+    <linearGradient id={`${p}-stin`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5A3E2A" stop-opacity="0.32" />
+      <stop offset="1" stop-color="#5A3E2A" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient id={`${p}-dvere`} cx="0.45" cy="0.55" r="0.75">
+      <stop offset="0" stop-color="#FFF0C9" />
+      <stop offset="0.5" stop-color="#F0C68C" />
+      <stop offset="1" stop-color="#A9764A" />
+    </radialGradient>
+    <linearGradient id={`${p}-sklo`} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E4F0F4" stop-opacity="0.5" />
+      <stop offset="0.6" stop-color="#B9CFDB" stop-opacity="0.22" />
+      <stop offset="1" stop-color="#9DB6C6" stop-opacity="0.38" />
+    </linearGradient>
+    <pattern id={`${p}-tasky`} width="30" height="40" patternUnits="userSpaceOnUse">
+      <rect width="30" height="40" fill="#9C4430" />
+      <path d="M0 0 H30 V14 Q15 25 0 14 Z" fill="#B85A3E" />
+      <path d="M-15 20 H15 V34 Q0 45 -15 34 Z M15 20 H45 V34 Q30 45 15 34 Z" fill="#B85A3E" />
+      <path d="M0 14 Q15 25 30 14 M-15 34 Q0 45 15 34 M15 34 Q30 45 45 34" stroke="#7E3322" stroke-width="1.6" fill="none" />
+      <path d="M4 4 Q8 3 12 4" stroke="#D27458" stroke-width="1.4" fill="none" opacity="0.6" />
+    </pattern>
+    {noc && (
+      <>
+        <filter id={`${p}-noc`} color-interpolation-filters="sRGB">
+          <feColorMatrix type="matrix" values="0.2 0.03 0.04 0 0  0.03 0.22 0.08 0 0.005  0.07 0.09 0.44 0 0.03  0 0 0 1 0" />
+        </filter>
+        <radialGradient id={`${p}-zare`} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#FFE7A3" stop-opacity="0.95" />
+          <stop offset="0.35" stop-color="#FFC66E" stop-opacity="0.45" />
+          <stop offset="1" stop-color="#FFB25A" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id={`${p}-vyloha`} cx="0.45" cy="0.45" r="0.7">
+          <stop offset="0" stop-color="#FFE3A0" />
+          <stop offset="0.6" stop-color="#E9A65A" />
+          <stop offset="1" stop-color="#9A5A2E" />
+        </radialGradient>
+      </>
+    )}
+  </defs>
+
+  <g filter={noc ? `url(#${p}-noc)` : undefined}>
+    {/* ——— Sakura u rohu domu ——— */}
+    <g class="f-sakura">
+      <path d="M100 792 C108 700 104 620 116 540 C120 512 122 494 126 470 L142 470 C140 500 140 520 138 548 C134 620 140 700 152 792 Z" fill="#5A4636" />
+      <g stroke="#5A4636" stroke-linecap="round" fill="none">
+        <path d="M126 540 C100 500 80 470 50 444" stroke-width="10" />
+        <path d="M132 514 C160 482 188 458 226 440" stroke-width="9" />
+        <path d="M130 482 C124 444 130 414 118 382" stroke-width="7" />
+        <path d="M84 474 C70 452 66 430 70 404" stroke-width="5" />
+      </g>
+      <path d="M118 540 C120 600 116 680 122 760" stroke="#7A6250" stroke-width="3" fill="none" opacity="0.5" />
+      <g class="koruna">
+        <path class="sak-1" d={chomac(116, 384, 112, 84, 14, 601)} />
+        <path class="sak-2" d={chomac(94, 364, 82, 60, 12, 602)} />
+        <path class="sak-2" d={chomac(152, 346, 64, 48, 11, 603)} />
+        <path class="sak-3" d={chomac(80, 342, 44, 32, 9, 604)} />
+        <path class="sak-3" d={chomac(142, 322, 36, 26, 9, 605)} />
+      </g>
+      <g class="snih" fill="#FBFDFF">
+        <path d="M48 442 C64 452 84 470 104 494 C88 480 70 462 46 448 Z" />
+        <path d="M130 508 C158 480 186 458 222 436 C192 456 166 474 136 504 Z" />
+        <path d="M112 380 C118 400 124 430 126 470 L122 470 C120 432 114 404 108 384 Z" />
+      </g>
+      <g class="koruna-zem">
+        {[[60, 776], [96, 786], [168, 780], [40, 790], [190, 790], [138, 794]].map(([x, y], i) => (
+          <ellipse class={i % 2 ? "sak-2" : "sak-3"} cx={x} cy={y} rx="5" ry="2.6" transform={`rotate(${(i * 37) % 80 - 40} ${x} ${y})`} />
+        ))}
+      </g>
+    </g>
+
+    {/* ——— Střecha ——— */}
+    <rect x="176" y="28" width="824" height="112" fill={`url(#${p}-tasky)`} />
+    <rect x="176" y="28" width="824" height="112" fill="#2B1A12" opacity="0.08" />
+    <rect x="176" y="24" width="824" height="10" fill="#8E3D2A" />
+    <rect x="172" y="28" width="14" height="114" fill="#6E4E36" />
+    <rect class="snih" x="176" y="20" width="824" height="16" rx="8" fill="#FBFDFF" />
+    <rect x="178" y="136" width="822" height="14" rx="7" fill="#9AA3A8" />
+    <path d="M184 140 H1000" stroke="#D9E0E3" stroke-width="2" opacity="0.8" />
+
+    {/* ——— Zeď ——— */}
+    <rect x="200" y="150" width="800" height="600" fill={`url(#${p}-zed)`} />
+    <rect x="200" y="150" width="12" height="600" fill="#E2D6C1" />
+    <rect x="200" y="150" width="800" height="54" fill={`url(#${p}-stin)`} />
+    <g fill="#E8DDC9" opacity="0.7">
+      <ellipse cx="300" cy="628" rx="40" ry="16" />
+      <ellipse cx="704" cy="246" rx="30" ry="10" />
+      <ellipse cx="420" cy="420" rx="22" ry="9" />
+    </g>
+    {/* Okap a svod na rohu */}
+    <rect x="203" y="146" width="10" height="604" rx="4" fill="#9AA3A8" />
+    <path d="M206 150 V746" stroke="#D9E0E3" stroke-width="2" opacity="0.7" />
+    {[260, 440, 620].map((y) => <rect x="200" y={y} width="16" height="5" rx="2" fill="#7E878C" />)}
+
+    {/* Sokl */}
+    <rect x="200" y="690" width="800" height="60" fill="#D5C8B0" />
+    <path d="M200 691 H1000" stroke="#BFAF94" stroke-width="3" />
+    <g stroke="#C3B59B" stroke-width="2">
+      {[250, 330, 410, 690, 770, 850, 930].map((x, i) => <path d={`M${x + (i % 2) * 18} 692 V748`} />)}
+      <path d="M200 720 H455 M665 720 H1000" />
+    </g>
+
+    {/* ——— Vývěsní štít ——— */}
+    <path d="M472 160 L476 178 M668 160 L664 178" stroke="#5E452E" stroke-width="2.4" />
+    <rect x="440" y="176" width="260" height="56" rx="6" fill="#7A5A3C" />
+    <rect x="446" y="182" width="248" height="44" rx="4" fill="none" stroke="#A9835C" stroke-width="2" />
+    <text x="570" y="212" text-anchor="middle" font-size="20" letter-spacing="3.5" fill="#F3E7CF" font-family="Fraunces Variable, Fraunces, Georgia, serif" font-weight="600">KERAMICKÁ DÍLNA</text>
+
+    {/* ——— Smaltované cedule: ulice a číslo domu ——— */}
+    <rect x="262" y="298" width="134" height="46" rx="5" fill="#1F4E8C" />
+    <rect x="266.5" y="302.5" width="125" height="37" rx="3" fill="none" stroke="#F4F1EA" stroke-width="2" />
+    <text x="329" y="330" text-anchor="middle" font-size="25" fill="#F4F1EA" font-family="Newsreader Variable, Newsreader, Georgia, serif" font-weight="600">Luční</text>
+    <rect x="304" y="354" width="50" height="40" rx="4" fill="#B5302A" />
+    <rect x="308" y="358" width="42" height="32" rx="2.5" fill="none" stroke="#F4F1EA" stroke-width="1.8" />
+    <text x="329" y="381" text-anchor="middle" font-size="19" fill="#F4F1EA" font-family="Newsreader Variable, Newsreader, Georgia, serif" font-weight="700">235</text>
+    <g fill="#C9CFD4">
+      <circle cx="268" cy="321" r="1.6" /><circle cx="390" cy="321" r="1.6" />
+    </g>
+
+    {/* ——— Lucerna ——— */}
+    <path d="M412 238 H398 V254" stroke="#2B2420" stroke-width="3" fill="none" stroke-linecap="round" />
+    <path d="M386 256 L398 248 L410 256 Z" fill="#2B2420" />
+    <rect x="386" y="256" width="24" height="38" rx="3" fill="#2B2420" />
+    <rect class="f-lucerna-sklo" x="390" y="261" width="16" height="27" rx="2" fill="#EADFC2" />
+    <path d="M398 261 V288" stroke="#2B2420" stroke-width="1.4" />
+
+    {/* ——— Schránka ——— */}
+    <rect x="296" y="446" width="88" height="96" rx="6" fill="#2F5D4A" />
+    <rect x="292" y="438" width="96" height="18" rx="6" fill="#3A6E57" />
+    <rect x="316" y="468" width="48" height="6" rx="3" fill="#183428" />
+    <rect x="318" y="490" width="44" height="17" rx="2" fill="#F2EADB" />
+    <text x="340" y="502" text-anchor="middle" font-size="9" fill="#3A2E28" font-family="Fraunces Variable, Fraunces, Georgia, serif">JIRO saku</text>
+    <circle cx="340" cy="526" r="3.5" fill="#C9A642" />
+    <path d="M300 456 V536" stroke="#4A8A6E" stroke-width="2" opacity="0.6" />
+
+    {/* ——— Dveře ——— */}
+    <rect x="455" y="262" width="210" height="488" fill="#6B5540" />
+    <rect x="461" y="268" width="198" height="482" fill="#7E6248" />
+    {noc ? (
+      <g>
+        <rect x="470" y="276" width="90" height="474" fill="#5E452E" />
+        <rect x="560" y="276" width="90" height="474" fill="#56402B" />
+        <g fill="none" stroke="#3E2D1E" stroke-width="3">
+          <rect x="482" y="420" width="66" height="140" rx="2" />
+          <rect x="572" y="420" width="66" height="140" rx="2" />
+          <rect x="482" y="580" width="66" height="146" rx="2" />
+          <rect x="572" y="580" width="66" height="146" rx="2" />
+        </g>
+        <rect x="486" y="300" width="58" height="96" rx="3" fill="#2A2018" />
+        <rect x="576" y="300" width="58" height="96" rx="3" fill="#2A2018" />
+        <path d="M560 276 V750" stroke="#3E2D1E" stroke-width="3" />
+        <circle cx="550" cy="520" r="4" fill="#C9A642" /><circle cx="570" cy="520" r="4" fill="#C9A642" />
+      </g>
+    ) : (
+      <g>
+        <rect x="470" y="276" width="180" height="474" fill={`url(#${p}-dvere)`} />
+        {/* Uvnitř: police s kusy a kruh — jen siluety v protisvětle */}
+        <g fill="#8E6440" opacity="0.38">
+          <rect x="568" y="420" width="76" height="5" />
+          <rect x="568" y="488" width="76" height="5" />
+          <path d="M576 420 C576 404 590 400 594 412 C596 404 606 404 606 420 Z" />
+          <path d="M616 420 L618 396 L632 396 L634 420 Z" />
+          <path d="M574 488 C574 474 600 472 602 488 Z" />
+          <path d="M612 488 C610 466 620 458 626 458 C632 458 640 466 638 488 Z" />
+        </g>
+        <path d="M470 690 H650" stroke="#C99A64" stroke-width="2" opacity="0.5" />
+        <g opacity="0.42">
+          <ellipse cx="520" cy="688" rx="38" ry="9" fill="#6E5236" />
+          <rect x="492" y="688" width="56" height="44" rx="6" fill="#6E5236" />
+          <path d="M508 688 C506 668 512 660 520 660 C528 660 534 668 532 688 Z" fill="#8E6440" />
+        </g>
+      </g>
+    )}
+    {/* Práh */}
+    <rect x="440" y="744" width="240" height="22" rx="3" fill="#BDB2A0" />
+    <path d="M444 746 H676" stroke="#D8CFBF" stroke-width="3" />
+    {!noc && <path d="M470 750 L650 750 L700 800 L420 800 Z" fill="#FFE7B0" opacity="0.32" />}
+
+    {/* ——— Květináče u dveří ——— */}
+    <g>
+      <path d="M402 690 C398 716 404 740 412 746 L436 746 C444 740 448 716 444 690 Z" fill="#3A2A22" />
+      <ellipse cx="423" cy="690" rx="21" ry="5" fill="#8A4A2A" />
+      <path d="M418 744 C418 726 420 712 418 698" stroke="#5E4334" stroke-width="2" opacity="0.6" fill="none" />
+      <g stroke="#4F7A36" stroke-width="3" stroke-linecap="round" fill="none">
+        <path d="M423 690 C416 660 404 640 390 626" />
+        <path d="M423 690 C424 656 430 632 440 612" />
+        <path d="M423 690 C432 666 446 652 458 646" />
+        <path d="M423 690 C412 670 400 662 386 660" />
+      </g>
+    </g>
+    <Nadoba tvar="bowl" x={706} y={746} s={0.95} glazura="Celadon" />
+    <g stroke="#5E8A3E" stroke-width="2.6" stroke-linecap="round" fill="none">
+      <path d="M706 724 C700 708 694 700 686 696 M706 724 C708 706 714 698 722 694 M706 724 C704 712 706 702 704 690" />
+    </g>
+
+    {/* ——— Výloha ——— */}
+    <rect x="726" y="312" width="280" height="318" fill="#E8DAC2" />
+    <rect x="726" y="312" width="280" height="318" fill="#B98A5A" opacity="0.12" />
+    <rect x="726" y="440" width="280" height="8" fill="#9A7350" />
+    <rect x="726" y="560" width="280" height="8" fill="#9A7350" />
+    {vyloha.map((k, i) => (
+      <Nadoba tvar={k.shape} x={mista[i].x} y={mista[i].y} s={mista[i].s} glazura={k.glaze} />
+    ))}
+    <g transform="rotate(-5 966 540)">
+      <rect x="934" y="514" width="64" height="44" rx="2" fill="#FBF6EA" stroke="#C9B48A" stroke-width="1" />
+      <text x="966" y="532" text-anchor="middle" font-size="12.5" fill="#3A2E28" font-family="Caveat, cursive">Obchod</text>
+      <text x="966" y="548" text-anchor="middle" font-size="11" fill="#C4432B" font-family="Caveat, cursive">připravujeme</text>
+    </g>
+    <rect x="726" y="312" width="280" height="318" fill={`url(#${p}-sklo)`} />
+    <g fill="#FFFFFF" opacity="0.28">
+      <path d="M760 312 L800 312 L740 420 L726 420 L726 374 Z" />
+      <path d="M836 312 L852 312 L780 440 L764 440 Z" />
+      <path d="M940 450 L972 450 L920 560 L900 560 Z" />
+    </g>
+    <rect x="719" y="305" width="300" height="332" fill="none" stroke="#6B5540" stroke-width="14" />
+    <path d="M862 312 V630" stroke="#6B5540" stroke-width="8" />
+    <rect x="706" y="636" width="310" height="14" rx="2" fill="#CFC3AE" />
+    <path d="M706 650 H1000" stroke="#A89A82" stroke-width="3" opacity="0.6" />
+
+    {/* ——— Lavička pod výlohou ——— */}
+    <rect x="752" y="706" width="10" height="42" fill="#6E5236" />
+    <rect x="950" y="706" width="10" height="42" fill="#6E5236" />
+    <rect x="738" y="694" width="236" height="13" rx="3" fill="#8A6A48" />
+    <path d="M742 697 H970" stroke="#A9835C" stroke-width="2" />
+    <Nadoba tvar="mug" x={792} y={694} s={0.9} glazura="Tenmoku" />
+    <Nadoba tvar="vase" x={906} y={694} s={0.62} glazura="Shino" />
+    <path d="M906 654 C902 640 896 634 888 630 M906 654 C910 642 916 636 924 634" stroke="#5E8A3E" stroke-width="2.2" stroke-linecap="round" fill="none" />
+
+    {/* ——— Dlažba ——— */}
+    <rect x="176" y="750" width="824" height="50" fill="#CFC5B3" />
+    <path d="M176 751 H1000" stroke="#9C907C" stroke-width="3" />
+    <g stroke="#BDB19C" stroke-width="2">
+      <path d="M176 776 H1000" />
+      {kameny.map((x, i) => <path d={`M${x + (i % 2) * 26} 752 V776 M${x + 14 + (i % 2) * 26} 776 V800`} />)}
+    </g>
+    <path class="snih" d="M176 752 C300 744 420 750 520 748 C640 746 800 752 1000 746 L1000 762 L176 762 Z" fill="#FBFDFF" />
+  </g>
+
+  {noc && (
+    <g class="fasada-svetla">
+      <ellipse cx="398" cy="274" rx="120" ry="120" fill={`url(#${p}-zare)`} style="mix-blend-mode:screen" />
+      <rect x="390" y="261" width="16" height="27" rx="2" fill="#FFE7A3" />
+      <rect x="726" y="312" width="280" height="318" fill={`url(#${p}-vyloha)`} opacity="0.75" style="mix-blend-mode:screen" />
+      <rect x="486" y="300" width="58" height="96" rx="3" fill="#F2B866" opacity="0.7" />
+      <rect x="576" y="300" width="58" height="96" rx="3" fill="#F2B866" opacity="0.7" />
+      <path d="M515 300 V396 M486 348 H544 M605 300 V396 M576 348 H634" stroke="#3E2D1E" stroke-width="3" />
+      <path d="M719 650 L1000 650 L1000 800 L640 800 Z" fill="#FFC870" opacity="0.14" />
+      <ellipse cx="398" cy="770" rx="150" ry="22" fill="#FFD27A" opacity="0.18" />
+      {/* Cedulka na dveřích: připravujeme / zavřeno */}
+      <path d="M560 372 L536 410 M560 372 L584 410" stroke="#8A6A48" stroke-width="1.6" />
+      <circle cx="560" cy="371" r="3" fill="#C9A642" />
+      <rect x="518" y="408" width="84" height="38" rx="4" fill="#E9DCC3" stroke="#8A6A48" stroke-width="1.5" />
+      <text x="560" y="434" text-anchor="middle" font-size="19" fill="#2B2420" font-family="Yuji Syuku, Yu Mincho, serif">準備中</text>
+    </g>
+  )}
+</svg>

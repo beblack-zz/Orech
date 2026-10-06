@@ -1,0 +1,95 @@
+---
+/**
+ * Rezervace — jednoduchá stránka v novém vzhledu. Den (úterý, pátek),
+ * hodina nebo víc hodin za sebou, počet lidí 1–4 a cena. Odeslání otevře
+ * e-mail s vyplněnými údaji, stránka sama nic neukládá. Volná a plná
+ * místa jsou zatím simulovaná — viz data/rezervace.ts.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource/caveat/400.css";
+import "../styles/parta2.css";
+import "../styles/rezervace.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import { rezervace } from "../data/rezervace";
+import { kontakt } from "../data/uvod2";
+
+const cena = rezervace.cena.toLocaleString("cs-CZ");
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rezervace · JIRO saku</title>
+    <meta name="description" content={`Rezervuj si hodinu v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, ${cena} Kč za člověka a hodinu.`} />
+    <meta name="theme-color" content="#3E86D3" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  </head>
+  <body class="p2 rz">
+    <Nebe />
+    <Hlavicka sber="zadny" />
+
+    <main>
+      <section class="rz-sekce" data-hodina="11" aria-labelledby="rz-nadpis">
+        <div class="papir rz-papir" data-rezervace data-cena={rezervace.cena} data-email={kontakt.email}>
+          <p class="stitek">Rezervace</p>
+          <h1 id="rz-nadpis" class="nadpis-2">Vyber si hodinu v dílně</h1>
+          <p class="rz-perex">
+            Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin. {cena}&nbsp;Kč za člověka a hodinu.
+            Klikni na den, vyber jednu nebo víc hodin a kolik vás přijde.
+          </p>
+
+          <noscript>
+            <p class="rz-noscript">Výběr termínu potřebuje JavaScript. Napiš nám na <a href={`mailto:${kontakt.email}`}>{kontakt.email}</a> a domluvíme se.</p>
+          </noscript>
+
+          <div class="rz-krok">
+            <h2 class="rz-otazka"><span>1</span> Kolik vás bude</h2>
+            <div class="rz-osoby" role="radiogroup" aria-label="Počet lidí">
+              {Array.from({ length: rezervace.maxOsob }, (_, i) => i + 1).map((n) => (
+                <label class="rz-pilulka">
+                  <input type="radio" name="osoby" value={n} checked={n === 1} />
+                  <span>{n} {n === 1 ? "člověk" : "lidi"}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div class="rz-krok">
+            <h2 class="rz-otazka"><span>2</span> Den</h2>
+            <div class="rz-dny" role="group" aria-label="Dny s volnými termíny"></div>
+          </div>
+
+          <div class="rz-krok">
+            <h2 class="rz-otazka"><span>3</span> Hodina <small>— můžeš jich vybrat víc</small></h2>
+            <p class="rz-den-nazev" aria-live="polite"></p>
+            <div class="rz-hodiny" role="group" aria-label="Hodiny vybraného dne"></div>
+            <ul class="rz-legenda" aria-hidden="true">
+              <li><i class="volno"></i>volno</li>
+              <li><i class="malo"></i>poslední místa</li>
+              <li><i class="plno"></i>obsazeno</li>
+            </ul>
+          </div>
+
+          <div class="rz-souhrn" aria-live="polite">
+            <p class="rz-souhrn-text">Zatím nic nevybráno.</p>
+            <p class="rz-cena"><span>Celkem</span> <b>0 Kč</b></p>
+            <a class="tlacitko rz-odeslat" aria-disabled="true" role="link">Rezervovat mailem</a>
+            <p class="rz-pozn">Otevře se e-mail s vybranými termíny. Rezervace platí, až ji potvrdíme.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <Paticka poznamka="Rezervace je návrh v novém vzhledu webu. Obsazenost termínů je zatím jen simulovaná." />
+
+    <script>
+      import "../scripts/rezervace/hlavni.ts";
+    </script>
+  </body>
+</html>

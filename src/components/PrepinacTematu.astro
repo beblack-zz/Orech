@@ -1,0 +1,147 @@
+---
+/**
+ * Přepínač den / noc. Jedna ikona, která se přelévá: ve dne slunce
+ * s paprsky, v noci se kotouč zvětší, paprsky zalezou a stín z něj
+ * ukousne srpek měsíce.
+ *
+ * Samotné téma nastavuje skript v hlavě Layout.astro (aby v noci nic
+ * neproblikávalo) — tady se jen přepíná a ukládá volba.
+ */
+const paprsky = [0, 45, 90, 135, 180, 225, 270, 315];
+---
+
+<button
+  type="button"
+  class="tema-prepinac"
+  data-tema-prepinac
+  aria-label="Zapnout noc"
+  title="Zapnout noc"
+  aria-pressed="false"
+>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <mask id="tema-srpek">
+      <rect width="24" height="24" fill="#fff" />
+      <circle class="tema-stin" cx="25" cy="3" r="6.5" fill="#000" />
+    </mask>
+    <circle class="tema-kotouc" cx="12" cy="12" r="4.6" fill="currentColor" mask="url(#tema-srpek)" />
+    <g class="tema-paprsky" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+      {paprsky.map((u) => (
+        <line x1="12" y1="2.6" x2="12" y2="4.6" transform={`rotate(${u} 12 12)`} />
+      ))}
+    </g>
+  </svg>
+</button>
+
+<style>
+  .tema-prepinac {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border-radius: 999px;
+    color: var(--color-espresso);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-espresso) 16%, transparent);
+    transition: color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .tema-prepinac:hover {
+    color: var(--color-sakura);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-sakura) 55%, transparent);
+  }
+  .tema-prepinac:active {
+    transform: scale(0.92);
+  }
+
+  /* Geometrie se v SVG 2 dá animovat přes CSS — r, cx, cy */
+  .tema-kotouc,
+  .tema-stin {
+    transition: r 0.5s cubic-bezier(0.5, 0, 0.2, 1), cx 0.5s cubic-bezier(0.5, 0, 0.2, 1),
+      cy 0.5s cubic-bezier(0.5, 0, 0.2, 1);
+  }
+  .tema-paprsky {
+    transform-origin: 12px 12px;
+    transition: transform 0.5s cubic-bezier(0.5, 0, 0.2, 1), opacity 0.3s ease;
+  }
+
+  :global(:root[data-tema="noc"]) .tema-kotouc {
+    r: 8;
+  }
+  :global(:root[data-tema="noc"]) .tema-stin {
+    cx: 17;
+    cy: 7.5;
+  }
+  :global(:root[data-tema="noc"]) .tema-paprsky {
+    transform: rotate(60deg) scale(0.4);
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tema-kotouc,
+    .tema-stin,
+    .tema-paprsky {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const html = document.documentElement;
+  const jeNoc = () => html.dataset.tema === "noc";
+
+  const popis = () => {
+    for (const b of document.querySelectorAll<HTMLButtonElement>("[data-tema-prepinac]")) {
+      const text = jeNoc() ? "Zapnout den" : "Zapnout noc";
+      b.setAttribute("aria-pressed", String(jeNoc()));
+      b.setAttribute("aria-label", text);
+      b.title = text;
+    }
+  };
+
+  const prepni = (tlacitko: HTMLElement) => {
+    const nove = jeNoc() ? "den" : "noc";
+    const proved = () => {
+      html.dataset.tema = nove;
+      try {
+        localStorage.setItem("tema", nove);
+      } catch (e) {}
+      popis();
+    };
+
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => any };
+    if (!doc.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      proved();
+      return;
+    }
+
+    // Nové téma se rozlije kruhem ze středu tlačítka až do nejvzdálenějšího rohu.
+    const b = tlacitko.getBoundingClientRect();
+    const x = b.left + b.width / 2;
+    const y = b.top + b.height / 2;
+    const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+    html.classList.add("prepina-tema");
+    const prechod = doc.startViewTransition(proved);
+    prechod.ready
+      .then(() =>
+        html.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+          { duration: 650, easing: "cubic-bezier(0.65, 0, 0.35, 1)", pseudoElement: "::view-transition-new(root)" },
+        ),
+      )
+      .catch(() => {});
+    prechod.finished.finally(() => html.classList.remove("prepina-tema"));
+  };
+
+  // Tlačítko je v hlavičce, kterou ClientRouter při navigaci vymění — navázat znovu.
+  const navaz = () => {
+    for (const b of document.querySelectorAll<HTMLButtonElement>("[data-tema-prepinac]")) {
+      if (b.dataset.bound) continue;
+      b.dataset.bound = "1";
+      b.addEventListener("click", () => prepni(b));
+    }
+    popis();
+  };
+
+  navaz();
+  document.addEventListener("astro:page-load", navaz);
+</script>

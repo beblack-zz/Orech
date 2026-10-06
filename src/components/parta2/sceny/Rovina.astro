@@ -1,0 +1,65 @@
+---
+/**
+ * 五 Rovina — Kachlík na houpačce z prkna a vedle něj vodováha. Prkno se
+ * naklání podle myši nebo prstu (scripts/parta2/sceny.ts), bublina ve
+ * vodováze ujíždí na vyšší stranu. A ta bublina je Bublinka.
+ */
+import Kami from "../Kami.astro";
+import Skryty from "../Skryty.astro";
+---
+<div class="scena scena-rovina" data-rovina>
+  <svg class="scena-pozadi" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="rovina-zed" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#F4E6C8" />
+        <stop offset="1" stop-color="#DCC9A6" />
+      </linearGradient>
+      <linearGradient id="rovina-paprsek" x1="0" y1="0" x2="1" y2="0.6">
+        <stop offset="0" stop-color="#FFF1CC" stop-opacity="0.8" />
+        <stop offset="1" stop-color="#FFF1CC" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <rect width="600" height="600" fill="url(#rovina-zed)" />
+    <path d="M0 60 L260 600 L0 600 Z" fill="url(#rovina-paprsek)" opacity="0.6" />
+    {/* Sušák s talíři obrácenými dnem vzhůru */}
+    <g>
+      <rect x="330" y="110" width="220" height="8" fill="#9A7350" />
+      <rect x="330" y="200" width="220" height="8" fill="#9A7350" />
+      <rect x="334" y="100" width="6" height="120" fill="#7A5A3C" />
+      <rect x="540" y="100" width="6" height="120" fill="#7A5A3C" />
+      <path d="M350 110 C350 92 396 92 396 110 Z M406 110 C406 90 456 90 456 110 Z M466 110 C466 94 506 94 506 110 Z" fill="#B9AC9A" />
+      <path d="M352 200 C352 184 398 184 398 200 Z M410 200 C410 182 462 182 462 200 Z M474 200 C474 186 520 186 520 200 Z" fill="#AA9C8A" />
+      <path d="M350 104 H396 M406 103 H456" stroke="#E8DFCF" stroke-width="2" opacity="0.6" />
+    </g>
+    <rect x="0" y="520" width="600" height="80" fill="#C8B596" />
+    {/* Podložka, na které se prkno houpe */}
+    <path d="M270 520 L300 470 L330 520 Z" fill="#7A5A3C" />
+    <path d="M286 520 L300 494 L314 520 Z" fill="#9A7350" />
+    <ellipse cx="300" cy="524" rx="160" ry="10" fill="#5A4636" opacity="0.2" />
+  </svg>
+
+  <div class="rovina-deska">
+    <svg class="rovina-prkno" viewBox="0 0 460 40" aria-hidden="true">
+      <rect x="0" y="4" width="460" height="26" rx="4" fill="#B08660" />
+      <rect x="0" y="22" width="460" height="8" rx="3" fill="#8A6544" />
+      <path d="M10 12 C120 9 300 15 450 11" stroke="#8A6544" stroke-width="1.4" fill="none" opacity="0.6" />
+    </svg>
+    <Kami id="kachlik" class="rovina-kachlik" />
+    <div class="vodovaha">
+      <svg viewBox="0 0 200 44" aria-hidden="true">
+        <rect x="0" y="6" width="200" height="34" rx="5" fill="#E8B440" />
+        <rect x="0" y="30" width="200" height="10" rx="4" fill="#C9962E" />
+        <rect x="56" y="12" width="88" height="18" rx="9" fill="#2E3A2C" />
+        <rect x="59" y="14" width="82" height="14" rx="7" fill="#BCE07A" />
+        <path d="M92 14 V28 M108 14 V28" stroke="#2E3A2C" stroke-width="1.6" />
+        <circle cx="20" cy="22" r="5" fill="#C9962E" /><circle cx="180" cy="22" r="5" fill="#C9962E" />
+      </svg>
+      <div class="vodovaha-trubicka">
+        <Skryty id="bublinka" class="vodovaha-bublina" x={42} y={-35} w={16} />
+      </div>
+    </div>
+    <span class="razitko" lang="ja" aria-hidden="true">正</span>
+  </div>
+
+  <p class="scena-stitek rovina-stitek" aria-live="polite"><span class="rovina-sklon">0,0</span>° · <span class="rovina-verdikt">dokonale rovně</span></p>
+</div>

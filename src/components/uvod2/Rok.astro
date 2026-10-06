@@ -1,0 +1,73 @@
+---
+/**
+ * Rok dílny — milníky ze stránky O nás jako stavba. Tatáž dílna v řezu
+ * jako v prohlídce, jenže na začátku je z ní garáž po vodovodní havárii:
+ * vrata, kaluž, šedé zdi. Scrollováním jdou měsíce a v kresbě přibývá,
+ * co tehdy přibylo — výloha, kruhy, kuchyňka, zásuvky, pec, šlápoty ze
+ * dne otevřených dveří. Venku se mění roční období. Na konci se kresba
+ * vymění za fotku: takhle to vypadá doopravdy.
+ *
+ * Měsíce přepíná scripts/uvod2/rok.ts. Kotvy data-hodina vedou oblohu
+ * přes západ slunce do soumraku.
+ */
+import { Image } from "astro:assets";
+import DilnaRez from "./DilnaRez.astro";
+import dilnaFoto from "../../../fotoorech/fotodilna.jpg";
+import { milniky, sezonaMesice } from "../../data/uvod2";
+import { kurzy } from "../../data/kurzy";
+import { pocetKurzu } from "../../data/pocty";
+
+const k0 = kurzy[0];
+const ted = k0
+  ? `v kalendáři ${kurzy.length >= 2 && kurzy.length <= 4 ? "jsou" : "je"} ${pocetKurzu(kurzy.length)}, nejbližší ${k0.date.getDate()}. ${k0.date.getMonth() + 1}. — ${k0.title}`
+  : "chystáme další termíny";
+
+/* Kam se v každém měsíci dívá kamera: střed x, y a kolik ze scény (viewBox 1600 × 1000) */
+const kamery = [
+  "520,690,920,540",
+  "800,660,1420,580",
+  "600,760,860,450",
+  "1352,662,440,380",
+  "900,770,720,430",
+  "1000,700,800,500",
+  "1052,690,780,520",
+  "720,724,1320,540",
+  "800,560,1680,1040",
+];
+const kroky = [
+  ...milniky.map((m) => ({ m: m.m, mesic: m.mesic, text: m.text, sezona: sezonaMesice(m.m) })),
+  { m: 10, mesic: "Teď", text: ted, sezona: sezonaMesice(new Date().getMonth() + 1) },
+];
+const vsech = kroky.length + 1;
+---
+<section class="rok" id="rok" aria-labelledby="rok-nadpis" style={`--kroku:${vsech}`}>
+  {kroky.map((_, i) => (
+    <span class="rok-kotva" data-hodina={(17 + i * 0.34).toFixed(2)} style={`top:${(((i + 0.5) / vsech) * 100).toFixed(2)}%`} aria-hidden="true"></span>
+  ))}
+  <span class="rok-kotva" data-hodina="20.4" style="top:96%" aria-hidden="true"></span>
+
+  <div class="rok-scena" data-sezona={kroky[0].sezona}>
+    <div class="rok-ram" aria-hidden="true">
+      <div class="rok-svet"><DilnaRez rezim="rok" /></div>
+    </div>
+
+    <div class="rok-hlava">
+      <p class="stitek">2026 · tak jde čas</p>
+      <h2 id="rok-nadpis" class="nadpis-2">Začalo to vodovodní havárií.</h2>
+    </div>
+
+    <ol class="rok-kroky">
+      {kroky.map((k, i) => (
+        <li class="rok-krok" data-krok={i} data-m={k.m} data-sezona={k.sezona} data-kamera={kamery[i] ?? kamery[kamery.length - 1]}>
+          <button type="button" class="rok-mesic">{k.mesic}</button>
+          <p class="rok-text"><b>{k.mesic}</b> {k.text}</p>
+        </li>
+      ))}
+    </ol>
+
+    <figure class="rok-foto">
+      <Image src={dilnaFoto} alt="Dílna doopravdy: velký stůl s modrými židlemi, kuchyňka se zelenými miskami na polici, regál, nerezová pec a vpředu kruhy" width={1100} widths={[480, 760, 1100]} sizes="(min-width: 861px) 30vw, 72vw" format="webp" />
+      <figcaption>A takhle to v dílně vypadá doopravdy.</figcaption>
+    </figure>
+  </div>
+</section>

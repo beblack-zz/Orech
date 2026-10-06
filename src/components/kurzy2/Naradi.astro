@@ -1,0 +1,35 @@
+---
+/**
+ * Ztracené nářadí — malý kus nářadí schovaný někde na /kurzy-2.
+ * Po kliknutí se uloží do bedýnky v hlavičce (scripts/kurzy2/naradi.ts).
+ * Pozice v procentech rodiče, stejně jako u schovaných kami na Partě 2.
+ */
+import type { NaradiId } from "../../data/kurzy2";
+
+interface Props {
+  id: NaradiId;
+  x: number;
+  y: number;
+  w: number;
+  u?: number;
+  class?: string;
+  /** Jen obrázek, bez tlačítka — do seznamu v bedýnce */
+  jenObrazek?: boolean;
+}
+const { id, x, y, w, u = 0, class: cls = "", jenObrazek = false } = Astro.props;
+---
+{jenObrazek ? (
+  <span class={`naradi-obr ${cls}`} aria-hidden="true">
+    <svg viewBox="0 0 60 60"><use href={`#naradi-${id}`} /></svg>
+  </span>
+) : (
+  <button
+    type="button"
+    class={`skryty naradi ${cls}`}
+    data-naradi={id}
+    aria-label="Něco tu leží"
+    style={`left:${x}%;top:${y}%;width:${w}%;--u:${u}deg`}
+  >
+    <svg viewBox="0 0 60 60" aria-hidden="true"><use href={`#naradi-${id}`} /></svg>
+  </button>
+)}

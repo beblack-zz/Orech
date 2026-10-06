@@ -1,0 +1,34 @@
+---
+/**
+ * Omamori — amulet, do kterého se ukládají nalezení kami. Kdo ještě
+ * nenalezený je, svítí jen jako stín a má pod sebou nápovědu.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import { parta } from "../../data/parta";
+import { kamiInfo } from "../../data/kami";
+---
+<dialog class="omamori-dialog" aria-labelledby="omamori-nadpis">
+  <div class="omamori-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <p class="stitek"><span lang="ja">お守り</span> · omamori</p>
+    <h2 id="omamori-nadpis" class="nadpis-2">Schovaní kami</h2>
+    <p class="omamori-perex">
+      Devět kami se schovává po stránce — malí, napůl za něčím. Koho najdeš,
+      ten se uloží sem a zůstane tu, i když stránku zavřeš.
+    </p>
+    <ul class="omamori-seznam">
+      {parta.map((p) => (
+        <li class="omamori-polozka" data-omamori={p.id}>
+          <span class="omamori-obr"><Postavicka id={p.id} size={72} varianta="kami" /></span>
+          <span class="omamori-jmeno">{p.name}</span>
+          <span class="omamori-napoveda">{kamiInfo[p.id].skrys}</span>
+          <span class="omamori-nalezen">nalezeno</span>
+        </li>
+      ))}
+    </ul>
+    <div class="omamori-pata">
+      <p class="omamori-stav">Nalezeno <b>0</b> z 9.</p>
+      <button type="button" class="tlacitko tlacitko-obrys omamori-reset">Schovat je znovu</button>
+    </div>
+  </div>
+</dialog>

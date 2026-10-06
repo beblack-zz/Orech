@@ -49,6 +49,29 @@ const ogImage = new URL(image, Astro.site);
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <script is:inline>
+      // Den, nebo noc — musí se rozhodnout dřív, než se stránka vykreslí,
+      // jinak by v noci problikla světlá. Bez uložené volby platí systém.
+      (function () {
+        var html = document.documentElement;
+        var system = window.matchMedia("(prefers-color-scheme: dark)");
+        var zvolene = function () {
+          try {
+            var t = localStorage.getItem("tema");
+            if (t === "den" || t === "noc") return t;
+          } catch (e) {}
+          return system.matches ? "noc" : "den";
+        };
+        var nastav = function () {
+          html.dataset.tema = zvolene();
+        };
+        nastav();
+        if (!window.__temaHlidane) {
+          window.__temaHlidane = true;
+          // Přechod mezi stránkami vymění <html> za nový — téma se musí vrátit.
+          document.addEventListener("astro:after-swap", nastav);
+          system.addEventListener("change", nastav);
+        }
+      })();
       // Obsah se schovává jen tehdy, když ho JS umí zase odkrýt.
       document.documentElement.classList.add("js");
       // Pojistka: kdyby se hlavní skript nenačetl, po 3 s se obsah zobrazí tak jako tak.

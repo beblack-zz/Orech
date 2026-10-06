@@ -1,0 +1,46 @@
+---
+/**
+ * Noren — látkový závěs ve dveřích japonského obchodu. Ráno se vyvěsí,
+ * večer se uklidí dovnitř: dokud visí, je otevřeno. Tenhle je indigový
+ * s květem sakury ze značky, rozstřiženým na dvě půlky, jak to u norenu
+ * bývá.
+ *
+ * Je to odkaz: kliknutím (nebo scrollem, viz scripts/uvod2/brana.ts)
+ * se jím prochází do dílny. Rozhrnutí řídí proměnná --rozhrnuti (0–1),
+ * vítr jede v CSS na vnitřní látce, aby se ty dva pohyby nepraly.
+ */
+interface Props {
+  href?: string;
+  class?: string;
+}
+const { href = "#prohlidka", class: cls = "" } = Astro.props;
+
+/* Plátek sakury ze značky (Hlavicka.astro), jen v bílé */
+const platek = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
+const pulky = [
+  { strana: "levy", text: "JIRO", mala: "keramická dílna", kurziva: false },
+  { strana: "pravy", text: "saku", mala: "Ořech", kurziva: true },
+];
+---
+<a class={`noren ${cls}`} href={href} aria-label="Projít norenem do dílny">
+  <span class="noren-tyc" aria-hidden="true"></span>
+  {pulky.map((p) => (
+    <span class={`noren-pul noren-${p.strana}`} aria-hidden="true">
+      <span class="noren-latka">
+        <span class="noren-ocka"><i></i><i></i><i></i></span>
+        <span class="noren-erb">
+          <svg viewBox="-20 -20 40 40">
+            <circle r="18.4" fill="none" stroke="#F6F1E6" stroke-width="1.5" />
+            <circle r="15.6" fill="none" stroke="#F6F1E6" stroke-width="0.5" opacity="0.6" />
+            <g fill="#F6F1E6" transform="rotate(-18) scale(1.02)">
+              {[0, 72, 144, 216, 288].map((u) => <path d={platek} transform={`rotate(${u}) translate(0 -1.4)`} />)}
+            </g>
+            <circle r="1.9" fill="#26336A" />
+          </svg>
+        </span>
+        <span class="noren-text">{p.kurziva ? <em>{p.text}</em> : p.text}</span>
+        <span class="noren-mala">{p.mala}</span>
+      </span>
+    </span>
+  ))}
+</a>

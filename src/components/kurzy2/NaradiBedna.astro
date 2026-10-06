@@ -1,0 +1,79 @@
+---
+/**
+ * Kresby nářadí (jednou jako <symbol>, všude se jen odkazují) a bedýnka,
+ * do které se ukládá, co člověk na stránce našel. Odpověď na otázku
+ * „Co si mám vzít s sebou?“ zní „nic“ — tak ať je to vidět.
+ */
+import { naradi } from "../../data/kurzy2";
+import Naradi from "./Naradi.astro";
+---
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="naradi-zastera" viewBox="0 0 60 60">
+      <path d="M22 6 C22 2 38 2 38 6" stroke="#6B5D4F" stroke-width="2" fill="none" />
+      <path d="M20 10 L40 10 L42 22 L52 22 L48 56 L12 56 L8 22 L18 22 Z" fill="#5F7FA8" />
+      <path d="M20 10 L40 10 L42 22 L52 22" fill="none" stroke="#4A6488" stroke-width="1.5" />
+      <path d="M8 22 L2 26 M52 22 L58 26" stroke="#6B5D4F" stroke-width="2" stroke-linecap="round" />
+      <rect x="21" y="32" width="18" height="12" rx="2" fill="#4A6488" />
+      <path d="M14 46 C20 44 24 48 28 46 M34 50 C38 48 42 51 46 49" stroke="#C9A184" stroke-width="2.4" stroke-linecap="round" fill="none" />
+    </symbol>
+    <symbol id="naradi-houbicka" viewBox="0 0 60 60">
+      <rect x="8" y="16" width="44" height="28" rx="11" fill="#E8C35A" />
+      <rect x="8" y="16" width="44" height="12" rx="6" fill="#F3D57E" />
+      <g fill="#C9A03C">
+        <circle cx="18" cy="34" r="2.2" /><circle cx="28" cy="38" r="1.6" /><circle cx="38" cy="33" r="2" />
+        <circle cx="45" cy="38" r="1.4" /><circle cx="24" cy="26" r="1.3" /><circle cx="40" cy="24" r="1.5" />
+      </g>
+    </symbol>
+    <symbol id="naradi-jehla" viewBox="0 0 60 60">
+      <path d="M10 50 L34 26" stroke="#B08660" stroke-width="8" stroke-linecap="round" />
+      <path d="M10 50 L34 26" stroke="#C9A37A" stroke-width="3" stroke-linecap="round" />
+      <path d="M34 26 L54 6" stroke="#8C949B" stroke-width="2" stroke-linecap="round" />
+      <path d="M31 29 L37 23" stroke="#6B5540" stroke-width="9" stroke-linecap="butt" />
+    </symbol>
+    <symbol id="naradi-ocko" viewBox="0 0 60 60">
+      <path d="M12 52 L34 30" stroke="#B08660" stroke-width="8" stroke-linecap="round" />
+      <path d="M12 52 L34 30" stroke="#C9A37A" stroke-width="3" stroke-linecap="round" />
+      <path d="M34 30 C36 14 52 6 54 18 C56 28 42 32 34 30 Z" fill="none" stroke="#8C949B" stroke-width="2.4" />
+      <path d="M31 33 L37 27" stroke="#6B5540" stroke-width="9" />
+    </symbol>
+    <symbol id="naradi-drat" viewBox="0 0 60 60">
+      <path d="M12 20 C24 44 36 44 48 20" stroke="#8C949B" stroke-width="1.6" fill="none" />
+      <rect x="4" y="12" width="14" height="10" rx="4" fill="#B08660" transform="rotate(-20 11 17)" />
+      <rect x="42" y="12" width="14" height="10" rx="4" fill="#B08660" transform="rotate(20 49 17)" />
+    </symbol>
+    <symbol id="naradi-stetec" viewBox="0 0 60 60">
+      <path d="M8 52 L36 24" stroke="#C9B48A" stroke-width="6" stroke-linecap="round" />
+      <path d="M14 46 L16 44 M20 40 L22 38 M26 34 L28 32" stroke="#8A7A56" stroke-width="2" />
+      <path d="M34 26 L40 20" stroke="#B84A2B" stroke-width="7" />
+      <path d="M38 22 C44 10 52 6 56 4 C54 10 50 18 42 26 Z" fill="#3A2E28" />
+      <path d="M44 16 C48 12 51 9 54 7" stroke="#6E5A4C" stroke-width="1.2" fill="none" />
+    </symbol>
+  </defs>
+</svg>
+
+<dialog class="omamori-dialog naradi-dialog" aria-labelledby="naradi-nadpis">
+  <div class="omamori-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <p class="stitek"><span lang="ja">道具</span> · nářadí</p>
+    <h2 id="naradi-nadpis" class="nadpis-2">Co si vzít s sebou? Nic.</h2>
+    <p class="omamori-perex">
+      Zástěru, hlínu i nástroje máme tady. A pár kusů se nám po stránce rozkutálelo —
+      kdo je najde, má bedýnku plnou dřív, než vůbec přijde.
+    </p>
+    <ul class="omamori-seznam">
+      {naradi.map((n) => (
+        <li class="omamori-polozka" data-bedna={n.id}>
+          <Naradi id={n.id} x={0} y={0} w={0} jenObrazek class="omamori-obr" />
+          <span class="omamori-jmeno">{n.nazev}</span>
+          <span class="omamori-napoveda">{n.skrys}</span>
+          <span class="omamori-nalezen">{n.k_cemu}</span>
+        </li>
+      ))}
+    </ul>
+    <div class="omamori-pata">
+      <p class="omamori-stav naradi-stav">Nalezeno <b>0</b> z 6.</p>
+      <button type="button" class="tlacitko tlacitko-obrys omamori-reset">Rozházet znovu</button>
+    </div>
+  </div>
+</dialog>

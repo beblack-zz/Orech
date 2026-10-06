@@ -1,0 +1,69 @@
+---
+/**
+ * 八 Oheň — noc v kůlně. Scrollováním se Pecinka rozpaluje od 20 do
+ * 1 280 °C: záře mění barvu podle skutečné barvy žáru, jiskry houstnou,
+ * žároměrky se ohýbají. Špehýrkou se dá nahlédnout dovnitř — a uvnitř
+ * je schovaná Šamotka. Řídí scripts/parta2/sceny.ts (pec).
+ */
+import Kami from "../Kami.astro";
+import Skryty from "../Skryty.astro";
+import { zaromerky } from "../../../data/kami";
+import { body } from "../tvary";
+
+const jiskry = body(18, 81, 100, 100);
+const hvezdy = body(26, 83, 600, 230);
+---
+<div class="scena scena-pec" data-pec>
+  <svg class="scena-pozadi" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="pec-noc" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#121735" />
+        <stop offset="1" stop-color="#2A2440" />
+      </linearGradient>
+    </defs>
+    <rect width="600" height="600" fill="url(#pec-noc)" />
+    {/* Okénko kůlny a hvězdy za ním */}
+    <rect x="390" y="70" width="140" height="110" fill="#0B1026" stroke="#3A2E28" stroke-width="8" />
+    {hvezdy.filter((h) => h.x > 395 && h.x < 525 && h.y > 75 && h.y < 175).map((h) => <circle cx={h.x} cy={h.y} r={0.8 + h.s} fill="#FFF8E7" opacity={0.4 + h.t * 0.6} />)}
+    <path d="M460 70 V180 M390 125 H530" stroke="#3A2E28" stroke-width="5" />
+    {/* Prkna kůlny */}
+    <g stroke="#1B1830" stroke-width="3" opacity="0.6">
+      <path d="M60 0 V600 M150 0 V600 M240 0 V600 M330 0 V600" />
+    </g>
+    <rect x="0" y="500" width="600" height="100" fill="#1E1A2C" />
+  </svg>
+
+  {/* Záře za Pecinkou — barvu a sílu nastavuje skript podle teploty */}
+  <div class="pec-zar" aria-hidden="true"></div>
+  <div class="pec-podlaha" aria-hidden="true"></div>
+
+  <Kami id="pecinka" class="scena-kami pec-pecinka" style="left:22%;top:20%;width:56%" />
+
+  <div class="pec-jiskry" aria-hidden="true">
+    {jiskry.map((j) => (
+      <span style={`left:${(30 + j.x * 0.4).toFixed(1)}%;--d:${(1.6 + j.s * 2.2).toFixed(2)}s;--z:${(-j.t * 4).toFixed(2)}s;--dx:${((j.s - 0.5) * 60).toFixed(0)}px`}></span>
+    ))}
+  </div>
+
+  <svg class="pec-zaromerky" viewBox="0 0 120 80" aria-hidden="true">
+    <ellipse cx="60" cy="70" rx="54" ry="9" fill="#8A6A48" />
+    <ellipse cx="60" cy="67" rx="50" ry="7" fill="#A9835C" />
+    {zaromerky.map((z, i) => (
+      <g transform={`translate(${28 + i * 32} 66)`}>
+        <path class="zaromerka" data-od={z.od} data-do={z.do} d="M-6 0 L0 -40 L6 0 Z" fill="#E8D7AE" stroke="#8A6A48" stroke-width="1" transform="rotate(8)" />
+      </g>
+    ))}
+  </svg>
+
+  <button type="button" class="spehyrka" aria-label="Nakouknout špehýrkou do pece" aria-expanded="false">
+    <span class="spehyrka-sklo" aria-hidden="true"></span>
+  </button>
+  <div class="spehyrka-pohled" hidden>
+    <div class="spehyrka-vnitrek" aria-hidden="true">
+      <span class="spehyrka-police"></span>
+      <span class="spehyrka-police spehyrka-police-2"></span>
+    </div>
+    <Skryty id="samotka" class="ve-zaru" x={30} y={54} w={40} />
+    <button type="button" class="spehyrka-zavrit" aria-label="Zavřít pohled do pece">×</button>
+  </div>
+</div>

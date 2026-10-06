@@ -1,0 +1,154 @@
+---
+/**
+ * Ořech — posvátný strom dílny. V Japonsku se staré stromy, ve kterých
+ * bydlí kami, převazují shimenawou a říká se jim shinboku. Dílna je
+ * v Ořechu, takže její shinboku je ořešák. Víc vysvětlovat netřeba.
+ *
+ * Strom je ze tří vrstev nad sebou (zadní koruna, kmen, přední koruna),
+ * každá ve vlastním <svg>. Koruny se tak můžou houpat transformací celého
+ * prvku — to prohlížeč posune na grafické kartě a nemusí strom při každém
+ * snímku překreslovat.
+ */
+import { chomac, nahoda } from "./tvary";
+import Shide from "../characters/kami/Shide.astro";
+
+interface Props { class?: string; }
+const { class: cls = "" } = Astro.props;
+
+type Chomac = [number, number, number, number, number];
+
+const zadni: Chomac[] = [
+  [250, 300, 175, 125, 101], [500, 185, 215, 140, 103], [760, 290, 175, 125, 105],
+  [390, 240, 150, 110, 107], [630, 225, 160, 115, 109], [120, 440, 110, 80, 111],
+  [880, 440, 105, 78, 113],
+];
+const predni: Chomac[] = [
+  [160, 450, 135, 95, 201], [330, 415, 165, 110, 203], [515, 365, 190, 120, 205],
+  [700, 410, 165, 105, 207], [860, 465, 120, 85, 209], [420, 290, 135, 92, 211],
+  [615, 292, 140, 95, 213], [392, 505, 125, 72, 215], [628, 510, 125, 72, 217],
+  [505, 215, 125, 88, 219],
+];
+
+const vrstva = (seznam: Chomac[], barvy: string[], svetla: string) =>
+  seznam.map(([cx, cy, rx, ry, seed]) => {
+    const n = Math.max(10, Math.min(22, Math.round(rx / 11)));
+    const r = nahoda(seed + 900);
+    return {
+      tvary: [
+        { d: chomac(cx, cy, rx, ry, n, seed), fill: barvy[0] },
+        { d: chomac(cx - rx * 0.07, cy - ry * 0.12, rx * 0.86, ry * 0.8, n, seed + 1), fill: barvy[1] },
+        { d: chomac(cx - rx * 0.2, cy - ry * 0.3, rx * 0.55, ry * 0.48, n - 2, seed + 2), fill: barvy[2] },
+      ],
+      listky: Array.from({ length: 7 }, () => ({
+        x: Math.round(cx - rx * 0.55 + r() * rx * 0.75),
+        y: Math.round(cy - ry * 0.62 + r() * ry * 0.5),
+        rx: Math.round(8 + r() * 8),
+        ry: Math.round(4 + r() * 4),
+        u: Math.round((r() - 0.5) * 70),
+      })),
+      svetla,
+    };
+  });
+
+const korunaZadni = vrstva(zadni, ["#2E4829", "#42653A", "#5C8549"], "#7FA35B");
+const korunaPredni = vrstva(predni, ["#3B5C33", "#578241", "#84AC56"], "#B4D178");
+
+const kmen =
+  "M330 1100 C392 1086 424 1050 432 990 C444 900 438 760 446 650 C450 600 452 560 458 520 L546 520 C552 560 556 600 560 650 C568 760 562 900 574 990 C582 1050 614 1086 676 1100 Z";
+
+/** Hlavní větve: [cesta, síla] — kreslí se tahem, nejdřív tmavší a širší lem. */
+const vetve: [string, number][] = [
+  ["M482 570 C460 480 420 430 330 382", 44],
+  ["M330 382 C290 362 250 352 196 356", 22],
+  ["M505 560 C506 470 510 390 500 290", 42],
+  ["M500 290 C496 238 505 196 522 152", 20],
+  ["M526 570 C560 486 620 434 702 392", 40],
+  ["M702 392 C752 368 792 362 834 370", 20],
+  ["M420 470 C392 430 372 400 360 352", 14],
+  ["M590 470 C624 436 648 400 652 352", 14],
+];
+---
+<div class={`orech ${cls}`}>
+  <svg class="orech-vrstva orech-koruna orech-koruna-zadni" viewBox="0 0 1000 1100" aria-hidden="true">
+    {korunaZadni.map((c) => (
+      <g>
+        {c.tvary.map((t) => <path d={t.d} fill={t.fill} />)}
+        {c.listky.map((l) => (
+          <ellipse cx={l.x} cy={l.y} rx={l.rx} ry={l.ry} fill={c.svetla} opacity="0.5" transform={`rotate(${l.u} ${l.x} ${l.y})`} />
+        ))}
+      </g>
+    ))}
+  </svg>
+
+  <slot name="za-kmenem" />
+
+  <svg class="orech-vrstva orech-kmen" viewBox="0 0 1000 1100" aria-hidden="true">
+    <defs>
+      <linearGradient id="orech-kura" x1="330" y1="0" x2="676" y2="0" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#4E4238" />
+        <stop offset="0.28" stop-color="#8F7F6F" />
+        <stop offset="0.5" stop-color="#7A6A5B" />
+        <stop offset="0.78" stop-color="#5A4C41" />
+        <stop offset="1" stop-color="#40352D" />
+      </linearGradient>
+      <radialGradient id="orech-stin" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#22301C" stop-opacity="0.55" />
+        <stop offset="1" stop-color="#22301C" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+
+    <ellipse cx="500" cy="1092" rx="360" ry="34" fill="url(#orech-stin)" />
+
+    {vetve.map(([d, w]) => <path d={d} stroke="#43382F" stroke-width={w + 7} stroke-linecap="round" fill="none" />)}
+    {vetve.map(([d, w]) => <path d={d} stroke="#7A6A5B" stroke-width={w} stroke-linecap="round" fill="none" />)}
+    {vetve.map(([d, w]) => <path d={d} stroke="#9C8C7A" stroke-width={Math.max(2, w * 0.22)} stroke-linecap="round" fill="none" opacity="0.55" transform="translate(-4 -2)" />)}
+
+    <path d={kmen} fill="url(#orech-kura)" />
+    {/* Kořeny, které se zakusují do louky */}
+    <path d="M332 1100 C300 1092 270 1094 236 1100 Z" fill="#4E4238" />
+    <path d="M676 1100 C716 1090 748 1092 790 1100 Z" fill="#40352D" />
+    <path d="M420 1100 C410 1070 392 1062 366 1066 C390 1074 402 1086 404 1100 Z" fill="#5A4C41" />
+
+    {/* Rozpraskaná kůra ořešáku — svislé brázdy */}
+    <g stroke="#3B3129" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.5">
+      <path d="M468 1050 C460 950 474 870 466 770 C460 690 472 620 468 540" />
+      <path d="M500 1060 C506 960 494 880 502 780 C508 700 496 630 502 540" />
+      <path d="M532 1050 C540 950 528 870 536 770 C542 690 530 620 534 540" />
+      <path d="M448 1000 C442 920 452 860 448 800" />
+      <path d="M556 1000 C562 920 552 860 556 800" />
+      <path d="M484 960 L490 900 M516 930 L512 870 M478 720 L484 660 M520 700 L516 640" />
+    </g>
+    <g stroke="#B3A390" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4">
+      <path d="M452 940 C448 880 456 820 452 760" />
+      <path d="M486 1020 C482 980 488 950 486 920" />
+    </g>
+
+    {/* Shimenawa kolem kmene */}
+    <path d="M424 808 Q501 852 580 808" stroke="#B59C6E" stroke-width="24" stroke-linecap="round" fill="none" />
+    <path d="M424 808 Q501 852 580 808" stroke="#E8D7AE" stroke-width="18" stroke-linecap="round" fill="none" />
+    <path d="M424 808 Q501 852 580 808" stroke="#BFA676" stroke-width="18" stroke-dasharray="4 11" fill="none" />
+    <path d="M440 806 Q501 836 566 806" stroke="#FFF6DD" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6" />
+    <Shide x={458} y={834} scale={2.2} />
+    <Shide x={502} y={844} scale={2.4} zpozdeni />
+    <Shide x={546} y={834} scale={2.2} />
+  </svg>
+
+  <svg class="orech-vrstva orech-koruna orech-koruna-predni" viewBox="0 0 1000 1100" aria-hidden="true">
+    {korunaPredni.map((c) => (
+      <g>
+        {c.tvary.map((t) => <path d={t.d} fill={t.fill} />)}
+        {c.listky.map((l) => (
+          <ellipse cx={l.x} cy={l.y} rx={l.rx} ry={l.ry} fill={c.svetla} opacity="0.7" transform={`rotate(${l.u} ${l.x} ${l.y})`} />
+        ))}
+      </g>
+    ))}
+    {/* Pár ořechů ve větvích — zelené slupky */}
+    <g fill="#9DBB5C" stroke="#5E7F3A" stroke-width="2">
+      <circle cx="300" cy="470" r="11" /><circle cx="318" cy="476" r="10" />
+      <circle cx="690" cy="452" r="11" /><circle cx="560" cy="420" r="10" />
+      <circle cx="812" cy="500" r="10" />
+    </g>
+  </svg>
+
+  <slot />
+</div>

@@ -20,16 +20,28 @@ import KachlikD from "./dospele/Kachlik.astro";
 import CedulkaD from "./dospele/Cedulka.astro";
 import SamotkaD from "./dospele/Samotka.astro";
 
+import KapkaK from "./kami/Kapka.astro";
+import PecinkaK from "./kami/Pecinka.astro";
+import StripekK from "./kami/Stripek.astro";
+import VazickaK from "./kami/Vazicka.astro";
+import HlinkaK from "./kami/Hlinka.astro";
+import BublinkaK from "./kami/Bublinka.astro";
+import KachlikK from "./kami/Kachlik.astro";
+import CedulkaK from "./kami/Cedulka.astro";
+import SamotkaK from "./kami/Samotka.astro";
+
 /**
  * `hrava`        — původní parta, jak ji zná dětská část webu
  * `bez-tvare`    — stejné kresby, jen se schová skupina .tvar (viz global.css)
  * `dospela`      — vzorník devíti technik, bez tváře
  * `dospela-tvar` — ty samé kresby s tváří
+ * `kami`         — parta jako japonští kami: původní tvary s ruční linkou,
+ *                  měkkým světlem a jedním atributem navíc (viz ./kami)
  *
  * Dospělé varianty jedou z jedněch souborů; liší se jen tím, jestli se
  * skupina .tvar schová. Dvě sady souborů by se stejně rozešly.
  */
-export type PostavickaVarianta = "hrava" | "bez-tvare" | "dospela" | "dospela-tvar";
+export type PostavickaVarianta = "hrava" | "bez-tvare" | "dospela" | "dospela-tvar" | "kami";
 
 interface Props {
   id: PostavaId;
@@ -64,8 +76,20 @@ const dospele = {
   samotka: SamotkaD,
 };
 
+const kami = {
+  kapka: KapkaK,
+  pecinka: PecinkaK,
+  stripek: StripekK,
+  vazicka: VazickaK,
+  hlinka: HlinkaK,
+  bublinka: BublinkaK,
+  kachlik: KachlikK,
+  cedulka: CedulkaK,
+  samotka: SamotkaK,
+};
+
 const jeDospela = varianta === "dospela" || varianta === "dospela-tvar";
-const Component = jeDospela ? dospele[id] : hrave[id];
+const Component = varianta === "kami" ? kami[id] : jeDospela ? dospele[id] : hrave[id];
 
 const bezTvare = varianta === "bez-tvare" || varianta === "dospela";
 const tridy = bezTvare ? `bez-tvare ${cls}` : cls;

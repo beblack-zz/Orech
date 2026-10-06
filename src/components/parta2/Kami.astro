@@ -1,0 +1,27 @@
+---
+/**
+ * Klikací kami. Po kliknutí zareaguje (každý po svém, viz parta2.css)
+ * a řekne další repliku z data/kami.ts. Bublina s replikou se kreslí
+ * mimo okno scény (scripts/parta2/kami.ts), aby ji kulaté okno neořízlo.
+ *
+ * Výchozí obsah je kami podoba postavičky; kdo potřebuje jinou kresbu
+ * (Cedulka s nápisem), pošle ji do slotu.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import { parta } from "../../data/parta";
+import type { PostavaId } from "../../data/parta";
+
+interface Props {
+  id: PostavaId;
+  size?: number;
+  class?: string;
+  style?: string;
+}
+const { id, size = 140, class: cls = "", style } = Astro.props;
+const jmeno = parta.find((p) => p.id === id)?.name ?? id;
+---
+<button type="button" class={`kami ${cls}`} data-kami={id} style={style} aria-label={`${jmeno} — klikni a něco ti řekne`}>
+  <span class="kami-obal">
+    {Astro.slots.has("default") ? <slot /> : <Postavicka id={id} size={size} varianta="kami" class="kami-svg" />}
+  </span>
+</button>
