@@ -249,7 +249,8 @@ body.p2 {
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
-.hlava-znacka svg { width: 34px; height: 34px; }
+.hlava-znacka svg { width: 40px; height: 40px; display: block; }
+.hlava-znacka .enso { display: block; }
 .hlava-znacka em { color: var(--rumelka); font-weight: 400; }
 .hlava-nav { display: flex; gap: 2px; margin-left: auto; }
 .hlava-nav a {
@@ -1374,7 +1375,9 @@ body.p2 {
 
 .pata { position: relative; z-index: 2; padding: 56px 20px 64px; background: #2F2A22; color: #EFE5D3; }
 .pata-obsah { width: min(1140px, 100%); margin: 0 auto; display: grid; gap: 8px; }
-.pata-znacka { margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 34px; }
+.pata-znacka { display: flex; align-items: center; gap: 12px; margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 34px; }
+.pata-znacka .enso { display: block; }
+.pata-znacka svg { display: block; }
 .pata-znacka em { color: #F0A58E; }
 .pata-adresa { margin: 0; opacity: 0.8; }
 .pata-nav { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 10px; }

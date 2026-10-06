@@ -6,6 +6,7 @@
  * zvuk.
  */
 import { razitka } from "../../data/uvod2";
+import Enso from "../navrhy-loga/Enso.astro";
 
 interface Props {
   /** zadny — stránka bez sbírky (třeba rezervace) */
@@ -26,17 +27,10 @@ const odkazy = [
   { href: "/o-nas", label: "O nás" },
 ];
 const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
-const listek = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
 ---
 <header class="hlava">
   <a href="/" class="hlava-znacka" aria-label="JIRO saku — úvod">
-    <svg viewBox="-20 -20 40 40" aria-hidden="true">
-      <circle r="19" fill="#F7F1E3" stroke="#2B2420" stroke-width="1.2" />
-      <circle r="11" fill="none" stroke="#2B2420" stroke-width="0.6" opacity="0.4" />
-      <g fill="#C4432B" transform="rotate(12) scale(1.15)">
-        {[0, 72, 144, 216, 288].map((u) => <path d={listek} transform={`rotate(${u}) translate(0 -1.6)`} />)}
-      </g>
-    </svg>
+    <Enso size={40} soumrak maly />
     <span>JIRO <em>saku</em></span>
   </a>
 

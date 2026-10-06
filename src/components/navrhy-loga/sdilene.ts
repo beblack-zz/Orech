@@ -20,6 +20,11 @@ export interface LogoProps {
   nazev?: Nazev;
   /** Zjednodušená kresba pro malé velikosti — bez textur a jemných linek. */
   maly?: boolean;
+  /**
+   * Soumrak (jen ensō): tah štětce přechází z rumělky do fialové noci jako
+   * obloha webu mezi dnem a nocí, květ svítí jako měsíc.
+   */
+  soumrak?: boolean;
   class?: string;
 }
 

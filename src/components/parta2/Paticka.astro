@@ -1,5 +1,6 @@
 ---
 /** Patička nového vzhledu — tichý papír pod loukou. Poznámku dole si stránka může poslat vlastní. */
+import Enso from "../navrhy-loga/Enso.astro";
 interface Props {
   poznamka?: string;
 }
@@ -9,7 +10,7 @@ const {
 ---
 <footer class="pata">
   <div class="pata-obsah">
-    <p class="pata-znacka">JIRO <em>saku</em></p>
+    <p class="pata-znacka"><Enso size={64} soumrak tema="tmave" /> <span>JIRO <em>saku</em></span></p>
     <p class="pata-adresa">Keramická dílna · Luční 235 · Ořech</p>
     <nav class="pata-nav" aria-label="Patička">
       <a href="/kurzy">Kurzy</a>

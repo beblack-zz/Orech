@@ -27,6 +27,7 @@ const {
   anim = false,
   nazev = "zadny",
   maly = false,
+  soumrak = false,
   class: trida = "",
 } = Astro.props as LogoProps;
 
@@ -37,12 +38,49 @@ const kvetBarva = tema === "tmave" ? BARVY.sakuraSvetla : BARVY.sakura;
 const textBarva = jeMono ? mono : tema === "tmave" ? BARVY.krem : BARVY.espresso;
 const akcent = jeMono ? mono : kvetBarva;
 
+/** Kde tah začíná a kolik obepíná — soumrak se podle toho barví */
+const ZACATEK_SOUMRAK = -26;
+const ROZSAH_SOUMRAK = 308;
+
+/*
+ * Soumrak: barvy z oblohy webu mezi 18:30 a 21:00 (scripts/parta2/paleta.ts).
+ * Silný začátek tahu je ještě den (rumělka), tenký ocas už noc. Na tmavém
+ * podkladu jdou barvy o kus světleji, jinak by noční konec v pozadí zmizel.
+ */
+const SOUMRAK: [number, string][] =
+  tema === "tmave"
+    ? [[0, "#E0603C"], [0.3, "#E08AA0"], [0.58, "#B49AD0"], [0.82, "#9A92D8"], [1, "#8C8ACC"]]
+    : [[0, "#C4432B"], [0.28, "#C0708A"], [0.55, "#7A5E8E"], [0.8, "#4E4A84"], [1, "#2A2C5E"]];
+const soumrakBarva = (t: number) => {
+  const x = Math.min(1, Math.max(0, t));
+  let i = 0;
+  while (i < SOUMRAK.length - 2 && SOUMRAK[i + 1][0] <= x) i++;
+  const [a, ca] = SOUMRAK[i];
+  const [b, cb] = SOUMRAK[i + 1];
+  const k = (x - a) / (b - a);
+  const h = (c: string) => [1, 3, 5].map((j) => parseInt(c.slice(j, j + 2), 16));
+  const A = h(ca);
+  const B = h(cb);
+  return `#${A.map((v, j) => Math.round(v + (B[j] - v) * k).toString(16).padStart(2, "0")).join("")}`;
+};
+/* SVG neumí kruhový přechod — tah se proto vybarví stovkou úzkých výsečí kolem středu */
+const VYSECI = maly ? 48 : 120;
+const vysece = soumrak
+  ? Array.from({ length: VYSECI }, (_, i) => {
+      const a0 = (i / VYSECI) * 360;
+      const a1 = ((i + 1.15) / VYSECI) * 360;
+      const t = ((((a0 + a1) / 2 - ZACATEK_SOUMRAK) % 360) + 360) % 360 / ROZSAH_SOUMRAK;
+      const p = (u: number) => `${(100 + 130 * Math.cos(rad(u))).toFixed(2)} ${(100 + 130 * Math.sin(rad(u))).toFixed(2)}`;
+      return { d: `M100 100 L${p(a0)} A130 130 0 0 1 ${p(a1)} Z`, barva: soumrakBarva(t > 1 ? (t < 1.08 ? 1 : 0) : t) };
+    })
+  : [];
+
 const S = 100;
 const R = 68;
 const W = 19;
 /** Tah začíná kousek nad třetí hodinou a jde po směru hodin. */
-const ZACATEK = -26;
-const ROZSAH = 308;
+const ZACATEK = ZACATEK_SOUMRAK;
+const ROZSAH = ROZSAH_SOUMRAK;
 
 /** Ruka nevede kruh dokonale: poloměr mírně dýchá a konec se stáčí ven. */
 const polomer = (u: number, t: number) =>
@@ -127,7 +165,19 @@ const volny = { x: S + 40 * Math.cos(rad(uKvetu)), y: S + 40 * Math.sin(rad(uKve
     aria-label="JIRO saku"
   >
     <defs>
-      <Fragment set:html={kvetDefs(id, { barva: kvetBarva, mono: jeMono ? mono : null })} />
+      <Fragment set:html={soumrak ? kvetDefs(id, { barva: "#FBE9B7", obrys: "#E2B95A" }) : kvetDefs(id, { barva: kvetBarva, mono: jeMono ? mono : null })} />
+      {/* Záře kolem květu — jako měsíc nad Ořechem na Partě 2 */}
+      {soumrak && (
+        <filter id={`${id}-zare`} x="-90%" y="-90%" width="280%" height="280%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3.2" result="b1" />
+          <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="b2" />
+          <feFlood flood-color="#FFE7A3" flood-opacity="0.95" />
+          <feComposite in2="b1" operator="in" result="z1" />
+          <feFlood flood-color="#FFF6DA" flood-opacity="0.75" />
+          <feComposite in2="b2" operator="in" result="z2" />
+          <feMerge><feMergeNode in="z2" /><feMergeNode in="z1" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      )}
       {!maly && (
         <filter id={`${id}-hrana`} filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
           <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7" result="hrube" />
@@ -151,6 +201,36 @@ const volny = { x: S + 40 * Math.cos(rad(uKvetu)), y: S + 40 * Math.sin(rad(uKve
       </mask>
     </defs>
 
+    {soumrak && (
+      <>
+        <mask id={`${id}-tvar`} maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+          <g mask={`url(#${id}-maska)`} fill="#fff">
+            <g filter={maly ? undefined : `url(#${id}-hrana)`}>
+              <path d={hlavni} />
+              <ellipse
+                cx={kapka.x}
+                cy={kapka.y}
+                rx={(W * 0.6).toFixed(2)}
+                ry={(W * 0.53).toFixed(2)}
+                transform={`rotate(${kapka.uhel} ${kapka.x} ${kapka.y})`}
+              />
+              <path d={ryha} />
+            </g>
+          </g>
+        </mask>
+        {!maly && (
+          <g mask={`url(#${id}-maska)`} fill={tema === "tmave" ? "#8C8ACC" : "#4E4A84"} filter={`url(#${id}-vpij)`} opacity="0.16">
+            <path d={hlavni} />
+            <path d={ryha} />
+          </g>
+        )}
+        <g mask={`url(#${id}-tvar)`}>
+          {vysece.map((v) => <path d={v.d} fill={v.barva} />)}
+        </g>
+      </>
+    )}
+
+    {!soumrak && (
     <g mask={`url(#${id}-maska)`} fill={tus}>
       {/* Tuš se vpíjí do papíru — rozpitý stín pod tahem */}
       {!maly && !jeMono && (
@@ -171,9 +251,10 @@ const volny = { x: S + 40 * Math.cos(rad(uKvetu)), y: S + 40 * Math.sin(rad(uKve
         <path d={ryha} />
       </g>
     </g>
+    )}
 
     {!maly && (
-      <g transform={`translate(${volny.x.toFixed(2)} ${volny.y.toFixed(2)})`}>
+      <g transform={`translate(${volny.x.toFixed(2)} ${volny.y.toFixed(2)})`} filter={soumrak ? `url(#${id}-zare)` : undefined}>
         <g
           class="enso-volny"
           style={`--dx:${(kvet.x - volny.x).toFixed(1)}px; --dy:${(kvet.y - volny.y).toFixed(1)}px`}
@@ -183,7 +264,7 @@ const volny = { x: S + 40 * Math.cos(rad(uKvetu)), y: S + 40 * Math.sin(rad(uKve
       </g>
     )}
 
-    <g transform={`translate(${kvet.x.toFixed(2)} ${kvet.y.toFixed(2)}) rotate(14) scale(1.3)`}>
+    <g transform={`translate(${kvet.x.toFixed(2)} ${kvet.y.toFixed(2)}) rotate(14) scale(1.3)`} filter={soumrak ? `url(#${id}-zare)` : undefined} class={soumrak ? "enso-mesic" : undefined}>
       {UHLY_KVETU.map((u, i) => (
         <g class="enso-platek" style={`--i:${i}`}>
           <use href={`#${id}-platek`} transform={`rotate(${u}) translate(0 -${ODSUN})`} />
@@ -206,6 +287,20 @@ const volny = { x: S + 40 * Math.cos(rad(uKvetu)), y: S + 40 * Math.sin(rad(uKve
   em {
     font-style: italic;
     font-weight: 400;
+  }
+
+  .enso-mesic {
+    animation: enso-svit 5s ease-in-out infinite;
+  }
+  @keyframes enso-svit {
+    50% {
+      opacity: 0.86;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .enso-mesic {
+      animation: none;
+    }
   }
 
   .anim .enso-odhal {

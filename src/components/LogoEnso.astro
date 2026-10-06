@@ -1,0 +1,45 @@
+---
+/**
+ * Značka webu: ensō v soumraku (tah štětce z rumělky do fialové noci,
+ * květ svítí jako měsíc) a pod ním název. Kresba je v navrhy-loga/Enso.astro,
+ * tady je jen obal se slovní značkou pro hlavičku a patičku starého webu.
+ *
+ * `size` je šířka kresby v pixelech; text se dopočítá, aby poměr držel.
+ * Na světlém podkladu jsou kresby dvě — denní a světlejší pro noční téma
+ * (data-tema="noc"), přepíná je CSS. Patička je tmavá vždycky.
+ */
+import Enso from "./navrhy-loga/Enso.astro";
+
+interface Props {
+  size?: number;
+  class?: string;
+  /** Tmavý podklad (patička) — světlejší soumrak a krémový název. */
+  invertovany?: boolean;
+}
+const { size = 70, class: trida = "", invertovany = false } = Astro.props;
+const nazevPx = Math.round(size * 0.24);
+const maly = size < 56;
+---
+<span class={`inline-flex flex-col items-center gap-1 leading-none ${trida}`}>
+  {invertovany ? (
+    <Enso size={size} soumrak tema="tmave" maly={maly} />
+  ) : (
+    <>
+      <span class="logo-den"><Enso size={size} soumrak maly={maly} /></span>
+      <span class="logo-noc"><Enso size={size} soumrak tema="tmave" maly={maly} /></span>
+    </>
+  )}
+  <span
+    class={`font-serif font-medium whitespace-nowrap tracking-[0.04em] [word-spacing:-0.08em] ${invertovany ? "text-cream" : "text-espresso"}`}
+    style={`font-size: ${nazevPx}px; font-variation-settings: 'opsz' 48;`}
+  >
+    <span class="uppercase tracking-[0.08em]">Jiro</span> <em class={`italic font-normal ${invertovany ? "text-[#F0A58E]" : "text-sakura"}`}>saku</em>
+  </span>
+</span>
+
+<style is:global>
+  .logo-noc { display: none; }
+  :root[data-tema="noc"] .logo-den { display: none; }
+  :root[data-tema="noc"] .logo-noc { display: block; }
+  .logo-den, .logo-noc { line-height: 0; }
+</style>
