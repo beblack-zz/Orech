@@ -30,14 +30,14 @@ interface Props {
   sber?: "omamori" | "naradi" | "razitka" | "zlato" | "ema" | "zkousky" | "zadny";
 }
 const { sber = "omamori" } = Astro.props;
-const odkazy = [
+/** `skrtnuto` je pracovní značka — položka je na odpis, ale zatím visí v menu (jako v Header.astro). */
+const odkazy: { href: string; label: string; skrtnuto?: boolean }[] = [
   { href: "/uvod-2", label: "Úvod 2" },
-  { href: "/kurzy-2", label: "Kurzy 2" },
+  { href: "/kurzy-2", label: "Kurzy 2", skrtnuto: true },
   { href: "/parta-2", label: "Parta 2" },
   { href: "/dilna", label: "Dílna" },
   { href: "/rezervace", label: "Rezervace" },
   { href: "/obchod-2", label: "Obchod 2" },
-  { href: "/o-nas", label: "O nás" },
   { href: "/o-nas-2", label: "O nás 2" },
   { href: "/marcel", label: "Marcel" },
 ];
@@ -62,7 +62,7 @@ const zvId = noveId("hlava-stranka");
 
   <nav class="hlava-nav" aria-label="Hlavní navigace">
     {odkazy.map((o) => (
-      <a href={o.href} aria-current={tady === o.href ? "page" : undefined}>
+      <a href={o.href} class={o.skrtnuto ? "skrtnuto" : undefined} aria-current={tady === o.href ? "page" : undefined}>
         {/* Šmouha suchým štětcem v barvách loga — namaluje se při příchodu na stránku */}
         {tady === o.href && (
           <svg class="hlava-stranka" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
@@ -177,7 +177,7 @@ const zvId = noveId("hlava-stranka");
 
 <nav id="hlava-menu" class="hlava-menu" aria-label="Menu" hidden>
   {odkazy.map((o) => (
-    <a href={o.href} aria-current={tady === o.href ? "page" : undefined}>{o.label}</a>
+    <a href={o.href} class={o.skrtnuto ? "skrtnuto" : undefined} aria-current={tady === o.href ? "page" : undefined}>{o.label}</a>
   ))}
 </nav>
 

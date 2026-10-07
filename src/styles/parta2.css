@@ -276,6 +276,8 @@ body.p2 {
   transition: background 0.2s, color 0.2s;
 }
 .hlava-nav a:hover { background: rgba(43, 36, 32, 0.07); color: var(--inkoust); }
+/* Položka na odpis: přeškrtnutá rumělkou, ale zatím v menu (jako „Pro děti“ ve staré hlavičce) */
+.hlava-nav a.skrtnuto, .hlava-menu a.skrtnuto { text-decoration: line-through; text-decoration-color: var(--rumelka); text-decoration-thickness: 2px; }
 /*
  * Aktuální stránka: místo hladké pilulky šmouha suchým štětcem pod nápisem
  * v barvách loga (soumrak z rumělky do noci; kresba v tah-kresba.ts —
