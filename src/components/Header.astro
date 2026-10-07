@@ -14,15 +14,15 @@ import PrepinacTematu from "./PrepinacTematu.astro";
 type Odkaz = { href: string; label: string; accent?: boolean; skrtnuto?: boolean };
 
 const links: Odkaz[] = [
-  { href: "/uvod-2", label: "Úvod 2" },
+  { href: "/uvod-2", label: "Úvod 2", skrtnuto: true },
   { href: "/kurzy-2", label: "Kurzy 2", skrtnuto: true },
   { href: "/deti", label: "Pro děti", skrtnuto: true },
-  { href: "/parta-2", label: "Parta 2" },
   { href: "/dilna", label: "Dílna" },
   { href: "/rezervace", label: "Rezervace" },
   { href: "/obchod-2", label: "Obchod 2" },
+  { href: "/parta-2", label: "Parta 2" },
   { href: "/o-nas-2", label: "O nás 2" },
-  { href: "/marcel", label: "Marcel" },
+  { href: "/marcel", label: "Marcel", skrtnuto: true },
 ];
 
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
