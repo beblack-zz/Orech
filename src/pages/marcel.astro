@@ -11,6 +11,22 @@
  * Pecinka s ohněm (PecinkaOhen.astro) má dvě přehnané podoby vedle sebe,
  * taky jen obrázky: plamenná svatozář a raku. Třetí, prskavka na vějíři,
  * v komponentě zůstává, ale na stránce už není.
+ *
+ * Cedulka jako ema (CedulkaEma.astro) má tři: nahoře bez pozadí kůň na
+ * rubu, pod ní dvě celé scény — dílna, kde ryje jména do den misek,
+ * a svatyně Inari s lišáckými destičkami. Taky jen obrázky.
+ *
+ * Kachlík a rovina (KachlikRovina.astro) stejně: nahoře bez pozadí
+ * šestiruký se čtvercovou svatozáří, pod ním zen zahrada a kachlová kamna.
+ *
+ * Hlínka, kami země (HlinkaZeme.astro), má dvě vedle sebe jako Pecinka:
+ * bez pozadí spí u kořenů posvátné sakury, vedle je zakopaný džbán
+ * suikinkutsu, ve kterém zvoní kapky. Třetí, drak z hlíny nad Fudži,
+ * v komponentě zůstává, ale na stránce už není.
+ *
+ * Šamotka nese (SamotkaNese.astro) taky: nahoře bez pozadí jako kamidana,
+ * polička pro kami se svatyní a zvoncem, pod ní řez pecí s celým výpalem
+ * a zimní noc v kulatém okně, kde se na ni slétají vrabci a přijde kočka.
  */
 import "@fontsource-variable/fraunces/full.css";
 import { ClientRouter } from "astro:transitions";
@@ -31,6 +47,10 @@ import KapkaRaijin from "../components/characters/kami-buh/KapkaRaijin.astro";
 import KapkaBubny from "../components/characters/kami-buh/KapkaBubny.astro";
 import StripekKintsugi from "../components/characters/kami-buh/StripekKintsugi.astro";
 import PecinkaOhen from "../components/characters/kami-buh/PecinkaOhen.astro";
+import CedulkaEma from "../components/characters/kami-buh/CedulkaEma.astro";
+import KachlikRovina from "../components/characters/kami-buh/KachlikRovina.astro";
+import HlinkaZeme from "../components/characters/kami-buh/HlinkaZeme.astro";
+import SamotkaNese from "../components/characters/kami-buh/SamotkaNese.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
 import { parta } from "../data/parta";
 import type { PostavaId } from "../data/parta";
@@ -75,8 +95,8 @@ const styly: Record<PostavaId, string> = {
   samotka: "Mědirytina",
 };
 
-/* Štětcové písmo jen se znaky ze štítků */
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("円相雷神金継顔筆")}`;
+/* Štětcové písmo jen se znaky ze štítků, z brány v Inari (CedulkaEma v3) a z nádržky u Hlínky (HlinkaZeme v3) */
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("円相雷神金継顔筆奉納稲荷五隹止矢")}`;
 ---
 <!doctype html>
 <html lang="cs">
@@ -148,6 +168,49 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
           <div class="mc-rada mc-rada-ohen">
             <PecinkaOhen varianta="v1" />
             <PecinkaOhen varianta="v2" />
+          </div>
+        </div>
+      </section>
+
+      {/* Cedulka jako ema: nahoře bez pozadí, pod ní dvě scény, jen obrázky bez textů */}
+      <section class="mc-sekce" data-hodina="15.9" aria-label="Cedulka jako ema">
+        <div class="papir mc-siroky mc-cedulka">
+          <CedulkaEma varianta="v1" class="mc-cedulka-hlavni" />
+          <div class="mc-rada mc-rada-cedulka">
+            <CedulkaEma varianta="v2" />
+            <CedulkaEma varianta="v3" />
+          </div>
+        </div>
+      </section>
+
+      {/* Kachlík a rovina: nahoře bez pozadí, pod ní dvě scény, jen obrázky bez textů */}
+      <section class="mc-sekce" data-hodina="16.2" aria-label="Kachlík a rovina">
+        <div class="papir mc-siroky mc-kachlik">
+          <KachlikRovina varianta="v1" class="mc-kachlik-hlavni" />
+          <div class="mc-rada mc-rada-kachlik">
+            <KachlikRovina varianta="v2" />
+            <KachlikRovina varianta="v3" />
+          </div>
+        </div>
+      </section>
+
+      {/* Hlínka, kami země: sakura bez pozadí a suikinkutsu vedle sebe jako u Pecinky, jen obrázky bez textů */}
+      <section class="mc-sekce" data-hodina="16.42" aria-label="Hlínka, kami země">
+        <div class="papir mc-siroky mc-hlinka">
+          <div class="mc-rada mc-rada-hlinka">
+            <HlinkaZeme varianta="v1" />
+            <HlinkaZeme varianta="v3" />
+          </div>
+        </div>
+      </section>
+
+      {/* Šamotka nese: nahoře bez pozadí kamidana, pod ní výpal a sníh, jen obrázky bez textů */}
+      <section class="mc-sekce" data-hodina="16.46" aria-label="Šamotka nese">
+        <div class="papir mc-siroky mc-samotka">
+          <SamotkaNese varianta="v1" class="mc-samotka-hlavni" />
+          <div class="mc-rada mc-rada-samotka">
+            <SamotkaNese varianta="v2" />
+            <SamotkaNese varianta="v3" />
           </div>
         </div>
       </section>

@@ -1,0 +1,64 @@
+---
+/**
+ * Večer v Luční. Tentýž dům jako ráno, jen se setmělo: kresba projde
+ * barevnou maticí do modra a přes ni se rozsvítí, co doopravdy svítí —
+ * lampa nad chodníkem, okna v podkroví, okna dílny dole za bránou. Po
+ * chodníku jde parta s lucerničkami (stejný průvod jako na Úvodu 2)
+ * a vedle je kontakt.
+ */
+import Kami from "../parta2/Kami.astro";
+import { ulice, ULICE } from "./kresba/ulice";
+import { kontakt, mapa, oDilne } from "../../data/uvod2";
+import type { PostavaId } from "../../data/parta";
+
+const V = ULICE.hero;
+const kresba = ulice({ id: "uln", noc: true });
+const pruvod: PostavaId[] = ["kachlik", "vazicka", "kapka", "pecinka", "hlinka", "stripek", "cedulka", "bublinka", "samotka"];
+---
+<section class="noc dm-vecer" id="kontakt" data-hodina="22.6" aria-labelledby="vecer-nadpis">
+  <div class="noc-scena dm-vecer-scena">
+    <div class="dm-vecer-dum">
+      <svg class="dm-vecer-kresba" viewBox={`${V.x} ${V.y} ${V.w} ${V.h}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true" set:html={kresba} />
+    </div>
+
+    <div class="pruvod dm-pruvod" role="group" aria-label="Večerní průvod party — klikni na kohokoli">
+      {pruvod.map((id, i) => (
+        <div class="pruvod-clen" style={`--i:${i}`}>
+          <svg class="lucerna" viewBox="0 0 60 96" aria-hidden="true">
+            <path d="M6 96 C10 60 22 30 44 14" stroke="#5E452E" stroke-width="3" fill="none" stroke-linecap="round" />
+            <g class="lucerna-telo">
+              <path d="M44 14 V22" stroke="#2B2420" stroke-width="1.6" />
+              <rect x="36" y="22" width="16" height="4" rx="1.4" fill="#2B2420" />
+              <ellipse cx="44" cy="41" rx="14" ry="16" fill="#FFB55A" />
+              <ellipse cx="44" cy="39" rx="8" ry="10" fill="#FFE7A8" opacity="0.8" />
+              <path d="M31 33 H57 M30 41 H58 M31 49 H57" stroke="#C4432B" stroke-width="1" opacity="0.45" />
+              <rect x="36" y="56" width="16" height="4" rx="1.4" fill="#2B2420" />
+              <path d="M44 60 V68" stroke="#C4432B" stroke-width="2.4" stroke-linecap="round" />
+            </g>
+          </svg>
+          <Kami id={id} class="pruvod-kami" />
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="noc-karta papir">
+    <p class="stitek">{oDilne.vitani}</p>
+    <h2 id="vecer-nadpis" class="nadpis-2">Dílna zhasíná, lampa svítí.</h2>
+    <p class="noc-perex">Brána je na noc zavřená. Napiš nám nebo zavolej — domluvíme se.</p>
+    <div class="noc-akce">
+      <a class="tlacitko" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+      <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+    </div>
+    <p class="noc-adresa">
+      {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
+      <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
+    </p>
+    <p class="noc-sesit dm-klice-stav">
+      Na háčku máš <b data-sbirka-pocet>0</b> ze 7 klíčů.
+      <button type="button" class="odkaz-tlacitko" data-sbirka-otevrit>Otevřít klíčovnici</button>
+    </p>
+    <p class="noc-parta">Ti malí s lucerničkami? Devět kami z dílny. <a href="/parta-2">Seznam se s partou <span aria-hidden="true">→</span></a></p>
+    <p class="noc-parta">Stejný dům, jen kreslený jinak: <a href="/uvod-2">Úvod 2</a> · <a href="/parta-2">Parta 2</a></p>
+  </div>
+</section>

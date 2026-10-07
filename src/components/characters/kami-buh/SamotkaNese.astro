@@ -1,0 +1,56 @@
+---
+/*
+  Šamotka nese — tři přehnané podoby, kresby i běh jsou ve
+  scripts/samotka-nese:
+
+    v1  Kamidana: Šamotka jako polička pro kami, nese svatyni a obětiny (průhledné pozadí)
+    v2  Výpal: řez pecí s klenbou, celý výpal od sázení po poplácání
+    v3  Sníh: zimní noc v kulatém okně, teplá Šamotka, vrabci a kočka
+
+  Stejně jako u Pecinky s ohněm (PecinkaOhen.astro): kresba je čistý
+  generátor bez DOM, takže první snímek se vykreslí už při sestavení
+  stránky a vloží se sem jako obyčejné SVG. Skript ho pak nahradí živými
+  vrstvami a pokračuje přesně od toho snímku. Id ve filtrech jsou pevná
+  (sn1, sn2, sn3), takže každá podoba smí být na stránce jen jednou.
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/samotka-nese/kresby.js";
+
+interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  v1: "Šamotka jako kamidana: na zádech nese malou svatyni, vázy se sakaki a bílé obětiny, pod ní visí zvonec na barevném provaze",
+  v2: "Řez pecí s cihlovou klenbou: Šamotka nese hrnky celým výpalem, od rudého žáru po poplácání na konci",
+  v3: "Zimní noc v kulatém okně: teplá Šamotka ve sněhu, na ní načepýření vrabci a stočená kočka",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "sn-staticky" });
+---
+<div class={`samotka-nese ${cls}`} data-samotka-nese={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/samotka-nese/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .samotka-nese {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .samotka-nese:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .sn-staticky, .sn-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .sn-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

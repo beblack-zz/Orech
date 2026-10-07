@@ -1,0 +1,60 @@
+---
+/*
+  Hlínka, kami země, ve třech přehnaných podobách — kresby i běh jsou ve
+  scripts/hlinka-zeme:
+
+    v1  Sakura: spí mezi kořeny posvátné převislé sakury, bez pozadí jako Pecinčina svatozář
+    v2  Drak nad Fudži: rytina po Hokusaiovi, vytáhne se z hroudy a honí perlu
+    v3  Suikinkutsu: čajová zahrada a pod ní zakopaný džbán, ve kterém zvoní kapky
+
+  Na stránce Marcel jsou jen v1 a v3, drak zůstal jen tady. Kdyby se vracel,
+  jeho kartuše potřebuje v podmnožině štětcového písma (pismoZnaku
+  v marcel.astro) znaky 富士越土竜.
+
+  Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
+  sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
+  prázdná, než se načte skript, a bez skriptu zůstane hezký obrázek. Skript
+  ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná, takže každá
+  podoba smí být na stránce jen jednou.
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/hlinka-zeme/kresby.js";
+
+interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  v1: "Hlínka spí mezi kořeny posvátné převislé sakury, za korunou svítí měsíc a padají okvětní lístky",
+  v2: "Rytina s Rudou Fudži: Hlínka se vytáhne z hroudy jako hliněný drak a honí nad horou perlu",
+  v3: "Čajová zahrada za soumraku a pod ní zakopaný džbán, ve kterém spí Hlínka a zvoní do něj kapky",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "hz-staticky" });
+---
+<div class={`hlinka-zeme ${cls}`} data-hlinka-zeme={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/hlinka-zeme/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .hlinka-zeme {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .hlinka-zeme:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .hz-staticky, .hz-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .hz-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

@@ -1,0 +1,162 @@
+---
+/**
+ * Obloha uvnitř bubliny hlavičky. Dole u okraje se kupí obláčky jako ve
+ * scéně s vlakem — ve dne papírově světlé, v noci (.hlava.je-noc,
+ * scripts/parta2/hlavicka.ts) modré. Obláčky zůstávají na místě a při
+ * přepnutí se jen přelije barva. Ve dne nad nimi letí pár ptáků v dálce,
+ * v noci místo nich svítí hvězdičky a některé mrkají.
+ *
+ * Kreslí se do pásu 1400 × 56 px a ořízne se zprava (slice), takže se
+ * na užší bublině nic nedeformuje. Náhoda je pevná — pokaždé stejná obloha.
+ */
+const SIRKA = 1400;
+const VYSKA = 56;
+
+let semeno = 17;
+const nahoda = () => ((semeno = (semeno * 16807) % 2147483647) / 2147483647);
+const f = (n: number) => n.toFixed(1);
+
+/** Obláček = hrouda kruhů, zespodu useknutá okrajem bubliny */
+const oblak = (x: number, sirka: number, vyska: number) => {
+  const kruhy: { cx: number; cy: number; r: number }[] = [];
+  const kusu = Math.round(sirka / 11);
+  for (let i = 0; i < kusu; i++) {
+    const t = kusu === 1 ? 0.5 : i / (kusu - 1);
+    /* Uprostřed nejvyšší, ke krajům se snižuje */
+    const r = vyska * (0.45 + 0.55 * Math.sin(Math.PI * t)) * (0.75 + 0.35 * nahoda());
+    kruhy.push({ cx: x + sirka * t + (nahoda() - 0.5) * 6, cy: VYSKA + 2 - r * 0.35, r });
+  }
+  return kruhy;
+};
+
+/* Zadní řada větší, přední menší — jako vrstvy mraků ve scéně */
+const zadni = [70, 300, 560, 820, 1080, 1320].flatMap((x) => oblak(x + nahoda() * 60, 90 + nahoda() * 70, 20 + nahoda() * 8));
+const predni = [180, 460, 700, 980, 1220].flatMap((x) => oblak(x + nahoda() * 50, 60 + nahoda() * 50, 13 + nahoda() * 6));
+
+/* Hvězdičky v horních dvou třetinách; asi každá třetí mrká */
+const hvezdy = Array.from({ length: 46 }, (_, i) => ({
+  x: 60 + nahoda() * (SIRKA - 70),
+  y: 5 + nahoda() * 28,
+  r: 0.7 + nahoda() * nahoda() * 0.9,
+  o: 0.45 + nahoda() * 0.5,
+  mrka: i % 3 === 0,
+  zpozdeni: nahoda() * 4,
+}));
+
+/* Ptáci v dálce — po dvou, po třech, jen tam, kde nad mraky zbývá nebe */
+const ptaci = [380, 395, 1010, 1028, 1019, 1270].map((x, i) => ({
+  x: x + nahoda() * 8,
+  y: 11 + nahoda() * 12,
+  s: 0.75 + nahoda() * 0.45,
+  zpozdeni: i * 0.37,
+}));
+
+const barvy = (z: [string, string], p: [string, string]) => ({ z, p });
+/* Den: papír s odstínem do teplé šedi; noc: o stupně světlejší než bublina */
+const DEN = barvy(["#EFE7D6", "#E2D8C3"], ["#FFFCF4", "#EEE6D5"]);
+const NOC = barvy(["#3B4482", "#2E3569"], ["#47508F", "#363E76"]);
+const stop = (den: string, noc: string) => `--den:${den};--noc:${noc}`;
+---
+
+<div class="hlava-nebe" aria-hidden="true">
+  <svg viewBox={`0 0 ${SIRKA} ${VYSKA}`} preserveAspectRatio="xMinYMid slice" focusable="false">
+    <defs>
+      <linearGradient id="hlava-nebe-zadni" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style={stop(DEN.z[0], NOC.z[0])} />
+        <stop offset="1" style={stop(DEN.z[1], NOC.z[1])} />
+      </linearGradient>
+      <linearGradient id="hlava-nebe-predni" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style={stop(DEN.p[0], NOC.p[0])} />
+        <stop offset="1" style={stop(DEN.p[1], NOC.p[1])} />
+      </linearGradient>
+    </defs>
+    <g class="hlava-nebe-noc" fill="#FFF8EA">
+      {hvezdy.map((h) => (
+        <circle
+          cx={f(h.x)}
+          cy={f(h.y)}
+          r={h.r.toFixed(2)}
+          opacity={h.o.toFixed(2)}
+          class={h.mrka ? "hlava-nebe-mrka" : undefined}
+          style={h.mrka ? `animation-delay: ${h.zpozdeni.toFixed(2)}s` : undefined}
+        />
+      ))}
+    </g>
+    <g class="hlava-nebe-den" fill="none" stroke="#8A7C70" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      {ptaci.map((p) => (
+        <g transform={`translate(${f(p.x)} ${f(p.y)}) scale(${p.s.toFixed(2)})`}>
+          <path class="hlava-nebe-ptak" d="M-4 0 Q-2 -2.2 0 0 Q2 -2.2 4 0" style={`animation-delay: ${p.zpozdeni.toFixed(2)}s`} />
+        </g>
+      ))}
+    </g>
+    <g fill="url(#hlava-nebe-zadni)" opacity="0.9">
+      {zadni.map((k) => <circle cx={f(k.cx)} cy={f(k.cy)} r={f(k.r)} />)}
+    </g>
+    <g fill="url(#hlava-nebe-predni)" opacity="0.85">
+      {predni.map((k) => <circle cx={f(k.cx)} cy={f(k.cy)} r={f(k.r)} />)}
+    </g>
+  </svg>
+</div>
+
+<style>
+  /* Pod vším ostatním v bublině, ořízne se jejím tvarem */
+  .hlava-nebe {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .hlava-nebe svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .hlava-nebe stop {
+    stop-color: var(--den);
+    transition: stop-color 0.6s ease;
+  }
+  :global(.hlava.je-noc) .hlava-nebe stop {
+    stop-color: var(--noc);
+  }
+
+  /* Ptáci ve dne, hvězdy v noci */
+  .hlava-nebe-den,
+  .hlava-nebe-noc {
+    transition: opacity 0.6s ease;
+  }
+  .hlava-nebe-noc {
+    opacity: 0;
+  }
+  :global(.hlava.je-noc) .hlava-nebe-noc {
+    opacity: 1;
+  }
+  :global(.hlava.je-noc) .hlava-nebe-den {
+    opacity: 0;
+  }
+
+  .hlava-nebe-mrka {
+    animation: hlava-nebe-mrk 3.4s ease-in-out infinite;
+  }
+  @keyframes hlava-nebe-mrk {
+    50% {
+      opacity: 0.12;
+    }
+  }
+  /* Pták mává: křídla se zvednou a zase klesnou */
+  .hlava-nebe-ptak {
+    animation: hlava-nebe-mava 1.6s ease-in-out infinite;
+  }
+  @keyframes hlava-nebe-mava {
+    50% {
+      d: path("M-4 -1.2 Q-2 0.6 0 0 Q2 0.6 4 -1.2");
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hlava-nebe-mrka,
+    .hlava-nebe-ptak {
+      animation: none;
+    }
+  }
+</style>

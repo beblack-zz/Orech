@@ -1,15 +1,16 @@
 ---
 /**
  * Značka webu: ensō v soumraku (tah štětce z rumělky do fialové noci,
- * květ svítí jako měsíc) a pod ním název. Kresba je v navrhy-loga/Enso.astro,
- * tady je jen obal se slovní značkou pro hlavičku a patičku starého webu.
+ * květ svítí jako měsíc) a pod ním název štětcem. Kresby jsou v
+ * navrhy-loga/Enso.astro a znacka/ZnackaStetec.astro, tady je jen obal
+ * pro hlavičku a patičku starého webu.
  *
- * `size` je šířka kresby v pixelech; text se dopočítá, aby poměr držel.
+ * `size` je šířka kresby v pixelech; název se dopočítá, aby poměr držel.
  * Na světlém podkladu jsou kresby dvě — denní a světlejší pro noční téma
  * (data-tema="noc"), přepíná je CSS. Patička je tmavá vždycky.
  */
 import Enso from "./navrhy-loga/Enso.astro";
-import "../styles/znacka.css";
+import ZnackaStetec from "./znacka/ZnackaStetec.astro";
 
 interface Props {
   size?: number;
@@ -18,7 +19,8 @@ interface Props {
   invertovany?: boolean;
 }
 const { size = 70, class: trida = "", invertovany = false } = Astro.props;
-const nazevPx = Math.round(size * 0.24);
+/* Verzálka názvu — o pětinu větší než dřívější písmo ve 24 % šířky kresby */
+const verzalkaPx = Math.round(size * 0.216);
 const maly = size < 56;
 ---
 <span class={`inline-flex flex-col items-center gap-1 leading-none ${trida}`}>
@@ -30,11 +32,8 @@ const maly = size < 56;
       <span class="logo-noc"><Enso size={size} soumrak tema="tmave" maly={maly} /></span>
     </>
   )}
-  <span
-    class={`znacka whitespace-nowrap ${invertovany ? "text-cream" : "text-espresso"}`}
-    style={`font-size: ${nazevPx}px;`}
-  >
-    JIRO <em class={`${invertovany ? "text-[#F0A58E]" : "text-sakura"}`}>saku</em>
+  <span class={invertovany ? "text-cream" : "text-espresso"}>
+    <ZnackaStetec vyska={verzalkaPx} tema={invertovany ? "tmave" : "auto"} />
   </span>
 </span>
 

@@ -1,0 +1,96 @@
+---
+/**
+ * Ulice — první obrazovka Domku 2. Zelený dům v Luční tak, jak ho člověk
+ * vidí z protějšího chodníku (kresba obkreslená z fotky 6670). Sekce je
+ * vyšší než okno a scéna v ní stojí: scrollem kamera dojede k bráně,
+ * brána odjede doleva za zídku, kamera sjede po rampě k prosklenými
+ * dveřím dílny a ty se rozsvítí — a pod tím začíná prohlídka.
+ * Řídí scripts/domek2/ulice.ts.
+ *
+ * Na lampě visí amplion obecního rozhlasu — kliknutím zahraje znělku
+ * a přečte otevírací dobu. Kdo nechce scrollovat, klikne na dveře nebo
+ * na „Jít dovnitř“; s omezeným pohybem scéna stojí.
+ */
+import Kami from "../parta2/Kami.astro";
+import Klic from "./Klic.astro";
+import { ulice, ULICE, ULICE_MISTA } from "./kresba/ulice";
+import { body } from "../parta2/tvary";
+import { mapa, kontakt } from "../../data/uvod2";
+import { hlaseni } from "../../data/domek2";
+import type { Sezona } from "../../data/uvod2";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+const V = ULICE.hero;
+const procX = (x: number) => (((x - V.x) / V.w) * 100).toFixed(3);
+const procY = (y: number) => (((y - V.y) / V.h) * 100).toFixed(3);
+const misto = (x0: number, y0: number, x1: number, y1: number) =>
+  `left:${procX(x0)}%;top:${procY(y0)}%;width:${(((x1 - x0) / V.w) * 100).toFixed(3)}%;height:${(((y1 - y0) / V.h) * 100).toFixed(3)}%`;
+/** Kami stojí patou na `pata`; kresby postaviček mají pod nohama asi osminu výšky vzduchu */
+const postava = (x: number, pata: number, w: number) =>
+  `left:${procX(x - w / 2)}%;bottom:${(((V.y + V.h - pata - w * 0.12) / V.h) * 100).toFixed(3)}%;width:${((w / V.w) * 100).toFixed(3)}%`;
+
+const M = ULICE_MISTA;
+const kresba = ulice({ id: "ul", brana: true });
+const castice = body(12, 518, 100, 100);
+/** Cíle kamery pro skript: brána a dveře v podílech rámu kresby */
+const cile = JSON.stringify({
+  brana: { x: (M.brana.x - V.x) / V.w, y: (M.brana.y - V.y) / V.h },
+  dvere: { x: (M.dvere.x - V.x) / V.w, y: (M.dvere.y - V.y) / V.h, h: M.dvere.h / V.h },
+});
+---
+<section class="ulice" id="ulice" data-hodina="8.4" data-sezona={sezona} data-cile={cile} aria-labelledby="ulice-nadpis">
+  <div class="ulice-scena">
+    <div class="ulice-svet">
+      <svg class="ulice-kresba" viewBox={`${V.x} ${V.y} ${V.w} ${V.h}`} aria-hidden="true" set:html={kresba} />
+      <span class="ulice-svetlo" style={misto(557, 870, 627, 1038)} aria-hidden="true"></span>
+
+      <a class="ulice-dvere" href="#prohlidka" style={misto(553, 866, 630, 1040)} aria-label="Dveře dílny — jít dovnitř"></a>
+      <button type="button" class="ulice-rozhlas" style={misto(326, -6, 420, 62)} aria-label="Obecní rozhlas — pustit hlášení" aria-controls="rozhlas-hlaseni" aria-expanded="false"></button>
+      <div class="rozhlas-bublina" id="rozhlas-hlaseni" style={`left:${procX(436)}%;top:${procY(-30)}%`} role="status" hidden>
+        <p class="rozhlas-znelka" aria-hidden="true">♪ ding · dong · ding</p>
+        <p><b>{hlaseni.uvod}</b> <span class="rozhlas-text">{hlaseni.text}</span> {hlaseni.zaver}</p>
+      </div>
+
+      <Kami id="kapka" class="ulice-kami" style={postava(M.kapka.x, M.kapka.pata, M.kapka.w)} />
+      <Kami id="bublinka" class="ulice-kami ulice-kami-bublinka" style={postava(M.bublinka.x, M.bublinka.pata, M.bublinka.w)} />
+      <Kami id="kachlik" class="ulice-kami" style={postava(M.kachlik.x, M.kachlik.pata, M.kachlik.w)} />
+      <Klic id="brana" class="ulice-klic" style={misto(1132, 892, 1204, 924)} uhel={78} />
+      <Klic id="balkon" class="ulice-klic" style={misto(782, 690, 838, 714)} uhel={-18} />
+
+      <p class="ulice-cedulka" style={`left:${procX(452)}%;top:${procY(-56)}%`} aria-hidden="true"><span lang="ja">放送</span> hōsō — obecní rozhlas. Amplion na lampě se dá pustit.</p>
+    </div>
+
+    <div class="ulice-text">
+      <p class="stitek">{kontakt.ulice} · {kontakt.obec} · dům se zeleným štítem</p>
+      <h1 id="ulice-nadpis" class="ulice-nadpis">Dílna je v zeleném domě. <em>Dole, kde bývala garáž.</em></h1>
+      <p class="ulice-perex">
+        Z ulice projdeš posuvnou bránou a sejdeš po rampě dolů. Na jejím konci
+        jsou velká bílá okna — a za nimi kruhy, stoly a pec.
+      </p>
+      <div class="ulice-akce">
+        <a class="tlacitko" href="#prohlidka">Jít dovnitř</a>
+        <a class="tlacitko tlacitko-obrys" href={mapa} target="_blank" rel="noopener">Ukázat na mapě</a>
+      </div>
+    </div>
+
+    <a class="ulice-dolu" href="#prohlidka">
+      <span>Otevři bránu a sejdi dolů</span>
+      <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </a>
+
+    <div class="castice" aria-hidden="true">
+      {castice.map((c, i) => (
+        <span
+          class={`castice-kus ${i % 3 === 0 ? "castice-velky" : ""}`}
+          style={`left:${(c.x * 0.96 + 2).toFixed(1)}%;--d:${(11 + c.s * 10).toFixed(1)}s;--z:${(-c.t * 21).toFixed(1)}s;--dx:${((c.s - 0.35) * 240).toFixed(0)}px`}
+        ></span>
+      ))}
+    </div>
+
+    <div class="ulice-zar" aria-hidden="true"></div>
+  </div>
+</section>

@@ -1,0 +1,82 @@
+---
+/**
+ * Slovní značka JIRO saku štětcem: JIRO tuší, saku tahem soumraku jako
+ * ensō vedle (rumělka do noci). Kresba je ve stetec-kresba.ts.
+ *
+ * JIRO má barvu textu (currentColor), takže se přebarví s okolím.
+ * Soumrak v saku má světlou a tmavou sadu: `tema="tmave"` na tmavý
+ * podklad, `auto` přepíná podle nočního tématu starého webu
+ * (:root[data-tema="noc"]).
+ *
+ * `vyska` je výška verzálky v pixelech; šířka se dopočítá.
+ */
+import { STETEC, VIEWBOX, VERZALKA, SAKU_OD, SAKU_DO } from "./stetec-kresba";
+import { noveId } from "../navrhy-loga/sdilene";
+
+interface Props {
+  vyska?: number;
+  tema?: "svetle" | "tmave" | "auto";
+  class?: string;
+}
+const { vyska = 16, tema = "svetle", class: trida = "" } = Astro.props;
+
+const [x, y, w, h] = VIEWBOX;
+const px = vyska / VERZALKA;
+const id = noveId("znacka");
+---
+
+<svg
+  class={`znacka-stetec zs-${tema} ${trida}`}
+  viewBox={VIEWBOX.join(" ")}
+  width={(w * px).toFixed(1)}
+  height={(h * px).toFixed(1)}
+  role="img"
+  aria-label="JIRO saku"
+>
+  <defs>
+    {/* Roztřepená hrana jako u ensō, jen jemnější, ať písmo drží i v malém */}
+    <filter id={`${id}-h`} filterUnits="userSpaceOnUse" x={x} y={y} width={w} height={h}>
+      <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="4" result="h" />
+      <feDisplacementMap in="SourceGraphic" in2="h" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="a" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="2" result="j" />
+      <feDisplacementMap in="a" in2="j" scale="0.6" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+    <linearGradient id={`${id}-g`} gradientUnits="userSpaceOnUse" x1={SAKU_OD} y1="0" x2={SAKU_DO} y2="0">
+      <stop offset="0" style="stop-color: var(--zs-1)" />
+      <stop offset="0.3" style="stop-color: var(--zs-2)" />
+      <stop offset="0.62" style="stop-color: var(--zs-3)" />
+      <stop offset="1" style="stop-color: var(--zs-4)" />
+    </linearGradient>
+    <mask id={`${id}-m`} maskUnits="userSpaceOnUse" x={x} y={y} width={w} height={h}>
+      <rect x={x} y={y} width={w} height={h} fill="#fff" />
+      <g fill="none" stroke="#000" stroke-linecap="round" set:html={STETEC.struhy} />
+    </mask>
+  </defs>
+  <g mask={`url(#${id}-m)`}>
+    <g filter={`url(#${id}-h)`}>
+      <g fill="currentColor" set:html={STETEC.jiro} />
+      <g fill={`url(#${id}-g)`} set:html={STETEC.saku} />
+    </g>
+  </g>
+</svg>
+
+<style>
+  .znacka-stetec {
+    display: block;
+    flex: none;
+    overflow: visible;
+    /* Soumrak z ensō: rumělka, růžová, fialová, noc */
+    --zs-1: #c4432b;
+    --zs-2: #c0708a;
+    --zs-3: #7a5e8e;
+    --zs-4: #3e3c78;
+  }
+  /* Na tmavém podkladu o kus světleji, jako tmavé ensō — jinak noční konec zmizí */
+  .zs-tmave,
+  :global(:root[data-tema="noc"]) .zs-auto {
+    --zs-1: #e0603c;
+    --zs-2: #e08aa0;
+    --zs-3: #b49ad0;
+    --zs-4: #9a92d8;
+  }
+</style>

@@ -156,6 +156,7 @@ export const jineSbirky = [
   { klic: "kurzy2-naradi", celkem: 6, kde: "Kurzy 2", co: "kusů ztraceného nářadí", href: "/kurzy-2" },
   { klic: "onas2-zlato", celkem: 9, kde: "O nás 2", co: "šupinek zlata na kintsugi", href: "/o-nas-2" },
   { klic: "dilna-zkousky", celkem: 6, kde: "Dílna", co: "zkoušek glazur", href: "/dilna" },
+  { klic: "domek2-klice", celkem: 7, kde: "Domek 2", co: "klíčů na háčku", href: "/domek-2" },
 ];
 
 /* ——— Roční období ——— */

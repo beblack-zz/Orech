@@ -79,6 +79,9 @@ const kusy: { x: number; y: number; d: string; vypln: "bila" | "vlny" | "modroti
   { x: 24, y: 100, d: "M-6 -5 L7 -6 L5 6 L-7 4 Z", vypln: "modrotisk", r: 8 },
   { x: 156, y: 96, d: "M-7 -4 L5 -8 L8 5 L-4 7 Z", vypln: "bila", zlato: [[-7, -4], [5, -8]], r: -6 },
   { x: 90, y: 28, d: "M-9 2 Q0 -4 9 -1 L7 4 Q0 0.6 -7 6 Z", vypln: "bila", zlato: [[9, -1], [7, 4]], r: 4 },
+  /* Dva menší do mezery dole, aby byl oběh rovnoměrný; začínají za obláčkem */
+  { x: 122, y: 144, d: "M-5 -5 L6 -4 L4 5 L-6 3 Z", vypln: "vlny", r: -14 },
+  { x: 64, y: 146, d: "M-7 -3 L4 -7 L7 4 L-3 6 Z", vypln: "bila", zlato: [[4, -7], [7, 4]], r: 12 },
 ];
 const vypln = { bila: `url(#${u}-glazura)`, vlny: `url(#${u}-seigaiha)`, modrotisk: `url(#${u}-modrotisk-pud)` };
 
@@ -177,17 +180,27 @@ const MRAK = { svetlo: "#F2C8C2", stin: "#9083AF", zare: "#FFE6DD" };
     <clipPath id={`${u}-strep`}><path d={strep} /></clipPath>
   </defs>
 
-  {/* Poletující střípky */}
-  {kusy.map((k, i) => (
-    <g transform={`translate(${k.x} ${k.y}) rotate(${k.r})`}>
-      <g class="kus" style={`animation-delay:${-i * 0.9}s`}>
-        <path d={k.d} transform="translate(1.2 2.2)" fill={`url(#${u}-strep-hrana)`} stroke="#6B5D4F" stroke-width="0.8" stroke-linejoin="round" />
-        <path d={k.d} fill={vypln[k.vypln]} stroke="#6B5D4F" stroke-width="0.9" stroke-linejoin="round" />
-        {k.vypln === "modrotisk" && <path d={k.d} fill={`url(#${u}-modrotisk)`} />}
-        {k.zlato && <path d={spara(k.zlato, 20 + i, 1.1)} fill="#C99430" filter={`url(#${u}-kov)`} />}
+  {/*
+    Poletující střípky obíhají kolem středu postavičky (leží zhruba na
+    kružnici kolem 91 88) a dole proletí za obláčkem. Každý se zároveň
+    otáčí zpátky, takže drží natočení a stín má pořád dole.
+  */}
+  <g class="obeh">
+    {kusy.map((k, i) => (
+      <g transform={`translate(${k.x} ${k.y})`}>
+        <g class="proti">
+          <g transform={`rotate(${k.r})`}>
+            <g class="kus" style={`animation-delay:${-i * 0.9}s`}>
+              <path d={k.d} transform="translate(1.2 2.2)" fill={`url(#${u}-strep-hrana)`} stroke="#6B5D4F" stroke-width="0.8" stroke-linejoin="round" />
+              <path d={k.d} fill={vypln[k.vypln]} stroke="#6B5D4F" stroke-width="0.9" stroke-linejoin="round" />
+              {k.vypln === "modrotisk" && <path d={k.d} fill={`url(#${u}-modrotisk)`} />}
+              {k.zlato && <path d={spara(k.zlato, 20 + i, 1.1)} fill="#C99430" filter={`url(#${u}-kov)`} />}
+            </g>
+          </g>
+        </g>
       </g>
-    </g>
-  ))}
+    ))}
+  </g>
 
   {/* Obláček, zadní kupa: zmenšený mrak z oblohy */}
   <g transform="translate(14 92) scale(0.255)">
@@ -247,7 +260,10 @@ const MRAK = { svetlo: "#F2C8C2", stin: "#9083AF", zare: "#FFE6DD" };
 </svg>
 
 <style>
+  .obeh { transform-box: view-box; transform-origin: 91px 88px; animation: obeh 36s linear infinite; }
+  .proti { animation: obeh 36s linear infinite reverse; }
+  @keyframes obeh { to { transform: rotate(360deg); } }
   .kus { animation: kus-vznas 4.2s ease-in-out infinite; }
   @keyframes kus-vznas { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(6deg); } }
-  @media (prefers-reduced-motion: reduce) { .kus { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .obeh, .proti, .kus { animation: none; } }
 </style>

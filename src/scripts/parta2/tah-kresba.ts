@@ -66,6 +66,12 @@ const stupnice = (zastaveni: [number, string][]) => (t: number) => {
 const SOUMRAK = stupnice([[0, "#C4432B"], [0.28, "#C0708A"], [0.55, "#7A5E8E"], [0.8, "#4E4A84"], [1, "#2A2C5E"]]);
 /** Vlas: noc po horní hraně, kolem zvonkohry fialová, po spodní hraně svítá */
 const NOC_DO_RANA = stupnice([[0, "#2A2C5E"], [0.32, "#34376F"], [0.55, "#4E4A84"], [0.76, "#7A5E8E"], [1, "#C0708A"]]);
+/*
+ * Totéž pro hlavičku v noční modré (přepínač den / noc): o kus světlejší, jako
+ * ensō v tmavé patičce — tmavý noční konec by v modré bublině zmizel.
+ */
+const SOUMRAK_NOC = stupnice([[0, "#E0603C"], [0.3, "#E08AA0"], [0.58, "#B49AD0"], [0.82, "#9A92D8"], [1, "#8C8ACC"]]);
+const NOC_DO_RANA_NOC = stupnice([[0, "#8C8ACC"], [0.32, "#9A92D8"], [0.55, "#B49AD0"], [0.76, "#C9A0C8"], [1, "#E08AA0"]]);
 
 /* ——— Kruh ——— */
 
@@ -121,7 +127,8 @@ export function kruh() {
     const a1 = ((i + 1.15) / VYSECI) * 360;
     const t = (((((a0 + a1) / 2 - ZACATEK) % 360) + 360) % 360) / ROZSAH;
     const p = (u: number) => `${f(R0 + 40 * Math.cos(rad(u)))} ${f(R0 + 40 * Math.sin(rad(u)))}`;
-    return { d: `M${R0} ${R0} L${p(a0)} A40 40 0 0 1 ${p(a1)} Z`, barva: SOUMRAK(t > 1 ? (t < 1.08 ? 1 : 0) : t) };
+    const tt = t > 1 ? (t < 1.08 ? 1 : 0) : t;
+    return { d: `M${R0} ${R0} L${p(a0)} A40 40 0 0 1 ${p(a1)} Z`, barva: SOUMRAK(tt), barvaNoc: SOUMRAK_NOC(tt) };
   });
 
   /** Květ v mezeře mezi vlasem nahoře a kapkou */
@@ -158,6 +165,8 @@ export interface Prechod {
   x2: number;
   y2: number;
   zastaveni: [number, string][];
+  /** Stejná zastavení pro hlavičku v noční modré */
+  zastaveniNoc: [number, string][];
 }
 
 export interface TahBublinou {
@@ -214,19 +223,20 @@ export function tahBublinou(sirkaBubliny: number): TahBublinou {
     }
     return `${cara(levy)} L${pravy.reverse().map(([x, y]) => `${f(x)} ${f(y)}`).join(" L")} Z`;
   };
-  const barva = (s: number) => NOC_DO_RANA(s / L);
-  const zastaveni = (kroku: number, kde: (k: number) => [number, number]) =>
+  const zastaveniVe = (stup: (t: number) => string) => (kroku: number, kde: (k: number) => [number, number]) =>
     Array.from({ length: kroku + 1 }, (_, i) => {
       const [offset, s] = kde(i / kroku);
-      return [Number(offset.toFixed(4)), barva(s)] as [number, string];
+      return [Number(offset.toFixed(4)), stup(s / L)] as [number, string];
     });
+  const zastaveni = zastaveniVe(NOC_DO_RANA);
+  const zastaveniNoc = zastaveniVe(NOC_DO_RANA_NOC);
 
   /* Kusy se o kousek překrývají, ať mezi nimi neprosvítá šev */
   const P = 0.6;
   const kusy = [
     {
       d: obrys(0, Math.min(L, horni + P)),
-      prechod: { x1: R0, y1: 0, x2: vpravo, y2: 0, zastaveni: zastaveni(10, (k) => [k, k * horni]) },
+      prechod: { x1: R0, y1: 0, x2: vpravo, y2: 0, zastaveni: zastaveni(10, (k) => [k, k * horni]), zastaveniNoc: zastaveniNoc(10, (k) => [k, k * horni]) },
     },
     {
       d: obrys(Math.max(0, horni - P), Math.min(L, horni + oblouk + P)),
@@ -237,11 +247,19 @@ export function tahBublinou(sirkaBubliny: number): TahBublinou {
         x2: 0,
         y2: VYSKA - OSA,
         zastaveni: zastaveni(12, (k) => [(1 + Math.sin(rad(-90 + 180 * k))) / 2, horni + k * oblouk]),
+        zastaveniNoc: zastaveniNoc(12, (k) => [(1 + Math.sin(rad(-90 + 180 * k))) / 2, horni + k * oblouk]),
       },
     },
     {
       d: obrys(Math.max(0, horni + oblouk - P), L),
-      prechod: { x1: vpravo, y1: 0, x2: konecX, y2: 0, zastaveni: zastaveni(10, (k) => [k, horni + oblouk + k * dolni]) },
+      prechod: {
+        x1: vpravo,
+        y1: 0,
+        x2: konecX,
+        y2: 0,
+        zastaveni: zastaveni(10, (k) => [k, horni + oblouk + k * dolni]),
+        zastaveniNoc: zastaveniNoc(10, (k) => [k, horni + oblouk + k * dolni]),
+      },
     },
   ];
 

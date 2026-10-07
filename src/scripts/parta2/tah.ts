@@ -77,7 +77,10 @@ export function initTah({ zavadi }: { zavadi: (sila: number) => void }) {
     kresba.kusy.forEach((kus, i) => {
       const p = kus.prechod;
       const g = prvek("linearGradient", { id: `hlava-tah-${i}`, gradientUnits: "userSpaceOnUse", x1: p.x1, y1: p.y1, x2: p.x2, y2: p.y2 });
-      for (const [offset, barva] of p.zastaveni) g.append(prvek("stop", { offset, "stop-color": barva }));
+      /* Denní i noční barva — přepíná je CSS podle hlavičky (.je-noc), viz parta2.css */
+      p.zastaveni.forEach(([offset, barva], j) =>
+        g.append(prvek("stop", { offset, "stop-color": barva, style: `--den:${barva};--noc:${p.zastaveniNoc[j][1]}` })),
+      );
       defs.append(g);
     });
     const maska = prvek("mask", { id: "hlava-tah-maska", maskUnits: "userSpaceOnUse", x: -10, y: -10, width: sirka + 20, height: 80 });

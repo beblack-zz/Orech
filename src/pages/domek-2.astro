@@ -1,0 +1,96 @@
+---
+/**
+ * Domek 2 — dům a dílna v Ořechu nakreslené podle skutečných fotek
+ * (images/Dilna, fotoorech), ať jdou porovnat s kresbami na Úvodu 2
+ * a Partě 2. Stejný svět i řeč (obloha přes den, papír, parta, zvuky),
+ * jen domeček s krovem a garáž v řezu nahradil skutečný zelený dům
+ * a dílna v jeho suterénu. Jeden den v Luční:
+ *
+ *   ráno      — ulice: brána odjede za zídku, rampou dolů k oknům dílny
+ *   dopoledne — prohlídka dílny skrz okna, u každé zastávky fotka
+ *   odpoledne — kresba a fotka přes sebe a sakura během roku
+ *             — kudy k nám: Ořech z kopce s domem mezi sousedy
+ *   podvečer  — rok dílny: z garáže po havárii až do teď
+ *   večer     — lampa svítí, parta jde s lucerničkami, kontakt
+ *
+ * Po stránce je sedm klíčů (sbírka v hlavičce, klíčovnice v dialogu).
+ * Kresby jsou generátory v components/domek2/kresba, styly
+ * v styles/domek2.css nad parta2.css, dilna-rez.css a uvod2.css.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/dilna-rez.css";
+import "../styles/uvod2.css";
+import "../styles/domek2.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Ulice from "../components/domek2/Ulice.astro";
+import Prohlidka from "../components/domek2/Prohlidka.astro";
+import Porovnani from "../components/domek2/Porovnani.astro";
+import Kudy from "../components/domek2/Kudy.astro";
+import Rok from "../components/domek2/Rok.astro";
+import Vecer from "../components/domek2/Vecer.astro";
+import KliceDialog from "../components/domek2/KliceDialog.astro";
+
+import { zastavky } from "../data/domek2";
+import { sezonaMesice } from "../data/uvod2";
+
+/** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška */
+const sezona = sezonaMesice(new Date().getMonth() + 1);
+
+/* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+zastavky.forEach((z) => pridej(z.znak));
+pridej("工房見学放送写生道順鍵");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Domek — dílna v zeleném domě v Ořechu · JIRO saku</title>
+    <meta name="description" content="Keramická dílna JIRO saku je v suterénu zeleného domu v Luční 235 v Ořechu — kde bývala garáž. Projdi bránou a rampou dolů, podívej se dovnitř a porovnej kresbu s fotkou." />
+    <meta name="theme-color" content="#6F8FC8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
+  </head>
+  <body class="p2 u2 dm2" data-stranka="domek-2">
+    <a class="preskocit" href="#prohlidka">Přeskočit na prohlídku dílny</a>
+    <Nebe />
+    <Hlavicka sber="klice" />
+
+    <main>
+      <Ulice sezona={sezona} />
+      <Prohlidka sezona={sezona} />
+      <Porovnani sezona={sezona} />
+      <Kudy sezona={sezona} />
+      <Rok />
+      <Vecer />
+    </main>
+
+    <Paticka poznamka="Domek 2 je návrh v novém vzhledu webu. Dům, zahrada i dílna jsou nakreslené podle skutečných fotek a kreslí se přímo v prohlížeči — vymyšlení jsou jen sousedé, parta a klíče." />
+    <KliceDialog />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/domek2/hlavni.ts";
+    </script>
+  </body>
+</html>

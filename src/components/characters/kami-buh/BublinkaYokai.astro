@@ -1,0 +1,60 @@
+---
+/*
+  Bublinka jako yōkai ve třech přehnaných podobách — kresby i běh jsou ve
+  scripts/bublinka-yokai:
+
+    v1  Ukradený vítr: čmajzla Fūdžinovi vak s větrem, průhledné pozadí
+    v2  Jóhen: miska tenmoku jako vesmír, 窯変 — „proměna v peci“
+    v3  Šódži: za papírovou stěnou táhne noční průvod strašidel
+
+  Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
+  sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
+  prázdná, než se načte skript, a bez skriptu zůstane hezký obrázek. Skript
+  ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná (by1-, by2-,
+  by3-), takže každá podoba smí být na stránce jen jednou.
+
+  Na stránce Marcel teď není — všechny tři se 7. 10. 2026 sundaly na přání.
+  Komponenta zůstává, kdyby se vracely: sekce s nimi stála za Kachlíkem
+  (nahoře v1 na 560 px, pod ní v2 a v3 vedle sebe jako u Cedulky).
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/bublinka-yokai/kresby.js";
+
+interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  v1: "Bublinka drží nad hlavou vak s větrem jako bůh větru Fūdžin, kolem krouží bludičky a vítr nese javorové listí",
+  v2: "Černá miska jóhen tenmoku na lakovém podstavci, v glazuře se třpytí modré skvrny jako vesmír a nad okrajem visí Bublinka",
+  v3: "Noc na verandě: za prosvícenou papírovou stěnou táhne stínový průvod strašidel, z děr v papíře koukají oči a před stěnou se vznáší Bublinka",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "by-staticky" });
+---
+<div class={`bublinka-yokai ${cls}`} data-bublinka-yokai={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/bublinka-yokai/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .bublinka-yokai {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .bublinka-yokai:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .by-staticky, .by-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .by-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

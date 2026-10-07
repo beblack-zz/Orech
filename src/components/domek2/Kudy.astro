@@ -1,0 +1,116 @@
+---
+/**
+ * Kudy k nám — Ořech z kopce v pozdním odpoledni. Stejná krajina jako
+ * na úvodu Party 2 (kopce, pole, posvátný ořech, louka a parta v trávě),
+ * jen místo vesnického stavení s kůlnou a kouřícím komínem stojí mezi
+ * sousedy zelený dům z Luční: štít do ulice, balkony, pod nimi okna
+ * dílny, brána a lampa. Pec je elektrická, takže z komína nic nejde.
+ *
+ * Vedle karta s adresou a tím, kudy se jde ke dveřím.
+ */
+import Orech from "../parta2/Orech.astro";
+import Louka from "../parta2/Louka.astro";
+import Kami from "../parta2/Kami.astro";
+import { chomac } from "../parta2/tvary";
+import { domek } from "./kresba/domek";
+import { kontakt, mapa } from "../../data/uvod2";
+import { kdy } from "../../data/dilna";
+import type { PostavaId } from "../../data/parta";
+import type { Sezona } from "../../data/uvod2";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+const skupina: { id: PostavaId; v: number; dole: number }[] = [
+  { id: "kachlik", v: 0.92, dole: 10 },
+  { id: "vazicka", v: 1.0, dole: 4 },
+  { id: "kapka", v: 0.86, dole: 14 },
+  { id: "pecinka", v: 1.16, dole: 2 },
+  { id: "hlinka", v: 0.95, dole: 8 },
+  { id: "stripek", v: 0.9, dole: 13 },
+  { id: "cedulka", v: 0.98, dole: 5 },
+  { id: "bublinka", v: 0.86, dole: 12 },
+  { id: "samotka", v: 1.06, dole: 3 },
+];
+const stromky: [number, number, number][] = [[980, 352, 34], [1024, 360, 26], [300, 384, 28], [340, 392, 20], [1480, 330, 24], [140, 300, 22]];
+const les = [[80, 238, 70, 22], [260, 214, 90, 24], [520, 188, 80, 20], [700, 196, 100, 24], [960, 196, 90, 22], [1180, 186, 110, 24], [1420, 182, 90, 20]];
+/** Sousedé v ulici: [x, y, šířka, barva zdi, barva střechy] */
+const sousede: [number, number, number, string, string][] = [
+  [606, 330, 70, "#EDE6D8", "#A94F37"],
+  [868, 328, 82, "#F0EEE8", "#5E6266"],
+  [944, 336, 64, "#E8DCC4", "#A94F37"],
+  [520, 344, 60, "#E9E2D4", "#7E3626"],
+];
+---
+<section class="kudy" id="kudy" data-hodina="16.8" data-sezona={sezona} aria-labelledby="kudy-nadpis">
+  <div class="kudy-krajina" aria-hidden="true">
+    <svg class="kudy-kopce" viewBox="0 0 1600 560" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="kudy-opar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color:var(--nebe-obzor)" stop-opacity="0" />
+          <stop offset="0.5" style="stop-color:var(--nebe-obzor)" stop-opacity="0.5" />
+          <stop offset="1" style="stop-color:var(--nebe-obzor)" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <path d="M0 250 C150 205 300 215 450 190 C600 165 760 205 920 185 C1080 165 1260 200 1420 180 C1500 170 1560 175 1600 172 L1600 560 L0 560 Z" style="fill:var(--kopec-daleko)" />
+      <g style="fill:var(--kopec-blizko)" opacity="0.55">
+        {les.map(([x, y, rx, ry], i) => <path d={chomac(x, y, rx, ry, 12, 1700 + i, 0.5, 0.7)} />)}
+      </g>
+      <rect x="0" y="170" width="1600" height="220" fill="url(#kudy-opar)" />
+      <path d="M0 330 C200 290 380 300 560 280 C760 258 940 300 1140 275 C1320 255 1470 280 1600 268 L1600 560 L0 560 Z" style="fill:var(--kopec-blizko)" />
+      <path d="M0 420 C220 372 470 392 720 372 C980 350 1240 392 1600 362 L1600 560 L0 560 Z" fill="#87A85C" />
+      <path d="M180 420 C300 400 420 404 520 396 L560 448 C440 456 300 462 200 470 Z" fill="#E2C35A" opacity="0.9" />
+      <path d="M1120 380 C1250 372 1380 368 1480 360 L1520 404 C1400 412 1260 418 1150 424 Z" fill="#A98A62" />
+      <g stroke="#8E7050" stroke-width="2" opacity="0.6"><path d="M1150 392 L1490 372 M1155 402 L1500 382 M1160 412 L1508 392" /></g>
+      {/* Ulice s domky — ten zelený s balkony je náš */}
+      <path d="M470 404 C620 396 800 392 1010 388" stroke="#C9C3B5" stroke-width="10" stroke-linecap="round" fill="none" />
+      {sousede.map(([x, y, w, zed, strecha]) => (
+        <g>
+          <rect x={x} y={y} width={w} height={w * 0.62} fill={zed} />
+          <path d={`M${x - 6} ${y} L${x + w / 2} ${y - w * 0.42} L${x + w + 6} ${y} Z`} fill={strecha} />
+          <rect x={x + w * 0.2} y={y + w * 0.16} width={w * 0.18} height={w * 0.18} fill="#A9C2D2" />
+          <rect x={x + w * 0.6} y={y + w * 0.16} width={w * 0.18} height={w * 0.18} fill="#A9C2D2" />
+        </g>
+      ))}
+      <svg x="664" y="232" width="196" height={(196 * 320) / 480} viewBox="0 0 480 320" class="kudy-domek" set:html={domek()} />
+      {stromky.map(([x, y, s], i) => (
+        <g>
+          <ellipse cx={x + s * 0.3} cy={y + s * 0.95} rx={s * 0.9} ry={s * 0.18} fill="#2E3B25" opacity="0.25" />
+          <path d={`M${x} ${y + s} L${x} ${y + s * 0.3}`} stroke="#4E4238" stroke-width={s * 0.16} />
+          <path d={chomac(x, y, s * 0.7, s * 0.8, 9, 1760 + i, 0.8, 0.7)} fill="#4E7339" />
+          <path d={chomac(x - s * 0.15, y - s * 0.2, s * 0.42, s * 0.45, 8, 1780 + i, 1, 0.7)} fill="#6E9A4B" />
+        </g>
+      ))}
+      {/* Šipka „tady“ nad domem */}
+      <g class="kudy-tady">
+        <path d="M762 214 C770 196 794 192 800 206" stroke="#C4432B" stroke-width="3" fill="none" stroke-linecap="round" />
+        <path d="M762 214 L756 202 M762 214 L774 208" stroke="#C4432B" stroke-width="3" stroke-linecap="round" />
+        <text x="806" y="200" font-size="26" fill="#C4432B" font-family="Caveat, cursive" font-weight="600">tady</text>
+      </g>
+    </svg>
+    <Orech class="kudy-orech" />
+    <Louka class="kudy-louka" seed={6} />
+  </div>
+
+  <div class="kudy-parta">
+    {skupina.map((k) => <Kami id={k.id} class="uvod-kami kudy-kami" style={`--v:${k.v};--dole:${k.dole}px`} />)}
+  </div>
+
+  <div class="kudy-karta papir">
+    <p class="stitek"><span lang="ja">道順</span> · kudy k nám</p>
+    <h2 id="kudy-nadpis" class="nadpis-2">Zelený dům se štítem do ulice.</h2>
+    <p class="kudy-adresa">{kontakt.ulice} · {kontakt.psc} {kontakt.obec}</p>
+    <ol class="kudy-kroky">
+      <li>V Luční hledej zelený dům se dvěma balkony nad sebou a s lampou, na které visí amplion.</li>
+      <li>Posuvná pozinkovaná brána bývá v otevírací době otevřená — každé {kdy.dny} {kdy.hodiny}.</li>
+      <li>Sejdi po rampě dolů. Dveře do dílny jsou prosklené, vlevo od velkých oken.</li>
+    </ol>
+    <div class="kudy-akce">
+      <a class="tlacitko" href={mapa} target="_blank" rel="noopener">Ukázat na mapě</a>
+      <a class="tlacitko tlacitko-obrys" href="/rezervace">Zamluvit hodinu</a>
+    </div>
+    <p class="kudy-pozn">Posvátný ořech přišel z Party 2 — dílna je přece v Ořechu. Za domem doopravdy roste borovice a na trávníku mladá sakura.</p>
+  </div>
+</section>

@@ -1,0 +1,55 @@
+---
+/*
+  Kachlík ve třech přehnaných podobách — kresby i běh jsou ve
+  scripts/kachlik-rovina:
+
+    v1  Svatozář pravého úhlu: šestiruký jako Kannon, nářadí na rovinu, čtvercová svatozář
+    v2  Karesansui: ranní zahrada mezi sloupy, hrabe štěrk do rovných čar a čtvercových kruhů
+    v3  Kachlová kamna: zimní roubenka v řezu, staví kamna, zatopí — a zase je rozebere
+
+  Stejně jako u Pecinky s ohněm je kresba čistý generátor bez DOM, takže
+  první snímek se vykreslí už při sestavení stránky a vloží se sem jako
+  obyčejné SVG. Skript ho pak nahradí živými vrstvami. Id ve filtrech
+  jsou pevná, takže každá podoba smí být na stránce jen jednou.
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/kachlik-rovina/kresby.js";
+
+interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  v1: "Šestiruký Kachlík s nářadím na rovinu stojí na stupních z kachlí, za zády čtvercovou zlatou svatozář",
+  v2: "Kachlík v klobouku hrabe štěrk v zen zahradě do rovných čar, viděno z temné místnosti mezi sloupy",
+  v3: "Kachlík v zimní roubence staví kachlová kamna, na lavici sedí kočka, venku sněží",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "kr-staticky" });
+---
+<div class={`kachlik-rovina ${cls}`} data-kachlik-rovina={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/kachlik-rovina/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .kachlik-rovina {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .kachlik-rovina:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .kr-staticky, .kr-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .kr-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

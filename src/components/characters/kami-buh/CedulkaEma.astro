@@ -1,0 +1,62 @@
+---
+/*
+  Cedulka jako ema ve třech přehnaných podobách — kresby i běh jsou ve
+  scripts/cedulka-ema:
+
+    v1  Kůň na rubu: visí na kōhaku šňůře, za ní lakovaný kotouč a osm
+        malých em s partou; po kliknutí se otočí a na rubu cválá kůň
+    v2  Rydlo: odpolední dílna, Cedulka ryje jména do den misek a ví,
+        čí je která (najetím na misku na polici)
+    v3  Inari: tunel rumělkových bran, lišácké emy s domalovanými obličeji
+        a Cedulka mezi nimi; kliknutím si nasadí lišáckou masku
+
+  v1 je bez pozadí jako první Pecinka s ohněm, v2 a v3 jsou celé scény
+  jako její raku. Kresba je čistý generátor bez DOM, takže první snímek se
+  vykreslí už při sestavení stránky a vloží se sem jako obyčejné SVG;
+  skript ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná, takže
+  každá podoba smí být na stránce jen jednou.
+
+  Jména se píšou písmem Caveat a znaky na bráně písmem Yuji Syuku — obojí
+  musí načíst stránka (Marcel to dělá).
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/cedulka-ema/kresby.js";
+
+interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  v1: "Cedulka visí na červenobílé šňůře před rumělkovým kotoučem, kolem ní malé destičky s celou partou; na rubu má namalovaného koně",
+  v2: "Cedulka v odpolední dílně ryje do dna misky jméno a staví misky na polici",
+  v3: "Cedulka visí mezi lišáckými destičkami ve svatyni Inari, za nimi vede tunel rumělkových bran",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "ce-staticky" });
+---
+<div class={`cedulka-ema ${cls}`} data-cedulka-ema={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/cedulka-ema/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .cedulka-ema {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .cedulka-ema:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .ce-staticky, .ce-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .ce-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

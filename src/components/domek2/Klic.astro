@@ -1,0 +1,40 @@
+---
+/**
+ * Klíč s barevnou čepičkou — sbírka Domku 2. Leží schovaný v kresbách
+ * (u zámku brány, v květináči, pod truhlíkem…) a kliknutím se najde
+ * (obecná sbírka scripts/parta2/sbirka.ts, klíč domek2-klice).
+ *
+ * S `ukazka` je to jen obrázek — do klíčovnice v dialogu.
+ */
+import { klice } from "../../data/domek2";
+import type { KlicId } from "../../data/domek2";
+
+interface Props {
+  id: KlicId;
+  class?: string;
+  style?: string;
+  ukazka?: boolean;
+  /** Natočení v kresbě — klíče neleží rovně */
+  uhel?: number;
+}
+const { id, class: cls = "", style, ukazka = false, uhel = 0 } = Astro.props;
+const k = klice.find((x) => x.id === id)!;
+const stary = id === "garaz";
+const Tag = ukazka ? "span" : "button";
+const atributy = ukazka
+  ? { class: `dm-klic-obr ${cls}` }
+  : { type: "button", class: `dm-klic ${cls}`, "data-sbirka-cil": id, style, "aria-label": `Klíč ${k.nazev.toLowerCase()}` };
+---
+<Tag {...atributy}>
+  <svg viewBox="0 0 64 28" aria-hidden="true" style={uhel ? `transform:rotate(${uhel}deg)` : undefined}>
+    <ellipse cx="34" cy="25" rx="26" ry="2.4" fill="#2B2420" opacity="0.18" />
+    {/* Čepička: plastová, s očkem na kroužek */}
+    <path d="M4 6 Q4 2 9 2 L19 2 Q24 2 24 7 L24 19 Q24 24 19 24 L9 24 Q4 24 4 19 Z" fill={k.cepicka} />
+    <path d="M7 6 Q7 4.5 9.5 4.5 L13 4.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.5" />
+    <circle cx="10" cy="13" r="3.2" fill="#F7F1E3" />
+    {/* Dřík a zuby */}
+    <path d={stary ? "M24 10 H58 V16 H54 V20 H50 V16 H44 V19 H40 V16 H24 Z" : "M24 10.5 H60 L62 13 L60 15.5 H56 L54 19 L51 15.5 H47 L45 18.5 L42 15.5 H24 Z"} fill={stary ? "#9C7A52" : "#C9CFD3"} />
+    <path d="M26 12 H58" stroke={stary ? "#C49A6C" : "#EEF2F4"} stroke-width="1.4" opacity="0.8" />
+    {stary && <path d="M30 13 h3 M38 12 h2 M48 13 h3" stroke="#6E4E2E" stroke-width="1.6" opacity="0.6" />}
+  </svg>
+</Tag>

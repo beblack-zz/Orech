@@ -1,0 +1,265 @@
+---
+/**
+ * Prohlídka dílny v suterénu. Vlevo karty se zastávkami, vpravo dílna za
+ * velkými okny (okna jsou vyjmutá, zůstal bílý rám) a kamera v ní jezdí
+ * od zastávky k zastávce — stejně jako prohlídka na Úvodu 2, jen místo
+ * domečku s krovem je tu skutečná místnost v perspektivě z dvorku
+ * (components/domek2/kresba/dilna.ts). Záběry kamery se počítají ze
+ * stejných metrů jako kresba.
+ *
+ * U každé zastávky je fotka toho místa: tohle je kresba, tohle doopravdy.
+ * Do kresby se dá klikat — kruhy, hrouda, pec, kusy na regálu, dřez,
+ * kávovar, lampa, dveře, knihy, glazury. Obsluha: scripts/domek2/prohlidka.ts.
+ */
+import { Image } from "astro:assets";
+import Kami from "../parta2/Kami.astro";
+import Klic from "./Klic.astro";
+import Postavicka from "../characters/Postavicka.astro";
+import { dilna, DILNA_W, DILNA_H } from "./kresba/dilna";
+import { zastavky } from "../../data/domek2";
+import { kurzy } from "../../data/kurzy";
+import { otazky, denVTydnu, glazury } from "../../data/kurzy2";
+import { produkty } from "../../data/obchod";
+import { parta } from "../../data/parta";
+import { kdy } from "../../data/dilna";
+import { oDilne, kontakt } from "../../data/uvod2";
+import type { Sezona } from "../../data/uvod2";
+import type { PostavaId } from "../../data/parta";
+import foto6675 from "../../../images/Dilna/6675.jpg";
+import foto6677 from "../../../images/Dilna/6677.jpg";
+import foto6679 from "../../../images/Dilna/6679.jpg";
+import foto6685 from "../../../images/Dilna/6685.jpg";
+import fotoDilna from "../../../fotoorech/fotodilna.jpg";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+const fotky: Record<string, ImageMetadata> = { "6675": foto6675, "6677": foto6677, "6679": foto6679, "6685": foto6685, fotodilna: fotoDilna };
+const d = dilna("prohlidka", "dp");
+const W = DILNA_W;
+const H = DILNA_H;
+const misto = (b: [number, number, number, number]) =>
+  `left:${((b[0] / W) * 100).toFixed(3)}%;top:${((b[1] / H) * 100).toFixed(3)}%;width:${(((b[2] - b[0]) / W) * 100).toFixed(3)}%;height:${(((b[3] - b[1]) / H) * 100).toFixed(3)}%`;
+/** Kami jsou o kus větší než „podle metrů“ — vzadu by jinak byli k nepřehlédnutí jen pod lupou */
+const postava = (id: string, nasobek = 1.45) => {
+  const k = d.kami[id];
+  const w = k.w * nasobek;
+  return `left:${(((k.x - w / 2) / W) * 100).toFixed(3)}%;bottom:${(((H - k.pata - w * 0.12) / H) * 100).toFixed(3)}%;width:${((w / W) * 100).toFixed(3)}%`;
+};
+const kamera = (id: string) => (d.kamery[id] ?? d.kamery.prehled).join(",");
+
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+const otazka = (q: string) => otazky.find((o) => o.q === q);
+const pecinka = parta.find((p) => p.id === "pecinka");
+const k0 = kurzy[0];
+const datum = (dt: Date) => `${denVTydnu(dt)} ${dt.getDate()}. ${dt.getMonth() + 1}.`;
+const kusy = produkty.slice(0, 4);
+const glazura = (nazev: string) => glazury.find((g) => g.nazev === nazev.toLowerCase());
+const mail = (predmet: string, telo: string) => `mailto:${kontakt.email}?subject=${encodeURIComponent(predmet)}&body=${encodeURIComponent(telo)}`;
+const chatKafe = [otazka("Co si mám vzít s sebou?"), otazka("Kolik nás bude?")];
+const z = Object.fromEntries(zastavky.map((x) => [x.id, x]));
+const kamiVKresbe: PostavaId[] = ["vazicka", "hlinka", "pecinka", "stripek", "cedulka", "kapka", "kachlik"];
+---
+<section class="prohlidka dm-prohlidka" id="prohlidka" data-sezona={sezona} aria-labelledby="prohlidka-nadpis">
+  <div class="prohlidka-mriz">
+    <div class="prohlidka-scena">
+      <div class="prohlidka-ram dm-ram" role="group" aria-label="Dílna v suterénu, pohled z dvorku skrz okna. Na kruhy, hroudu, pec, kusy na regálu, dřez, kávovar, lampu, dveře, knihy a glazury se dá kliknout.">
+        <div class="prohlidka-okno dm-okno">
+          <div class="prohlidka-svet">
+            <div class="rez dm-rez" data-rez="prohlidka">
+              <svg class="rez-kresba" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={d.svg} />
+
+              <div class="rez-mista">
+                {/* Zvýraznění „1 pec · 2 stoly · 3 kruhy“ z úvodní karty */}
+                <span class="rez-misto rez-ukaz" data-ukaz-v="pec" style={misto(d.mista.pec.box)} aria-hidden="true"></span>
+                <span class="rez-misto rez-ukaz" data-ukaz-v="stoly" style={misto([500, 470, 1060, 690])} aria-hidden="true"></span>
+                {[0, 1, 2].map((i) => <span class="rez-misto rez-ukaz" data-ukaz-v="kruhy" style={misto(d.mista[`kruh${i}`].box)} aria-hidden="true"></span>)}
+
+                {[0, 1, 2].map((i) => (
+                  <button type="button" class="rez-misto" data-akce="kruh" data-kruh={i} data-stanice="kruhy" style={misto(d.mista[`kruh${i}`].box)} aria-label={`Roztočit ${i === 2 ? "elektrický" : `${i + 1}. kopací`} kruh`}></button>
+                ))}
+                <button type="button" class="rez-misto" data-akce="hrouda" data-stanice="stoly" style={misto(d.mista.hrouda.box)} aria-label="Plácnout do hroudy na stole"></button>
+                <button type="button" class="rez-misto" data-akce="pec" data-stanice="pec" style={misto(d.mista.pec.box)} aria-label="Pec"></button>
+                {kusy.map((k, i) => (
+                  <button type="button" class="rez-misto" data-akce="kus" data-kus={i} data-stanice="regal" style={misto(d.mista[`kus${i}`].box)} aria-label={`Vzít z regálu: ${k.name}`}></button>
+                ))}
+                <button type="button" class="rez-misto" data-akce="voda" data-stanice="voda" style={misto(d.mista.voda.box)} aria-label="Pustit vodu v dřezu"></button>
+                <button type="button" class="rez-misto" data-akce="kafe" data-stanice="kafe" style={misto(d.mista.kafe.box)} aria-label="Postavit na kafe"></button>
+                <button type="button" class="rez-misto" data-akce="glazury" data-stanice="kafe" style={misto(d.mista.glazury.box)} aria-label="Skříňka s glazurami"></button>
+                <button type="button" class="rez-misto" data-akce="knihy" data-stanice="kafe" style={misto(d.mista.knihy.box)} aria-label="Knihovnička"></button>
+                <button type="button" class="rez-misto" data-akce="dvere" data-stanice="kafe" style={misto(d.mista.dvere.box)} aria-label="Šedé dveře do domu"></button>
+                <button type="button" class="rez-misto" data-akce="lampa" data-stanice="regal" style={misto(d.mista.lampa.box)} aria-label="Rozsvítit stojací lampu"></button>
+                {kusy.map((k, i) => (
+                  <p class="kus-cedulka" data-cedulka={i} style={`left:${((d.mista[`kus${i}`].box[0] / W) * 100 - 6).toFixed(3)}%;top:${(((d.mista[`kus${i}`].box[1] - 36) / H) * 100).toFixed(3)}%`} aria-hidden="true">
+                    <b>{k.name}</b><span>{k.price}</span>
+                  </p>
+                ))}
+              </div>
+
+              <div class="rez-parta">
+                {kamiVKresbe.map((id) => <Kami id={id} class={`rez-kami rez-kami-${id}`} style={postava(id)} />)}
+                <Kami id="bublinka" class="rez-kami rez-bublinka" style={postava("bublinka", 1.7)} />
+                <Kami id="samotka" class="rez-kami rez-samotka" style={postava("samotka", 1.5)} />
+                <Klic id="pec" class="rez-klic" style={misto(d.mista.klicPec.box)} uhel={-12} />
+                <Klic id="skrinka" class="rez-klic" style={misto(d.mista.klicSkrinka.box)} uhel={8} />
+                <Klic id="dvere" class="rez-klic" style={misto(d.mista.klicDvere.box)} uhel={-4} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <nav class="prohlidka-mapa" aria-label="Zastávky prohlídky">
+        {zastavky.map((m) => (
+          <a href={`#stanice-${m.id}`} data-mapa={m.id}><span lang="ja" aria-hidden="true">{m.znak}</span>{m.nazev}</a>
+        ))}
+      </nav>
+    </div>
+
+    <div class="prohlidka-karty">
+      {/* ——— Přehled ——— */}
+      <article class="stanice stanice-uvod papir" id="stanice-prehled" data-stanice="prehled" data-hodina="9.2" data-kamera={kamera("prehled")}>
+        <p class="stitek"><span lang="ja">工房見学</span> · prohlídka dílny</p>
+        <h2 id="prohlidka-nadpis" class="nadpis-2">{z.prehled.titulek}</h2>
+        <p class="stanice-perex">{oDilne.zacatek}</p>
+        <p>{z.prehled.text}</p>
+        <ul class="inventar" aria-label="Co v dílně je">
+          <li><a href="#stanice-pec" data-ukaz="pec"><b>1</b> pec</a></li>
+          <li><a href="#stanice-stoly" data-ukaz="stoly"><b>2</b> stoly</a></li>
+          <li><a href="#stanice-kruhy" data-ukaz="kruhy"><b>3</b> kruhy</a></li>
+        </ul>
+        <p class="stanice-pokyn">Projdi dílnu od oken dozadu. U každé zastávky je fotka — tohle je kresba, tohle doopravdy.</p>
+        <figure class="dm-polaroid">
+          <Image src={fotky[z.prehled.foto.soubor]} alt={z.prehled.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.prehled.foto.kde}`} />
+          <figcaption>{z.prehled.foto.popis}</figcaption>
+        </figure>
+      </article>
+
+      {/* ——— Kruhy ——— */}
+      <article class="stanice papir" id="stanice-kruhy" data-stanice="kruhy" data-hodina="9.9" data-kamera={kamera("kruhy")} aria-labelledby="kruhy-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.kruhy.znak}</span> {z.kruhy.nazev}</p>
+        <h3 class="stanice-nazev" id="kruhy-nadpis">{z.kruhy.titulek}</h3>
+        <p class="stanice-meta">{z.kruhy.meta}</p>
+        <p>{z.kruhy.text}</p>
+        {k0 && (
+          <p class="stanice-nejblizsi">Nejbližší kurz u kruhu: <a href="/kurzy-2#hledac"><b>{k0.title}</b>, {datum(k0.date)}</a>, vede {k0.lektor}.</p>
+        )}
+        <div class="stanice-akce">
+          <button type="button" class="tlacitko tlacitko-maly" data-akce="kruh" data-kruh="0">Roztočit kopací kruh</button>
+          <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-akce="kruh" data-kruh="2">A elektrický</button>
+        </div>
+        <figure class="dm-polaroid dm-polaroid-vpravo">
+          <Image src={fotky[z.kruhy.foto.soubor]} alt={z.kruhy.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.kruhy.foto.kde}`} />
+          <figcaption>{z.kruhy.foto.popis}</figcaption>
+        </figure>
+      </article>
+
+      {/* ——— Stoly ——— */}
+      <article class="stanice papir" id="stanice-stoly" data-stanice="stoly" data-hodina="10.7" data-kamera={kamera("stoly")} aria-labelledby="stoly-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.stoly.znak}</span> {z.stoly.nazev}</p>
+        <h3 class="stanice-nazev" id="stoly-nadpis">{z.stoly.titulek}</h3>
+        <p class="stanice-meta">{z.stoly.meta}</p>
+        <p>{z.stoly.text}</p>
+        <p class="stanice-nejblizsi">Hodina v dílně: <b>{kdy.cena}</b> {kdy.zaCo}, každé {kdy.dny} {kdy.hodiny}. Lektor je v ceně — a když ho nepotřebuješ, je to open studio.</p>
+        <div class="stanice-akce">
+          <button type="button" class="tlacitko tlacitko-maly" data-akce="hrouda">Plácnout do hroudy</button>
+          <a class="tlacitko tlacitko-maly tlacitko-obrys" href="/rezervace">Vybrat hodinu</a>
+        </div>
+        <figure class="dm-polaroid">
+          <Image src={fotky[z.stoly.foto.soubor]} alt={z.stoly.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.stoly.foto.kde}`} />
+          <figcaption>{z.stoly.foto.popis}</figcaption>
+        </figure>
+      </article>
+
+      {/* ——— Pec ——— */}
+      <article class="stanice papir" id="stanice-pec" data-stanice="pec" data-hodina="11.5" data-kamera={kamera("pec")} aria-labelledby="pec-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.pec.znak}</span> {z.pec.nazev}</p>
+        <h3 class="stanice-nazev" id="pec-nadpis">{z.pec.titulek}</h3>
+        <p class="stanice-meta">{pecinka ? `Pecinka · ${pecinka.hlida}` : z.pec.meta}</p>
+        <p>{z.pec.text}</p>
+        <div class="pec-ovladani">
+          <p class="pec-stav" aria-live="polite">Pec je studená.</p>
+          <div class="pec-teplomer" aria-hidden="true"><span class="pec-sloupec"></span></div>
+          <button type="button" class="tlacitko tlacitko-maly pec-tlacitko" data-akce="pec">Zapálit pec</button>
+        </div>
+        <a class="stanice-odkaz" href="/parta-2#pecinka">Co se v peci děje, stupeň po stupni <span aria-hidden="true">→</span></a>
+        <figure class="dm-polaroid dm-polaroid-vpravo">
+          <Image src={fotky[z.pec.foto.soubor]} alt={z.pec.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.pec.foto.kde}`} />
+          <figcaption>{z.pec.foto.popis}</figcaption>
+        </figure>
+      </article>
+
+      {/* ——— Regál ——— */}
+      <article class="stanice papir" id="stanice-regal" data-stanice="regal" data-hodina="12.3" data-kamera={kamera("regal")} aria-labelledby="regal-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.regal.znak}</span> {z.regal.nazev}</p>
+        <h3 class="stanice-nazev" id="regal-nadpis">{z.regal.titulek}</h3>
+        <p class="stanice-meta">{z.regal.meta}</p>
+        <p>{z.regal.text}</p>
+        <ul class="kusy">
+          {kusy.map((k, i) => {
+            const g = glazura(k.glaze);
+            return (
+              <li class="kus-radek" data-kus-radek={i}>
+                <button type="button" class="kus-vzit" data-akce="kus" data-kus={i} aria-pressed="false">
+                  <span class="kus-barva" style={g ? `--g1:${g.svetlo};--g2:${g.stred};--g3:${g.stin}` : undefined} aria-hidden="true"></span>
+                  <span class="kus-nazev">{k.name}</span>
+                  <span class="kus-glazura">{k.glaze}</span>
+                  <span class="kus-cena">{k.price}</span>
+                </button>
+                <a class="kus-mail" href={mail(`Obchod: ${k.name}`, `Ahoj, mám zájem o ${k.name} (${k.glaze}, ${k.price}). Je ještě k mání?`)} aria-label={`Napsat si o ${k.name}`}>Napsat si o něj</a>
+              </li>
+            );
+          })}
+        </ul>
+        <a class="stanice-odkaz" href="/obchod-2">Celý obchod <span aria-hidden="true">→</span></a>
+        <figure class="dm-polaroid">
+          <Image src={fotky[z.regal.foto.soubor]} alt={z.regal.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.regal.foto.kde}`} />
+          <figcaption>{z.regal.foto.popis}</figcaption>
+        </figure>
+      </article>
+
+      {/* ——— Dřez ——— */}
+      <article class="stanice papir" id="stanice-voda" data-stanice="voda" data-hodina="13.1" data-kamera={kamera("voda")} aria-labelledby="voda-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.voda.znak}</span> {z.voda.nazev}</p>
+        <h3 class="stanice-nazev" id="voda-nadpis">{z.voda.titulek}</h3>
+        <p class="stanice-meta">{z.voda.meta}</p>
+        <p>{z.voda.text}</p>
+        <div class="stanice-akce">
+          <button type="button" class="tlacitko tlacitko-maly" data-akce="voda">Pustit vodu</button>
+        </div>
+        <figure class="dm-polaroid dm-polaroid-vpravo">
+          <Image src={fotky[z.voda.foto.soubor]} alt={z.voda.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.voda.foto.kde}`} />
+          <figcaption>{z.voda.foto.popis}</figcaption>
+        </figure>
+      </article>
+
+      {/* ——— Kafe ——— */}
+      <article class="stanice papir" id="stanice-kafe" data-stanice="kafe" data-hodina="13.9" data-kamera={kamera("kafe")} aria-labelledby="kafe-nadpis">
+        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.kafe.znak}</span> {z.kafe.nazev}</p>
+        <h3 class="stanice-nazev" id="kafe-nadpis">{z.kafe.titulek}</h3>
+        <p class="stanice-meta">{oDilne.kafe}</p>
+        <p>{z.kafe.text}</p>
+        <div class="stanice-chat">
+          {chatKafe.map((o) => o && (
+            <div class="chat-radek">
+              <p class="chat-q">{o.q}</p>
+              <div class="chat-a">
+                <span class="chat-a-kami" aria-hidden="true"><Postavicka id={o.kdo} size={52} varianta="kami" /></span>
+                <p><b>{jmeno(o.kdo)}</b>{o.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="stanice-akce">
+          <button type="button" class="tlacitko tlacitko-maly" data-akce="kafe">Postavit na kafe</button>
+          <a class="tlacitko tlacitko-maly tlacitko-obrys" href="#kudy">Kudy k nám</a>
+        </div>
+        <figure class="dm-polaroid">
+          <Image src={fotky[z.kafe.foto.soubor]} alt={z.kafe.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.kafe.foto.kde}`} />
+          <figcaption>{z.kafe.foto.popis}</figcaption>
+        </figure>
+      </article>
+    </div>
+  </div>
+</section>

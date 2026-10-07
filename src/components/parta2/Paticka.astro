@@ -9,7 +9,7 @@
  * Poznámku dole si stránka může poslat vlastní.
  */
 import Enso from "../navrhy-loga/Enso.astro";
-import "../../styles/znacka.css";
+import ZnackaStetec from "../znacka/ZnackaStetec.astro";
 import { kontakt, mapa } from "../../data/uvod2";
 import { oteviraciDoba, vrstvy } from "../../data/paticka";
 import { koreny, puda, vrstva, nalez, lopatka } from "./podzemi";
@@ -32,7 +32,7 @@ const rok = new Date().getFullYear();
     <div class="pata-obsah">
       <div class="pata-info">
         <div>
-          <p class="pata-znacka"><Enso size={54} soumrak tema="tmave" /> <span class="znacka">JIRO <em>saku</em></span></p>
+          <p class="pata-znacka"><Enso size={54} soumrak tema="tmave" /> <ZnackaStetec vyska={26} tema="tmave" /></p>
           <p class="pata-podtitul">Keramická dílna v Ořechu.</p>
         </div>
         <div>

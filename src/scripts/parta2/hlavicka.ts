@@ -1,6 +1,7 @@
 /**
  * Hlavička nového vzhledu: mobilní menu, zvonkohra, kterou se zvuk ztlumí,
- * a tah štětce po okraji bubliny (tah.ts). Sdílí ji všechny stránky nového
+ * přepínač den / noc (bublina v noční modré) a tah štětce po okraji
+ * bubliny (tah.ts). Sdílí ji všechny stránky nového
  * vzhledu.
  *
  * Při přechodu mezi stránkami (prechody.ts) se tlačítko se zvonkohrou
@@ -14,14 +15,22 @@ import { nacti, uloz } from "./stav";
 import { trvale } from "./prechody";
 
 const KLIC_ZTLUMENO = "zvuk-ztlumeno";
+/** Den, nebo noc v hlavičce — čte ho i skript hned za hlavičkou (Hlavicka.astro), ať noc neproblikne */
+const KLIC_TEMA = "hlava-tema";
 /** V téhle záložce už zvuk jednou hrál */
 const KLIC_HRALO = "zvuk-hralo";
 let zvukHotovy = false;
 /** Zvonkohra žije přes všechny stránky — tah na každé nové o ni zavadí */
 let zk: ReturnType<typeof initZvonkohra> | null = null;
 
+/* Nová hlavička po přechodu dostane noc dřív, než se poprvé vykreslí */
+document.addEventListener("astro:after-swap", () => {
+  if (nacti(KLIC_TEMA, "den") === "noc") document.querySelector(".hlava")?.classList.add("je-noc");
+});
+
 export function hlavicka() {
   initMenu();
+  initTema();
   if (!zvukHotovy) {
     zvukHotovy = true;
     trvale(zvonkohraAZvuk);
@@ -42,6 +51,25 @@ function initMenu() {
   menu?.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => nastavMenu(false)));
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") nastavMenu(false);
+  });
+}
+
+function initTema() {
+  const hlava = document.querySelector<HTMLElement>(".hlava");
+  const tlacitko = document.querySelector<HTMLButtonElement>(".hlava-tema");
+  if (!hlava || !tlacitko) return;
+  const ukaz = () => {
+    const noc = hlava.classList.contains("je-noc");
+    tlacitko.setAttribute("aria-pressed", String(noc));
+    tlacitko.setAttribute("aria-label", noc ? "Denní hlavička" : "Noční hlavička");
+    tlacitko.title = noc ? "Denní hlavička" : "Noční hlavička";
+  };
+  hlava.classList.toggle("je-noc", nacti(KLIC_TEMA, "den") === "noc");
+  ukaz();
+  tlacitko.addEventListener("click", () => {
+    const noc = hlava.classList.toggle("je-noc");
+    uloz(KLIC_TEMA, noc ? "noc" : "den");
+    ukaz();
   });
 }
 

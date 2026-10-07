@@ -7,10 +7,12 @@
  * sbírka schovaných věcí (na Partě omamori s kami, na Kurzech bedýnka
  * s nářadím, na Úvodu 2 sešit razítek, v O nás 2 zlato na kintsugi,
  * na archivní /rezervace-ema přání party na destičkách ema, v Dílně
- * deska se zkouškami glazur; Rezervace sbírku nemá) a zvonkohra — visí
- * z tlačítka, přečnívá přes spodní okraj pruhu a kliknutím se jí zvuk ztlumí.
+ * deska se zkouškami glazur, na Domku 2 kroužek s klíči; Rezervace sbírku
+ * nemá), přepínač den / noc,
+ * který přebarví bublinu do noční modré, a zvonkohra — visí z tlačítka,
+ * přečnívá přes spodní okraj pruhu a kliknutím se jí zvuk ztlumí.
  *
- * Sbírky v O nás 2, Dílně a na /rezervace-ema obsluhuje obecný
+ * Sbírky v O nás 2, Dílně, Domku 2 a na /rezervace-ema obsluhuje obecný
  * scripts/parta2/sbirka.ts — proto mají tlačítka data-sbirka-tlacitko
  * a počty data-sbirka-pocet.
  */
@@ -18,16 +20,18 @@ import { razitka } from "../../data/uvod2";
 import { zlato } from "../../data/onas2";
 import { prani } from "../../data/rezervace";
 import { zkousky } from "../../data/dilna";
+import { klice } from "../../data/domek2";
 import HlavickaEnso from "./HlavickaEnso.astro";
+import HlavickaNebe from "./HlavickaNebe.astro";
 import Zvonkohra from "./Zvonkohra.astro";
 import { zvyrazneni } from "../../scripts/parta2/tah-kresba";
 import { noveId } from "../navrhy-loga/sdilene";
-import "../../styles/znacka.css";
+import ZnackaStetec from "../znacka/ZnackaStetec.astro";
 import RezervaceKalendar from "./RezervaceKalendar.astro";
 
 interface Props {
   /** zadny — stránka bez sbírky */
-  sber?: "omamori" | "naradi" | "razitka" | "zlato" | "ema" | "zkousky" | "zadny";
+  sber?: "omamori" | "naradi" | "razitka" | "zlato" | "ema" | "zkousky" | "klice" | "zadny";
 }
 const { sber = "omamori" } = Astro.props;
 /** `skrtnuto` je pracovní značka — položka je na odpis, ale zatím visí v menu (jako v Header.astro). */
@@ -39,6 +43,7 @@ const odkazy: { href: string; label: string; skrtnuto?: boolean }[] = [
   { href: "/obchod-2", label: "Obchod 2" },
   { href: "/parta-2", label: "Parta 2" },
   { href: "/o-nas-2", label: "O nás 2" },
+  { href: "/domek-2", label: "Domek 2" },
   { href: "/marcel", label: "Marcel", skrtnuto: true },
 ];
 /** Spáry misky v ikoně zlata — kolik jich je, tolik šupinek se hledá */
@@ -52,12 +57,14 @@ const zv = zvyrazneni();
 const zvId = noveId("hlava-stranka");
 ---
 <header class="hlava" transition:name="hlava">
+  {/* Obláčky a hvězdy — jen v noční hlavičce */}
+  <HlavickaNebe />
   {/* Tah štětce po okraji bubliny — kreslí ho skript podle šířky pruhu */}
   <svg class="hlava-tah" aria-hidden="true" focusable="false"></svg>
 
   <a href="/" class="hlava-znacka" aria-label="JIRO saku — úvod">
     <HlavickaEnso />
-    <span class="znacka">JIRO <em>saku</em></span>
+    <ZnackaStetec vyska={19} />
   </a>
 
   <nav class="hlava-nav" aria-label="Hlavní navigace">
@@ -101,6 +108,20 @@ const zvId = noveId("hlava-stranka");
         </g>
       </svg>
       <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{zlato.length}</span>
+    </button>
+    ) : sber === "klice" ? (
+    <button type="button" class="sbirka-tlacitko klice-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Klíčovnice">
+      {/* Kroužek s klíči: každý nalezený klíč na něm přibude se svou barevnou čepičkou */}
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        {klice.map((k, i) => (
+          <g data-krouzek-klic={k.id} transform={`rotate(${25 + i * 22} 16 13)`}>
+            <rect x="22" y="11" width="6" height="4.4" rx="1.6" fill={k.cepicka} />
+            <path d="M28 13.2 H36 M33 13.2 V15.4 M35 13.2 V15" stroke="#8D959B" stroke-width="1.6" stroke-linecap="round" />
+          </g>
+        ))}
+        <circle cx="16" cy="13" r="6.5" class="klice-krouzek" />
+      </svg>
+      <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{klice.length}</span>
     </button>
     ) : sber === "zkousky" ? (
     <button type="button" class="sbirka-tlacitko zkousky-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Deska zkoušek glazur">
@@ -164,6 +185,30 @@ const zvId = noveId("hlava-stranka");
     </button>
     )}
 
+    {/* Den / noc: přebarví bublinu do noční modré (scripts/parta2/hlavicka.ts).
+        Ve dne slunce s paprsky, v noci srpek měsíce s hvězdičkou — při přepnutí
+        se jedno protočí do druhého */}
+    <button type="button" class="hlava-tema" aria-pressed="false" aria-label="Noční hlavička" title="Noční hlavička">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <mask id={`${zvId}-srpek`} maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+          <rect width="24" height="24" fill="#fff" />
+          <circle cx="15.6" cy="8.6" r="6.3" fill="#000" />
+        </mask>
+        <g class="hlava-tema-slunce">
+          <circle cx="12" cy="12" r="4.6" fill="currentColor" />
+          <g class="hlava-tema-paprsky" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((u) => (
+              <line x1="12" y1="2.6" x2="12" y2="4.6" transform={`rotate(${u} 12 12)`} />
+            ))}
+          </g>
+        </g>
+        <g class="hlava-tema-mesic">
+          <circle cx="11" cy="13" r="7.6" mask={`url(#${zvId}-srpek)`} />
+          <path d="M18.6 2.6 Q19 4.6 21 5 Q19 5.4 18.6 7.4 Q18.2 5.4 16.2 5 Q18.2 4.6 18.6 2.6 Z" />
+        </g>
+      </svg>
+    </button>
+
     {/* Při přechodu mezi stránkami se tlačítko přenese i se zvonkohrou, která se houpe dál (scripts/parta2/prechody.ts) */}
     <button type="button" class="zvuk-tlacitko" aria-pressed="true" aria-label="Ztlumit zvuk" title="Ztlumit zvuk" transition:persist="zvonkohra">
       <Zvonkohra />
@@ -174,6 +219,12 @@ const zvId = noveId("hlava-stranka");
     </button>
   </div>
 </header>
+{/* Noční hlavička se musí nastavit dřív, než se pruh poprvé vykreslí — jinak problikne papír */}
+<script is:inline>
+  try {
+    if (localStorage.getItem("hlava-tema") === '"noc"') document.querySelector(".hlava")?.classList.add("je-noc");
+  } catch (e) {}
+</script>
 
 <nav id="hlava-menu" class="hlava-menu" aria-label="Menu" hidden>
   {odkazy.map((o) => (

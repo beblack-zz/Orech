@@ -1,0 +1,35 @@
+---
+/**
+ * Klíčovnice — dialog se sbírkou Domku 2. Prkénko s háčky, na každém
+ * štítek: dokud klíč chybí, je tam nápověda, kde hledat; nalezený klíč
+ * visí na háčku. Obsluhuje obecný scripts/parta2/sbirka.ts (domek2-klice).
+ */
+import Klic from "./Klic.astro";
+import { klice } from "../../data/domek2";
+---
+<dialog class="omamori-dialog dm-klice-dialog" data-sbirka-dialog aria-labelledby="klice-nadpis">
+  <div class="omamori-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <p class="stitek"><span lang="ja">鍵</span> · klíčovnice</p>
+    <h2 id="klice-nadpis" class="nadpis-2">Kde jsou klíče?</h2>
+    <p class="omamori-perex">
+      Věčná otázka každého domu. Po stránce leží sedm klíčů s barevnými čepičkami —
+      od brány, od lodžie, od dílny i od pece. Najdi je a pověs na háček.
+    </p>
+    <ul class="dm-klicovnice">
+      {klice.map((k) => (
+        <li class="dm-hacek" data-sbirka-polozka={k.id}>
+          <span class="dm-hacek-kolik" aria-hidden="true"></span>
+          <span class="dm-hacek-klic"><Klic id={k.id} ukazka /></span>
+          <span class="dm-hacek-nazev">{k.nazev}</span>
+          <span class="dm-hacek-napoveda">{k.napoveda}</span>
+          <span class="dm-hacek-stitek">{k.stitek}</span>
+        </li>
+      ))}
+    </ul>
+    <div class="omamori-pata">
+      <p class="omamori-stav">Na háčku <b data-sbirka-pocet>0</b> z {klice.length}.</p>
+      <button type="button" class="tlacitko tlacitko-obrys" data-sbirka-reset>Rozházet znovu</button>
+    </div>
+  </div>
+</dialog>

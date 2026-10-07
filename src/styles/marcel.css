@@ -2,7 +2,9 @@
  * Marcel — pracovní stránka postaviček jako kami, v novém vzhledu
  * (styles/parta2.css). Každá postavička leží na vlastním papíře, obloha
  * za nimi jde od rána do noci. Kapka má vedle původní kresby tři
- * přehnané podoby (KapkaBubny.astro), Pecinka s ohněm dvě (PecinkaOhen.astro).
+ * přehnané podoby (KapkaBubny.astro), Pecinka s ohněm dvě (PecinkaOhen.astro)
+ * a Cedulka jako ema tři (CedulkaEma.astro), Kachlík taky tři (KachlikRovina.astro),
+ * Hlínka, kami země, dvě (HlinkaZeme.astro) a Šamotka nese tři (SamotkaNese.astro).
  */
 
 .mc-sekce { position: relative; z-index: 2; padding: 28px 20px; }
@@ -42,6 +44,37 @@
 .mc-rada-ohen { margin: 0; }
 @media (max-width: 760px) {
   .mc-rada-ohen { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
+}
+
+/* Cedulka jako ema: nahoře podoba bez pozadí, pod ní dvě scény vedle sebe, na mobilu pod sebou */
+.mc .papir.mc-siroky.mc-cedulka { width: min(1000px, 100%); }
+.mc-cedulka-hlavni { display: block; width: min(560px, 100%); margin: 0 auto clamp(16px, 3vw, 40px); }
+.mc-rada-cedulka { margin: 0; }
+@media (max-width: 760px) {
+  .mc-rada-cedulka { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
+}
+
+/* Kachlík a rovina: stejně jako Cedulka, nahoře bez pozadí, pod ní dvě scény */
+.mc .papir.mc-siroky.mc-kachlik { width: min(1000px, 100%); }
+.mc-kachlik-hlavni { display: block; width: min(560px, 100%); margin: 0 auto clamp(16px, 3vw, 40px); }
+.mc-rada-kachlik { margin: 0; }
+@media (max-width: 760px) {
+  .mc-rada-kachlik { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
+}
+
+/* Hlínka, kami země: jako Pecinka dvě podoby vedle sebe, sakura bez pozadí a suikinkutsu (drak nad Fudži na stránce není) */
+.mc .papir.mc-siroky.mc-hlinka { width: min(1000px, 100%); }
+.mc-rada-hlinka { margin: 0; }
+@media (max-width: 760px) {
+  .mc-rada-hlinka { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
+}
+
+/* Šamotka nese: stejně, nahoře bez pozadí jako kamidana, pod ní výpal a sníh */
+.mc .papir.mc-siroky.mc-samotka { width: min(1000px, 100%); }
+.mc-samotka-hlavni { display: block; width: min(560px, 100%); margin: 0 auto clamp(16px, 3vw, 40px); }
+.mc-rada-samotka { margin: 0; }
+@media (max-width: 760px) {
+  .mc-rada-samotka { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
 }
 
 /* Tvářičky: mřížka s číslem, názvem a popisem */

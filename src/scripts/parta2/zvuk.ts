@@ -483,3 +483,57 @@ export function reakce(id: PostavaId) {
     case "hlinka": ton(260, 190, 0.3, "sine", 0.14); break;
   }
 }
+
+/* Domek 2: posuvná brána, obecní rozhlas, klíče, voda z kohoutku, vypínač */
+
+/** Posuvná brána: kolečko po pojezdu a plechové zadrnčení na konci */
+export const brana = () => {
+  sumik(1.1, 380, 0.6, 0.12);
+  for (let i = 0; i < 9; i++) window.setTimeout(() => sumik(0.05, 1200 + Math.random() * 600, 3, 0.07), i * 110 + Math.random() * 40);
+  window.setTimeout(() => ton(180, 120, 0.25, "triangle", 0.12), 1050);
+};
+
+/**
+ * Znělka obecního rozhlasu: tři tóny gongu nahoru (před hlášením), nebo
+ * dolů (po něm). Pásmová propust jim dá plechovou barvu amplionu.
+ */
+export function rozhlas(zaver = false) {
+  if (!muze()) return;
+  const c = ctx!;
+  const tony = zaver ? [784, 659, 523] : [523, 659, 784];
+  tony.forEach((fr, i) => {
+    const t = c.currentTime + i * 0.55;
+    const ven = c.createGain();
+    ven.gain.value = 0.16;
+    const filtr = c.createBiquadFilter();
+    filtr.type = "bandpass";
+    filtr.frequency.value = 1400;
+    filtr.Q.value = 0.7;
+    ven.connect(filtr).connect(hlavni);
+    for (const [k, g, doba] of [[1, 1, 1.6], [2, 0.35, 1.1], [3.01, 0.2, 0.7], [4.2, 0.08, 0.4]]) {
+      const o = c.createOscillator();
+      o.frequency.value = fr * k;
+      const e = c.createGain();
+      e.gain.setValueAtTime(0.0001, t);
+      e.gain.exponentialRampToValueAtTime(g, t + 0.01);
+      e.gain.exponentialRampToValueAtTime(0.0001, t + doba);
+      o.connect(e).connect(ven);
+      o.start(t);
+      o.stop(t + doba + 0.05);
+    }
+  });
+}
+
+/** Svazek klíčů */
+export const klice = () => {
+  for (let i = 0; i < 4; i++) window.setTimeout(() => ton(3200 + Math.random() * 1800, 2800 + Math.random() * 1500, 0.09, "triangle", 0.05), i * 55 + Math.random() * 30);
+};
+
+/** Voda z kohoutku */
+export const kohoutek = () => sumik(1.6, 2400, 0.5, 0.09);
+
+/** Cvaknutí vypínače */
+export const cvak = () => {
+  sumik(0.02, 4000, 3, 0.25);
+  ton(1800, 1200, 0.03, "square", 0.04);
+};

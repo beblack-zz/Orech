@@ -254,17 +254,10 @@ body.p2 {
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  font-family: var(--f-display);
-  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 40;
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
 }
 /* Ensō (HlavickaEnso.astro) zabere celou výšku pruhu, ať sedí soustředně s jeho levým půlkruhem */
 .hlava-enso { display: block; flex: none; width: 56px; height: 56px; margin: -8px 0; overflow: visible; }
 .hlava-znacka:focus-visible { border-radius: 999px; }
-.hlava-znacka em { color: var(--rumelka); font-weight: 400; }
 .hlava-nav { display: flex; gap: 2px; margin-left: auto; }
 .hlava-nav a {
   padding: 7px 11px;
@@ -375,6 +368,46 @@ body.p2 {
 .ema-drevo { fill: #E9D3AC; stroke: #8A6A48; stroke-width: 1.2; transition: fill 0.6s; }
 .je-vse-prani .ema-drevo { fill: var(--zlato-2); }
 
+/* Přepínač den / noc (scripts/parta2/hlavicka.ts): slunce s paprsky se protočí do srpku měsíce */
+.hlava-tema { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border-radius: 50%; transition: background 0.2s, color 0.5s; }
+.hlava-tema:hover { background: rgba(43, 36, 32, 0.07); }
+.hlava-tema svg { width: 21px; height: 21px; }
+.hlava-tema-slunce, .hlava-tema-mesic { transform-origin: 12px 12px; transition: transform 0.5s cubic-bezier(0.5, 0, 0.2, 1), opacity 0.35s ease; }
+/* Měsíc je bledě zlatý jako květ v ensō a trochu svítí */
+.hlava-tema-mesic { fill: #FBE3A0; filter: drop-shadow(0 0 2px rgba(255, 231, 163, 0.7)); opacity: 0; transform: rotate(-70deg) scale(0.4); }
+.je-noc .hlava-tema-mesic { opacity: 1; transform: none; }
+.je-noc .hlava-tema-slunce { opacity: 0; transform: rotate(90deg) scale(0.4); }
+/* Slunce je zlaté, svítí a paprsky se pomalu otáčejí */
+.hlava-tema-slunce { color: #E39A2D; filter: drop-shadow(0 0 2.5px rgba(255, 196, 92, 0.75)); animation: hlava-tema-svit 4s ease-in-out infinite; }
+.hlava-tema-paprsky { transform-origin: 12px 12px; animation: hlava-tema-tocit 24s linear infinite; }
+@keyframes hlava-tema-svit { 50% { filter: drop-shadow(0 0 4.5px rgba(255, 196, 92, 0.95)); } }
+@keyframes hlava-tema-tocit { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .hlava-tema-slunce, .hlava-tema-paprsky { animation: none; } }
+
+/*
+ * Hlavička v noční modré: barva noční oblohy ze scény s vlakem, o stupeň
+ * světlejší, ať bublina nad nocí nezmizí. Ensō a vlas po okraji si berou
+ * světlejší soumrak (--noc v HlavickaEnso.astro a tah.ts), značka světlou
+ * sadu jako v patičce. Tmavé kresby v tlačítkách dostanou světlý lem.
+ */
+.hlava { transition: background 0.5s ease, color 0.5s ease; }
+.hlava-tah stop { stop-color: var(--den); transition: stop-color 0.5s ease; }
+.hlava.je-noc .hlava-tah stop { stop-color: var(--noc); }
+.hlava.je-noc {
+  --noc-krem: #F1E8D6;
+  background: color-mix(in srgb, #2A3160 94%, transparent);
+  color: var(--noc-krem);
+  box-shadow: 0 12px 32px -14px rgba(5, 8, 25, 0.7), inset 0 0 0 1px rgba(241, 232, 214, 0.09);
+}
+.hlava.je-noc .znacka-stetec { --zs-1: #e0603c; --zs-2: #e08aa0; --zs-3: #b49ad0; --zs-4: #9a92d8; }
+.hlava.je-noc .hlava-nav a { color: rgba(241, 232, 214, 0.8); }
+.hlava.je-noc .hlava-nav a:hover { background: rgba(241, 232, 214, 0.09); color: #FFF8EA; }
+.hlava.je-noc .hlava-nav a[aria-current="page"] { color: #FFF8EA; }
+.hlava.je-noc :is(.hlava-tema, .zvuk-tlacitko, .sbirka-tlacitko, .omamori-tlacitko, .razitka-tlacitko, .naradi-tlacitko, .hlava-menu-tlacitko):hover { background: rgba(241, 232, 214, 0.09); }
+.hlava.je-noc :is(.sbirka-tlacitko, .omamori-tlacitko, .razitka-tlacitko, .naradi-tlacitko) svg { filter: drop-shadow(0 0 0.8px rgba(241, 232, 214, 0.75)); }
+.hlava.je-noc ~ .hlava-menu { background: #2A3160; color: var(--noc-krem, #F1E8D6); }
+.hlava.je-noc ~ .hlava-menu a[aria-current="page"] { background: #F1E8D6; color: #2A3160; }
+
 .hlava-menu-tlacitko { display: none; width: 40px; height: 40px; border-radius: 50%; place-items: center; }
 .hlava-menu-tlacitko svg { width: 22px; height: 22px; }
 
@@ -407,6 +440,13 @@ body.p2 {
   /* Tlačítko zabere stejně místa jako dřív malý fūrin, miska přesahuje do okrajů */
   .zvuk-tlacitko { padding: 5px 4px; }
   .zvonkohra { width: 26px; }
+  /* S přepínačem den / noc a větší značkou se pruh na telefonu nevešel — vše o kus těsněji */
+  .hlava { gap: 8px; }
+  .hlava-znacka { gap: 6px; }
+  .hlava-znacka .znacka-stetec { width: 80px; height: auto; }
+  .hlava-akce { gap: 2px; }
+  .hlava-tema { width: 30px; }
+  :is(.sbirka-tlacitko, .omamori-tlacitko) { padding: 5px 6px 5px 4px; }
 }
 
 /* ——— Úvod ——— */
@@ -1478,9 +1518,8 @@ body.p2 {
 .pata-info a { color: #FFF2DC; text-decoration-color: rgba(255, 242, 220, 0.35); text-underline-offset: 3px; }
 .pata-info a:hover { text-decoration-color: currentColor; }
 .pata-h { margin: 0 0 8px; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #F0A58E; }
-.pata-znacka { display: flex; align-items: center; gap: 12px; font-size: 32px; line-height: 1; }
+.pata-znacka { display: flex; align-items: center; gap: 12px; }
 .pata-znacka svg { display: block; flex: none; }
-.pata-znacka em { color: #F0A58E; }
 .pata-podtitul { margin-top: 10px !important; color: rgba(239, 229, 211, 0.75); }
 .pata-nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 32px; padding: 14px 0; border-top: 1px solid rgba(239, 229, 211, 0.14); border-bottom: 1px solid rgba(239, 229, 211, 0.14); font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 500; }
 .pata-nav a { text-decoration: none; opacity: 0.88; }

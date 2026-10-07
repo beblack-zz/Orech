@@ -1,0 +1,90 @@
+---
+/**
+ * Kresba a fotka. Obě venkovní kresby Domku 2 jsou obkreslené z fotek
+ * (ulice z 6670, zahrada z 6669) a mají stejné souřadnice jako ty fotky —
+ * tady leží přesně na sobě a táhlem se dá posouvat, kolik je vidět
+ * kresby a kolik fotky. Táhlo jde chytit myší, prstem i šipkami.
+ *
+ * Pod tím přepínač ročních období: sakura na trávníku kvete, zelená,
+ * rudne a opadá, v ulici zežloutne strom u souseda a v zimě napadne
+ * sníh. Na zahradě bydlí Hlínka (v kypré hlíně u kmínku) a Kapka
+ * (u truhlíků) a pod truhlíkem leží klíč od dílny.
+ * Obsluha: scripts/domek2/porovnani.ts.
+ */
+import { Image } from "astro:assets";
+import Kami from "../parta2/Kami.astro";
+import Klic from "./Klic.astro";
+import { ulice, ULICE } from "./kresba/ulice";
+import { zahrada, ZAHRADA, ZAHRADA_MISTA } from "./kresba/zahrada";
+import { porovnani, sezonySakury } from "../../data/domek2";
+import type { Sezona } from "../../data/uvod2";
+import foto6670 from "../../../images/Dilna/6670.jpg";
+import foto6669 from "../../../images/Dilna/6669.jpg";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+/** Přepínač má čtyři období — předjaří se počítá k jaru */
+const vychozi = sezona === "predjari" ? "jaro" : sezona;
+
+const F = ULICE.foto;
+const Z = ZAHRADA;
+const kresbaUlice = ulice({ id: "ulf", nebe: true });
+const kresbaZahrady = zahrada({ id: "zaf", nebe: true });
+const misto = (b: [number, number, number, number]) =>
+  `left:${((b[0] / Z.w) * 100).toFixed(3)}%;top:${((b[1] / Z.h) * 100).toFixed(3)}%;width:${(((b[2] - b[0]) / Z.w) * 100).toFixed(3)}%;height:${(((b[3] - b[1]) / Z.h) * 100).toFixed(3)}%`;
+const postava = (x: number, pata: number, w: number) =>
+  `left:${(((x - w / 2) / Z.w) * 100).toFixed(3)}%;bottom:${(((Z.h - pata - w * 0.12) / Z.h) * 100).toFixed(3)}%;width:${((w / Z.w) * 100).toFixed(3)}%`;
+const M = ZAHRADA_MISTA;
+const dvojice = [
+  { id: "ulice", foto: foto6670, data: porovnani.ulice, kresba: kresbaUlice, viewBox: `${F.x} ${F.y} ${F.w} ${F.h}` },
+  { id: "zahrada", foto: foto6669, data: porovnani.zahrada, kresba: kresbaZahrady, viewBox: `${Z.x} ${Z.y} ${Z.w} ${Z.h}` },
+];
+---
+<section class="porovnani" id="porovnani" data-hodina="15.6" data-sezona={vychozi} aria-labelledby="porovnani-nadpis">
+  <div class="porovnani-hlava papir">
+    <p class="stitek"><span lang="ja">写生</span> · kresba podle skutečnosti</p>
+    <h2 id="porovnani-nadpis" class="nadpis-2">Obkreslené z fotek. Posuň a porovnej.</h2>
+    <p class="porovnani-perex">
+      Kresby domu nejsou vymyšlené: leží přesně na fotkách, ze kterých vznikly.
+      Táhlem odkryješ, co je kresba a co fotka. A pod tím si přepni, jak se
+      mladá sakura u dílny mění během roku.
+    </p>
+    <div class="sezony" role="group" aria-label="Roční období v kresbách">
+      {sezonySakury.map((s) => (
+        <button type="button" class="sezona-tlacitko" data-sezona-volba={s.id} aria-pressed={String(s.id === vychozi)}>{s.nazev}</button>
+      ))}
+    </div>
+    <p class="sezona-text" aria-live="polite">{sezonySakury.find((s) => s.id === vychozi)?.text}</p>
+    {sezonySakury.map((s) => <template data-sezona-text={s.id}>{s.text}</template>)}
+  </div>
+
+  <div class="porovnani-dvojice">
+    {dvojice.map((dv, i) => (
+      <figure class={`srovnani srovnani-${dv.id}`} data-srovnani style="--deleni:58%">
+        <div class="srovnani-plocha">
+          <Image class="srovnani-foto" src={dv.foto} alt={dv.data.alt} width={900} widths={[420, 640, 900]} sizes="(min-width: 1100px) 520px, 92vw" format="webp" />
+          <div class="srovnani-kresba">
+            <svg viewBox={dv.viewBox} preserveAspectRatio="xMidYMid slice" aria-hidden="true" set:html={dv.kresba} />
+            {dv.id === "zahrada" && (
+              <div class="srovnani-vrstva">
+                <Kami id="hlinka" class="srovnani-kami" style={postava(M.hlinka.x, M.hlinka.pata, M.hlinka.w)} />
+                <Kami id="kapka" class="srovnani-kami" style={postava(M.kapka.x, M.kapka.pata, M.kapka.w)} />
+                <button type="button" class="srovnani-misto" data-akce="visacka" style={misto(M.visacka.box)} aria-label="Visačka na stromku"></button>
+                <button type="button" class="srovnani-misto" data-akce="sakura" style={misto([20, 640, 200, 860])} aria-label="Zatřást sakurou"></button>
+                <Klic id="dilna" class="srovnani-klic" style={misto(M.klic.box)} uhel={-16} />
+              </div>
+            )}
+          </div>
+          <span class="srovnani-stitek srovnani-stitek-kresba" aria-hidden="true">kresba</span>
+          <span class="srovnani-stitek srovnani-stitek-foto" aria-hidden="true">fotka</span>
+          <div class="srovnani-tahlo" aria-hidden="true"><span></span></div>
+          <input class="srovnani-posuvnik" type="range" min="0" max="100" value="58" aria-label={`${dv.data.popis}: kolik je vidět kresby a kolik fotky`} />
+        </div>
+        <figcaption><b>{dv.data.popis}</b>{i === 0 ? " — štít do ulice, dva balkony nad sebou, pod nimi okna dílny za bránou." : " — okna dílny pod balkonem, truhlíky s vřesem a sakura na tyčce."}</figcaption>
+      </figure>
+    ))}
+  </div>
+  <p class="porovnani-pozn">Kreslené je jen to, co fotky nemají: sousedé po stranách ulice, tabulka s číslem domu, cedulka dílny na bráně a parta.</p>
+</section>
