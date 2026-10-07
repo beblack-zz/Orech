@@ -1,0 +1,53 @@
+---
+/**
+ * Noc na konci Rezervace: dílna zhasla, na tabuli svítí dvě lucerny
+ * a na háčku visí, co člověk naposledy odeslal (dopisuje skript
+ * z prohlížeče). Pod tím kontakt pro ty, kdo radši volají.
+ */
+import Kami from "../../parta2/Kami.astro";
+import { kontakt, mapa } from "../../../data/uvod2";
+import { prani } from "../../../data/rezervace";
+---
+<section class="rz-noc" id="rz-noc" data-hodina="22.6" aria-labelledby="rz-noc-nadpis">
+  <div class="rz-noc-lucerny" aria-hidden="true">
+    {[0, 1].map((i) => (
+      <svg class={`rz-lucerna rz-lucerna-${i}`} viewBox="0 0 80 150">
+        <path d="M40 0 V24" stroke="#2B2420" stroke-width="2" />
+        <rect x="26" y="22" width="28" height="7" rx="2" fill="#2B2420" />
+        <ellipse cx="40" cy="70" rx="30" ry="40" fill="#FFB55A" />
+        <ellipse cx="40" cy="66" rx="17" ry="25" fill="#FFE7A8" opacity="0.8" />
+        <path d="M12 52 H68 M10 70 H70 M12 88 H68" stroke="#C4432B" stroke-width="1.4" opacity="0.45" />
+        <text x="40" y="78" text-anchor="middle" font-size="24" font-family="Yuji Syuku, Yu Mincho, serif" fill="#2B2420">{i ? "金" : "火"}</text>
+        <rect x="26" y="108" width="28" height="7" rx="2" fill="#2B2420" />
+        <path d="M40 115 V140" stroke="#C4432B" stroke-width="3.4" stroke-linecap="round" />
+      </svg>
+    ))}
+  </div>
+
+  <div class="rz-noc-karta papir">
+    <Kami id="pecinka" class="rz-noc-kami" />
+    <p class="stitek">Dílna zhasíná</p>
+    <h2 id="rz-noc-nadpis" class="nadpis-2">Destička visí do rána.</h2>
+    <div class="rz-posledni" hidden>
+      <p class="rz-posledni-nadpis">Naposledy odeslaná rezervace</p>
+      <p class="rz-posledni-text"></p>
+      <p class="rz-posledni-pozn">Platí, až ji potvrdíme. Kdyby odpověď dlouho nepřicházela, ozvi se.</p>
+    </div>
+    <p class="rz-noc-text">Radši zavoláš, nebo napíšeš rovnou? Taky dobře.</p>
+    <div class="rz-noc-akce">
+      <a class="tlacitko" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+      <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+    </div>
+    <p class="rz-noc-adresa">
+      {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
+      <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
+    </p>
+    <p class="rz-noc-sbirka">
+      Přání party přečteno: <b data-sbirka-pocet>0</b> z {prani.length}.
+      <button type="button" class="odkaz-tlacitko" data-sbirka-otevrit>Otevřít sešit</button>
+    </p>
+    <p class="rz-noc-dal">
+      <a href="/kurzy-2">Kurzy</a> · <a href="/open-studio">Open studio</a> · <a href="/uvod-2">Úvod</a>
+    </p>
+  </div>
+</section>

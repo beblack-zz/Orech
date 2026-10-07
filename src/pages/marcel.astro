@@ -1,0 +1,226 @@
+---
+/**
+ * Marcel — pracovní stránka: postavičky jako kami a návrhy jejich tváří,
+ * v novém vzhledu (obloha, hlavička a papír z Party 2, styles/marcel.css).
+ * Každá postavička leží na vlastním papíře, obloha za nimi jde od rána do noci.
+ *
+ * Kapka s bubny hromu má vedle původní kresby novou podobu (KapkaBubny.astro:
+ * stuha a lakované bubny ze Zlatého listu, bubnuje paličkami). Je to jen
+ * obrázek — bez popisku, ovládá se myší a zvuk jde přes vypínač v hlavičce.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/marcel.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import VazickaEnso from "../components/characters/kami-buh/VazickaEnso.astro";
+import KapkaRaijin from "../components/characters/kami-buh/KapkaRaijin.astro";
+import KapkaBubny from "../components/characters/kami-buh/KapkaBubny.astro";
+import StripekKintsugi from "../components/characters/kami-buh/StripekKintsugi.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
+import { parta } from "../data/parta";
+import type { PostavaId } from "../data/parta";
+
+const tvare = [
+  { id: "original", cislo: "Teď", nazev: "Původní", popis: "Zavřená očka do úsměvu." },
+  { id: "klidna", cislo: "01", nazev: "Klidná", popis: "Víčka prohnutá dolů, jako spící Buddha. Malá ústa." },
+  { id: "otevrena", cislo: "02", nazev: "Otevřená", popis: "Dvě tečky s leskem, jak kreslí Ghibli malé duchy." },
+  { id: "mrk", cislo: "03", nazev: "Mrk", popis: "Jedno oko zavřené, úsměv do strany. Ví víc, než říká." },
+  { id: "gejsa", cislo: "04", nazev: "Gejša", popis: "Bílé oshiroi, vysoké obočí, rumělka v koutcích, ústa jako poupě a kanzashi u hrdla." },
+  { id: "no", cislo: "05", nazev: "Maska nó", popis: "Obočí vysoko na čele, oči štěrbiny, rty s černěnými zuby." },
+  { id: "stydliva", cislo: "06", nazev: "Stydlivá", popis: "Velký ruměnec s čárkami a rozpačitá vlnka." },
+  { id: "prisna", cislo: "07", nazev: "Přísná", popis: "Obočí dolů, víčka napůl. Takhle kouká, když se hrbíš." },
+  { id: "udivena", cislo: "08", nazev: "Udivená", popis: "Kulaté oči, zvednuté obočí a ústa do o." },
+  { id: "ospala", cislo: "09", nazev: "Ospalá", popis: "Víčka těžká, pusa pootevřená, z hrdla stoupá zzz." },
+  { id: "kocici", cislo: "10", nazev: "Kočičí", popis: "Spokojená očka a pusinka ω." },
+] as const;
+
+const rukopisy = [
+  { id: "kawaii", cislo: "11", nazev: "Kawaii", popis: "Velké lesklé oči se dvěma odlesky, ruměnec, pusinka jako D." },
+  { id: "tus", cislo: "12", nazev: "Tuš", popis: "Tři tahy štětcem s přítlakem a vytaženou špičkou." },
+  { id: "kaomoji", cislo: "13", nazev: "Kaomodži", popis: "◕‿◕ — oči jako znaky z japonských smajlíků." },
+  { id: "daruma", cislo: "14", nazev: "Daruma", popis: "Husté obočí, knír a jedno oko domalované. Druhé, až se splní přání." },
+  { id: "kokeshi", cislo: "15", nazev: "Kokeši", popis: "Tenké linky jako na dřevěné panence, oči lístky, ústa dvě rumělkové tečky." },
+  { id: "kabuki", cislo: "16", nazev: "Kabuki", popis: "Líčení kumadori: rumělkové linky ke spánkům, rty dolů." },
+  { id: "kodama", cislo: "17", nazev: "Kodama", popis: "Tři tmavé díry jako lesní duchové z Princezny Mononoke." },
+  { id: "otafuku", cislo: "18", nazev: "Otafuku", popis: "Maska štěstí: tečky obočí vysoko, buclaté tváře, drobná ústa." },
+  { id: "sashiko", cislo: "19", nazev: "Sašiko", popis: "Obličej vyšitý indigovou nití, na tvářích rumělkové křížky." },
+  { id: "kintsugi", cislo: "20", nazev: "Kintsugi", popis: "Oči a úsměv jako zlaté spáry, jedna prasklina utíká po tváři." },
+] as const;
+
+/** Vzorník technik (ze stránky /parta). Každá postavička drží jednu — až padne volba, sjednotí se. */
+const styly: Record<PostavaId, string> = {
+  hlinka: "Linoryt",
+  kapka: "Risograf",
+  pecinka: "Výkres",
+  stripek: "Tušový tah",
+  vazicka: "Art deco",
+  bublinka: "Glazura",
+  kachlik: "Bauhaus",
+  cedulka: "Vystřižený papír",
+  samotka: "Mědirytina",
+};
+
+/* Štětcové písmo jen se znaky ze štítků */
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("円相雷神金継顔筆")}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Marcel — JIRO saku</title>
+    <meta name="description" content="Pracovní stránka: postavičky z dílny jako kami a návrhy jejich tváří." />
+    <meta name="theme-color" content="#4F5E9C" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
+  </head>
+  <body class="p2 mc" data-stranka="marcel">
+    <Nebe />
+    <Hlavicka sber="zadny" />
+
+    <main>
+      <section class="mc-sekce" data-hodina="8" aria-labelledby="mc-marcel">
+        <div class="papir">
+          <VazickaEnso size={320} masle geta class="mc-kresba" />
+          <p class="stitek">Vázička · kami · <span lang="ja">円相</span></p>
+          <h1 id="mc-marcel" class="nadpis-2 mc-nadpis-1">Marcel</h1>
+          <p class="mc-perex">
+            Nejstarší kus v dílně, povýšený na kami. Za ní stojí kruh ensó ze značky,
+            v pase má obi s velkou mašlí v barvách loga a chodí na dřevěných geta.
+          </p>
+          <p class="mc-replika">„Ten kruh za mnou? To není svatozář. To je logo. Ale ráda ho nosím.“</p>
+        </div>
+      </section>
+
+      {/* Kapka s bubny Raidžina: původní kresba a vedle přehnané podoby (ostatní návrhy jsou v navrhy/kapka-bubny-hromu.html) */}
+      <section class="mc-sekce" data-hodina="11" aria-labelledby="mc-kapka">
+        <div class="papir mc-siroky">
+          <div class="mc-rada">
+            <KapkaRaijin size={320} />
+            <KapkaBubny varianta="v4" />
+          </div>
+          <p class="stitek">Kapka · kami · <span lang="ja">雷神</span></p>
+          <h2 id="mc-kapka" class="nadpis-2">Kapka s bubny hromu</h2>
+          <p class="mc-perex">
+            Za zády nese kruh bubnů jako bůh hromu Raidžin. Na každém bubnu se točí
+            mitsudomoe. Kde hřmí, tam prší, a déšť je její parketa.
+          </p>
+          <p class="mc-replika">„Bubnuju já. Prší potom samo.“</p>
+        </div>
+      </section>
+
+      {/* Střípek: bílý střep na obláčku, slepený zlatem a kusy s lidovým vzorem */}
+      <section class="mc-sekce" data-hodina="14" aria-labelledby="mc-stripek">
+        <div class="papir">
+          <StripekKintsugi size={320} class="mc-kresba" />
+          <p class="stitek">Střípek · kami · <span lang="ja">金継</span></p>
+          <h2 id="mc-stripek" class="nadpis-2">Střípek na obláčku</h2>
+          <p class="mc-perex">
+            Velký bílý střep sedí na obláčku jako božstvo a kolem něj se vznášejí menší střípky.
+            Slepený je zlatem a dva kusy jsou z cizího nádobí: japonské vlnky seigaiha a český modrotisk.
+          </p>
+          <p class="mc-replika">„Spadl jsem ze stolu. Teď mám víc zlata než celá dílna.“</p>
+        </div>
+      </section>
+
+      {/* Celá parta ze stránky /parta: řada s tvářemi a vzorník dospělých stylů */}
+      <section class="mc-sekce" data-hodina="16.5" aria-label="Parta">
+        <div class="papir mc-siroky">
+          <p class="stitek">Parta</p>
+          <ul class="mc-parta">
+            {parta.map((p) => (
+              <li>
+                <Postavicka id={p.id} size={120} />
+                <span class="mc-jmeno">{p.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section class="mc-sekce" data-hodina="18.5" aria-labelledby="mc-dospela">
+        <div class="papir mc-siroky">
+          <h2 id="mc-dospela" class="nadpis-2">Dospělá verze — <em>devět stylů</em></h2>
+          <p class="mc-perex">
+            Každá postavička je nakreslená jinou technikou, žádná nemá tvář.
+            Není to hotová sada — je to vzorník. Vyber si číslo a celá parta se překreslí do něj.
+          </p>
+          <ul class="mc-vzornik">
+            {parta.map((p, i) => (
+              <li>
+                <Postavicka id={p.id} size={140} varianta="dospela" />
+                <span class="mc-cislo">{String(i + 1).padStart(2, "0")}</span>
+                <span class="mc-styl">{styly[p.id]}</span>
+                <span class="mc-jmeno">{p.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Deset návrhů tvářičky, vlevo nahoře původní pro srovnání */}
+      <section class="mc-sekce" data-hodina="20.5" aria-labelledby="mc-tvare">
+        <div class="papir mc-siroky">
+          <p class="stitek">Tvářička · <span lang="ja">顔</span></p>
+          <h2 id="mc-tvare" class="nadpis-2">Deset návrhů</h2>
+          <ul class="mc-mrizka">
+            {tvare.map((t) => (
+              <li>
+                <figure>
+                  <VazickaEnso size={200} tvar={t.id} />
+                  <figcaption>
+                    <span class="mc-cislo">{t.cislo}</span>
+                    <span class="mc-nazev">{t.nazev}</span>
+                    <span class="mc-popis">{t.popis}</span>
+                  </figcaption>
+                </figure>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Druhá desítka: stejná Vázička, jiný rukopis tváře */}
+      <section class="mc-sekce" data-hodina="22.5" aria-labelledby="mc-rukopisy">
+        <div class="papir mc-siroky">
+          <p class="stitek">Tvářička · rukopis · <span lang="ja">筆</span></p>
+          <h2 id="mc-rukopisy" class="nadpis-2">Deset stylů</h2>
+          <ul class="mc-mrizka">
+            {rukopisy.map((t) => (
+              <li>
+                <figure>
+                  <VazickaEnso size={180} tvar={t.id} />
+                  <figcaption>
+                    <span class="mc-cislo">{t.cislo}</span>
+                    <span class="mc-nazev">{t.nazev}</span>
+                    <span class="mc-popis">{t.popis}</span>
+                  </figcaption>
+                </figure>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <Paticka poznamka="Marcel je pracovní stránka: postavičky z dílny jako kami a návrhy jejich tváří." />
+
+    <script>
+      import "../scripts/marcel/hlavni.ts";
+    </script>
+  </body>
+</html>

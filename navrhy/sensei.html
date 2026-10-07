@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sensei · pět rukopisů</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Yuji+Syuku&display=swap" />
+<style>
+/*
+ * Pracovní list: návrh Sensei (Vázička z hagi) v pěti rukopisech.
+ * Tvar, tvář a ikebana jsou ve všech stejné, mění se jen to, čím a jak jsou nakreslené.
+ * Navazuje na navrhy/vazicka.html.
+ */
+:root {
+  --papir: #F7F1E3; --papir-2: #EFE5D1; --papir-3: #E2D4B9;
+  --inkoust: #2B2420; --inkoust-2: #5C5047; --inkoust-3: #8A7C70;
+  --rumelka: #C4432B; --zlato: #D6A23A; --zlato-2: #F3D27A;
+  --f-display: "Fraunces", Georgia, serif;
+  --f-text: "Newsreader", Georgia, serif;
+  --f-ruka: "Caveat", cursive;
+  --f-kanji: "Yuji Syuku", "Yu Mincho", "Noto Serif JP", serif;
+  --odlesk: #F7C79A;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; font-family: var(--f-text); font-size: 17px; line-height: 1.62; color: var(--inkoust);
+  background: linear-gradient(to bottom, #3E86D3 0%, #8DC1EE 45%, #DCEFF7 100%) fixed;
+  overflow-x: clip; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--rumelka); outline-offset: 3px; border-radius: 8px; }
+[lang="ja"] { font-family: var(--f-kanji); font-style: normal; }
+p { margin: 0 0 12px; }
+
+.sirka { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+.papir {
+  position: relative; background: var(--papir); border-radius: 28px;
+  padding: clamp(22px, 4vw, 56px); margin: 0 auto 40px;
+  box-shadow: 0 30px 70px -34px rgba(28, 20, 44, 0.55), 0 0 0 1px rgba(43, 36, 32, 0.06);
+}
+.stitek { margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--rumelka); }
+.stitek [lang="ja"] { letter-spacing: 0.06em; font-weight: 400; font-size: 1.3em; }
+.nadpis-1, .nadpis-2, .nadpis-3 { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 120; font-weight: 400; letter-spacing: -0.015em; text-wrap: balance; }
+.nadpis-1 { font-size: clamp(52px, 9vw, 112px); line-height: 0.94; margin: 12px 0 18px; }
+.nadpis-2 { font-size: clamp(34px, 4.6vw, 58px); line-height: 1.02; margin: 8px 0 12px; }
+.nadpis-3 { font-size: 21px; line-height: 1.2; margin: 26px 0 8px; font-variation-settings: "SOFT" 100, "WONK" 0, "opsz" 36; font-weight: 500; }
+.perex { font-size: clamp(18px, 1.9vw, 21px); line-height: 1.55; max-width: 660px; color: var(--inkoust-2); margin: 0; }
+.text-tichy { color: var(--inkoust-3); font-size: 15px; }
+
+.hlava { padding: clamp(28px, 6vw, 72px) 0 32px; }
+.rada { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 30px; }
+.rada a { text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.rada .jeviste { border-radius: 20px; }
+.rada a:hover .jeviste { transform: translateY(-3px); }
+.rada .jeviste { transition: transform 0.2s; }
+.rada-popis { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 14px; font-weight: 600; text-align: center; line-height: 1.2; }
+.rada-popis span { display: block; font-family: var(--f-kanji); font-weight: 400; font-size: 18px; color: var(--rumelka); }
+
+.navrh-hlava { display: grid; grid-template-columns: auto 1fr; gap: clamp(16px, 3vw, 36px); align-items: start; margin-bottom: 26px; }
+.navrh-cislo { font-family: var(--f-kanji); font-size: clamp(68px, 9vw, 120px); line-height: 0.85; color: var(--rumelka); }
+.teze { font-size: clamp(18px, 1.8vw, 20px); color: var(--inkoust-2); max-width: 720px; margin: 0; }
+.navrh-telo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(22px, 4vw, 56px); align-items: start; }
+.navrh-telo > .sloupec-jeviste { position: sticky; top: 24px; }
+.body { counter-reset: bod; list-style: none; margin: 0; padding: 0; }
+.body li { counter-increment: bod; position: relative; padding-left: 38px; margin: 0 0 14px; }
+.body li::before { content: counter(bod); position: absolute; left: 0; top: 2px; width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-display); font-size: 13px; font-weight: 600; background: var(--inkoust); color: var(--papir); }
+.body b { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; }
+.cena { border-left: 3px solid var(--rumelka); padding: 4px 0 4px 18px; }
+.odkud { background: var(--papir-2); border-radius: 18px; padding: 14px 18px; font-size: 15px; line-height: 1.5; margin-top: 18px; }
+.odkud b { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rumelka); display: block; margin-bottom: 2px; }
+
+/* ——— Jeviště: pozadí je SVG v rukopisu daného návrhu ——— */
+.jeviste { position: relative; aspect-ratio: 1; width: 100%; border-radius: 30px; overflow: hidden; isolation: isolate; box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.08), 0 20px 50px -30px rgba(28, 20, 44, 0.6); }
+.jev-pozadi { position: absolute; inset: 0; width: 100%; height: 100%; }
+.jev-pozadi svg { display: block; width: 100%; height: 100%; }
+.jev-postava { position: absolute; left: 11%; width: 78%; bottom: 9.3%; aspect-ratio: 1; display: block; z-index: 2; -webkit-tap-highlight-color: transparent; }
+.jev-postava .kresba { transform-origin: 50% 86%; }
+.jev-bublina {
+  position: absolute; z-index: 3; left: 50%; top: 4.5%; margin: 0; max-width: 84%; width: max-content;
+  transform: translate(-50%, 8px); opacity: 0; pointer-events: none; padding: 10px 18px 12px; border-radius: 20px;
+  background: var(--papir); font-family: var(--f-ruka); font-size: clamp(20px, 2.3vw, 25px); line-height: 1.12; text-align: center;
+  box-shadow: 0 14px 30px -16px rgba(28, 20, 44, 0.6); transition: opacity 0.3s, transform 0.3s;
+}
+.jev-bublina::after { content: ""; position: absolute; left: 50%; bottom: -8px; width: 16px; height: 16px; background: var(--papir); transform: translateX(-50%) rotate(45deg); border-radius: 3px; }
+.mluvi .jev-bublina { opacity: 1; transform: translate(-50%, 0); }
+.jev-text { position: absolute; z-index: 1; margin: 0; pointer-events: none; }
+.jev-tip { margin: 10px 4px 0; font-size: 14px; color: var(--inkoust-3); text-align: center; }
+
+.male { display: flex; gap: 14px; align-items: flex-end; justify-content: center; margin-top: 14px; padding: 12px; border-radius: 18px; background: var(--papir-2); }
+.male figure { margin: 0; text-align: center; font-size: 12px; color: var(--inkoust-3); }
+.male .kresba-obal { display: block; margin: 0 auto 4px; }
+.male .tma { background: #18204A; border-radius: 12px; padding: 4px; }
+
+.lupy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 30px; }
+.lupa { margin: 0; }
+.lupa-okno { position: relative; background: var(--papir-2); border-radius: 18px; overflow: hidden; aspect-ratio: 4 / 3; }
+.lupa-okno .kresba-obal { position: absolute; inset: 6px; }
+.lupa figcaption { font-size: 14px; line-height: 1.4; color: var(--inkoust-2); margin-top: 8px; padding: 0 4px; }
+.lupa figcaption b { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; color: var(--inkoust); }
+
+.srovnani { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 22px; }
+.srovnani figure { margin: 0; }
+.srovnani figcaption { text-align: center; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 14px; margin-top: 6px; }
+.srovnani .bunka { aspect-ratio: 1; border-radius: 16px; background: var(--papir-2); display: grid; place-items: center; }
+.srovnani .bunka.tma { background: #18204A; }
+.srovnani-popis { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--inkoust-3); margin: 26px 0 0; }
+
+.doporuceni { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(22px, 4vw, 56px); align-items: center; }
+.pata { text-align: center; padding: 0 16px 60px; margin: 0; }
+.pata span { display: inline-block; max-width: 620px; padding: 10px 20px; border-radius: 999px; background: color-mix(in srgb, var(--papir) 88%, transparent); color: var(--inkoust-2); font-size: 14px; }
+
+/* ——— Kresby ——— */
+.kresba-obal { display: block; }
+.kresba { display: block; width: 100%; height: 100%; overflow: visible; }
+.s-dech { transform-origin: 90px 155px; animation: s-dech 6s ease-in-out infinite; }
+@keyframes s-dech { 0%, 100% { transform: none; } 50% { transform: scale(1.004, 1.014); } }
+.s-ikebana { transform-origin: 90px 50px; animation: s-vetve 7s ease-in-out infinite; }
+@keyframes s-vetve { 0%, 100% { transform: rotate(-0.8deg); } 50% { transform: rotate(1deg); } }
+.s-oko-o { opacity: 0; animation: s-oko-o 9s infinite; }
+.s-oko-z { animation: s-oko-z 9s infinite; }
+@keyframes s-oko-o { 0%, 68% { opacity: 0; } 70%, 84% { opacity: 1; } 86%, 100% { opacity: 0; } }
+@keyframes s-oko-z { 0%, 68% { opacity: 1; } 70%, 84% { opacity: 0; } 86%, 100% { opacity: 1; } }
+.mluvi .s-oko-o { animation: none; opacity: 1; }
+.mluvi .s-oko-z { animation: none; opacity: 0; }
+.reaguje .kresba { animation: s-poklona 1.4s ease-in-out; }
+@keyframes s-poklona { 0% { transform: none; } 30%, 58% { transform: rotate(-8deg) translateY(1%); } 100% { transform: none; } }
+/* Risograf: soutisk se při poklonu na chvíli rozjede */
+.reaguje .r-ruzova { animation: r-soutisk 1.4s ease-in-out; }
+@keyframes r-soutisk { 0%, 100% { transform: translate(1px, 0.6px); } 40% { transform: translate(3px, -1.4px); } }
+/* Papír: při poklonu se vrstvy odlepí */
+.reaguje .p-vrstva { animation: p-odlep 1.4s ease-in-out; }
+@keyframes p-odlep { 0%, 100% { transform: none; } 40% { transform: translate(-0.6px, -1.4px); } }
+.staticke, .staticke * { animation: none !important; transition: none !important; }
+.mimo * { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+@media (max-width: 900px) {
+  .navrh-telo, .doporuceni { grid-template-columns: 1fr; }
+  .navrh-telo > .sloupec-jeviste { position: static; }
+  .rada, .srovnani { grid-template-columns: repeat(3, 1fr); }
+  .lupy { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .navrh-hlava { grid-template-columns: 1fr; gap: 0; }
+  .lupy { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="hlava">
+  <div class="sirka papir">
+    <p class="stitek">Parta 2 · Vázička · návrh 1 <span lang="ja">萩</span></p>
+    <h1 class="nadpis-1">Sensei, pět rukopisů</h1>
+    <p class="perex">Stejná postava, stejný tvar, stejná tvář i ikebana. Mění se jen ruka, která ji kreslí. Vlevo je kvaš z prvního listu pro srovnání, pak pět pokusů od tuše po vystřihovánku.</p>
+    <nav class="rada" aria-label="Rukopisy">
+      <a href="#kvas"><div class="jeviste" data-pozadi="kvas"><div class="jev-postava"><span class="kresba-obal" data-kresba="kvas" data-staticke></span></div></div><span class="rada-popis"><span lang="ja">今</span>Kvaš</span></a>
+      <a href="#tus"><div class="jeviste" data-pozadi="tus"><div class="jev-postava"><span class="kresba-obal" data-kresba="tus" data-staticke></span></div></div><span class="rada-popis"><span lang="ja">一</span>Tuš</span></a>
+      <a href="#cel"><div class="jeviste" data-pozadi="cel"><div class="jev-postava"><span class="kresba-obal" data-kresba="cel" data-staticke></span></div></div><span class="rada-popis"><span lang="ja">二</span>Ghibli cel</span></a>
+      <a href="#hanga"><div class="jeviste" data-pozadi="hanga"><div class="jev-postava"><span class="kresba-obal" data-kresba="hanga" data-staticke></span></div></div><span class="rada-popis"><span lang="ja">三</span>Dřevořez</span></a>
+      <a href="#riso"><div class="jeviste" data-pozadi="riso"><div class="jev-postava"><span class="kresba-obal" data-kresba="riso" data-staticke></span></div></div><span class="rada-popis"><span lang="ja">四</span>Risograf</span></a>
+      <a href="#papir"><div class="jeviste" data-pozadi="papir"><div class="jev-postava"><span class="kresba-obal" data-kresba="papir" data-staticke></span></div></div><span class="rada-popis"><span lang="ja">五</span>Vystřihovánka</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- Kvaš -->
+  <section class="sirka papir" id="kvas" data-sekce="kvas">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">今</span>
+      <div>
+        <p class="stitek">Výchozí · kvaš</p>
+        <h2 class="nadpis-2">Kvaš z prvního listu</h2>
+        <p class="teze">Pro srovnání. Měkké přechody, ruční zrno z filtru <code>Kresba</code>, světlo zleva a teplý odraz oblohy zprava. Takhle jsou dnes nakreslené všechny kami na Partě 2.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 Tuš -->
+  <section class="sirka papir" id="tus" data-sekce="tus">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">一</span>
+      <div>
+        <p class="stitek">Rukopis 1 · <span lang="ja">墨絵</span> sumi-e</p>
+        <h2 class="nadpis-2">Tuš</h2>
+        <p class="teze">Nejméně barvy, nejvíc tahu. Štětec, vodová skvrna a dvě kapky růžové. Postava se tu nekreslí, ale maluje.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="sloupec-jeviste"></div>
+      <div>
+        <ol class="body">
+          <li><b>Obrys s přítlakem.</b> Kde štětec zatlačí, linka zesílí, kde se zvedne, skoro zmizí. Žádná čára nemá všude stejnou tloušťku.</li>
+          <li><b>Glazura jen jako voda.</b> Mléčná glazura je nevybarvený papír, hlína dole okrový lavír.</li>
+          <li><b>Sakury jako v tušové malbě.</b> Pět kapek barvy bez obrysu a tečky tyčinek tuší. Tak se v sumi-e maluje švestka i sakura.</li>
+          <li><b>Praskliny pár tahy,</b> ne síť. Malíř naznačí, divák si zbytek domyslí.</li>
+          <li><b>Pečeť a nápis</b> <span lang="ja">萩焼</span>, tedy hagi.</li>
+        </ol>
+        <div class="odkud"><b>Odkud</b>Zenová malba, Sesshū, a hlavně dřívější vizuál webu „tušový tah“ a štětcové písmo, které Parta 2 používá na znaky.</div>
+        <h3 class="nadpis-3">K Partě 2</h3>
+        <p>Rukopisem ladí se štětcovými znaky a se svitkem z nočního průvodu. S malovanými scénami se ale nepotká, ty jsou plné barvy a tuš by v nich vypadala jako výstřižek.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">Na barevném nebi se ztratí, tuš potřebuje papír pod sebou. Ve scénách by musela stát v papírovém okně. Nejdospělejší z pěti, ale nejméně Ghibli.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 Cel -->
+  <section class="sirka papir" id="cel" data-sekce="cel">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">二</span>
+      <div>
+        <p class="stitek">Rukopis 2 · <span lang="ja">セル画</span> cel</p>
+        <h2 class="nadpis-2">Ghibli cel</h2>
+        <p class="teze">Jak ve filmu: postava má plochou barvu, jeden ostrý stín a jedno světlo, krajina za ní je malovaná. Ghibli tímhle rozdílem drží postavy čitelné v jakkoli bohaté scéně.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="sloupec-jeviste"></div>
+      <div>
+        <ol class="body">
+          <li><b>Stín je tvar, ne přechod.</b> Jedna ostrá plocha na pravém boku, jak se kolorovaly fólie (cely) v <i>Totorovi</i> nebo v <i>Kiki</i>.</li>
+          <li><b>Obrys v barvě, ne černý.</b> Tmavě hnědý, tam kde sedí na hlíně. Černá linka by byla komiks.</li>
+          <li><b>Odlesk oblohy jako tvrdá linka</b> po pravém okraji a jedno bílé světlo na rameni.</li>
+          <li><b>Gohon jako ploché skvrny</b> s ostrou hranou, ne rozmazaný ruměnec.</li>
+          <li><b>Pozadí jinou technikou.</b> Mraky a louka jsou malované, postava je plochá. Právě ten rozdíl je Ghibli.</li>
+        </ol>
+        <div class="odkud"><b>Odkud</b>Studio Ghibli do roku 1997 kolorovalo ručně na fólie, potom digitálně, ale pravidlo zůstalo: plochá postava, malované pozadí.</div>
+        <h3 class="nadpis-3">K Partě 2</h3>
+        <p>Sedí nejlíp ze všech. Scény Party 2 jsou malované přechody a obloha se mění, takže plochá postava se v nich přirozeně oddělí a zůstane čitelná ve dne i v noci.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">Přijde o ruční zrno a je o něco víc „animovaná“ než řemeslná. Filtr <code>Kresba</code> by z postav zmizel a zůstal jen na scénách.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 Hanga -->
+  <section class="sirka papir" id="hanga" data-sekce="hanga">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">三</span>
+      <div>
+        <p class="stitek">Rukopis 3 · <span lang="ja">木版画</span> moku-hanga</p>
+        <h2 class="nadpis-2">Dřevořez</h2>
+        <p class="teze">Hiroshige a Hokusai: indigová kresba, ploché barvy, přechod bokashi a kresba dřeva v ploše. Vázička jako list z alba <i>Sto pohledů na hagi</i>.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="sloupec-jeviste"></div>
+      <div>
+        <ol class="body">
+          <li><b>Kresba v indigu.</b> Tiskaři ji řezali do první desky, barvy pak tiskli z dalších.</li>
+          <li><b>Soutisk mírně nesedí.</b> Barva leží o kousek vedle kresby, jak se to u ručního tisku stává.</li>
+          <li><b>Bokashi.</b> Přechod z růžové do papíru u dna a na tvářích. Tiskař ho dělal hadříkem přímo na desce, stejně jako modré pruhy oblohy.</li>
+          <li><b>Kresba dřeva</b> prosvítá v plochách i v nebi.</li>
+          <li><b>Kartuš a pečeť,</b> jako mají listy z alb.</li>
+        </ol>
+        <div class="odkud"><b>Odkud</b>Edo, 19. století. Hiroshige a jeho modré nebe s bokashi, Hokusaiova manga. V dizajn-2 je blízko linorytu.</div>
+        <h3 class="nadpis-3">K Partě 2</h3>
+        <p>Přes oblohu: bokashi je přesně to, co dělá obloha nad stránkou. Japonštější rukopis ze všech pěti a pořád čitelný.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">Silná linka v malých velikostech zhoustne. A je to citace grafiky, ne keramiky. Kus z dílny by se tu tvářil jako ilustrace v knize.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 Riso -->
+  <section class="sirka papir" id="riso" data-sekce="riso">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">四</span>
+      <div>
+        <p class="stitek">Rukopis 4 · <span lang="ja">リソグラフ</span> risograf</p>
+        <h2 class="nadpis-2">Risograf</h2>
+        <p class="teze">Dvě barvy, sakurová a modrá, zrno a posunutý soutisk. Rukopis malých tiskáren a současných ilustrátorů, ne starého Japonska.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="sloupec-jeviste"></div>
+      <div>
+        <ol class="body">
+          <li><b>Jen dva inkousty.</b> Kde se potkají, vznikne fialová. Stín je modrá přes růžovou.</li>
+          <li><b>Zrno místo přechodů.</b> Risograf neumí plynulý přechod, tak tečkuje.</li>
+          <li><b>Posunutý soutisk.</b> Růžová sedí o kousek vedle. Při poklonu se rozjede víc, jako by se list v tiskárně pohnul.</li>
+          <li><b>Tvar drží modrá,</b> růžová jen barví. Gohon a sakury jsou čistá růžová.</li>
+        </ol>
+        <div class="odkud"><b>Odkud</b>Japonský tiskový stroj Riso, ze kterého se stal nástroj zinů a plakátů. Na dizajn-2 je risograf jako celý vzhled.</div>
+        <h3 class="nadpis-3">K Partě 2</h3>
+        <p>Nejsoučasnější a nejméně kami. Na Partě 2 by vypadala jako plakát, ne jako duch z dílny. Inkousty se dají vyměnit za rumělku a indigo, aby seděly k logu.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">Odchází od Ghibli k designu. Spíš pro merch, plakát na open studio nebo Instagram než pro postavu, která má na webu žít. A na noční obloze modrá zmizí úplně.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 Papír -->
+  <section class="sirka papir" id="papir" data-sekce="papir">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">五</span>
+      <div>
+        <p class="stitek">Rukopis 5 · <span lang="ja">切り絵</span> kirie</p>
+        <h2 class="nadpis-2">Vystřihovánka</h2>
+        <p class="teze">Vystřižená z washi a slepená ve vrstvách. Žádný obrys a žádné stínování, hloubku dělá papír sám tím, jak leží přes sebe.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="sloupec-jeviste"></div>
+      <div>
+        <ol class="body">
+          <li><b>Tvar dělá hrana a stín.</b> Každý díl je kus papíru, který vrhá stín na ten pod sebou.</li>
+          <li><b>Glazura je druhý papír přes hlínu,</b> takže její okraj s kapkami vrhá na hlínu stín. Tak to vypadá i na skutečném hagi.</li>
+          <li><b>Gohon jako natrhané kousky</b> růžového papíru.</li>
+          <li><b>Praskliny vytlačené</b> do papíru, ne nakreslené.</li>
+          <li><b>Sakury vystřižené,</b> každá s menším bílým květem navrch.</li>
+        </ol>
+        <div class="odkud"><b>Odkud</b><i>Kirie</i> a <i>chigiri-e</i>, japonské stříhané a trhané obrázky. Na dizajn-2 je to vzhled „z papíru“.</div>
+        <h3 class="nadpis-3">K Partě 2</h3>
+        <p>Vypadá jako něco, co jde vyrobit doopravdy, a u dílny, kde postavičky budou stát vypálené z hlíny, je to sympatické. K malovaným scénám ale sedí jen napůl. Celá Parta 2 by se musela rozstříhat taky.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">V 64 px se stíny slijí do rozmazání. A animace je pracnější, protože každá vrstva se hýbe zvlášť.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sirka papir" aria-labelledby="srovnani-nadpis">
+    <p class="stitek">Vedle sebe</p>
+    <h2 class="nadpis-2" id="srovnani-nadpis">Na stejném papíře a v malém</h2>
+    <p class="perex">Bez pozadí, která každému rukopisu pomáhají. Nahoře 140 px jako ve scéně, pak 64 px jako v mapě cesty a nakonec 64 px na noční obloze.</p>
+    <p class="srovnani-popis">140 px</p>
+    <div class="srovnani" data-srovnani="140"></div>
+    <p class="srovnani-popis">64 px</p>
+    <div class="srovnani" data-srovnani="64"></div>
+    <p class="srovnani-popis">64 px v noci</p>
+    <div class="srovnani" data-srovnani="64" data-tma></div>
+  </section>
+
+  <section class="sirka papir">
+    <div class="doporuceni">
+      <div class="jeviste" data-pozadi="cel" data-mluvici="cel"><div class="jev-pozadi"></div></div>
+      <div>
+        <p class="stitek">Doporučení</p>
+        <h2 class="nadpis-2">Ghibli cel</h2>
+        <p>Je to jediný rukopis, který řeší, jak postava žije ve scéně, a ne jen jak vypadá sama. Parta 2 má malovanou oblohu, která se celý den mění, a plochá postava s jedním ostrým stínem se od ní oddělí ve dne i v noci. Tak to dělá Ghibli, a tak se z „víc Ghibli“ stává pravidlo, ne nálada.</p>
+        <h3 class="nadpis-3">Co to stojí</h3>
+        <p>Postavy přijdou o ruční zrno, které jim dnes dává filtr <code>Kresba</code>. Řemeslo pak musí nést obsah (glazura, patka, gohon), ne povrch kresby.</p>
+        <h3 class="nadpis-3">Co bych si nechal z ostatních</h3>
+        <p>Pečeť a štětcový nápis z tuše na profilové karty. Bokashi z dřevořezu na tváře a dno místo měkkého rozmazání. Risograf na tiskoviny a plakát k open studiu, tam se mu bude dařit.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<p class="pata"><span>Pracovní soubor mimo web, navazuje na <a href="vazicka.html">vazicka.html</a>.</span></p>
+
+<script id="kresby">
+/* ==KRESBY== Sensei v šesti rukopisech: (u, o) → SVG, u je předpona id */
+(function (g) {
+  const f = (n) => Math.round(n * 100) / 100;
+  function R(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function praskliny({ seed, x0, y0, x1, y1, krok, rozhoz = 0.36, hustota = 0.74 }) {
+    const r = R(seed);
+    const sl = Math.ceil((x1 - x0) / krok) + 1, ra = Math.ceil((y1 - y0) / krok) + 1;
+    const P = [];
+    for (let j = 0; j < ra; j++) { P[j] = []; for (let i = 0; i < sl; i++) { const sx = (j % 2) * krok * 0.5; P[j][i] = [x0 + i * krok + sx + (r() - 0.5) * krok * rozhoz * 2, y0 + j * krok + (r() - 0.5) * krok * rozhoz * 2]; } }
+    let d = "";
+    const usek = (a, b) => { const mx = (a[0] + b[0]) / 2 + (r() - 0.5) * krok * 0.28, my = (a[1] + b[1]) / 2 + (r() - 0.5) * krok * 0.28; d += `M${f(a[0])} ${f(a[1])}Q${f(mx)} ${f(my)} ${f(b[0])} ${f(b[1])}`; };
+    for (let j = 0; j < ra; j++) for (let i = 0; i < sl; i++) {
+      if (i + 1 < sl && r() < hustota) usek(P[j][i], P[j][i + 1]);
+      if (j + 1 < ra && r() < hustota) usek(P[j][i], P[j + 1][i]);
+      if (j + 1 < ra && i + 1 < sl && r() < hustota * 0.3) usek(P[j][i], P[j + 1][i + 1]);
+    }
+    return d;
+  }
+  function skvrna(cx, cy, rx, ry, seed, n = 9) {
+    const r = R(seed), p = [];
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2, k = 0.76 + r() * 0.38; p.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]); }
+    let d = "";
+    for (let i = 0; i < n; i++) { const a = p[i], b = p[(i + 1) % n]; if (i === 0) { const z = p[n - 1]; d += `M${f((z[0] + a[0]) / 2)} ${f((z[1] + a[1]) / 2)}`; } d += `Q${f(a[0])} ${f(a[1])} ${f((a[0] + b[0]) / 2)} ${f((a[1] + b[1]) / 2)}`; }
+    return d + "Z";
+  }
+  const promenna = (vl, nazev, zaloha) => (typeof g.QA_NOC === "number" ? `${vl}="${zaloha}"` : `style="${vl}:var(${nazev}, ${zaloha})"`);
+
+  /* ——— Společná geometrie: všech šest rukopisů kreslí totéž ——— */
+  const TELO = "M74 49 Q90 46 106 50.5 C107 53 105.5 56 102.5 57.5 C102 61 103.5 64.5 107 66.5 C121 73 131 86 130.5 101 C130 120 121 136 110 145.5 L70 145.5 C59 136 49.5 120 49.5 101 C49.5 86 59 73 73 66.5 C76.5 64.5 78 61 77.5 57.5 C74.5 56 73 53 74 49 Z";
+  const PATKA = "M70.5 144 H109.5 V154.5 H103.2 Q102.4 149.6 99.3 149.6 Q96.2 149.6 95.5 154.5 H84.5 Q83.8 149.6 80.7 149.6 Q77.6 149.6 76.8 154.5 H70.5 Z";
+  const HRANICE = "M30 30 H150 V137.6 C145 137.2 140.6 139.2 136.8 138.8 C133.2 138.4 131.6 141.8 128.4 141.4 C125.4 141 124.6 137.8 121 138.4 C117.6 139 117.4 143.6 114 143.8 C110.8 144 110.6 139.8 106.6 140 C103 140.2 102.6 142.6 99 142.4 C95.4 142.2 94.6 138.6 90.4 139 C86.4 139.4 86.2 144.2 82.4 144.4 C78.8 144.6 78.4 140.4 74.6 140.6 C71 140.8 70.2 143.4 66.4 142.8 C62.6 142.2 61.4 138.6 57.6 138.4 C53.4 138.2 50.6 139.6 46 138.6 L30 138.6 Z";
+  const STIN_PRAVY = "M104 44 C122 64 133 98 124 126 C119 140 112 147 104 152 H160 V40 Z";
+  const VETVE = [
+    ["M89.2 49 C88.6 40 86.8 30 83.4 21 C81.6 16.5 79.6 13 77 10", 1.9],
+    ["M86.2 31 C88.6 27 90.8 24.6 94 22.6", 1],
+    ["M91 49 C94 44 99.5 39.5 106 36 C111 33.4 116 31 121.5 29.4", 1.7],
+    ["M104.5 37 C107.5 38.4 110 40.8 111.6 44", 0.9],
+    ["M88.5 49.5 C84 47.2 78 45.8 71 45.6 C68 45.5 65.6 45.8 63 46.6", 1.5],
+  ];
+  const KVETY = [[77.2, 10.6, 0.6, 12], [82.8, 19.8, 0.48, -24], [94.4, 22.2, 0.46, 30], [121.6, 29.2, 0.55, 34], [113.2, 32.2, 0.46, -8], [111.8, 44.6, 0.41, 50], [106.4, 35.6, 0.36, 70], [63.2, 46.6, 0.53, -34], [70.6, 45.6, 0.4, 8]];
+  const PUPENY = [[80.2, 14.6, 0.6, -30], [85.2, 26.2, 0.55, -60], [117.4, 30, 0.55, 50], [76, 46.2, 0.52, -80]];
+  const LISTY = [[81.6, 17.2, 0.7, -125], [114.6, 31.6, 0.7, -30], [67.6, 45.6, 0.62, 170], [92.4, 23.6, 0.58, -50], [108.6, 40.2, 0.55, 60]];
+  const GOHON = [[71.5, 103.5, 5.4, 3.6, 2], [108.5, 103.5, 5.4, 3.6, 5], [116, 126, 4, 2.6, 8], [64, 80, 3, 2.2, 13], [98, 128, 2.6, 1.8, 17], [85, 68, 2.4, 1.6, 19]];
+  const PLATEK = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
+  const PUPEN = "M0 0 C-2.7 -2.2 -3.1 -6.2 0 -9.4 C3.1 -6.2 2.7 -2.2 0 0 Z";
+  const LIST = "M0 0 C2.4 -2.8 6.8 -3.2 10.4 -0.6 C6.8 1.8 2.4 1.8 0 0 Z";
+  const OKO_TVAR = "M95.4 95.4 Q101 91.6 106.6 95.2 Q101 98.4 95.4 95.4 Z";
+  const umisti = (x, y, s, r) => `translate(${x} ${y}) rotate(${r}) scale(${s})`;
+  const pouzij = (u, id, [x, y, s, r]) => `<use href="#${u}-${id}" transform="${umisti(x, y, s, r)}"/>`;
+  const obal = (o, trida, obsah) => `<svg viewBox="${o.viewBox || "0 0 180 180"}" class="kresba ${trida}" fill="none" aria-hidden="true">${obsah}</svg>`;
+
+  /* Tvář: stejná všude, mění se barva, síla a zda je obrys štětcem */
+  function tvar(u, { c = "#3B2A22", oboci = "#6B4A3A", k = 1, bilek = "#FBF3E8", zornice = c, filtr = "" } = {}) {
+    return `
+    <g class="s-tvar" stroke="${c}" stroke-linecap="round" ${filtr}>
+      <path d="M72.8 87.2 Q78.8 84.6 84.6 86.2" stroke="${oboci}" stroke-width="${f(1.25 * k)}"/>
+      <path d="M95.4 86.2 Q101.2 84.6 107.2 87.2" stroke="${oboci}" stroke-width="${f(1.25 * k)}"/>
+      <path d="M74.6 91.6 Q79 89.9 83.4 91.4" stroke-width="${f(0.7 * k)}" opacity="0.35"/>
+      <path d="M96.6 91.4 Q101 89.9 105.4 91.6" stroke-width="${f(0.7 * k)}" opacity="0.35"/>
+      <path d="M73.6 95 Q79 98.6 84.4 95" stroke-width="${f(1.8 * k)}"/>
+      <path d="M73.6 95 L71.9 93.9" stroke-width="${f(1.1 * k)}"/>
+      <g class="s-oko-z"><path d="M95.6 95 Q101 98.6 106.4 95" stroke-width="${f(1.8 * k)}"/><path d="M106.4 95 L108.1 93.9" stroke-width="${f(1.1 * k)}"/></g>
+      <g class="s-oko-o">
+        <path d="${OKO_TVAR}" fill="${bilek}" stroke="none"/>
+        <ellipse cx="100.4" cy="95.6" rx="2.2" ry="2.5" fill="${zornice}" stroke="none" clip-path="url(#${u}-oko)"/>
+        <circle cx="101.1" cy="94.7" r="0.6" fill="#FFF6EA" stroke="none"/>
+        <path d="M95.4 95.4 Q101 91.6 106.6 95.2" stroke-width="${f(1.8 * k)}"/>
+        <path d="M106.6 95.2 L108.3 94" stroke-width="${f(1.1 * k)}"/>
+      </g>
+      <path d="M86.8 107.2 Q90.2 108.9 93.2 106.8" stroke-width="${f(1.5 * k)}"/>
+    </g>`;
+  }
+  const zakladDefs = (u) => `<clipPath id="${u}-telo"><path d="${TELO}"/></clipPath><clipPath id="${u}-glaz"><path d="${HRANICE}"/></clipPath><clipPath id="${u}-oko"><path d="${OKO_TVAR}"/></clipPath>`;
+  const sakuraDefs = (u, { pata, spicka, obrys, sirka = 0.5, stred, tycinky = "#D9A33A", pupen, kalich, list }) => {
+    const t = [...Array(7)].map((_, i) => { const a = (i / 7) * Math.PI * 2 + 0.3; return [Math.cos(a), Math.sin(a)]; });
+    return `
+    <linearGradient id="${u}-plg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="-12.6"><stop offset="0" stop-color="${pata}"/><stop offset="0.55" stop-color="${spicka}"/><stop offset="1" stop-color="${spicka}"/></linearGradient>
+    <path id="${u}-pl" d="${PLATEK}" fill="url(#${u}-plg)" stroke="${obrys}" stroke-width="${sirka}" stroke-linejoin="round"/>
+    <g id="${u}-kv">${[0, 72, 144, 216, 288].map((a) => `<use href="#${u}-pl" transform="rotate(${a}) translate(0 -1.2)"/>`).join("")}
+      <circle r="2.3" fill="${stred}" opacity="0.85"/>
+      <g stroke="${stred}" stroke-width="0.45" stroke-linecap="round">${t.map(([c, s]) => `<path d="M${f(c * 1.2)} ${f(s * 1.2)}L${f(c * 4.3)} ${f(s * 4.3)}"/>`).join("")}</g>
+      <g fill="${tycinky}">${t.map(([c, s]) => `<circle cx="${f(c * 4.5)}" cy="${f(s * 4.5)}" r="0.6"/>`).join("")}</g></g>
+    <g id="${u}-pu"><path d="${PUPEN}" fill="${pupen}" stroke="${obrys}" stroke-width="${sirka}"/><path d="M0 1.2 C-2.1 0.4 -2.6 -1.8 -1.7 -3.6 L0 -2.2 L1.7 -3.6 C2.6 -1.8 2.1 0.4 0 1.2 Z" fill="${kalich}"/></g>
+    <g id="${u}-li"><path d="${LIST}" fill="${list}"/><path d="M0.6 0 C3.6 -0.5 6.6 -0.7 9.6 -0.6" stroke="${kalich}" stroke-width="0.35" opacity="0.7"/></g>`;
+  };
+  const ikebana = (u, { barva, k = 1, filtr = "", tlak = null }) => `
+    <g class="s-ikebana" ${filtr}>
+      <g stroke="${barva}" stroke-linecap="round">${VETVE.map(([d, w]) => `<path d="${d}" stroke-width="${f(w * k)}"/>${tlak ? `<path d="${d}" stroke-width="${f(w * k * 1.9)}" stroke-dasharray="${tlak}"/>` : ""}`).join("")}</g>
+      ${LISTY.map((l) => pouzij(u, "li", l)).join("")}${PUPENY.map((p) => pouzij(u, "pu", p)).join("")}${KVETY.map((q) => pouzij(u, "kv", q)).join("")}
+    </g>`;
+  const filtrTah = (u, posun = 1.8, zrno = 0.55) => `
+    <filter id="${u}-tah" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4" result="vlna"/>
+      <feDisplacementMap in="SourceGraphic" in2="vlna" scale="${posun}" xChannelSelector="R" yChannelSelector="G" result="tah"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" result="zrno"/>
+      <feColorMatrix in="zrno" type="matrix" values="0 0 0 0 0.23  0 0 0 0 0.18  0 0 0 0 0.16  ${zrno} 0 0 0 -0.26" result="skvrny"/>
+      <feComposite in="skvrny" in2="tah" operator="in" result="zrnoVTvaru"/>
+      <feMerge><feMergeNode in="tah"/><feMergeNode in="zrnoVTvaru"/></feMerge>
+    </filter>
+    <filter id="${u}-m1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.1"/></filter>
+    <filter id="${u}-m2" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter>`;
+
+  /* ———————————— 0 · KVAŠ (z vazicka.html) ———————————— */
+  function kvas(u, o = {}) {
+    const jemne = praskliny({ seed: 7, x0: 44, y0: 54, x1: 136, y1: 148, krok: 8, hustota: 0.66 });
+    const huste = praskliny({ seed: 23, x0: 44, y0: 120, x1: 136, y1: 148, krok: 5, hustota: 0.5 });
+    return obal(o, "v-kvas", `
+    <defs>${filtrTah(u)}${zakladDefs(u)}
+      ${sakuraDefs(u, { pata: "#E3909F", spicka: "#FDF1F0", obrys: "#C27F8C", stred: "#A9435A", pupen: "#D45E79", list: "#9A5A3A", kalich: "#6E4430" })}
+      <linearGradient id="${u}-hlina" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E4B892"/><stop offset="0.5" stop-color="#CF9C77"/><stop offset="1" stop-color="#A26D4A"/></linearGradient>
+      <radialGradient id="${u}-glazura" cx="0.36" cy="0.3" r="0.85"><stop offset="0" stop-color="#FFFAF3"/><stop offset="0.42" stop-color="#F5E9DC"/><stop offset="0.8" stop-color="#E6D0BE"/><stop offset="1" stop-color="#D4B6A0"/></radialGradient>
+      <linearGradient id="${u}-stin" x1="0" y1="0" x2="1" y2="0"><stop offset="0.42" stop-color="#7A4E3A" stop-opacity="0"/><stop offset="1" stop-color="#7A4E3A" stop-opacity="0.34"/></linearGradient>
+      <linearGradient id="${u}-dno" x1="0" y1="0" x2="0" y2="1"><stop offset="0.72" stop-color="#5A3A2C" stop-opacity="0"/><stop offset="1" stop-color="#5A3A2C" stop-opacity="0.3"/></linearGradient>
+    </defs>
+    <ellipse cx="90" cy="155.2" rx="27" ry="3.4" fill="#5A3A2C" opacity="0.24" filter="url(#${u}-m1)"/>
+    <g class="s-dech">
+      <g filter="url(#${u}-tah)">
+        <path d="${PATKA}" fill="url(#${u}-hlina)" stroke="#6E4F40" stroke-width="1.3" stroke-linejoin="round"/>
+        <path d="${TELO}" fill="url(#${u}-hlina)"/>
+        <g clip-path="url(#${u}-telo)">
+          <g clip-path="url(#${u}-glaz)">
+            <rect x="40" y="40" width="100" height="110" fill="url(#${u}-glazura)"/>
+            <path d="${skvrna(114, 128, 16, 10, 3)}" fill="#E7AE98" opacity="0.5" filter="url(#${u}-m2)"/>
+            ${GOHON.map(([x, y, rx, ry, s]) => `<path d="${skvrna(x, y, rx, ry, s)}" fill="#E39B8B" opacity="0.5" filter="url(#${u}-m1)"/>`).join("")}
+            <path d="${jemne}" stroke="#8B6450" stroke-width="0.42" opacity="0.26"/>
+            <path d="${huste}" stroke="#6F4A39" stroke-width="0.45" opacity="0.32"/>
+          </g>
+          <path d="${HRANICE}" stroke="#B88E74" stroke-width="0.9" opacity="0.7"/>
+          <rect x="40" y="40" width="100" height="110" fill="url(#${u}-stin)"/>
+          <rect x="40" y="40" width="100" height="110" fill="url(#${u}-dno)"/>
+          <path d="M61 80 C56.4 92 56.4 110 60.6 124" stroke="#FFFDF8" stroke-width="5" stroke-linecap="round" opacity="0.55" filter="url(#${u}-m1)"/>
+          <path d="M124.6 84 C130 96 129.6 114 122.6 130" ${promenna("stroke", "--odlesk", "#F7C79A")} stroke-width="3.2" stroke-linecap="round" opacity="0.65" filter="url(#${u}-m1)"/>
+        </g>
+        <path d="${TELO}" stroke="#6E4F40" stroke-width="1.5" stroke-linejoin="round"/>
+        <ellipse cx="90" cy="48.7" rx="12.2" ry="2.2" fill="#3B2A22"/>
+      </g>
+      ${ikebana(u, { barva: "#4A3226", filtr: `filter="url(#${u}-tah)"` })}
+      <path d="M77.6 49.6 Q90 52.6 102.6 50" stroke="#F3E6D8" stroke-width="1.6" stroke-linecap="round"/>
+      ${tvar(u)}
+    </g>`);
+  }
+
+  /* ———————————— 1 · TUŠ ———————————— */
+  function tus(u, o = {}) {
+    const tus = "#1F1A17";
+    const pras = praskliny({ seed: 31, x0: 50, y0: 96, x1: 130, y1: 142, krok: 13, hustota: 0.42 });
+    return obal(o, "v-tus", `
+    <defs>${zakladDefs(u)}
+      <filter id="${u}-stetec" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="8" result="v"/>
+        <feDisplacementMap in="SourceGraphic" in2="v" scale="1.9" xChannelSelector="R" yChannelSelector="G" result="d"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.25 1.6" numOctaves="1" seed="2" result="z"/>
+        <feColorMatrix in="z" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2 2.35" result="suchy"/>
+        <feComposite in="d" in2="suchy" operator="in"/>
+      </filter>
+      <filter id="${u}-lavis" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="3" result="v"/>
+        <feDisplacementMap in="SourceGraphic" in2="v" scale="4" xChannelSelector="R" yChannelSelector="G" result="d"/>
+        <feGaussianBlur in="d" stdDeviation="0.8"/>
+      </filter>
+      <g id="${u}-kv">
+        ${[0, 72, 144, 216, 288].map((a) => `<circle cx="${f(Math.cos((a - 90) * Math.PI / 180) * 4.2)}" cy="${f(Math.sin((a - 90) * Math.PI / 180) * 4.2)}" r="4.3" fill="#EDA2AE" opacity="0.6"/>`).join("")}
+        <g stroke="${tus}" stroke-width="0.5" stroke-linecap="round">${[20, 70, 125, 180, 235, 290, 335].map((a) => { const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180); return `<path d="M${f(c)} ${f(s)}L${f(c * 4)} ${f(s * 4)}"/>`; }).join("")}</g>
+        <g fill="${tus}">${[20, 70, 125, 180, 235, 290, 335].map((a) => `<circle cx="${f(Math.cos(a * Math.PI / 180) * 4.3)}" cy="${f(Math.sin(a * Math.PI / 180) * 4.3)}" r="0.65"/>`).join("")}</g>
+        <circle r="1.1" fill="#C4432B" opacity="0.7"/>
+      </g>
+      <g id="${u}-pu"><circle cx="0" cy="-3" r="2.4" fill="#E58C9C" opacity="0.75"/><path d="M-1.6 -0.4 Q0 1.4 1.6 -0.4" stroke="${tus}" stroke-width="0.8" stroke-linecap="round"/></g>
+      <g id="${u}-li"><path d="M0 0 C2.4 -2.8 6.8 -3.2 10.4 -0.6 C6.8 1.8 2.4 1.8 0 0 Z" fill="#6E6A4E" opacity="0.55"/></g>
+    </defs>
+    <ellipse cx="90" cy="155" rx="30" ry="3.4" fill="${tus}" opacity="0.12" filter="url(#${u}-lavis)"/>
+    <g class="s-dech">
+      <path d="${PATKA}" fill="#D7A57A" opacity="0.6" filter="url(#${u}-lavis)"/>
+      <path d="${TELO}" fill="#EDE3D4" opacity="0.75" filter="url(#${u}-lavis)"/>
+      <g clip-path="url(#${u}-telo)">
+        <path d="M30 138 H150 V160 H30 Z" fill="#D29A70" opacity="0.55" filter="url(#${u}-lavis)"/>
+        <path d="M120 70 C134 92 134 118 118 140" stroke="#A89480" stroke-width="12" opacity="0.28" filter="url(#${u}-lavis)"/>
+        ${GOHON.map(([x, y, rx, ry, s]) => `<path d="${skvrna(x, y, rx * 1.15, ry * 1.15, s)}" fill="#E3899A" opacity="0.42" filter="url(#${u}-lavis)"/>`).join("")}
+        <path d="${pras}" stroke="${tus}" stroke-width="0.45" opacity="0.35" filter="url(#${u}-stetec)"/>
+        <path d="${HRANICE}" stroke="${tus}" stroke-width="0.6" opacity="0.5" stroke-dasharray="14 4 22 6" filter="url(#${u}-stetec)"/>
+      </g>
+      <g filter="url(#${u}-stetec)" stroke="${tus}" stroke-linejoin="round" stroke-linecap="round">
+        <path d="${PATKA}" stroke-width="1.1"/>
+        <path d="${TELO}" stroke-width="1.4"/>
+        <path d="M73 66.5 C59 73 49.5 86 49.5 101 C49.5 120 59 136 70 145.5" stroke-width="3"/>
+        <path d="M107 66.5 C121 73 131 86 130.5 101" stroke-width="2.4"/>
+        <path d="M74 49 Q90 46 106 50.5" stroke-width="2.2"/>
+        <ellipse cx="90" cy="48.7" rx="12.2" ry="2.2" fill="${tus}" opacity="0.85"/>
+      </g>
+      ${ikebana(u, { barva: tus, k: 1.35, filtr: `filter="url(#${u}-stetec)"` })}
+      ${tvar(u, { c: tus, oboci: tus, k: 1.15, bilek: "#F7F0E4", filtr: `filter="url(#${u}-stetec)"` })}
+    </g>`);
+  }
+
+  /* ———————————— 2 · GHIBLI CEL ———————————— */
+  function cel(u, o = {}) {
+    const linka = "#6E4636";
+    const pras = praskliny({ seed: 7, x0: 46, y0: 60, x1: 134, y1: 146, krok: 11, hustota: 0.45 });
+    return obal(o, "v-cel", `
+    <defs>${zakladDefs(u)}
+      ${sakuraDefs(u, { pata: "#F2B3C0", spicka: "#F9D7DE", obrys: "#C86F84", sirka: 0.55, stred: "#C24D68", tycinky: "#E2A93A", pupen: "#E07D93", kalich: "#7A4A34", list: "#9C5E3E" })}
+      <clipPath id="${u}-stinpravy"><path d="${STIN_PRAVY}"/></clipPath>
+    </defs>
+    <ellipse cx="90" cy="155" rx="27" ry="3.2" fill="#3D5A3A" opacity="0.28"/>
+    <g class="s-dech">
+      <path d="${PATKA}" fill="#D9A57F" stroke="${linka}" stroke-width="1.3" stroke-linejoin="round"/>
+      <path d="M96 144 H109.5 V154.5 H103.2 Q102.4 149.6 99.3 149.6 Q96.2 149.6 95.5 154.5 Z" fill="#B98060" opacity="0.8"/>
+      <path d="${TELO}" fill="#D9A57F"/>
+      <g clip-path="url(#${u}-telo)">
+        <path d="${HRANICE}" fill="#F5E8DA"/>
+        ${GOHON.map(([x, y, rx, ry, s]) => `<path d="${skvrna(x, y, rx * 0.92, ry * 0.92, s)}" fill="#F0B2A6"/>`).join("")}
+        <path d="${pras}" stroke="#C9A58E" stroke-width="0.55" opacity="0.8"/>
+        <g clip-path="url(#${u}-stinpravy)"><rect x="40" y="40" width="120" height="120" fill="#8A5A44" opacity="0.2"/></g>
+        <path d="${HRANICE}" stroke="${linka}" stroke-width="0.8" opacity="0.6"/>
+        <path d="M62 78 C57 90 57 108 61 121 C62.2 108 63.4 94 67.6 82 Z" fill="#FFFBF4"/>
+        <ellipse cx="66.6" cy="74.4" rx="2.4" ry="1.5" fill="#FFFFFF" transform="rotate(-30 66.6 74.4)"/>
+        <path d="M127.6 88 C130.4 100 129.8 114 124.4 127" ${promenna("stroke", "--odlesk", "#F7C79A")} stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <path d="${TELO}" stroke="${linka}" stroke-width="1.5" stroke-linejoin="round"/>
+      <ellipse cx="90" cy="48.7" rx="12.2" ry="2.2" fill="#4A2F25"/>
+      ${ikebana(u, { barva: "#5A3B2C" })}
+      <path d="M77.6 49.6 Q90 52.6 102.6 50" stroke="#FBF0E4" stroke-width="1.6" stroke-linecap="round"/>
+      ${tvar(u, { c: "#4A2F25", oboci: "#7A5242", k: 1.05 })}
+    </g>`);
+  }
+
+  /* ———————————— 3 · DŘEVOŘEZ ———————————— */
+  function hanga(u, o = {}) {
+    const indigo = "#26324F";
+    return obal(o, "v-hanga", `
+    <defs>${zakladDefs(u)}
+      <filter id="${u}-drevo" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.22" numOctaves="3" seed="6" result="t"/>
+        <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.24  0 0 0 0 0.16  0 0 0 2.6 -1.2"/>
+      </filter>
+      <filter id="${u}-rez" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="v"/>
+        <feDisplacementMap in="SourceGraphic" in2="v" scale="1.1" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <linearGradient id="${u}-bokashi" x1="0" y1="0" x2="0" y2="1"><stop offset="0.55" stop-color="#E7A3A0" stop-opacity="0"/><stop offset="1" stop-color="#E7A3A0" stop-opacity="0.95"/></linearGradient>
+      <radialGradient id="${u}-tvar-b"><stop offset="0" stop-color="#EC9A9E" stop-opacity="0.9"/><stop offset="1" stop-color="#EC9A9E" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${u}-kvb"><stop offset="0" stop-color="#F0A4B2"/><stop offset="0.7" stop-color="#FBEDEF"/><stop offset="1" stop-color="#FFFFFF"/></radialGradient>
+      <path id="${u}-pl" d="${PLATEK}" fill="#FFFFFF"/>
+      <g id="${u}-kv">
+        <g fill="url(#${u}-kvb)">${[0, 72, 144, 216, 288].map((a) => `<path d="${PLATEK}" transform="rotate(${a}) translate(0 -1.2)"/>`).join("")}</g>
+        <g stroke="${indigo}" stroke-width="0.45" stroke-linejoin="round">${[0, 72, 144, 216, 288].map((a) => `<path d="${PLATEK}" transform="rotate(${a}) translate(0 -1.2)"/>`).join("")}</g>
+        <circle r="1.6" fill="#C4432B"/>
+      </g>
+      <g id="${u}-pu"><path d="${PUPEN}" fill="#E07D93" stroke="${indigo}" stroke-width="0.5"/></g>
+      <g id="${u}-li"><path d="${LIST}" fill="#7C8C5A" stroke="${indigo}" stroke-width="0.4"/></g>
+    </defs>
+    <ellipse cx="90" cy="155" rx="27" ry="2.6" fill="${indigo}" opacity="0.22"/>
+    <g class="s-dech">
+      <g transform="translate(0.9 0.6)">
+        <path d="${PATKA}" fill="#C98B5E"/>
+        <path d="${TELO}" fill="#C98B5E"/>
+        <g clip-path="url(#${u}-telo)">
+          <path d="${HRANICE}" fill="#F3E7D2"/>
+          <rect x="40" y="40" width="100" height="106" fill="url(#${u}-bokashi)"/>
+          <ellipse cx="71.5" cy="103.5" rx="7" ry="4.6" fill="url(#${u}-tvar-b)"/>
+          <ellipse cx="108.5" cy="103.5" rx="7" ry="4.6" fill="url(#${u}-tvar-b)"/>
+          <path d="${STIN_PRAVY}" fill="#B98D74" opacity="0.28"/>
+          <rect x="40" y="40" width="100" height="120" filter="url(#${u}-drevo)" opacity="0.22"/>
+        </g>
+      </g>
+      <g filter="url(#${u}-rez)" stroke="${indigo}" stroke-linejoin="round" stroke-linecap="round">
+        <path d="${PATKA}" stroke-width="1.5"/>
+        <g clip-path="url(#${u}-telo)"><path d="${HRANICE}" stroke-width="1"/>
+          <path d="M60 116 L68 112 M72 128 L80 124 L84 130 M100 120 L108 116 M112 132 L118 128" stroke-width="0.7" opacity="0.7"/></g>
+        <path d="${TELO}" stroke-width="1.9"/>
+        <path d="M58 86 C55.4 96 55.6 108 58 116" stroke-width="0.8" opacity="0.6"/>
+        <ellipse cx="90" cy="48.7" rx="12.2" ry="2.2" fill="${indigo}"/>
+      </g>
+      ${ikebana(u, { barva: "#3A2620", k: 1.1, filtr: `filter="url(#${u}-rez)"` })}
+      <path d="M77.6 49.6 Q90 52.6 102.6 50" stroke="#F3E7D2" stroke-width="1.4" stroke-linecap="round"/>
+      ${tvar(u, { c: indigo, oboci: indigo, k: 1.1, bilek: "#F7EEDC", filtr: `filter="url(#${u}-rez)"` })}
+    </g>`);
+  }
+
+  /* ———————————— 4 · RISOGRAF ———————————— */
+  function riso(u, o = {}) {
+    const ruzova = "#FF48B0", modra = "#0078BF";
+    const pras = praskliny({ seed: 7, x0: 46, y0: 60, x1: 134, y1: 146, krok: 10, hustota: 0.5 });
+    return obal(o, "v-riso", `
+    <defs>${zakladDefs(u)}
+      <filter id="${u}-zrno" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="1.15" numOctaves="1" seed="3" result="n"/>
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 1.75" result="a"/>
+        <feComposite in="SourceGraphic" in2="a" operator="in"/>
+      </filter>
+      <linearGradient id="${u}-tma" x1="0" y1="0" x2="1" y2="0"><stop offset="0.45" stop-color="${modra}" stop-opacity="0"/><stop offset="1" stop-color="${modra}" stop-opacity="0.6"/></linearGradient>
+      <g id="${u}-kv">${[0, 72, 144, 216, 288].map((a) => `<path d="${PLATEK}" transform="rotate(${a}) translate(0 -1.2)" fill="${ruzova}"/>`).join("")}<circle r="2.1" fill="#FFFFFF"/></g>
+      <g id="${u}-pu"><path d="${PUPEN}" fill="${ruzova}"/></g>
+      <g id="${u}-li"><path d="${LIST}" fill="${modra}" opacity="0.7"/></g>
+      <g id="${u}-kvm">${[0, 72, 144, 216, 288].map((a) => `<path d="${PLATEK}" transform="rotate(${a}) translate(0 -1.2)" stroke="${modra}" stroke-width="0.5"/>`).join("")}<circle r="0.9" fill="${modra}"/></g>
+    </defs>
+    <g class="s-dech">
+      <!-- Růžový průchod -->
+      <g class="r-ruzova" style="mix-blend-mode:multiply" transform="translate(1 0.6)">
+        <g filter="url(#${u}-zrno)">
+          <path d="${PATKA}" fill="${ruzova}" opacity="0.55"/>
+          <path d="${TELO}" fill="${ruzova}" opacity="0.12"/>
+          <g clip-path="url(#${u}-telo)">
+            <path d="M30 138 H150 V160 H30 Z" fill="${ruzova}" opacity="0.45"/>
+            ${GOHON.map(([x, y, rx, ry, s]) => `<path d="${skvrna(x, y, rx, ry, s)}" fill="${ruzova}" opacity="0.75"/>`).join("")}
+          </g>
+        </g>
+        ${PUPENY.map((p) => pouzij(u, "pu", p)).join("")}${KVETY.map((q) => pouzij(u, "kv", q)).join("")}
+      </g>
+      <!-- Modrý průchod -->
+      <g style="mix-blend-mode:multiply">
+        <g clip-path="url(#${u}-telo)" filter="url(#${u}-zrno)"><rect x="40" y="40" width="100" height="120" fill="url(#${u}-tma)"/></g>
+        <g stroke="${modra}" stroke-linejoin="round" stroke-linecap="round">
+          <path d="${PATKA}" stroke-width="1.3"/>
+          <g clip-path="url(#${u}-telo)"><path d="${pras}" stroke-width="0.4" opacity="0.32"/><path d="${HRANICE}" stroke-width="0.9"/></g>
+          <path d="${TELO}" stroke-width="1.6"/>
+          <ellipse cx="90" cy="48.7" rx="12.2" ry="2.2" fill="${modra}"/>
+          ${VETVE.map(([d, w]) => `<path d="${d}" stroke-width="${w}"/>`).join("")}
+        </g>
+        ${LISTY.map((l) => pouzij(u, "li", l)).join("")}${KVETY.map((q) => pouzij(u, "kvm", q)).join("")}
+        ${tvar(u, { c: modra, oboci: modra, bilek: "#FFFFFF" })}
+      </g>
+    </g>`);
+  }
+
+  /* ———————————— 5 · VYSTŘIHOVÁNKA ———————————— */
+  function papir(u, o = {}) {
+    const vtisk = praskliny({ seed: 7, x0: 46, y0: 60, x1: 134, y1: 146, krok: 12, hustota: 0.45 });
+    return obal(o, "v-papir", `
+    <defs>${zakladDefs(u)}
+      <filter id="${u}-dil" x="-15%" y="-15%" width="135%" height="135%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" seed="5" result="t"/>
+        <feDisplacementMap in="SourceGraphic" in2="t" scale="1.3" xChannelSelector="R" yChannelSelector="G" result="okraj"/>
+        <feDropShadow in="okraj" dx="0.9" dy="1.9" stdDeviation="1.2" flood-color="#3B2A22" flood-opacity="0.5"/>
+      </filter>
+      <filter id="${u}-stinek" x="-15%" y="-15%" width="135%" height="135%"><feDropShadow dx="0.5" dy="0.9" stdDeviation="0.5" flood-color="#3B2A22" flood-opacity="0.4"/></filter>
+      <filter id="${u}-trh" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="12" result="t"/>
+        <feDisplacementMap in="SourceGraphic" in2="t" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="okraj"/>
+        <feDropShadow in="okraj" dx="0.4" dy="0.8" stdDeviation="0.5" flood-color="#3B2A22" flood-opacity="0.3"/>
+      </filter>
+      <filter id="${u}-vlakna" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.03 0.45" numOctaves="2" seed="21" result="t"/>
+        <feColorMatrix in="t" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 2.8 -1.45"/>
+      </filter>
+      <g id="${u}-kv">
+        ${[0, 72, 144, 216, 288].map((a) => `<path d="${PLATEK}" transform="rotate(${a}) translate(0 -1.2)" fill="#F4B9C5"/>`).join("")}
+        <g transform="scale(0.5)">${[36, 108, 180, 252, 324].map((a) => `<path d="${PLATEK}" transform="rotate(${a}) translate(0 -1.2)" fill="#FFF6F6"/>`).join("")}</g>
+        <circle r="1.5" fill="#C24D68"/>
+      </g>
+      <g id="${u}-pu"><path d="${PUPEN}" fill="#E8899D"/></g>
+      <g id="${u}-li"><path d="${LIST}" fill="#A86A44"/></g>
+    </defs>
+    <g class="s-dech">
+      <g class="p-vrstva" filter="url(#${u}-dil)"><path d="${PATKA}" fill="#C4946A"/></g>
+      <g class="p-vrstva" filter="url(#${u}-dil)"><path d="${TELO}" fill="#CF9B74"/></g>
+      <g class="p-vrstva" filter="url(#${u}-dil)" clip-path="url(#${u}-telo)"><path d="${HRANICE}" fill="#F6ECDF"/></g>
+      <g clip-path="url(#${u}-telo)">
+        <g clip-path="url(#${u}-glaz)"><path d="${STIN_PRAVY}" fill="#E4CDB6" filter="url(#${u}-trh)"/></g>
+        <path d="${vtisk}" stroke="#FFFFFF" stroke-width="0.6" opacity="0.9" transform="translate(0.35 0.45)"/>
+        <path d="${vtisk}" stroke="#B89A82" stroke-width="0.45" opacity="0.6"/>
+        <rect x="40" y="40" width="100" height="120" filter="url(#${u}-vlakna)" opacity="0.55"/>
+      </g>
+      <g class="p-vrstva">${GOHON.map(([x, y, rx, ry, s]) => `<path d="${skvrna(x, y, rx * 0.95, ry * 0.95, s)}" fill="#EFA8A0" filter="url(#${u}-trh)"/>`).join("")}</g>
+      <ellipse cx="90" cy="48.7" rx="12.2" ry="2.2" fill="#5A3E30"/>
+      <g class="s-ikebana">
+        <g filter="url(#${u}-dil)"><g stroke="#6A4A38" stroke-linecap="round">${VETVE.map(([d, w]) => `<path d="${d}" stroke-width="${f(w * 1.3)}"/>`).join("")}</g>
+          ${LISTY.map((l) => pouzij(u, "li", l)).join("")}${PUPENY.map((p) => pouzij(u, "pu", p)).join("")}</g>
+        <g filter="url(#${u}-dil)">${KVETY.map((q) => pouzij(u, "kv", q)).join("")}</g>
+      </g>
+      ${tvar(u, { c: "#3B2A22", oboci: "#5A3E30", k: 1.25, filtr: `filter="url(#${u}-stinek)"` })}
+    </g>`);
+  }
+
+  g.KRESBY = { kvas, tus, cel, hanga, riso, papir };
+})(typeof window !== "undefined" ? window : globalThis);
+/* ==/KRESBY== */
+</script>
+
+<script>
+(() => {
+  const K = window.KRESBY;
+  let n = 0;
+  const kresli = (kdo, o = {}) => K[kdo](`k${++n}`, o);
+
+  /* Pozadí jeviště v rukopisu návrhu (viewBox 400×400, země od y = 316) */
+  const POZADI = {
+    kvas: () => `
+      <defs><linearGradient id="pz-kvas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E86D3"/><stop offset="0.6" stop-color="#8DC1EE"/><stop offset="1" stop-color="#DCEFF7"/></linearGradient>
+      <radialGradient id="pz-kvas-s"><stop offset="0" stop-color="#FFF6E2"/><stop offset="0.25" stop-color="#FFF1C2" stop-opacity="0.8"/><stop offset="1" stop-color="#FFF1C2" stop-opacity="0"/></radialGradient></defs>
+      <rect width="400" height="400" fill="url(#pz-kvas)"/><circle cx="200" cy="70" r="90" fill="url(#pz-kvas-s)"/>
+      <path d="M0 268 C60 250 130 258 200 246 C270 234 340 252 400 242 V400 H0 Z" fill="#8FB3D6"/>
+      <path d="M0 298 C90 282 170 290 250 278 C320 270 360 280 400 276 V400 H0 Z" fill="#6E9A9C"/>
+      <rect y="316" width="400" height="84" fill="#87A85C"/>`,
+    tus: () => `
+      <defs><filter id="pz-tus-v"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.2" numOctaves="3" seed="5"/><feColorMatrix values="0 0 0 0 0.45  0 0 0 0 0.36  0 0 0 0 0.24  0 0 0 0.5 -0.12"/></filter>
+      <filter id="pz-tus-l" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="4" result="v"/><feDisplacementMap in="SourceGraphic" in2="v" scale="14"/><feGaussianBlur stdDeviation="2"/></filter></defs>
+      <rect width="400" height="400" fill="#F3EBDD"/><rect width="400" height="400" filter="url(#pz-tus-v)"/>
+      <path d="M-20 290 C30 250 70 200 110 214 C150 228 160 180 200 168 C240 156 250 210 300 200 C340 192 370 230 420 240 V320 H-20 Z" fill="#6E655C" opacity="0.16" filter="url(#pz-tus-l)"/>
+      <path d="M30 316 H180 M230 316 H372" stroke="#1F1A17" stroke-width="1.2" opacity="0.4" stroke-linecap="round"/>
+      <text x="356" y="58" font-family="Yuji Syuku, serif" font-size="30" fill="#1F1A17" opacity="0.85" writing-mode="tb">萩焼</text>
+      <rect x="341" y="134" width="30" height="30" rx="3" fill="#C4432B" transform="rotate(-3 356 149)"/>
+      <text x="356" y="156" text-anchor="middle" font-family="Yuji Syuku, serif" font-size="20" fill="#FBEFE3" transform="rotate(-3 356 149)">師</text>`,
+    cel: () => `
+      <defs><linearGradient id="pz-cel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2D7AD2"/><stop offset="0.62" stop-color="#8CC6F2"/><stop offset="1" stop-color="#D8EEFB"/></linearGradient>
+      <filter id="pz-cel-m" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.4"/></filter></defs>
+      <rect width="400" height="400" fill="url(#pz-cel)"/>
+      <g filter="url(#pz-cel-m)">
+        <g fill="#C9D3EE"><circle cx="60" cy="150" r="40"/><circle cx="110" cy="122" r="52"/><circle cx="170" cy="140" r="40"/><circle cx="300" cy="96" r="34"/><circle cx="342" cy="80" r="44"/><circle cx="384" cy="102" r="32"/><rect x="20" y="140" width="190" height="44" rx="22"/><rect x="270" y="86" width="140" height="40" rx="20"/></g>
+        <g fill="#FFFFFF"><circle cx="60" cy="142" r="36"/><circle cx="110" cy="112" r="48"/><circle cx="168" cy="132" r="35"/><circle cx="300" cy="88" r="30"/><circle cx="342" cy="72" r="40"/><circle cx="382" cy="94" r="28"/></g>
+      </g>
+      <path d="M0 266 C70 250 140 260 210 246 C280 234 340 250 400 242 V400 H0 Z" fill="#7FA9C2"/>
+      <path d="M0 300 C90 284 180 292 260 282 C320 274 370 282 400 280 V400 H0 Z" fill="#5E9C88"/>
+      <rect y="316" width="400" height="84" fill="#7DB35A"/>
+      <path d="M0 316 H400 V330 C300 326 100 334 0 328 Z" fill="#9BC96E"/>
+      <g stroke="#5F9445" stroke-width="2" stroke-linecap="round" opacity="0.7">${[30, 74, 140, 196, 262, 318, 372].map((x, i) => `<path d="M${x} ${346 + (i % 3) * 14} q3 -8 6 -12 M${x + 6} ${346 + (i % 3) * 14} q2 -6 6 -9"/>`).join("")}</g>`,
+    hanga: () => `
+      <defs><linearGradient id="pz-hanga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E3B73"/><stop offset="0.3" stop-color="#1E3B73" stop-opacity="0.85"/><stop offset="0.48" stop-color="#1E3B73" stop-opacity="0"/></linearGradient>
+      <linearGradient id="pz-hanga-o" x1="0" y1="0" x2="0" y2="1"><stop offset="0.5" stop-color="#F2C9A8" stop-opacity="0"/><stop offset="0.78" stop-color="#F2C9A8" stop-opacity="0.9"/></linearGradient>
+      <filter id="pz-hanga-d" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.006 0.16" numOctaves="3" seed="6"/><feColorMatrix values="0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.18  0 0 0 1.6 -0.75"/></filter></defs>
+      <rect width="400" height="400" fill="#EFE4CC"/><rect width="400" height="400" fill="url(#pz-hanga-o)"/><rect width="400" height="400" fill="url(#pz-hanga)"/>
+      <path d="M0 262 C60 236 110 250 160 230 C200 214 240 236 300 224 C350 214 380 232 400 228 V400 H0 Z" fill="#7F9A8A" stroke="#26324F" stroke-width="2"/>
+      <path d="M0 296 C100 284 200 292 280 282 C340 276 380 282 400 280 V400 H0 Z" fill="#9DB07A" stroke="#26324F" stroke-width="2"/>
+      <rect y="316" width="400" height="84" fill="#D9C79E" stroke="#26324F" stroke-width="2"/>
+      <rect width="400" height="400" filter="url(#pz-hanga-d)" opacity="0.6"/>
+      <rect x="22" y="24" width="40" height="124" fill="#F7EEDC" stroke="#26324F" stroke-width="2"/>
+      <rect x="26" y="28" width="32" height="116" fill="none" stroke="#26324F" stroke-width="0.8"/>
+      <text x="42" y="54" font-family="Yuji Syuku, serif" font-size="22" fill="#26324F" text-anchor="middle" writing-mode="tb">萩の師</text>
+      <rect x="28" y="156" width="26" height="26" rx="3" fill="#C4432B"/><text x="41" y="175" text-anchor="middle" font-family="Yuji Syuku, serif" font-size="17" fill="#F7EEDC">形</text>`,
+    riso: () => `
+      <defs><filter id="pz-riso"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="7" result="n"/><feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 1.7" result="a"/><feComposite in="SourceGraphic" in2="a" operator="in"/></filter></defs>
+      <rect width="400" height="400" fill="#F4EFE4"/>
+      <g filter="url(#pz-riso)" style="mix-blend-mode:multiply">
+        <circle cx="282" cy="118" r="78" fill="#FF48B0" opacity="0.55"/>
+        <path d="M0 250 C70 214 130 230 200 204 C270 180 330 214 400 196 V400 H0 Z" fill="#0078BF" opacity="0.3"/>
+        <path d="M0 300 C90 284 180 292 260 280 C320 272 370 280 400 278 V400 H0 Z" fill="#0078BF" opacity="0.5"/>
+        <rect y="316" width="400" height="84" fill="#FF48B0" opacity="0.28"/>
+      </g>
+      <text x="22" y="46" font-family="Fraunces, serif" font-weight="700" font-size="22" fill="#0078BF" letter-spacing="2">SENSEI</text>
+      <text x="22" y="66" font-family="Fraunces, serif" font-size="12" fill="#FF48B0" letter-spacing="3">HAGI · 萩</text>`,
+    papir: () => `
+      <defs><filter id="pz-papir" x="-10%" y="-20%" width="120%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="3" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="5" result="o"/><feDropShadow in="o" dx="0" dy="3" stdDeviation="3" flood-color="#3A2E28" flood-opacity="0.32"/></filter>
+      <filter id="pz-vl"><feTurbulence type="fractalNoise" baseFrequency="0.02 0.3" numOctaves="2" seed="9"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 2.4 -1.3"/></filter></defs>
+      <rect width="400" height="400" fill="#F2E6D3"/>
+      <circle cx="292" cy="110" r="52" fill="#F4C394" filter="url(#pz-papir)"/>
+      <path d="M-10 250 C60 214 120 236 190 206 C260 180 320 220 410 200 V410 H-10 Z" fill="#CBD8C0" filter="url(#pz-papir)"/>
+      <path d="M-10 286 C80 264 170 280 250 262 C320 250 370 266 410 262 V410 H-10 Z" fill="#A9C29A" filter="url(#pz-papir)"/>
+      <path d="M-10 318 C90 310 200 322 300 312 C350 308 380 314 410 312 V410 H-10 Z" fill="#8FAF7E" filter="url(#pz-papir)"/>
+      <rect width="400" height="400" filter="url(#pz-vl)" opacity="0.4"/>`,
+  };
+  const vyplnPozadi = (el) => {
+    let cil = el.querySelector(".jev-pozadi");
+    if (!cil) { cil = document.createElement("div"); cil.className = "jev-pozadi"; el.prepend(cil); }
+    cil.innerHTML = `<svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${POZADI[el.dataset.pozadi]()}</svg>`;
+  };
+
+  /* Jeviště do každé sekce */
+  const REPLIKY = ["Záda rovně. Ne tak. Rovně.", "Sto let jsem stála vedle čajové konvice. Odtud ty tmavé praskliny.", "Tři větve: nebe, člověk, země. Stejně se sedí u kruhu.", "Ten okraj je křivý schválně. Záda ne.", "Gohon. Ne, nečervenám se. To je glazura."];
+  document.querySelectorAll("[data-sekce]").forEach((sekce) => {
+    const kdo = sekce.dataset.sekce;
+    const misto = sekce.querySelector(".sloupec-jeviste");
+    if (!misto) return;
+    misto.innerHTML = `
+      <div class="jeviste" data-pozadi="${kdo}" data-mluvici="${kdo}"></div>
+      <p class="jev-tip">Klikni na ni. Jedno oko občas pootevře samo.</p>
+      <div class="male">
+        <figure><span class="kresba-obal" style="width:96px;height:96px">${kresli(kdo)}</span>96 px</figure>
+        <figure><span class="kresba-obal" style="width:64px;height:64px">${kresli(kdo)}</span>64 px</figure>
+        <figure><span class="kresba-obal" style="width:40px;height:40px">${kresli(kdo)}</span>40 px</figure>
+        <figure><span class="kresba-obal tma" style="width:72px;height:72px">${kresli(kdo)}</span>v noci</figure>
+      </div>`;
+    misto.querySelectorAll(".male .kresba").forEach((k) => k.classList.add("staticke"));
+    const lupy = document.createElement("div");
+    lupy.className = "lupy";
+    lupy.innerHTML = [["64 79 52 39", "Tvář"], ["58 4 72 54", "Ikebana"], ["60 116 60 42", "Glazura a patka"]]
+      .map(([vb, popis]) => `<figure class="lupa"><div class="lupa-okno"><span class="kresba-obal">${kresli(kdo, { viewBox: vb })}</span></div><figcaption><b>${popis}</b></figcaption></figure>`).join("");
+    lupy.querySelectorAll(".kresba").forEach((k) => k.classList.add("staticke"));
+    sekce.append(lupy);
+  });
+
+  document.querySelectorAll("[data-pozadi]").forEach((el) => {
+    vyplnPozadi(el);
+    const kdo = el.dataset.mluvici;
+    if (!kdo) return;
+    el.insertAdjacentHTML("beforeend", `<button type="button" class="jev-postava" aria-label="Sensei, klikni a něco ti řekne"><span class="kresba-obal">${kresli(kdo)}</span></button><p class="jev-bublina" aria-live="polite"></p>`);
+    const tl = el.querySelector(".jev-postava"), bublina = el.querySelector(".jev-bublina");
+    let i = -1, casovac;
+    tl.addEventListener("click", () => {
+      i = (i + 1) % REPLIKY.length;
+      bublina.textContent = REPLIKY[i];
+      el.classList.add("mluvi");
+      tl.classList.remove("reaguje"); void tl.offsetWidth; tl.classList.add("reaguje");
+      clearTimeout(casovac);
+      casovac = setTimeout(() => { el.classList.remove("mluvi"); tl.classList.remove("reaguje"); }, 3600);
+    });
+  });
+  document.querySelectorAll("[data-kresba]").forEach((el) => {
+    el.innerHTML = kresli(el.dataset.kresba);
+    if (el.hasAttribute("data-staticke")) el.firstElementChild.classList.add("staticke");
+  });
+
+  /* Srovnání bez pozadí */
+  const PORADI = [["kvas", "Kvaš"], ["tus", "Tuš"], ["cel", "Ghibli cel"], ["hanga", "Dřevořez"], ["riso", "Risograf"], ["papir", "Vystřihovánka"]];
+  document.querySelectorAll("[data-srovnani]").forEach((el) => {
+    const px = Number(el.dataset.srovnani), tma = el.hasAttribute("data-tma");
+    el.innerHTML = PORADI.map(([kdo, jmeno]) => `<figure><div class="bunka${tma ? " tma" : ""}"><span class="kresba-obal" style="width:${px}px;height:${px}px;max-width:90%">${kresli(kdo)}</span></div>${px === 140 ? `<figcaption>${jmeno}</figcaption>` : ""}</figure>`).join("");
+    el.querySelectorAll(".kresba").forEach((k) => k.classList.add("staticke"));
+  });
+
+  const pozor = new IntersectionObserver((z) => z.forEach((e) => e.target.classList.toggle("mimo", !e.isIntersecting)), { rootMargin: "120px" });
+  document.querySelectorAll(".jeviste").forEach((el) => pozor.observe(el));
+})();
+</script>
+</body>
+</html>

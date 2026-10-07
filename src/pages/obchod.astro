@@ -7,18 +7,8 @@ import Cedulka from "../components/characters/Cedulka.astro";
 import Bublina from "../components/characters/Bublina.astro";
 import { Image } from "astro:assets";
 import Delic from "../components/Delic.astro";
-import zdaleka1 from "../images/zdaleka-1.webp";
-import zdaleka2 from "../images/zdaleka-2.webp";
-import zdaleka3 from "../images/zdaleka-3.webp";
-import zdaleka4 from "../images/zdaleka-4.webp";
-
-/** Keramika zdaleka — čtyři místa, `null` je zatím prázdná karta. */
-const zdaleka = [
-  { src: zdaleka1, alt: "Neglazovaná miska se zdobením mřížky na poličce", name: "Unglazed", author: "Keiichi Miyagawa", price: "1 500 Kč" },
-  { src: zdaleka2, alt: "Miska s modrozelenou stékající glazurou na poličce", name: "Hagi", author: "Seigan Yamane", price: "2 500 Kč" },
-  { src: zdaleka3, alt: "Světlá miska s šedými točenými pruhy na poličce", name: "Banko", author: "Teruhisa Sato", price: "700 Kč" },
-  { src: zdaleka4, alt: "Hrnek ze Shigaraki s hrubou světlou glazurou na poličce", name: "Shigaraki ware cup", author: "No name", price: "800 Kč" },
-];
+/** Keramika zdaleka — kusy z Japonska; stejná data používá Obchod 2 */
+import { zdaleka } from "../data/zdaleka";
 
 ---
 

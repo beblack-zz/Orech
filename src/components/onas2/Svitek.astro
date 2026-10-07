@@ -1,0 +1,108 @@
+---
+/**
+ * Svitek 絵巻 emaki — první rok dílny měsíc po měsíci. Na širokém okně
+ * je to opravdový svitek: pás papíru, který se při scrollování odvíjí
+ * zprava doleva, jak se japonské svitky čtou (scripts/onas2/svitek.ts).
+ * Vlevo je ještě nepřečtená část namotaná na roli, vpravo přibývá
+ * přečtená. Bez skriptu a na úzké obrazovce jdou scény pod sebou.
+ *
+ * Každá scéna: vpravo text (詞書 kotobagaki — milník z uvod2.ts),
+ * vlevo kresba tuší (Scena.astro), v ní někdo z party a jedna šupinka
+ * zlata na kintsugi. Obloha jde z noci do večera — první rok jako den.
+ */
+import Scena from "./Scena.astro";
+import Kami from "../parta2/Kami.astro";
+import { sceny } from "../../data/onas2";
+import { milniky } from "../../data/uvod2";
+import { mesicZnak } from "../../data/koyomi";
+import { kurzy } from "../../data/kurzy";
+import { parta } from "../../data/parta";
+import { pocetKurzu } from "../../data/pocty";
+
+const MESICE = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+const k0 = kurzy[0];
+const ted = k0
+  ? `V kalendáři ${kurzy.length >= 2 && kurzy.length <= 4 ? "jsou" : "je"} ${pocetKurzu(kurzy.length)}, nejbližší ${k0.date.getDate()}. ${k0.date.getMonth() + 1}. — ${k0.title}.`
+  : "Chystáme další termíny.";
+const text = (m: number) => {
+  if (!m) return ted;
+  const t = milniky.find((x) => x.m === m)?.text ?? "";
+  return t.charAt(0).toUpperCase() + t.slice(1) + ".";
+};
+
+/* Kde ve scéně stojí kami (střed, pata, šířka) a kde se třpytí zlato — procenta kresby 1000 × 600 */
+const rozmisteni: Record<number, { kami: [number, number, number]; zlato: [number, number, number, number] }> = {
+  2: { kami: [56, 90, 9], zlato: [68, 87.5, 2.8, 18] },
+  3: { kami: [66, 84, 8.5], zlato: [49.4, 77.5, 2.4, -12] },
+  4: { kami: [17.4, 64, 7], zlato: [72, 81, 2.6, 8] },
+  5: { kami: [77, 84, 8.5], zlato: [60.6, 62, 2.6, 0] },
+  6: { kami: [88, 84, 8], zlato: [83.4, 13, 2.6, -8] },
+  7: { kami: [70, 76, 10], zlato: [28.6, 43.5, 2.4, 14] },
+  8: { kami: [24, 64, 8], zlato: [46.4, 64, 2.2, 0] },
+  9: { kami: [56.6, 85, 6.5], zlato: [24.8, 91, 2.4, -16] },
+  0: { kami: [60.5, 70, 7], zlato: [91, 30, 2.4, 10] },
+};
+const vsech = sceny.length;
+---
+<section class="svitek" id="svitek" aria-labelledby="svitek-nadpis">
+  {sceny.map((s, i) => (
+    <span class="svitek-kotva" data-hodina={s.hodina} style={`top:${(((i + 1) / (vsech + 1)) * 100).toFixed(2)}%`} aria-hidden="true"></span>
+  ))}
+
+  <div class="svitek-okno">
+    <div class="svitek-pas">
+      <div class="svitek-obal svitek-zacatek">
+        <p class="svitek-titul" lang="ja" aria-hidden="true">工房絵巻</p>
+        <div class="svitek-zacatek-text">
+          <p class="stitek">2026 · svitek dílny</p>
+          <h2 id="svitek-nadpis" class="nadpis-2">Tak jde čas…</h2>
+          <p>Japonské svitky se čtou zprava doleva. Tenhle taky — scrolluj dolů a odvíjí se.</p>
+        </div>
+        <span class="svitek-pecet" lang="ja" aria-hidden="true">ジロ作</span>
+      </div>
+
+      {sceny.map((s, i) => {
+        const r = rozmisteni[s.m];
+        return (
+          <article class="svitek-scena" data-scena={i} aria-labelledby={`scena-${i}-nadpis`}>
+            <div class="svitek-text">
+              <p class="svitek-mesic" lang="ja" aria-hidden="true">{s.m ? mesicZnak(s.m) : "今"}</p>
+              <h3 class="svitek-mesic-cesky" id={`scena-${i}-nadpis`}>{s.m ? MESICE[s.m - 1] : "Teď"}</h3>
+              <p class="svitek-veta">{text(s.m)}</p>
+              <p class="svitek-replika"><b>{jmeno(s.kdo)}</b>„{s.replika}“</p>
+            </div>
+            <div class="svitek-obraz">
+              <Scena m={s.m} />
+              <Kami
+                id={s.kdo}
+                class="svitek-kami"
+                style={`left:${(r.kami[0] - r.kami[2] / 2).toFixed(2)}%;bottom:${(100 - r.kami[1]).toFixed(2)}%;width:${r.kami[2]}%`}
+              />
+              <button
+                type="button"
+                class="skryty zlato-supinka"
+                data-sbirka-cil={s.zlato}
+                aria-label="Něco se tu třpytí"
+                style={`left:${r.zlato[0]}%;top:${r.zlato[1]}%;width:${r.zlato[2]}%;--u:${r.zlato[3]}deg`}
+              >
+                <svg viewBox="0 0 40 40" aria-hidden="true">
+                  <path d="M5 15 L17 4 L33 9 L37 25 L23 36 L8 31 Z" fill="url(#zlato-plisek)" stroke="#B5862A" stroke-width="1.2" stroke-linejoin="round" />
+                  <path d="M12 15 L24 11 M15 24 L28 19" stroke="#FFF6D0" stroke-width="1.6" stroke-linecap="round" opacity="0.85" />
+                </svg>
+              </button>
+            </div>
+          </article>
+        );
+      })}
+
+      <div class="svitek-obal svitek-konec">
+        <p class="svitek-konec-text">Konec svitku. Pokračování se teprve maluje.</p>
+        <span class="svitek-pecet" lang="ja" aria-hidden="true">続</span>
+      </div>
+    </div>
+    <span class="svitek-role svitek-role-vlevo" aria-hidden="true"></span>
+    <span class="svitek-role svitek-role-vpravo" aria-hidden="true"></span>
+    <p class="svitek-ukazatel" aria-hidden="true"><span></span></p>
+  </div>
+</section>

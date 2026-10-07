@@ -1,3 +1,5 @@
+import type { Pohled } from "./zdaleka";
+
 export type Tvar = "bowl" | "vase" | "mug" | "plate";
 
 export interface Produkt {
@@ -9,6 +11,12 @@ export interface Produkt {
   glaze: string;
   tag?: string;
   tagKind?: "new" | "last";
+  /**
+   * Fotky kusu, první je hlavní. Dokud chybí, krámek na /obchod-2
+   * ukazuje kus zabalený v novinách. Fotka se přidá jako v zdaleka.ts:
+   * import obrázku nahoře a { src, alt, popis: "Zepředu" }.
+   */
+  fotky?: Pohled[];
 }
 
 /** Jediný zdroj zboží. Homepage zobrazuje první čtyři, /obchod všechno. */

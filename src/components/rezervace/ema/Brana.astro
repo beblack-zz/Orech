@@ -1,0 +1,150 @@
+---
+/**
+ * První obrazovka Rezervace: za svítání stojí v dílně tabule s destičkami
+ * ema, jako ve svatyni. Na každé je napsané něčí přání — a dokud se
+ * nenapíšeš, visí na ní i Cedulka (ona je destička od narození).
+ *
+ * Vedle karta s tím podstatným: kdy, za kolik a jestli je dnes otevřeno.
+ * Řádek o dnešku a nejbližší volné hodině dopisuje skript; bez něj
+ * zůstane obecná věta.
+ */
+import Kami from "../../parta2/Kami.astro";
+import Shide from "../../characters/kami/Shide.astro";
+import { nahoda } from "../../parta2/tvary";
+import { rezervace } from "../../../data/rezervace";
+
+const cena = rezervace.cena.toLocaleString("cs-CZ");
+
+/* Kde visí destičky: dvě lišty, háčky po čtyřiceti, pár háčků volných */
+const r = nahoda(235);
+const VOLNE = new Set(["1-5", "2-2", "2-7"]);
+const listy = [
+  { y: 246, od: 128, pocet: 10 },
+  { y: 384, od: 148, pocet: 9 },
+];
+const desticky = listy.flatMap((l, li) =>
+  Array.from({ length: l.pocet }, (_, i) => ({
+    klic: `${li + 1}-${i}`,
+    x: l.od + i * 38,
+    y: l.y + 4,
+    u: (r() - 0.5) * 10,
+    z: -(r() * 5).toFixed(2),
+    s: 0.92 + r() * 0.14,
+  })),
+).filter((d) => !VOLNE.has(d.klic));
+/* Cedulka visí na prvním volném háčku horní lišty */
+const ced = { x: listy[0].od + 5 * 38, y: listy[0].y };
+/* Výřez kresby — nad stříškou nic není, tak se tam nekreslí */
+const VY = 100;
+const W = 600;
+const H = 460;
+const kameny = Array.from({ length: 70 }, () => ({ x: 30 + r() * 540, y: 488 + r() * 52, rx: 1.4 + r() * 2.6 }));
+---
+<section class="rz-brana" id="rz-brana" data-hodina="6.4" aria-labelledby="rz-nadpis">
+  <p class="rz-tategaki" lang="ja" aria-hidden="true">予約受付中</p>
+  <div class="rz-brana-mriz">
+    <div class="rz-brana-text papir">
+      <p class="stitek"><span lang="ja">予約</span> · rezervace</p>
+      <h1 id="rz-nadpis" class="rz-nadpis">Vyber si hodinu. <em>Pověs ji na tabuli.</em></h1>
+      <p class="rz-perex">
+        Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin, {cena}&nbsp;Kč za člověka a hodinu.
+        Vyber den a hodinu, napiš se na destičku a pověs ji — rezervace odejde mailem a platí, až ji potvrdíme.
+      </p>
+      <p class="rz-dnes" aria-live="polite">Otevřeno je každé úterý a pátek, {rezervace.od}–{rezervace.do} hodin.</p>
+      <div class="rz-cta">
+        <a class="tlacitko" href="#rz-vyber">Vybrat hodinu</a>
+        <a class="tlacitko tlacitko-obrys" href="#rz-hodiny" data-rz-nejblizsi hidden>Nejbližší volná</a>
+      </div>
+      <p class="rz-pokyn">
+        V japonštině je úterý den ohně <span lang="ja">火</span> a pátek den zlata <span lang="ja">金</span>.
+        Pecinka a Střípek mají služby.
+      </p>
+    </div>
+
+    <div class="rz-tabule-obal">
+      <svg class="rz-tabule" viewBox={`0 ${VY} ${W} ${H}`} aria-hidden="true">
+        <defs>
+          <linearGradient id="rz-strecha" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6E9C8A" />
+            <stop offset="1" stop-color="#3F6B5E" />
+          </linearGradient>
+          <linearGradient id="rz-sloup" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#4E3824" />
+            <stop offset="0.45" stop-color="#7A5A3C" />
+            <stop offset="1" stop-color="#4E3824" />
+          </linearGradient>
+          <linearGradient id="rz-lista" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#9A7350" />
+            <stop offset="1" stop-color="#6B4E34" />
+          </linearGradient>
+        </defs>
+
+        {/* Štěrk se shrabanými vlnkami jako v zenové zahradě */}
+        <ellipse cx="300" cy="514" rx="296" ry="40" fill="#D9CFBC" />
+        <g stroke="#BFB39C" stroke-width="2" fill="none" opacity="0.8">
+          <path d="M20 506 C140 494 460 494 580 506" />
+          <path d="M14 518 C140 506 460 506 586 518" />
+          <path d="M22 530 C150 520 450 520 578 530" />
+        </g>
+        <g fill="#A99D86">
+          {kameny.map((k) => <ellipse cx={k.x.toFixed(1)} cy={k.y.toFixed(1)} rx={k.rx.toFixed(1)} ry={(k.rx * 0.6).toFixed(1)} opacity="0.55" />)}
+        </g>
+        <ellipse cx="81" cy="506" rx="26" ry="7" fill="#2B2420" opacity="0.2" />
+        <ellipse cx="519" cy="506" rx="26" ry="7" fill="#2B2420" opacity="0.2" />
+
+        {/* Sloupky */}
+        <rect x="70" y="150" width="22" height="356" rx="3" fill="url(#rz-sloup)" />
+        <rect x="508" y="150" width="22" height="356" rx="3" fill="url(#rz-sloup)" />
+        <rect x="66" y="494" width="30" height="14" rx="3" fill="#8E8778" />
+        <rect x="504" y="494" width="30" height="14" rx="3" fill="#8E8778" />
+
+        {/* Stříška: zahnutá jako na svatyni, měděná zeleň */}
+        <path d="M14 162 C150 128 450 128 586 162 L578 178 C440 148 160 148 22 178 Z" fill="url(#rz-strecha)" />
+        <path d="M44 152 C170 126 430 126 556 152" stroke="#2E4E44" stroke-width="7" stroke-linecap="round" fill="none" />
+        <path d="M48 149 C172 124 428 124 552 149" stroke="#8FBFAE" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.7" />
+        <path d="M14 162 C150 128 450 128 586 162" stroke="#A9CFC0" stroke-width="2" fill="none" opacity="0.7" />
+        <path d="M22 178 C160 148 440 148 578 178" stroke="#2E4E44" stroke-width="3" fill="none" />
+        <rect x="56" y="176" width="488" height="16" rx="3" fill="url(#rz-lista)" />
+
+        {/* Shimenawa pod stříškou */}
+        <path d="M78 202 Q300 230 522 202" stroke="#C9B186" stroke-width="8" stroke-linecap="round" fill="none" />
+        <path d="M78 202 Q300 230 522 202" stroke="#EBDDB8" stroke-width="6.4" stroke-linecap="round" fill="none" />
+        <path d="M78 202 Q300 230 522 202" stroke="#C9B186" stroke-width="6.4" stroke-dasharray="2 5" fill="none" />
+        <Shide x={190} y={214} scale={1.3} />
+        <Shide x={300} y={219} scale={1.3} zpozdeni />
+        <Shide x={410} y={214} scale={1.3} />
+
+        {/* Lišty s háčky */}
+        {listy.map((l) => (
+          <g>
+            <rect x="84" y={l.y - 9} width="432" height="14" rx="3" fill="url(#rz-lista)" />
+            <path d={`M86 ${l.y - 7} H514`} stroke="#B48C64" stroke-width="1.6" opacity="0.6" />
+            {Array.from({ length: l.pocet }, (_, i) => (
+              <use href="#rz-hacek" x={l.od + i * 38 - 6} y={l.y - 4} width="12" height="14" />
+            ))}
+          </g>
+        ))}
+
+        {/* Destičky — každá se houpe kolem svého háčku */}
+        {desticky.map((d) => (
+          <g transform={`translate(${d.x} ${d.y})`}>
+            <g class="rz-visi" style={`--u:${d.u.toFixed(1)}deg;--z:${d.z}s`}>
+              <use href="#rz-ema-psane" x={-19 * d.s} y="2" width={38 * d.s} height={40.5 * d.s} />
+            </g>
+          </g>
+        ))}
+      </svg>
+
+      <Kami
+        id="cedulka"
+        class="rz-tabule-cedulka"
+        style={`left:${(((ced.x - 34) / W) * 100).toFixed(2)}%;top:${(((ced.y - 10 - VY) / H) * 100).toFixed(2)}%;width:${((68 / W) * 100).toFixed(2)}%`}
+      />
+    </div>
+  </div>
+
+  <a class="rz-dolu" href="#rz-vyber">
+    <span>Vybrat den</span>
+    <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </a>
+</section>

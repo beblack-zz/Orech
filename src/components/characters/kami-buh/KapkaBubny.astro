@@ -1,0 +1,53 @@
+---
+/*
+  Kapka s bubny hromu ve třech přehnaných podobách — návrh i s popisem
+  ovládání je v navrhy/kapka-bubny-hromu.html:
+
+    v1  Zlatý list: plátkové zlato, mrak tarašikomi, světlo jde za myší
+    v2  Bouřka v ensó: okno ze značky, skleněná Kapka, déšť do louže
+    v3  Taiko dokola: prostorový kruh bubnů, tažením se roztočí
+    v4  Původní se stuhou: původní kresba, stuha ze zlatého listu, bubnuje bez blesků
+
+  Kresbu skládá až skript v prohlížeči (scripts/kapka-bubny): vrstvy, pohyb,
+  myš a zvuk. Tady je jen čtvercová plocha. Id ve filtrech jsou pevná, takže
+  každá podoba smí být na stránce jen jednou.
+*/
+interface Props { varianta: "v1" | "v2" | "v3" | "v4"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  v1: "Kapka s bubny hromu na plátkovém zlatě, pod ní mrak z rozpité tuše",
+  v2: "Skleněná Kapka před bouřkou v kruhu ensó, déšť padá do louže u jejích geta",
+  v3: "Kapka bubnuje do prostorového kruhu bubnů, který kolem ní obíhá",
+  v4: "Kapka s kruhem bubnů a dlouhou stuhou bubnuje paličkami",
+};
+---
+<div class={`kapka-bubny ${cls}`} data-kapka-bubny={varianta} tabindex="0" role="img" aria-label={popisy[varianta]}></div>
+
+<script>
+  import "../../../scripts/kapka-bubny/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .kapka-bubny {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .kapka-bubny[data-kapka-bubny="v3"] { touch-action: pan-y; cursor: grab; }
+  .kapka-bubny:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .kb-vrstva, .kb-orez {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .kb-orez { overflow: hidden; }
+  .kb-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

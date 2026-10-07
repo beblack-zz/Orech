@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vázička jako kami</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Yuji+Syuku&display=swap" />
+<style>
+/*
+ * Pracovní list: původní Vázička (characters/Vazicka.astro) v pěti podobách kami.
+ * Kresba zůstává v rukopisu originálu: ploché barvy, obrys #6B5D4F, žádné filtry.
+ */
+:root {
+  --papir: #F7F1E3; --papir-2: #EFE5D1; --papir-3: #E2D4B9;
+  --inkoust: #2B2420; --inkoust-2: #5C5047; --inkoust-3: #8A7C70;
+  --rumelka: #C4432B; --zlato: #D6A23A;
+  --f-display: "Fraunces", Georgia, serif;
+  --f-text: "Newsreader", Georgia, serif;
+  --f-ruka: "Caveat", cursive;
+  --f-kanji: "Yuji Syuku", "Yu Mincho", "Noto Serif JP", serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: var(--f-text); font-size: 17px; line-height: 1.62; color: var(--inkoust); background: #E9DFCB; -webkit-font-smoothing: antialiased; overflow-x: clip; }
+[lang="ja"] { font-family: var(--f-kanji); font-style: normal; }
+p { margin: 0 0 12px; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--rumelka); outline-offset: 3px; border-radius: 8px; }
+.sirka { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+.papir { background: var(--papir); border-radius: 28px; padding: clamp(22px, 4vw, 52px); margin: 0 auto 36px; box-shadow: 0 24px 60px -34px rgba(43, 36, 32, 0.5), 0 0 0 1px rgba(43, 36, 32, 0.06); }
+.stitek { margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--rumelka); }
+.stitek [lang="ja"] { letter-spacing: 0.06em; font-weight: 400; font-size: 1.3em; }
+.nadpis-1, .nadpis-2, .nadpis-3 { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 120; font-weight: 400; letter-spacing: -0.015em; text-wrap: balance; }
+.nadpis-1 { font-size: clamp(48px, 8vw, 100px); line-height: 0.95; margin: 12px 0 16px; }
+.nadpis-2 { font-size: clamp(32px, 4vw, 50px); line-height: 1.04; margin: 6px 0 10px; }
+.nadpis-3 { font-size: 20px; margin: 22px 0 6px; font-variation-settings: "SOFT" 100, "opsz" 36; font-weight: 500; }
+.perex { font-size: clamp(18px, 1.9vw, 21px); color: var(--inkoust-2); max-width: 660px; margin: 0; }
+.hlava { padding: clamp(28px, 6vw, 64px) 0 28px; }
+
+/* Řada: originál a pět kami na jedné zemi */
+.rada { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 28px; }
+.rada::after { content: ""; position: absolute; left: 0; right: 0; bottom: 40px; height: 2px; background: linear-gradient(to right, transparent, var(--papir-3) 8%, var(--papir-3) 92%, transparent); }
+.rada a { text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; z-index: 1; }
+.rada .kresba-obal { width: 100%; max-width: 170px; aspect-ratio: 1; }
+.rada-popis { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 14px; font-weight: 600; text-align: center; line-height: 1.2; }
+.rada-popis span { display: block; font-family: var(--f-kanji); font-weight: 400; font-size: 18px; color: var(--rumelka); }
+
+/* Návrh: kresba na světlém i na tmavém, jako profil na /parta */
+.navrh { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: clamp(22px, 4vw, 52px); align-items: start; }
+.navrh-hlava { display: flex; gap: 18px; align-items: baseline; }
+.navrh-cislo { font-family: var(--f-kanji); font-size: clamp(54px, 7vw, 84px); line-height: 0.9; color: var(--rumelka); }
+.okna { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; }
+.okno { position: relative; border-radius: 22px; aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; }
+.okno-svetle { background: radial-gradient(circle at 50% 40%, #FFFBF2, var(--papir-2)); }
+.okno-tmave {
+  background: #3A2C24 repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 5px);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.okno .postava { width: 92%; aspect-ratio: 1; }
+.okno-tmave .postava { width: 86%; }
+.okno-male { position: absolute; left: 10px; bottom: 8px; margin: 0; font-size: 12px; color: var(--inkoust-3); }
+.okno-tmave .okno-male { color: #B9A994; }
+.bublina {
+  position: absolute; left: 50%; top: 5%; transform: translate(-50%, 6px); opacity: 0; pointer-events: none;
+  max-width: 86%; width: max-content; padding: 8px 14px 10px; border-radius: 16px; background: var(--papir);
+  font-family: var(--f-ruka); font-size: 21px; line-height: 1.1; text-align: center; box-shadow: 0 12px 26px -14px rgba(28, 20, 44, 0.6);
+  transition: opacity 0.3s, transform 0.3s; z-index: 2;
+}
+.mluvi .bublina { opacity: 1; transform: translate(-50%, 0); }
+.male { display: flex; gap: 16px; align-items: flex-end; margin-top: 12px; padding: 10px 14px; border-radius: 16px; background: var(--papir-2); font-size: 12px; color: var(--inkoust-3); }
+.male figure { margin: 0; text-align: center; }
+.male .kresba-obal { display: block; margin: 0 auto 2px; }
+.body { list-style: none; margin: 0; padding: 0; }
+.body li { position: relative; padding-left: 24px; margin: 0 0 10px; }
+.body li::before { content: ""; position: absolute; left: 3px; top: 0.62em; width: 9px; height: 9px; border-radius: 50%; background: var(--rumelka); }
+.body b { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; }
+.replika { font-family: var(--f-ruka); font-size: 24px; color: var(--rumelka); border-left: 3px solid var(--papir-3); padding-left: 14px; margin: 16px 0 0; line-height: 1.2; }
+.cena { border-left: 3px solid var(--rumelka); padding: 2px 0 2px 16px; color: var(--inkoust-2); }
+.doporuceni { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: clamp(22px, 4vw, 52px); align-items: center; }
+
+/* ——— Pohyb ——— */
+.kresba-obal { display: block; }
+.kresba { display: block; width: 100%; height: 100%; overflow: visible; }
+.kyv { transform-origin: 90px 154px; animation: kyv 4.8s ease-in-out infinite; }
+@keyframes kyv { 0%, 100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
+.jiskra { transform-box: fill-box; transform-origin: center; animation: jiskra 2.6s ease-in-out infinite; }
+.jiskra:nth-of-type(2n) { animation-delay: -1.1s; }
+@keyframes jiskra { 0%, 100% { transform: scale(0.45); opacity: 0.3; } 50% { transform: scale(1); opacity: 1; } }
+.shide { transform-box: fill-box; transform-origin: 50% 0; animation: shide 3.2s ease-in-out infinite; }
+.shide-2 { animation-delay: -1.6s; }
+@keyframes shide { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(6deg); } }
+.enso-zare { animation: zare 4s ease-in-out infinite; }
+@keyframes zare { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+.vznas { animation: vznas 4.4s ease-in-out infinite; }
+@keyframes vznas { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.vznas-stin { transform-box: fill-box; transform-origin: center; animation: vznas-stin 4.4s ease-in-out infinite; }
+@keyframes vznas-stin { 0%, 100% { transform: scale(1); opacity: 0.18; } 50% { transform: scale(0.86); opacity: 0.11; } }
+.hitodama { animation: hitodama 6s linear infinite; transform-origin: 90px 104px; }
+.hitodama-2 { animation-delay: -3s; }
+@keyframes hitodama { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.hitodama .plamen { transform-box: fill-box; transform-origin: 50% 80%; animation: plamen 0.9s ease-in-out infinite alternate; }
+@keyframes plamen { to { transform: scale(0.9, 1.12); } }
+.hagoromo { transform-origin: 90px 110px; animation: hagoromo 5s ease-in-out infinite; }
+@keyframes hagoromo { 0%, 100% { transform: skewX(0deg) translateY(0); } 50% { transform: skewX(-3deg) translateY(-2px); } }
+.platek { animation: platek 7s linear infinite; opacity: 0; }
+.platek-2 { animation-delay: -2.4s; } .platek-3 { animation-delay: -4.8s; }
+@keyframes platek { 0% { transform: translate(0, -10px) rotate(0); opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translate(-18px, 110px) rotate(320deg); opacity: 0; } }
+.reaguje .kresba { animation: poklona 1.2s ease-in-out; transform-origin: 50% 86%; }
+@keyframes poklona { 0% { transform: none; } 35%, 55% { transform: rotate(-7deg) translateY(1%); } 100% { transform: none; } }
+.staticke, .staticke * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+@media (max-width: 900px) {
+  .navrh, .doporuceni { grid-template-columns: 1fr; }
+  .rada { grid-template-columns: repeat(3, 1fr); row-gap: 14px; }
+  .rada::after { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="hlava">
+  <div class="sirka papir">
+    <p class="stitek">Parta · Vázička · <span lang="ja">神</span> kami</p>
+    <h1 class="nadpis-1">Vázička jako bůh</h1>
+    <p class="perex">Původní Vázička, jen povýšená na kami. Kresba zůstává v rukopisu originálu (plochá krémová glazura, hnědý obrys, zavřená očka, větvička sakury). Mění se to, co z ní dělá božstvo. Každá z pěti variant jde jinou cestou, kterou Japonsko kami zobrazuje.</p>
+    <nav class="rada" aria-label="Varianty">
+      <a href="#n1"><span class="kresba-obal" data-kresba="original"></span><span class="rada-popis"><span lang="ja">今</span>Originál</span></a>
+      <a href="#n1"><span class="kresba-obal" data-kresba="shintai"></span><span class="rada-popis"><span lang="ja">一</span>Šintai</span></a>
+      <a href="#n2"><span class="kresba-obal" data-kresba="enso"></span><span class="rada-popis"><span lang="ja">二</span>Ensó</span></a>
+      <a href="#n3"><span class="kresba-obal" data-kresba="shinzo"></span><span class="rada-popis"><span lang="ja">三</span>Na oltáři</span></a>
+      <a href="#n4"><span class="kresba-obal" data-kresba="mitama"></span><span class="rada-popis"><span lang="ja">四</span>Mitama</span></a>
+      <a href="#n5"><span class="kresba-obal" data-kresba="sakuya"></span><span class="rada-popis"><span lang="ja">五</span>Sakuja-hime</span></a>
+    </nav>
+  </div>
+</header>
+
+<main data-navrhy></main>
+
+<section class="sirka papir">
+  <div class="doporuceni">
+    <div class="okno okno-svetle" data-mluvici="sakuya"></div>
+    <div>
+      <p class="stitek">Doporučení</p>
+      <h2 class="nadpis-2">Konohanasakuja-hime</h2>
+      <p>Je to jediná varianta, kde Vázička není jen předmět ozdobený něčím božským, ale konkrétní kami s vlastním jménem a příběhem: bohyně kvetoucích sakur. A sakury Vázička má odjakživa. Atribut nevymýšlíme, jen ho pojmenujeme.</p>
+      <h3 class="nadpis-3">Co to stojí</h3>
+      <p>Šál hagoromo je nejsložitější kresba z pěti a v 64 px z něj zbudou dvě růžové čárky. Je to taky nejvíc „ona“ a nejmíň „váza“, takže ostatní z party by potřebovali svou kami podobně silnou (Pecinka jako Kamado-gami to má, Kapka by mohla být bohyně vody Mizuha-no-me).</p>
+      <h3 class="nadpis-3">Kdyby měla zůstat skromná</h3>
+      <p>Šintai. Provaz se shide je nejjednodušší a nejčitelnější znak kami vůbec a dá se dát komukoli z party, aniž by to přehlušilo jejich postavu.</p>
+    </div>
+  </div>
+</section>
+
+<p style="text-align:center;padding:0 16px 60px;margin:0;color:var(--inkoust-3);font-size:14px">Pracovní soubor mimo web. Kresby jsou na plátně 180 × 180 jako originál, takže jdou vyměnit v <code>Postavicka.astro</code>.</p>
+
+<script id="kresby">
+/* ==KRESBY== */
+(function (g) {
+  const f = (n) => Math.round(n * 100) / 100;
+  const OBRYS = "M71 44 Q75 47 76 54 C66 61 56 78 55 106 C54 130 68 150 82 150 L98 150 C112 150 126 130 125 106 C124 78 114 61 104 54 Q105 47 109 44 Q90 40 71 44 Z";
+  const LISTEK = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
+  const JISKRA = "M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z";
+  const HNEDA = "#6B5D4F";
+  const obal = (o, obsah) => `<svg viewBox="0 0 180 180" class="kresba" fill="none" aria-hidden="true">${obsah}</svg>`;
+
+  /* Květ z loga: pět plátků s přechodem, stejně jako v originálu */
+  const kvetDefs = (u, kvet = "#B84A2B", pata = "#9E4025", spicka = "#CF846F", id = "kvet") => `
+    <linearGradient id="${u}-${id}-g" gradientUnits="userSpaceOnUse" x1="0" y1="0.5" x2="0" y2="-12.6"><stop offset="0" stop-color="${pata}"/><stop offset="0.45" stop-color="${kvet}"/><stop offset="1" stop-color="${spicka}"/></linearGradient>
+    <path id="${u}-${id}-l" fill="url(#${u}-${id}-g)" d="${LISTEK}"/>
+    <g id="${u}-${id}">${[0, 72, 144, 216, 288].map((a) => `<use href="#${u}-${id}-l" transform="rotate(${a}) translate(0 -1.7)"/>`).join("")}</g>`;
+  const kv = (u, x, y, r, s, id = "kvet") => `<use href="#${u}-${id}" transform="translate(${x} ${y}) rotate(${r}) scale(${s})"/>`;
+
+  /* Tělo originálu, zmenšené kolem dna. `m` = posun a měřítko celé vázy. */
+  function vaza(u, { glazura = "#EFE3D0", tvar = true, m = "" } = {}) {
+    return `
+    <clipPath id="${u}-telo"><path d="${OBRYS}"/></clipPath>
+    <g transform="${m} translate(90 150) scale(0.82) translate(-90 -150)">
+      <path d="${OBRYS}" fill="${glazura}" stroke="${HNEDA}" stroke-width="1.5"/>
+      <g clip-path="url(#${u}-telo)" stroke="${HNEDA}" stroke-linecap="round">
+        <path d="M84 55 C62 84 62 122 85 150" stroke-width="5" opacity="0.09"/>
+        <path d="M69 62 C58 88 58 118 67 143" stroke-width="4.5" opacity="0.08"/>
+        <path d="M96 55 C118 84 118 122 95 150" stroke-width="5" opacity="0.09"/>
+        <path d="M111 62 C122 88 122 118 113 143" stroke-width="4.5" opacity="0.08"/>
+      </g>
+      <ellipse cx="90" cy="43.6" rx="16" ry="2.2" fill="${HNEDA}" opacity="0.55"/>
+      ${tvar ? `<g stroke="#3A2E28" stroke-linecap="round">
+        <path d="M80 90 Q83 86 86 90" stroke-width="2"/><path d="M96 90 Q99 86 102 90" stroke-width="2"/>
+        <path d="M85 102 Q90 107 95 102" stroke-width="1.8"/></g>` : ""}
+    </g>`;
+  }
+  const vetvicka = (u, m = "") => `
+    <g transform="${m} rotate(10 89 63)">
+      <path d="M89.2 63.4 C90.2 57 92 51 95 45 C97 41 99.6 39.4 103 38" stroke="${HNEDA}" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M93 50 C91 48 89 46 87 44" stroke="${HNEDA}" stroke-width="1" stroke-linecap="round"/>
+      <path d="M91 57 C93 56 96 55 99 53" stroke="${HNEDA}" stroke-width="0.9" stroke-linecap="round"/>
+      ${kv(u, 85, 42, -24, 0.42)}${kv(u, 102, 51, 46, 0.34)}${kv(u, 105, 35, 26, 0.56)}
+    </g>`;
+  const jiskry = (barvy = ["#E8B440", "#C87E4E"]) => [[59, 57, 1, 0], [55, 74, 0.62, 1], [133, 122, 0.9, 0], [122, 139, 0.6, 1]]
+    .map(([x, y, s, b]) => `<g transform="translate(${x} ${y}) scale(${s})"><path class="jiskra" d="${JISKRA}" fill="${barvy[b]}"/></g>`).join("");
+  const shide = (x, y, s = 1, trida = "") => `<g transform="translate(${x} ${y}) scale(${s})"><path class="shide ${trida}" d="M-4 0 h5 v6 h3 v6 h-3 v6 h3 v6 h-5 v-6 h-3 v-6 h3 v-6 h-3 Z" fill="#FBF7EE" stroke="#8A7A69" stroke-width="0.7" stroke-linejoin="round"/></g>`;
+  const stin = (rx = 19) => `<ellipse cx="90" cy="154" rx="${rx}" ry="4" fill="${HNEDA}" opacity="0.2"/>`;
+
+  /* ——— Originál ——— */
+  const original = (u, o = {}) => obal(o, `<defs>${kvetDefs(u)}</defs><g class="kyv">${vaza(u)}${vetvicka(u)}</g>${jiskry()}${stin()}`);
+
+  /* ——— 1 · Šintai: provaz shimenawa se shide kolem břicha ——— */
+  function shintai(u, o = {}) {
+    const provaz = "M60.2 125 Q90 136.6 119.8 125";
+    return obal(o, `<defs>${kvetDefs(u)}</defs>
+    <g class="kyv">
+      ${vaza(u)}${vetvicka(u)}
+      <path d="${provaz}" stroke="#B49A6C" stroke-width="7.4" stroke-linecap="round"/>
+      <path d="${provaz}" stroke="#E6D3A6" stroke-width="5.8" stroke-linecap="round"/>
+      <path d="${provaz}" stroke="#B49A6C" stroke-width="5.8" stroke-dasharray="1.8 4.2"/>
+      <g stroke="#C9B186" stroke-width="1.4" stroke-linecap="round">
+        <path d="M84 133.4 V140"/><path d="M86.6 133.8 V142"/><path d="M93.4 133.8 V142"/><path d="M96 133.4 V140"/>
+      </g>
+      ${shide(73.4, 131, 0.68)}${shide(106.6, 131, 0.68, "shide-2")}
+    </g>
+    ${jiskry()}${stin()}`);
+  }
+
+  /* ——— 2 · Ensó: svatozář ze značky, tah z rumělky do noci, květ jako měsíc ——— */
+  function enso(u, o = {}) {
+    const cx = 90, cy = 66, r = 42;
+    const bod = (a, rr = r) => [f(cx + rr * Math.cos((a * Math.PI) / 180)), f(cy + rr * Math.sin((a * Math.PI) / 180))];
+    /* tah složený z výsečí, ať může slábnout ke konci */
+    const kusy = [];
+    const a0 = -60, a1 = 250, krok = 10;
+    for (let a = a0; a < a1; a += krok) {
+      const t = (a - a0) / (a1 - a0);
+      const w = 6.2 - 4.4 * Math.pow(t, 1.4);
+      const [x0, y0] = bod(a), [x1, y1] = bod(a + krok + 0.6);
+      kusy.push(`<path d="M${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1}" stroke-width="${f(w)}"/>`);
+    }
+    const [mx, my] = bod(-80, r + 1);
+    return obal(o, `<defs>${kvetDefs(u)}${kvetDefs(u, "#FBE9B7", "#E9C36A", "#FFF7DE", "mesic")}
+      <linearGradient id="${u}-enso" gradientUnits="userSpaceOnUse" x1="${cx - r}" y1="${cy + r}" x2="${cx + r}" y2="${cy - r}"><stop offset="0" stop-color="#C4432B"/><stop offset="0.35" stop-color="#C0708A"/><stop offset="0.7" stop-color="#7A5E8E"/><stop offset="1" stop-color="#4E4A84"/></linearGradient>
+      <radialGradient id="${u}-zare"><stop offset="0" stop-color="#FFE9A8" stop-opacity="0.9"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>
+    </defs>
+    <circle cx="${cx}" cy="${cy}" r="${r + 6}" fill="#F6E6C4" opacity="0.45"/>
+    <g stroke="url(#${u}-enso)" stroke-linecap="round" opacity="0.92">${kusy.join("")}</g>
+    <circle class="enso-zare" cx="${mx}" cy="${my}" r="11" fill="url(#${u}-zare)"/>
+    ${kv(u, mx, my, 14, 0.62, "mesic")}
+    <g class="kyv">${vaza(u)}${vetvicka(u)}</g>
+    ${[[133, 122, 0.9], [122, 139, 0.6]].map(([x, y, sc], i) => `<g transform="translate(${x} ${y}) scale(${sc})"><path class="jiskra" d="${JISKRA}" fill="${i ? "#F3D27A" : "#E8B440"}"/></g>`).join("")}${stin()}`);
+  }
+
+  /* ——— 3 · Na oltáři: čapka eboshi a podnos sanbó, jako sochy kami z období Heian ——— */
+  function shinzo(u, o = {}) {
+    const m = "translate(90 140) scale(0.86) translate(-90 -150)";
+    return obal(o, `<defs>${kvetDefs(u)}
+      <linearGradient id="${u}-lak" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1E1916"/><stop offset="0.35" stop-color="#4A3E36"/><stop offset="0.55" stop-color="#2B2420"/><stop offset="1" stop-color="#16120F"/></linearGradient>
+      <linearGradient id="${u}-drevo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F1E2C4"/><stop offset="1" stop-color="#D9C29A"/></linearGradient>
+    </defs>
+    <ellipse cx="90" cy="156" rx="40" ry="3.6" fill="${HNEDA}" opacity="0.2"/>
+    <!-- sanbó: podnos na kostce s výřezem -->
+    <path d="M56 141 H124 L120 146 H60 Z" fill="url(#${u}-drevo)" stroke="${HNEDA}" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M64 146 H116 V156 H64 Z" fill="#E4CFA6" stroke="${HNEDA}" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M82 156 C82 150.6 85.6 148.6 90 148.6 C94.4 148.6 98 150.6 98 156" fill="#B99B6E" stroke="${HNEDA}" stroke-width="1.1"/>
+    <path d="M52 140.4 H128 L126 142 H54 Z" fill="#E9D7B4" stroke="${HNEDA}" stroke-width="1.1"/>
+    <g class="kyv" style="transform-origin:90px 140px">
+      ${vaza(u, { m })}
+      <!-- eboshi: vysoká lakovaná čapka, nahoře zalomená dozadu -->
+      <g transform="${m} translate(90 150) scale(0.82) translate(-90 -150)">
+        <path d="M74.4 46 C73 32 74 18 80 10 C84 5 92 3.4 98 6 C101.6 7.6 102 11 99.4 13.6 C103.4 20 105.4 32 105.6 46 Q90 41.6 74.4 46 Z" fill="url(#${u}-lak)" stroke="#120E0C" stroke-width="1.3" stroke-linejoin="round"/>
+        <path d="M80 12 C86 9 94 9 99.4 13.6" stroke="#6A5A50" stroke-width="0.9" opacity="0.8"/>
+        <path d="M77.6 38 C80 26 82 18 86 12" stroke="#6A5A50" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+        <path d="M74.6 43.6 Q90 39.4 105.4 43.6" stroke="#C4432B" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M75.4 44 C73 52 72 58 73.6 64 M104.6 44 C107 52 108 58 106.4 64" stroke="#C4432B" stroke-width="1.2" stroke-linecap="round"/>
+      </g>
+      <g transform="${m} translate(90 150) scale(0.82) translate(-90 -150)">${kv(u, 104, 41, 30, 0.5)}${kv(u, 110, 46, -20, 0.38)}${kv(u, 99, 37, 60, 0.3)}</g>
+    </g>
+    ${[[50, 60, 0.8], [132, 84, 0.66]].map(([x, y, s], i) => `<g transform="translate(${x} ${y}) scale(${s})"><path class="jiskra" d="${JISKRA}" fill="${i ? "#C87E4E" : "#E8B440"}"/></g>`).join("")}`);
+  }
+
+  /* ——— 4 · Mitama: vznáší se, na krku magatama, kolem ní dva ohníčky duše ——— */
+  function mitama(u, o = {}) {
+    const mag = "M0 -4.2 C3.2 -4.2 4.8 -1.6 4.4 1.4 C4 4.6 0.8 6.8 -1.8 7.8 C-0.4 5.8 -0.8 4.6 -2.3 3.7 C-4.6 2.5 -4.8 -0.8 -3.1 -2.7 C-2.3 -3.7 -1.2 -4.2 0 -4.2 Z";
+    const plamen = (barva) => `<g class="plamen"><path d="M0 -9 C3 -5 5.2 -1.6 5.2 1.8 C5.2 5.4 2.8 7.6 0 7.6 C-2.8 7.6 -5.2 5.4 -5.2 1.8 C-5.2 -1.2 -2.6 -3.4 -1.6 -6.4 C-0.6 -4.6 0.2 -3.6 0.8 -3.4 C0.8 -5.4 0.4 -7.2 0 -9 Z" fill="${barva}" opacity="0.88"/><ellipse cx="0" cy="2.6" rx="2.6" ry="3.2" fill="#FFFFFF" opacity="0.8"/></g>`;
+    return obal(o, `<defs>${kvetDefs(u)}
+      <radialGradient id="${u}-aura" cx="0.5" cy="0.55" r="0.5"><stop offset="0" stop-color="#FFF1C8" stop-opacity="0.85"/><stop offset="0.6" stop-color="#FCE3B0" stop-opacity="0.35"/><stop offset="1" stop-color="#FCE3B0" stop-opacity="0"/></radialGradient>
+    </defs>
+    <ellipse class="vznas-stin" cx="90" cy="156" rx="17" ry="3.4" fill="${HNEDA}" opacity="0.18"/>
+    <g class="vznas">
+      <circle cx="90" cy="98" r="60" fill="url(#${u}-aura)"/>
+      <g transform="translate(0 -9)">
+        ${vaza(u)}${vetvicka(u)}
+        <path d="M74 73 Q90 84 106 73" stroke="#7A5A3A" stroke-width="0.9"/>
+        <g stroke="#2F4F3E" stroke-width="0.6">
+          <g transform="translate(80.6 78.6) rotate(24) scale(0.72)"><path d="${mag}" fill="#C4432B" stroke="#7A2A1A"/><circle cx="0.2" cy="-1" r="1" fill="#F4ECDC" stroke="none"/></g>
+          <g transform="translate(90 81.6) scale(0.9)"><path d="${mag}" fill="#4F9A78"/><circle cx="0.2" cy="-1" r="1" fill="#F4ECDC" stroke="none"/></g>
+          <g transform="translate(99.4 78.6) rotate(-24) scale(0.72)"><path d="${mag}" fill="#C4432B" stroke="#7A2A1A"/><circle cx="0.2" cy="-1" r="1" fill="#F4ECDC" stroke="none"/></g>
+        </g>
+      </g>
+    </g>
+    <g class="hitodama"><g transform="translate(40 104) scale(1.35)">${plamen("#9FC6E8")}</g></g>
+    <g class="hitodama hitodama-2"><g transform="translate(140 104) scale(1.05)">${plamen("#B9A8E2")}</g></g>`);
+  }
+
+  /* ——— 5 · Konohanasakuja-hime: bohyně kvetoucích sakur, šál hagoromo a věneček ——— */
+  function sakuya(u, o = {}) {
+    return obal(o, `<defs>${kvetDefs(u)}${kvetDefs(u, "#F2B6C2", "#E28C9C", "#FFF1F3", "rk")}
+      <linearGradient id="${u}-sal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F7C9D2" stop-opacity="0.95"/><stop offset="0.5" stop-color="#FFF4F4" stop-opacity="0.9"/><stop offset="1" stop-color="#F2B6C2" stop-opacity="0.95"/></linearGradient>
+    </defs>
+    <!-- šál za zády: oblouk za vázou -->
+    <g class="hagoromo">
+      <path d="M61 90 C50 92 40 99 31 95 C26 93 26 88 30 87 C37 90 46 86 58 81 C72 75 108 75 122 81 C134 86 143 90 150 87 C154 88 154 93 149 95 C140 99 130 92 119 90 C107 84 73 84 61 90 Z" fill="url(#${u}-sal)" stroke="#D99AA8" stroke-width="0.8" stroke-linejoin="round"/>
+    </g>
+    <g class="kyv">
+      ${vaza(u)}
+      <!-- větev o něco bohatší než u originálu -->
+      <g transform="rotate(10 89 63)">
+        <path d="M89.2 63.4 C90.2 57 92 51 95 45 C98 40.6 103 36 107 34 C110 32.4 113 31 116 30" stroke="${HNEDA}" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M93 50 C91 48 89 46 87 44 C85 42 83 39 82 35" stroke="${HNEDA}" stroke-width="1" stroke-linecap="round"/>
+        <path d="M91 57 C93 56 96 55 99 53" stroke="${HNEDA}" stroke-width="0.9" stroke-linecap="round"/>
+        ${kv(u, 85, 42, -24, 0.42)}${kv(u, 102, 51, 46, 0.34)}${kv(u, 105, 35, 26, 0.56)}${kv(u, 116, 30, 10, 0.4)}${kv(u, 82, 34, -40, 0.36)}
+      </g>
+      <!-- věneček kolem hrdla -->
+      ${[[72.4, 66.6, 0.3, 10], [78.6, 69.8, 0.34, 50], [85.4, 71.4, 0.32, -20], [92.6, 71.6, 0.34, 30], [99.6, 70.2, 0.32, -40], [106, 67, 0.3, 20]].map(([x, y, s, r]) => kv(u, x, y, r, s, "rk")).join("")}
+      <!-- cípy šálu přes ruce dopředu -->
+      <path class="hagoromo" d="M62 92 C56 104 52 118 54 132 C55 140 58 146 62 150 C60 140 60 128 64 116 C66 108 68 100 70 94 Z" fill="url(#${u}-sal)" stroke="#D99AA8" stroke-width="0.8" stroke-linejoin="round"/>
+      <path class="hagoromo" d="M118 92 C124 104 128 118 126 132 C125 140 122 146 118 150 C120 140 120 128 116 116 C114 108 112 100 110 94 Z" fill="url(#${u}-sal)" stroke="#D99AA8" stroke-width="0.8" stroke-linejoin="round"/>
+    </g>
+    ${[[52, 50, 0.32], [134, 60, 0.28], [140, 112, 0.3]].map(([x, y, s], i) => `<g transform="translate(${x} ${y})"><g class="platek platek-${i + 1}"><use href="#${u}-rk-l" transform="scale(${s * 1.6})"/></g></g>`).join("")}
+    ${stin(22)}`);
+  }
+
+  g.KRESBY = { original, shintai, enso, shinzo, mitama, sakuya };
+})(typeof window !== "undefined" ? window : globalThis);
+/* ==/KRESBY== */
+</script>
+
+<script>
+(() => {
+  const K = window.KRESBY;
+  let n = 0;
+  const kresli = (kdo) => K[kdo](`k${++n}`);
+  const NAVRHY = [
+    {
+      id: "shintai", cislo: "一", ja: "御神体", nazev: "Šintai", romaji: "shintai",
+      teze: "Kami v šintó nemívá podobu, bydlí v předmětu. Takový předmět je šintai a pozná se podle svatého provazu shimenawy, kterým ho lidé ovážou. Vázička je sto let stará, a tak ji někdo ovázal.",
+      body: ["<b>Shimenawa kolem břicha,</b> stejná jako ta, kterou na Partě 2 nosí Pecinka a která visí nad profily.", "<b>Dva papírky shide</b> se houpou, jako by kolem procházel vítr.", "<b>Krátké střapce slámy</b> uprostřed provazu, jak je mají shimenawy u svatých kamenů a stromů.", "<b>Všechno ostatní je originál</b>: tvář, větvička, jiskřičky."],
+      replika: "Ten provaz? Někdo usoudil, že jsem posvátná. Nebudu mu to vyvracet.",
+      cena: "Nejskromnější a nejčitelnější, ale taky nejméně „bůh“. Je to označení, ne proměna. A shimenawa už patří Pecince, takže by se z ní stal znak celé party, ne Vázičky.",
+    },
+    {
+      id: "enso", cislo: "二", ja: "円相", nazev: "Ensó", romaji: "ensō",
+      teze: "Svatozář ze značky. Kruh ensó, který je v logu JIRO saku, stojí za Vázičkou jako zář za božstvem. Tah jde z rumělky do noci a místo měsíce svítí květ, přesně jako v logu.",
+      body: ["<b>Ensó tah štětcem,</b> ke konci slábne a nechává mezeru, jak se ensó maluje.", "<b>Barvy soumraku z loga:</b> rumělka, růžová, fialová, noc.", "<b>Květ jako měsíc</b> v mezeře kruhu, se září.", "<b>Jiskřičky zezlátly.</b>"],
+      replika: "Ten kruh za mnou? To není svatozář. To je logo. Ale ráda ho nosím.",
+      cena: "Nejpevnější vazba na značku, Vázička by se stala tváří loga. Jenže svatozář je spíš buddhistická než šintoistická, a kdyby ji dostala jen ona, ostatní by vedle ní vypadali jako pomocníci.",
+    },
+    {
+      id: "shinzo", cislo: "三", ja: "神像", nazev: "Na oltáři", romaji: "shinzō",
+      teze: "Když už se kami zobrazovali, pak jako sochy shinzō: sedící postava v dvorních šatech s vysokou černou čapkou. Vázička stojí na obětním podnosu sanbó a má na hlavě eboshi.",
+      body: ["<b>Eboshi,</b> lakovaná čapka šlechticů a kněží, nahoře zalomená. Drží ji rumělková šňůrka pod hrdlem.", "<b>Sanbó,</b> dřevěný podnos na kostce s výřezem, na kterém se kami přinášejí dary. Tady je darem ona sama.", "<b>Sakury za šňůrkou</b> místo ve váze, hrdlo zakrývá čapka.", "<b>Tvář a tělo originálu</b>, jen o kousek menší, aby se vešel podnos."],
+      replika: "Čapka je povinná. Na oltáři se nestojí jen tak.",
+      cena: "Nejvtipnější a nejvíc „bůh“ jako role. Čapka ale zakryje hrdlo a z vázy se stává postavička v klobouku. A podnos posouvá patu výš, takže by se musely přepočítat scény.",
+    },
+    {
+      id: "mitama", cislo: "四", ja: "御魂", nazev: "Mitama", romaji: "mitama",
+      teze: "Duše kami. Vázička se vznáší nad zemí v teplé záři, na krku nese magatamy (posvátné drahokamy, jeden ze tří japonských klenotů říše) a kolem ní krouží dva ohníčky duše.",
+      body: ["<b>Vznáší se</b> a stín pod ní dýchá s ní.", "<b>Tři magatamy</b> na šňůrce: zelená uprostřed, dvě rumělkové po stranách.", "<b>Dva ohníčky hitodama</b> obíhají kolem, modrý a fialový.", "<b>Aura</b> v barvě rána za zády."],
+      replika: "Nohy? Nepotřebuju. Sto let jsem stála, teď si chvíli polétám.",
+      cena: "Nejvíc „Ghibli kouzlo“ a nejvíc pohybu. Ohníčky ale v Japonsku patří spíš k duchům a nočním strašidlům než k bohům, takže to vede trochu jinam než ke kami. Ve scénách, kde stojí na kruhu, by vznášení nedávalo smysl.",
+    },
+    {
+      id: "sakuya", cislo: "五", ja: "木花咲耶姫", nazev: "Konohanasakuja-hime", romaji: "Konohanasakuya-hime",
+      teze: "Konkrétní bohyně: Konohanasakuja-hime, kami kvetoucích sakur, které se připisuje i hora Fudži. Vázička nosí sakury odjakživa, tak jen dostala jméno, šál a věneček.",
+      body: ["<b>Šál hagoromo</b>, nebeská róba božských dívek, vede za zády a cípy padají dopředu.", "<b>Věneček sakur</b> kolem hrdla.", "<b>Větev bohatší,</b> o dva květy víc než u originálu.", "<b>Místo jiskřiček padají plátky.</b>"],
+      replika: "Sakury kvetou krátce. Proto je mám ráda: nikdy nečekají.",
+      cena: "Nejsilnější příběh a nejvíc „ona“. Šál je ale nejsložitější kresba a v 64 px z něj zbudou dvě růžové čárky. Ostatní z party by potřebovali podobně konkrétní kami.",
+    },
+  ];
+  const main = document.querySelector("[data-navrhy]");
+  main.innerHTML = NAVRHY.map((nv, i) => `
+    <section class="sirka papir" id="n${i + 1}">
+      <div class="navrh">
+        <div>
+          <div class="okna">
+            <div class="okno okno-svetle" data-mluvici="${nv.id}" data-replika="${nv.replika}"><p class="okno-male">klikni</p></div>
+            <div class="okno okno-tmave"><span class="kresba-obal postava staticke-ne">${kresli(nv.id)}</span><p class="okno-male">jako na /parta v noci</p></div>
+          </div>
+          <div class="male">
+            ${[96, 64, 40].map((px) => `<figure><span class="kresba-obal" style="width:${px}px;height:${px}px">${kresli(nv.id)}</span>${px} px</figure>`).join("")}
+            <figure><span class="kresba-obal" style="width:64px;height:64px">${kresli("original")}</span>originál</figure>
+          </div>
+        </div>
+        <div>
+          <div class="navrh-hlava"><span class="navrh-cislo" lang="ja">${nv.cislo}</span><div><p class="stitek"><span lang="ja">${nv.ja}</span> ${nv.romaji}</p><h2 class="nadpis-2">${nv.nazev}</h2></div></div>
+          <p class="perex">${nv.teze}</p>
+          <h3 class="nadpis-3">Co přibylo</h3>
+          <ul class="body">${nv.body.map((b) => `<li>${b}</li>`).join("")}</ul>
+          <p class="replika">„${nv.replika}“</p>
+          <h3 class="nadpis-3">Cena</h3>
+          <p class="cena">${nv.cena}</p>
+        </div>
+      </div>
+    </section>`).join("");
+  main.querySelectorAll(".male .kresba").forEach((k) => k.classList.add("staticke"));
+
+  const REPLIKY = Object.fromEntries(NAVRHY.map((nv) => [nv.id, nv.replika]));
+  document.querySelectorAll("[data-mluvici]").forEach((el) => {
+    const kdo = el.dataset.mluvici;
+    el.insertAdjacentHTML("afterbegin", `<button type="button" class="postava" aria-label="${kdo}, klikni"><span class="kresba-obal">${kresli(kdo)}</span></button><p class="bublina" aria-live="polite"></p>`);
+    const tl = el.querySelector(".postava"), bub = el.querySelector(".bublina");
+    let c;
+    tl.addEventListener("click", () => {
+      bub.textContent = REPLIKY[kdo];
+      el.classList.add("mluvi");
+      tl.classList.remove("reaguje"); void tl.offsetWidth; tl.classList.add("reaguje");
+      clearTimeout(c); c = setTimeout(() => { el.classList.remove("mluvi"); tl.classList.remove("reaguje"); }, 3400);
+    });
+  });
+  document.querySelectorAll("[data-kresba]").forEach((el) => (el.innerHTML = kresli(el.dataset.kresba)));
+})();
+</script>
+</body>
+</html>

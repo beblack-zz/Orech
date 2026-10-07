@@ -1,0 +1,41 @@
+---
+/**
+ * Zlato na kintsugi — devět šupinek, jedna v každé scéně svitku. Dokud
+ * chybí, je tu nápověda, ve kterém měsíci a kde hledat. Obsluhuje obecný
+ * scripts/parta2/sbirka.ts (klíč onas2-zlato).
+ */
+import { zlato } from "../../data/onas2";
+---
+<dialog class="omamori-dialog zlato-dialog" data-sbirka-dialog aria-labelledby="zlato-nadpis">
+  <div class="omamori-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <p class="stitek"><span lang="ja">金継ぎ</span> · zlato na kintsugi</p>
+    <h2 id="zlato-nadpis" class="nadpis-2">Devět šupinek zlata</h2>
+    <p class="omamori-perex">
+      Střípek chce spravit misku zlatem, jak se to v Japonsku dělá. Ve svitku je v každém měsíci
+      schovaná jedna šupinka. Koho najdeš, zůstane tu, i když stránku zavřeš.
+    </p>
+    <ul class="omamori-seznam zlato-seznam">
+      {zlato.map((z) => (
+        <li class="omamori-polozka" data-sbirka-polozka={z.id}>
+          <span class="omamori-obr">
+            <svg viewBox="0 0 40 40" aria-hidden="true">
+              <path d="M5 15 L17 4 L33 9 L37 25 L23 36 L8 31 Z" fill="url(#zlato-plisek)" stroke="#B5862A" stroke-width="1.2" stroke-linejoin="round" />
+              <path d="M12 15 L24 11 M15 24 L28 19" stroke="#FFF6D0" stroke-width="1.6" stroke-linecap="round" opacity="0.85" />
+            </svg>
+          </span>
+          <span class="omamori-jmeno">{z.nazev}</span>
+          <span class="omamori-napoveda">{z.skrys}</span>
+          <span class="omamori-nalezen">nalezeno</span>
+        </li>
+      ))}
+    </ul>
+    <div class="omamori-pata">
+      <p class="omamori-stav">Nalezeno <b data-sbirka-pocet>0</b> z {zlato.length}.</p>
+      <div class="zlato-pata-akce">
+        <a class="tlacitko tlacitko-maly" href="#svitek" data-zlato-ke-svitku>Ke svitku</a>
+        <button type="button" class="tlacitko tlacitko-obrys" data-sbirka-reset>Rozsypat znovu</button>
+      </div>
+    </div>
+  </div>
+</dialog>

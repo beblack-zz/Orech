@@ -1,0 +1,72 @@
+---
+/**
+ * Výloha — první obrazovka Obchodu 2. Vedle karty stojí na prkénku před
+ * rozsvíceným papírovým oknem shōji jeden kus z regálu a dá se vzít do
+ * ruky: táhnout, otáčet a obrátit dnem vzhůru (scripts/obchod2/haiken.ts).
+ * Šipkami se přepíná na další kusy, cenovka se mění s nimi.
+ *
+ * Bez skriptu zůstane místo plátna kresba kusu (Nadoba) a cenovka
+ * prvního kusu z regálu.
+ */
+import Kami from "../parta2/Kami.astro";
+import Nadoba from "../uvod2/Nadoba.astro";
+import TanukiSkryty from "./TanukiSkryty.astro";
+import { produkty } from "../../data/obchod";
+import { nabidka } from "../../data/uvod2";
+import { obchodTexty } from "../../data/obchod2";
+
+const k0 = produkty[0];
+---
+<section class="o2-vyloha" id="vyloha" data-hodina="9" aria-labelledby="o2-nadpis">
+  <p class="o2-tategaki" lang="ja" aria-hidden="true">器と手</p>
+  <div class="o2-vyloha-mriz">
+    <div class="o2-vyloha-text papir">
+      <p class="stitek">Obchod · {nabidka.obchod.rozsah}</p>
+      <h1 id="o2-nadpis" class="o2-nadpis">Každý kus <em>jen jednou.</em></h1>
+      <p class="o2-perex">{obchodTexty.perex}</p>
+      <div class="o2-cta">
+        <a class="tlacitko" href="#regal">Prohlédnout regál</a>
+        <a class="tlacitko tlacitko-obrys" href="#zdaleka">Keramika z Japonska</a>
+      </div>
+      <p class="o2-pokyn">
+        Chyť ho a otoč. V čajovém obřadu si host misku prohlédne ze všech stran, i zespodu —
+        říká se tomu <i lang="ja-Latn">haiken</i>.
+      </p>
+    </div>
+
+    <div class="o2-stojan" data-haiken-stojan>
+      <div class="o2-stojan-scena">
+      <div class="o2-sodzi" aria-hidden="true"><span class="o2-sodzi-zare"></span></div>
+      <div class="o2-deska" aria-hidden="true"></div>
+      <div class="o2-platno-obal" data-haiken-obal tabindex="0" role="application" aria-roledescription="otáčecí náhled" aria-label={`${k0.name}, ${k0.glaze.toLowerCase()}. Táhni myší nebo prstem, nebo použij šipky.`}>
+        <canvas class="o2-platno" data-haiken-platno></canvas>
+        <svg class="o2-zaloha" viewBox="-60 -96 120 104" aria-hidden="true"><Nadoba tvar={k0.shape} x={0} y={0} s={1.5} glazura={k0.glaze} /></svg>
+      </div>
+
+      <div class="o2-cenovka" aria-live="polite">
+        <span class="o2-cenovka-provazek" aria-hidden="true"></span>
+        <p class="o2-cenovka-nazev">{k0.name}</p>
+        <p class="o2-cenovka-glazura">{k0.glaze}</p>
+        <p class="o2-cenovka-cena">{k0.price}</p>
+        <span class="o2-cenovka-novinka" lang="ja" hidden={!k0.tag}>新作</span>
+      </div>
+      </div>
+
+      <div class="o2-stojan-ovladani">
+        <button type="button" class="o2-sipka" data-haiken-predchozi aria-label="Předchozí kus">‹</button>
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-haiken-dno>Ukázat dno</button>
+        <button type="button" class="tlacitko tlacitko-maly" data-satek-pridat data-satek-id="na-prani-0">Do šátku</button>
+        <button type="button" class="o2-sipka" data-haiken-dalsi aria-label="Další kus">›</button>
+      </div>
+      <p class="o2-pocitadlo" aria-hidden="true"><b>1</b> / {produkty.length}</p>
+
+      <Kami id="kapka" class="o2-stojan-kapka" />
+      <TanukiSkryty id="kasa" x={83} y={60} w={9} u={8} class="za-deskou" />
+    </div>
+  </div>
+
+  <a class="o2-dolu" href="#regal">
+    <span>Do obchodu</span>
+    <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </a>
+</section>

@@ -1,0 +1,83 @@
+---
+/**
+ * Krabice z paulovnie (共箱 tomobako), jak se v Japonsku ukládá cenná
+ * keramika: na víku je štětcem napsané, co v ní je (箱書 hakogaki),
+ * a krabice je převázaná plochou šňůrkou. Po rozvázání (scripts/obchod2/
+ * bedna.ts) se víko odsune, rozbalí se žlutá látka a je vidět fotka.
+ * Pod ní, odkud kus je, co o té keramice říct a do šátku.
+ *
+ * Bez skriptu je krabice rovnou otevřená a text vidět.
+ */
+import { Image } from "astro:assets";
+import type { KusZdaleka } from "../../data/zdaleka";
+import { druhy, neznamyAutor, vzdalenost } from "../../data/obchod2";
+
+interface Props {
+  kus: KusZdaleka;
+  i: number;
+}
+const { kus, i } = Astro.props;
+const druh = druhy[kus.name];
+const neznamy = kus.author === "No name";
+const autor = neznamy ? neznamyAutor.jmeno : kus.author;
+const km = druh?.odkud ? Math.round(vzdalenost(druh.odkud.gps) / 10) * 10 : null;
+const pohledy = [{ src: kus.src, alt: kus.alt, popis: "Zepředu" }, ...kus.dalsi];
+const id = `krabice-${i}`;
+---
+<article class="o2-krabice" data-krabice={i} aria-labelledby={`${id}-nazev`}>
+  <div class="o2-krabice-scena">
+    <div class="o2-krabice-dno">
+      <span class="o2-latka" aria-hidden="true"></span>
+      <figure class="o2-krabice-foto">
+        {pohledy.map((p, k) => (
+          <Image
+            src={p.src}
+            alt={p.alt}
+            width={720}
+            widths={[360, 540, 720]}
+            sizes="(min-width: 900px) 420px, 84vw"
+            format="webp"
+            class={`o2-pohled ${k === 0 ? "je" : ""} ${k > 0 ? "original" : ""}`}
+            data-pohled={k}
+            loading="lazy"
+          />
+        ))}
+      </figure>
+    </div>
+    <div class="o2-viko" aria-hidden="true">
+      <span class="o2-viko-text" lang="ja">{druh?.znak ?? kus.name}</span>
+      {!neznamy && <span class="o2-viko-jmeno">{kus.author}</span>}
+      <span class="o2-viko-pecet" lang="ja">印</span>
+    </div>
+    <span class="o2-snurka" aria-hidden="true"><i></i><i></i></span>
+  </div>
+
+  <div class="o2-krabice-info">
+    {druh && <p class="o2-krabice-druh"><span lang="ja">{druh.znak}</span> {druh.cteni}</p>}
+    <h3 class="o2-krabice-nazev" id={`${id}-nazev`}>{kus.name}</h3>
+    <p class="o2-krabice-autor">{autor}</p>
+    <p class="o2-krabice-cena">{kus.price}</p>
+    <div class="o2-krabice-akce">
+      <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-krabice-otevrit aria-expanded="false" aria-controls={`${id}-vic`}>Rozvázat</button>
+      <button type="button" class="tlacitko tlacitko-maly" data-satek-pridat data-satek-id={`zdaleka-${i}`}>Do šátku</button>
+    </div>
+    <div class="o2-krabice-vic" id={`${id}-vic`}>
+      {pohledy.length > 1 && (
+        <div class="o2-pohledy" role="group" aria-label="Pohledy na kus">
+          {pohledy.map((p, k) => (
+            <button type="button" class="o2-pohled-tlacitko" data-ukaz-pohled={k} aria-pressed={k === 0 ? "true" : "false"}>{p.popis}</button>
+          ))}
+        </div>
+      )}
+      {druh && <p>{druh.text}</p>}
+      {druh?.detail && <p class="o2-krabice-detail">{druh.detail}</p>}
+      {neznamy && <p class="o2-krabice-detail">{neznamyAutor.text}</p>}
+      {druh?.odkud && km && (
+        <p class="o2-krabice-cesta">
+          <span class="o2-razitko-posta" lang="ja" aria-hidden="true">{druh.odkud.znak}</span>
+          {druh.odkud.mesto}, prefektura {druh.odkud.prefektura} → Ořech · vzdušnou čarou asi {km.toLocaleString("cs-CZ")} km
+        </p>
+      )}
+    </div>
+  </div>
+</article>

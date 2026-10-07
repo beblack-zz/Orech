@@ -1,0 +1,36 @@
+---
+/**
+ * Keramika zdaleka jako balík z Japonska: dřevěná bedna s nálepkami
+ * 割れ物注意 (křehké) a 航空便 (letecky) a v ní čtyři krabice z paulovnie.
+ * Kusy, fotky a ceny jsou z zdaleka.ts, co o nich říct z obchod2.ts.
+ */
+import Tomobako from "./Tomobako.astro";
+import TanukiSkryty from "./TanukiSkryty.astro";
+import { zdaleka } from "../../data/zdaleka";
+import { pocetKusu } from "../../data/pocty";
+---
+<section class="o2-sekce" id="zdaleka" data-hodina="16.6" aria-labelledby="zdaleka-nadpis">
+  <div class="papir o2-papir o2-papir-siroky o2-bedna-papir">
+    <p class="stitek"><span lang="ja">航空便</span> · keramika zdaleka</p>
+    <h2 id="zdaleka-nadpis" class="nadpis-2">Přišel balík z Japonska</h2>
+    <p class="o2-papir-perex">
+      Kusy od tvůrců, které máme rádi. V Japonsku se cenná keramika ukládá do krabice z paulovnie
+      a na víko se štětcem napíše, co v ní je. Tady na stránce jsou zabalené stejně — rozvaž šňůrku
+      a podívej se dovnitř.
+    </p>
+    <div class="o2-bedna">
+      <div class="o2-bedna-nalepky" aria-hidden="true">
+        <span class="o2-nalepka o2-nalepka-krehke" lang="ja">割れ物注意</span>
+        <span class="o2-nalepka o2-nalepka-letecky"><span lang="ja">航空便</span> AIR MAIL</span>
+        <span class="o2-nalepka o2-nalepka-adresa">Ořech · Luční 235</span>
+      </div>
+      <span class="o2-slama" aria-hidden="true"></span>
+      <div class="o2-krabice-rada">
+        {zdaleka.map((k, i) => <Tomobako kus={k} i={i} />)}
+      </div>
+      <TanukiSkryty id="kayoicho" x={2.4} y={2.2} w={5} u={-14} class="ve-slame" />
+      <TanukiSkryty id="hara" x={48.2} y={36} w={4.6} u={6} />
+    </div>
+    <p class="o2-regal-pata">Keramika zdaleka · {pocetKusu(zdaleka.length)}</p>
+  </div>
+</section>

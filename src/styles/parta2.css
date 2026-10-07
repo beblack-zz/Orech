@@ -226,7 +226,7 @@ body.p2 {
   left: 50%;
   z-index: 50;
   transform: translateX(-50%);
-  width: min(1260px, calc(100% - 24px));
+  width: min(1380px, calc(100% - 24px));
   display: flex;
   align-items: center;
   gap: 14px;
@@ -284,10 +284,48 @@ body.p2 {
 .omamori-pocet { font-variant-numeric: tabular-nums; }
 .omamori-tlacitko.cinkne svg { animation: cinkne 0.7s cubic-bezier(0.3, 1.6, 0.5, 1); }
 @keyframes cinkne { 30% { transform: rotate(-14deg) scale(1.25); } 60% { transform: rotate(8deg); } }
-.zvuk-tlacitko svg { width: 18px; height: 26px; }
-.furin-zvon { transform-box: view-box; transform-origin: 16px 6px; }
-.zvuk-tlacitko[aria-pressed="true"] .furin-zvon { animation: furin-hup 2.8s ease-in-out infinite; }
-@keyframes furin-hup { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+/* Zvonkohra (Zvonkohra.astro): kresba je větší než tlačítko a visí přes
+   spodní okraj pruhu. Na myš nereaguje — klikne se jen na tlačítko, pod
+   přečnívající částí jde klikat dál na stránku. */
+.zvuk-tlacitko { padding: 5px 6px; }
+.zvonkohra { position: relative; flex: none; width: 30px; height: 26px; }
+/* Ztlumená zvonkohra visí dál, jen vybledne — nápis „Zvuk“ už v pruhu není */
+.zvonkohra svg { transition: opacity 0.4s; }
+.zvuk-tlacitko[aria-pressed="false"] .zvonkohra svg { opacity: 0.5; }
+.zvonkohra svg {
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  width: 68px;
+  height: 136px;
+  margin-left: -34px;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 2.5px rgba(28, 20, 44, 0.26));
+  /* Hýbe se každý snímek — vlastní vrstva, ať se nepřekresluje celý pruh */
+  will-change: transform;
+}
+/* Sbírky Obchodu 2, O nás 2 a Rezervace — tlačítka obsluhuje scripts/parta2/sbirka.ts */
+.sbirka-tlacitko {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px 5px 7px;
+  border-radius: 999px;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.sbirka-tlacitko:hover { background: rgba(43, 36, 32, 0.07); }
+.sbirka-tlacitko svg { width: 28px; height: 30px; overflow: visible; }
+.sbirka-tlacitko.cinkne svg { animation: cinkne 0.7s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.zlato-tlacitko svg { width: 32px; height: 28px; }
+.zlato-miska { fill: #3A2E28; }
+.zlato-spara { stroke: #8A7C70; stroke-width: 1.2; opacity: 0.55; transition: stroke 0.5s, stroke-width 0.5s, opacity 0.5s; }
+.zlato-spara.je { stroke: var(--zlato-2); stroke-width: 1.8; opacity: 1; filter: drop-shadow(0 0 1.5px rgba(243, 210, 122, 0.9)); }
+.ema-drevo { fill: #E9D3AC; stroke: #8A6A48; stroke-width: 1.2; transition: fill 0.6s; }
+.je-vse-prani .ema-drevo { fill: var(--zlato-2); }
+
 .hlava-menu-tlacitko { display: none; width: 40px; height: 40px; border-radius: 50%; place-items: center; }
 .hlava-menu-tlacitko svg { width: 22px; height: 22px; }
 
@@ -303,18 +341,23 @@ body.p2 {
   border-radius: 22px;
   background: var(--papir);
   box-shadow: 0 24px 50px -20px rgba(28, 20, 44, 0.55);
+  max-height: calc(100svh - 90px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .hlava-menu a { padding: 12px 16px; border-radius: 14px; text-decoration: none; font-size: 17px; }
 .hlava-menu a[aria-current="page"] { background: var(--inkoust); color: var(--papir); }
 
-@media (max-width: 1180px) {
+/* Dvanáct položek se do pruhu vejde až od 1400 px — pod tím je menu */
+@media (max-width: 1400px) {
   .hlava-nav { display: none; }
   .hlava-akce { margin-left: auto; }
   .hlava-menu-tlacitko { display: grid; }
 }
 @media (max-width: 480px) {
-  .zvuk-popis { display: none; }
-  .zvuk-tlacitko { padding: 5px 8px; }
+  /* Tlačítko zabere stejně místa jako dřív malý fūrin, miska přesahuje do okrajů */
+  .zvuk-tlacitko { padding: 5px 4px; }
+  .zvonkohra { width: 26px; }
 }
 
 /* ——— Úvod ——— */
@@ -1498,7 +1541,6 @@ body.p2 {
   .uzlik,
   .pec-jiskry span,
   .hvezda-blik,
-  .uvod-dolu svg,
-  .zvuk-tlacitko[aria-pressed="true"] .furin-zvon { animation: none !important; }
+  .uvod-dolu svg { animation: none !important; }
   .oslava-platek { display: none; }
 }

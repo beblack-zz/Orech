@@ -1,0 +1,125 @@
+---
+/**
+ * Krámek — Obchod 2 jako malý japonský obchod s nádobím (うつわ屋
+ * utsuwa-ya), ne uhlazený, všude krámy. Z ulice: střecha, vývěsní štít,
+ * krátký noren a za ním rovnou zboží:
+ *
+ *   starý tmavý regál   keramika z Japonska s fotkami (zdaleka.ts)
+ *   bedny na prkně      kusy z dílny (obchod.ts) — dokud nemají fotku,
+ *                       stojí zabalené v novinách
+ *   pult                počítadlo, zvonek, kytka a lístek k šátku
+ *   před krámkem        deštníky, stojan s cedulí, noviny, koště
+ *
+ * Krámy (Kram.astro) nejsou zboží, jen kulisa.
+ * Detail kusu je v DetailKusu.astro, ovládá ho scripts/obchod2/kramek.ts.
+ */
+import Prihradka from "./Prihradka.astro";
+import Kram from "./Kram.astro";
+import Kami from "../parta2/Kami.astro";
+import { zJaponska, zDilny } from "../../data/kramek";
+import type { KusVKramku } from "../../data/kramek";
+import { obchodTexty } from "../../data/obchod2";
+import { pocetKusu } from "../../data/pocty";
+
+/* Bedny z dílny: mezi kusy dvě s krámy — provázek a sláma */
+type Bedna = { kus: KusVKramku; i: number } | { kram: "provazek" | "slama" };
+const bedny: Bedna[] = zDilny.map((kus, k) => ({ kus, i: zJaponska.length + k }));
+bedny.splice(Math.min(2, bedny.length), 0, { kram: "provazek" });
+bedny.splice(Math.min(6, bedny.length), 0, { kram: "slama" });
+/* Bedny nestojí rovně — každá o kousek jinak */
+const NAKLONY = [-0.9, 0.5, -0.3, 1, -0.6, 0.4, -1.1, 0.7, -0.4, 0.8, -0.7, 0.3];
+
+/* Noren: うつわ屋, utsuwa-ya — obchod s nádobím, na každém dílu jeden znak */
+const NOREN = ["う", "つ", "わ", "屋"];
+const doprava = obchodTexty.kroky[2];
+---
+<section class="o2k" id="kramek" data-hodina="10" aria-labelledby="o2k-nadpis">
+  <div class="o2k-dum">
+    <div class="o2k-strecha" aria-hidden="true"></div>
+    <div class="o2k-preklad">
+      <div class="o2k-stit">
+        <span class="o2k-stit-pecet" lang="ja" aria-hidden="true">器</span>
+        <h1 id="o2k-nadpis" class="o2k-nadpis">Obchůdek <em>s keramikou</em></h1>
+      </div>
+    </div>
+
+    <div class="o2k-otvor">
+      <span class="o2k-sloup o2k-sloup-l" aria-hidden="true"></span>
+
+      <div class="o2k-vnitrek">
+        <div class="o2k-noren" aria-hidden="true">
+          {NOREN.map((z) => <span class="o2k-noren-dil"><span lang="ja">{z}</span></span>)}
+        </div>
+
+        <div class="o2k-stena">
+          <div class="o2k-hodiny"><Kram co="hodiny" /></div>
+          <div class="o2k-karton-obal">
+            <div class="o2k-karton">
+              <p class="o2k-karton-nadpis">Každý kus jen jednou.</p>
+              <p class="o2k-karton-text">{obchodTexty.perex}</p>
+            </div>
+          </div>
+          <div class="o2k-krabice"><Kram co="krabice" /></div>
+        </div>
+
+        <div class="o2k-regal">
+          <p class="o2k-cedule-letecky"><span lang="ja">航空便</span> Z Japonska <small>{pocetKusu(zJaponska.length)}</small></p>
+          <div class="o2k-police">
+            {zJaponska.map((kus, i) => <Prihradka kus={kus} i={i} />)}
+          </div>
+        </div>
+
+        <div class="o2k-dilna">
+          <div class="o2k-dilna-cedule">
+            <p class="o2k-prkno"><span lang="ja">手作り</span> Z dílny <small>{pocetKusu(zDilny.length)}</small></p>
+            <p class="o2k-listek-pozn">Čerstvě z pece, ještě v novinách. Fotky doplníme — kdo chce kus vidět dřív, ať klikne a napíše nám.</p>
+          </div>
+          <div class="o2k-bedny">
+            {bedny.map((b, k) =>
+              "kus" in b ? (
+                <Prihradka kus={b.kus} i={b.i} naklon={NAKLONY[k % NAKLONY.length]} />
+              ) : (
+                <div class={`o2k-bedna-kram o2k-bedna-${b.kram}`} style={`--naklon:${NAKLONY[k % NAKLONY.length]}deg`}>
+                  <div class="o2k-bedna-kram-okno">
+                    <Kram co={b.kram} />
+                    {b.kram === "slama" && <Kram co="slama-predni" class="o2k-slama-predni" />}
+                  </div>
+                  <span class="o2k-bedna-kram-hrana" aria-hidden="true"></span>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div class="o2k-pult">
+          <div class="o2k-pult-veci">
+            <div class="o2k-soroban"><Kram co="soroban" /></div>
+            <a class="o2k-uctenka" href="#satek">
+              <span class="o2k-uctenka-hlava" lang="ja" aria-hidden="true">お会計</span>
+              Vybráno? Zavaž to do šátku <span aria-hidden="true">↓</span>
+            </a>
+            <div class="o2k-zvonek"><Kram co="zvonek" /></div>
+            <div class="o2k-kytka"><Kram co="kytka" /></div>
+            <Kami id="cedulka" class="o2k-cedulka" />
+          </div>
+          <div class="o2k-pult-deska" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <span class="o2k-sloup o2k-sloup-p" aria-hidden="true">
+        <span class="o2k-lucerna"><Kram co="lucerna" /></span>
+      </span>
+    </div>
+
+    <div class="o2k-ulice">
+      <div class="o2k-destniky"><Kram co="destniky" /></div>
+      <div class="o2k-stojan">
+        <p class="o2k-stojan-nadpis">{doprava.nazev}</p>
+        <p class="o2k-stojan-text">{doprava.text}</p>
+      </div>
+      <div class="o2k-kosik"><Kram co="kosik" /></div>
+      <div class="o2k-noviny"><Kram co="noviny" /></div>
+      <div class="o2k-smetak" aria-hidden="true"><Kram co="smetak" /></div>
+    </div>
+  </div>
+</section>

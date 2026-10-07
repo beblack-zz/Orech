@@ -8,6 +8,8 @@
  * se počítá jen s čísly.
  */
 
+import { priOdchodu } from "./prechody";
+
 export const omez = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 export const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 export const hladce = (t: number) => t * t * (3 - 2 * t);
@@ -51,6 +53,12 @@ export const pozice = (el: Element) => {
 type Uloha = (y: number, vh: number) => void;
 const ulohy: Uloha[] = [];
 const mereni: (() => void)[] = [];
+/* Po přechodu na jinou stránku (prechody.ts) si scény zaregistrují úlohy znovu */
+priOdchodu(() => {
+  ulohy.length = 0;
+  mereni.length = 0;
+  ceka = false;
+});
 
 export const priScrollu = (fn: Uloha) => ulohy.push(fn);
 export const priMereni = (fn: () => void) => mereni.push(fn);
@@ -83,7 +91,10 @@ export function spust() {
   new ResizeObserver(poZmene).observe(document.body);
   document.fonts?.ready.then(premer);
   window.addEventListener("load", premer);
-  premer();
+  /* První snímek hned, ne až v dalším — po přechodu mezi stránkami
+     (prechody.ts) by jinak na okamžik bleskla výchozí barva oblohy */
+  for (const m of mereni) m();
+  snimek();
 }
 
 /** Spustí smyčku jen tehdy, když je prvek vidět — mimo obrazovku nic nepočítá. */

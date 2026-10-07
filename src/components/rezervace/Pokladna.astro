@@ -1,0 +1,54 @@
+---
+/**
+ * Pokladna (切符売場 kippu uriba): kolik vás pojede a který den.
+ *
+ * Dny kreslí skript (scripts/rezervace/hlavni.ts), protože záleží na
+ * dnešku — každý den je lepenková jízdenka jako ze staré pokladny
+ * (硬券 kōken): úterky rumělkové, pátky zlaté, s ochranným podtiskem.
+ * Vybraný den průvodčí cvakne — do jízdenky se vystřihne ořech.
+ *
+ * Kroky mají čísla jako japonské stanice (OŘ 01, OŘ 02…): značka
+ * linky a pořadí zastávky v rámečku její barvy.
+ */
+import { rezervace } from "../../data/rezervace";
+
+/** Postavičky do volby „kolik vás pojede“ — každá další je o kousek menší */
+const lide = Array.from({ length: rezervace.maxOsob }, (_, i) => i + 1);
+const barvy = ["#9C7860", "#D79A94", "#93B39B", "#E8B440"];
+---
+<div class="rz-pokladna papir">
+  <p class="stitek"><span lang="ja">切符売場</span> · pokladna</p>
+  <h2 id="rz-pokladna-nadpis" class="nadpis-2">Kolik vás pojede a kdy</h2>
+
+  <div class="rz-krok">
+    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>01</span> Kolik vás pojede <small>hodina je celá vaše — sám, nebo až ve čtyřech</small></h3>
+    <div class="rz-osoby" role="radiogroup" aria-label="Počet lidí">
+      {lide.map((n) => (
+        <label class="rz-osoba">
+          <input type="radio" name="osoby" value={n} checked={n === 1} />
+          <span class="rz-osoba-karta">
+            <svg viewBox="0 0 80 48" aria-hidden="true">
+              {Array.from({ length: n }, (_, k) => {
+                const x = 40 + (k - (n - 1) / 2) * 17;
+                const s = 1 - k * 0.07;
+                return (
+                  <g transform={`translate(${x.toFixed(1)} 46) scale(${s.toFixed(2)})`}>
+                    <circle cx="0" cy="-30" r="7" fill={barvy[k]} />
+                    <path d="M-11 0 C-11 -14 -7 -20 0 -20 C7 -20 11 -14 11 0 Z" fill={barvy[k]} />
+                  </g>
+                );
+              })}
+            </svg>
+            <b>{n}</b>
+            <small>{n === 1 ? "člověk" : "lidi"}</small>
+          </span>
+        </label>
+      ))}
+    </div>
+  </div>
+
+  <div class="rz-krok">
+    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>02</span> Den <small>úterky a pátky na měsíc dopředu</small></h3>
+    <div class="rz-dny" role="group" aria-label="Dny, na které se dá rezervovat"></div>
+  </div>
+</div>

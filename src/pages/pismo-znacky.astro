@@ -1,0 +1,304 @@
+---
+import "@fontsource-variable/fraunces/full.css";
+import Enso from "../components/navrhy-loga/Enso.astro";
+
+/**
+ * Písmo značky JIRO saku — srovnání kandidátů proti dnešnímu Fraunces.
+ * Každý řádek: velikost z hlavičky (19 px s ensō, na papíře i v tmavé
+ * patičce), velký nápis a český nadpis, aby bylo vidět, jestli písmo
+ * zvládne háčky. Samotná značka diakritiku nepotřebuje — nadpis je jen
+ * pro případ, že by písmo šlo i do nadpisů webu.
+ *
+ * Písma z Google Fonts a Fontshare (ITF Free Font License, komerčně
+ * zdarma). Na produkci by se stáhla a hostovala u nás.
+ */
+type Styl = Record<string, string | number>;
+interface Kandidat {
+  nazev: string;
+  zdroj: string;
+  pozn: string;
+  jiro: Styl;
+  saku: Styl;
+  /** radek = JIRO saku vedle sebe, pod = malé JIRO nad velkým saku, hanko = s pečetí 咲 */
+  uprava?: "radek" | "pod" | "hanko";
+}
+
+const dnes: Kandidat = {
+  nazev: "Fraunces (dnes)",
+  zdroj: "Google",
+  pozn: "Měkké patky a „vrtkavá“ kurzíva. Hravé, ale kulaté — značka mluví stejným hlasem jako postavičky.",
+  jiro: { fontFamily: "'Fraunces Variable'", fontWeight: 500, fontVariationSettings: '"SOFT" 100, "WONK" 1, "opsz" 40', letterSpacing: "-0.01em" },
+  saku: { fontFamily: "'Fraunces Variable'", fontWeight: 400, fontStyle: "italic", fontVariationSettings: '"SOFT" 100, "WONK" 1, "opsz" 40' },
+};
+
+const kolo2: Kandidat[] = [
+  {
+    nazev: "Zodiak",
+    zdroj: "Fontshare",
+    pozn: "Ostré, tesané patky — jako rýha nožem do kožovitě tvrdé hlíny. Kurzíva má zalomené tahy, které připomínají štětec. Nejsebevědomější varianta.",
+    jiro: { fontFamily: "'Zodiak'", fontWeight: 700, letterSpacing: "0.03em" },
+    saku: { fontFamily: "'Zodiak'", fontWeight: 400, fontStyle: "italic" },
+  },
+  {
+    nazev: "Erode",
+    zdroj: "Fontshare",
+    pozn: "Hutné, oblé, trochu „točené“. Má teplo Fraunces, ale dospělejší — bez kreslených tvarů. Nejplynulejší přechod z dneška.",
+    jiro: { fontFamily: "'Erode'", fontWeight: 600, letterSpacing: "0.02em" },
+    saku: { fontFamily: "'Erode'", fontWeight: 400, fontStyle: "italic" },
+  },
+  {
+    nazev: "Boska",
+    zdroj: "Fontshare",
+    pozn: "Vysoký kontrast tlustých a vlasových tahů — jako tuš. Kurzíva je ostrá a rychlá. Elegantní, ale v 19 px vlasové tahy slábnou.",
+    jiro: { fontFamily: "'Boska'", fontWeight: 700, letterSpacing: "0.03em" },
+    saku: { fontFamily: "'Boska'", fontWeight: 400, fontStyle: "italic", fontSize: "1.06em" },
+  },
+  {
+    nazev: "Gambetta",
+    zdroj: "Fontshare",
+    pozn: "Teplé knižní písmo s charakterem. Nejuniverzálnější — unese značku i nadpisy celého webu.",
+    jiro: { fontFamily: "'Gambetta'", fontWeight: 600, letterSpacing: "0.04em" },
+    saku: { fontFamily: "'Gambetta'", fontWeight: 400, fontStyle: "italic" },
+  },
+  {
+    nazev: "Gambetta — pod sebou",
+    zdroj: "Fontshare",
+    pozn: "Jiná stavba: drobné prostrkané JIRO jako podpis nad velkým saku. Saku (咲, kvést) se stane hlavním slovem a vejde se přesně na výšku ensō.",
+    jiro: { fontFamily: "'Gambetta'", fontWeight: 600 },
+    saku: { fontFamily: "'Gambetta'", fontWeight: 400, fontStyle: "italic" },
+    uprava: "pod",
+  },
+  {
+    nazev: "IM Fell English",
+    zdroj: "Google",
+    pozn: "Digitalizovaný knihtisk ze 17. století — tahy nejsou dokonalé, jako ručně dělaný hrnek. Nejvíc „řemeslná“ varianta. Jen na značku: češtinu nemá.",
+    jiro: { fontFamily: "'IM Fell English'", fontWeight: 400, letterSpacing: "0.04em", fontSize: "1.08em" },
+    saku: { fontFamily: "'IM Fell English'", fontWeight: 400, fontStyle: "italic", fontSize: "1.08em" },
+  },
+  {
+    nazev: "Brygada 1918",
+    zdroj: "Google",
+    pozn: "Obnovené polské písmo z dvacátých let — středoevropský protipól japonských motivů, skvělá čeština. Seriózní, až úřední.",
+    jiro: { fontFamily: "'Brygada 1918'", fontWeight: 700, letterSpacing: "0.05em" },
+    saku: { fontFamily: "'Brygada 1918'", fontWeight: 400, fontStyle: "italic" },
+  },
+  {
+    nazev: "Marcellus SC + Castoro kurzíva",
+    zdroj: "Google",
+    pozn: "JIRO v rozšířených kapitálkách jako vyryté do kamene nebo razítka, saku kaligrafickou kurzívou jako podpis.",
+    jiro: { fontFamily: "'Marcellus SC'", fontWeight: 400, letterSpacing: "0.14em" },
+    saku: { fontFamily: "'Castoro'", fontWeight: 400, fontStyle: "italic", fontSize: "1.12em" },
+  },
+  {
+    nazev: "Zen Antique Soft",
+    zdroj: "Google",
+    pozn: "Latinka japonského písma s měkkými, lehce rozpitými tvary jako dřevořez. Kurzívu nemá — saku nese jen barva.",
+    jiro: { fontFamily: "'Zen Antique Soft'", fontWeight: 400, letterSpacing: "0.08em" },
+    saku: { fontFamily: "'Zen Antique Soft'", fontWeight: 400 },
+  },
+  {
+    nazev: "Zodiak + pečeť 咲",
+    zdroj: "Fontshare + Google",
+    pozn: "Jako keramik, který signuje dno razítkem: za saku malá rumělková pečeť se znakem 咲 (saku, kvést). Pečeť je zároveň favicona a razítko na sáček.",
+    jiro: { fontFamily: "'Zodiak'", fontWeight: 700, letterSpacing: "0.03em" },
+    saku: { fontFamily: "'Zodiak'", fontWeight: 400, fontStyle: "italic" },
+    uprava: "hanko",
+  },
+];
+
+const kolo1: Kandidat[] = [
+  {
+    nazev: "Newsreader Display", zdroj: "Google", pozn: "Písmo textu webu ve velké optické velikosti.",
+    jiro: { fontFamily: "'Newsreader'", fontWeight: 600, fontVariationSettings: '"opsz" 72', letterSpacing: "0.04em" },
+    saku: { fontFamily: "'Newsreader'", fontWeight: 400, fontStyle: "italic", fontVariationSettings: '"opsz" 72' },
+  },
+  {
+    nazev: "Cormorant Garamond", zdroj: "Google", pozn: "Písmo starého loga, tučnější řez.",
+    jiro: { fontFamily: "'Cormorant Garamond'", fontWeight: 600, letterSpacing: "0.08em" },
+    saku: { fontFamily: "'Cormorant Garamond'", fontWeight: 500, fontStyle: "italic" },
+  },
+  {
+    nazev: "Alegreya", zdroj: "Google", pozn: "Kaligrafické, psané perem.",
+    jiro: { fontFamily: "'Alegreya'", fontWeight: 700, letterSpacing: "0.05em" },
+    saku: { fontFamily: "'Alegreya'", fontWeight: 400, fontStyle: "italic" },
+  },
+  {
+    nazev: "Instrument Serif", zdroj: "Google", pozn: "Úzké, kontrastní, jedna síla.",
+    jiro: { fontFamily: "'Instrument Serif'", fontWeight: 400, letterSpacing: "0.03em" },
+    saku: { fontFamily: "'Instrument Serif'", fontWeight: 400, fontStyle: "italic" },
+  },
+  {
+    nazev: "Shippori Mincho", zdroj: "Google", pozn: "Japonské mincho, bez kurzívy.",
+    jiro: { fontFamily: "'Shippori Mincho'", fontWeight: 700, letterSpacing: "0.1em" },
+    saku: { fontFamily: "'Shippori Mincho'", fontWeight: 500 },
+  },
+];
+
+const google =
+  "https://fonts.googleapis.com/css2?" +
+  [
+    "family=IM+Fell+English:ital@0;1",
+    "family=Brygada+1918:ital,wght@0,700;1,400",
+    "family=Marcellus+SC",
+    "family=Castoro:ital@1",
+    "family=Zen+Antique+Soft",
+    "family=Yuji+Syuku",
+    "family=Newsreader:ital,opsz,wght@0,6..72,600;1,6..72,400",
+    "family=Cormorant+Garamond:ital,wght@0,600;1,500",
+    "family=Alegreya:ital,wght@0,700;1,400",
+    "family=Instrument+Serif:ital@0;1",
+    "family=Shippori+Mincho:wght@500;700",
+  ].join("&") +
+  "&display=swap";
+
+// 401 = kurzíva 400
+const fontshare =
+  "https://api.fontshare.com/v2/css?f[]=zodiak@700,401&f[]=erode@600,401&f[]=boska@700,401&f[]=gambetta@600,401&display=swap";
+
+const css = (s: Styl) =>
+  Object.entries(s)
+    .map(([k, v]) => `${k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}:${v}`)
+    .join(";")
+    .replace(/"/g, "&quot;"); // jde do atributu style="…" v ručně skládaném HTML
+
+/** Samotný nápis — stejný v hlavičce i ve velkém, liší se jen velikostí rodiče */
+const znacka = (k: Kandidat) => {
+  const jiro = `<span style="${css(k.jiro)}">JIRO</span>`;
+  const saku = `<span class="saku" style="${css(k.saku)}">saku</span>`;
+  if (k.uprava === "pod") {
+    return `<span class="pod"><span class="pod-jiro" style="${css(k.jiro)}">JIRO</span>${saku}</span>`;
+  }
+  if (k.uprava === "hanko") {
+    return `<span>${jiro} ${saku}<span class="hanko" lang="ja">咲</span></span>`;
+  }
+  return `<span>${jiro} ${saku}</span>`;
+};
+
+const nadpis = (k: Kandidat) =>
+  `<span style="${css({ ...k.jiro, letterSpacing: "0", fontSize: "1em" })}">Dílna v Ořechu,</span> ` +
+  `<span style="${css({ ...k.saku, fontSize: "1em" })}">kde hlína kvete</span>`;
+---
+
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Písmo značky — srovnání</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={google} />
+    <link rel="stylesheet" href={fontshare} />
+    <style is:global>
+      body {
+        margin: 0;
+        padding: 32px clamp(16px, 4vw, 48px) 72px;
+        background: #efe5d1;
+        color: #2b2420;
+        font: 14px/1.6 ui-sans-serif, system-ui, sans-serif;
+      }
+      h1 { font-size: 19px; margin: 0 0 4px; }
+      h2 { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; margin: 36px 0 12px; }
+      p.uvod { max-width: 64ch; margin: 0 0 20px; opacity: 0.75; }
+      .seznam { display: grid; gap: 14px; }
+      .karta {
+        display: grid;
+        grid-template-columns: minmax(200px, 1fr) minmax(250px, 1.2fr) minmax(260px, 1.5fr);
+        gap: 20px 28px;
+        align-items: center;
+        background: #f7f1e3;
+        border-radius: 12px;
+        padding: 18px 24px;
+        box-shadow: inset 0 0 0 1px #2b242014;
+      }
+      .karta.dnes { box-shadow: inset 0 0 0 2px #c4432b55; }
+      .popis b { display: block; font-size: 15px; }
+      .popis i { display: block; font-style: normal; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.45; margin-bottom: 4px; }
+      .popis span { font-size: 13px; opacity: 0.72; }
+      .hlava {
+        display: flex; align-items: center; gap: 9px;
+        font-size: 19px; color: #2b2420; white-space: nowrap;
+        padding: 10px 14px; border-radius: 8px; background: #fbf7ee;
+        width: max-content;
+      }
+      .hlava svg { width: 40px; height: 40px; display: block; }
+      .hlava.tma { background: #2b2420; color: #f7f1e3; margin-top: 8px; }
+      .hlava.tma .saku { color: #f0a58e; }
+      .velke { font-size: 56px; line-height: 1; white-space: nowrap; }
+      .saku { color: #c4432b; }
+      .cesky { font-size: 26px; line-height: 1.2; margin-top: 14px; }
+
+      /* Pod sebou: malé prostrkané JIRO nad velkým saku */
+      .pod { display: inline-grid; line-height: 0.82; }
+      .pod-jiro { font-size: 0.5em; letter-spacing: 0.42em; margin: 0 0 0.12em 0.08em; }
+      .pod .saku { font-size: 1.45em; }
+
+      /* Pečeť 咲 za saku */
+      .hanko {
+        display: inline-grid; place-items: center;
+        width: 1.05em; height: 1.05em; margin-left: 0.28em;
+        vertical-align: -0.12em;
+        background: #c4432b; color: #f7f1e3; border-radius: 0.12em;
+        font-family: "Yuji Syuku", serif; font-size: 0.82em; line-height: 1;
+        transform: rotate(-4deg);
+      }
+
+      details { margin-top: 36px; }
+      summary { cursor: pointer; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
+      details .seznam { margin-top: 12px; }
+
+      @media (max-width: 960px) {
+        .karta { grid-template-columns: 1fr; }
+        .velke { font-size: 44px; }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Písmo značky JIRO saku — kolo 2</h1>
+    <p class="uvod">
+      Vlevo velikost z hlavičky (19 px vedle ensō, na papíře a v tmavé patičce), uprostřed velký nápis,
+      vpravo stejné písmo na českém nadpisu. Kde písmo nemá háčky, naskočí za ně Georgia — značce to nevadí,
+      jen by to písmo nešlo do nadpisů.
+    </p>
+
+    <div class="seznam">
+      {[dnes, ...kolo2].map((k, i) => (
+        <section class:list={["karta", { dnes: i === 0 }]}>
+          <div class="popis">
+            <i>{k.zdroj}</i>
+            <b>{k.nazev}</b>
+            <span>{k.pozn}</span>
+          </div>
+          <div>
+            <div class="hlava"><Enso size={40} soumrak maly /><Fragment set:html={znacka(k)} /></div>
+            <div class="hlava tma"><Enso size={40} soumrak maly tema="tmave" /><Fragment set:html={znacka(k)} /></div>
+          </div>
+          <div>
+            <div class="velke" set:html={znacka(k)} />
+            <div class="cesky" set:html={nadpis(k)} />
+          </div>
+        </section>
+      ))}
+    </div>
+
+    <details>
+      <summary>Kolo 1</summary>
+      <div class="seznam">
+        {kolo1.map((k) => (
+          <section class="karta">
+            <div class="popis">
+              <i>{k.zdroj}</i>
+              <b>{k.nazev}</b>
+              <span>{k.pozn}</span>
+            </div>
+            <div>
+              <div class="hlava"><Enso size={40} soumrak maly /><Fragment set:html={znacka(k)} /></div>
+            </div>
+            <div>
+              <div class="velke" set:html={znacka(k)} />
+            </div>
+          </section>
+        ))}
+      </div>
+    </details>
+  </body>
+</html>

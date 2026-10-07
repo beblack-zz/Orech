@@ -8,6 +8,7 @@
  * (styles/parta2.css). Animace postaviček jdou z postavicky.css.
  */
 import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
 import "@fontsource-variable/fraunces/full-italic.css";
 import "@fontsource-variable/newsreader";
 import "@fontsource-variable/newsreader/opsz-italic.css";
@@ -88,8 +89,9 @@ const casPro = (T: number) => {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
   </head>
-  <body class="p2">
+  <body class="p2" data-stranka="parta-2">
     <Nebe />
     <Hlavicka />
 

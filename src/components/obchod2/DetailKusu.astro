@@ -1,0 +1,109 @@
+---
+/**
+ * Detail kusu z krámku: velká fotka (s dalšími pohledy, když jsou),
+ * co o kusu říct, cena a do šátku. Kus bez fotky je i tady zabalený
+ * v novinách a nabízí, že fotku pošleme mailem.
+ *
+ * Obsah každého kusu je předem vyrenderovaný v <template> — obrázky se
+ * tak načtou, až když se kus otevře. Dialog plní a listuje v něm
+ * scripts/obchod2/kramek.ts (pořadí jako v krámku).
+ */
+import { Image } from "astro:assets";
+import Zabaleno from "./Zabaleno.astro";
+import { kramek, cenovka } from "../../data/kramek";
+import { glazuraPopis, vzdalenost } from "../../data/obchod2";
+import { glazury } from "../../data/kurzy2";
+import { kontakt } from "../../data/uvod2";
+
+const detaily = kramek.map((kus, i) => {
+  const km = kus.druh?.odkud ? Math.round(vzdalenost(kus.druh.odkud.gps) / 10) * 10 : null;
+  const glazura = kus.glazura?.toLowerCase();
+  const g = glazura ? glazury.find((x) => x.nazev === glazura) : undefined;
+  const mail = `mailto:${kontakt.email}?subject=${encodeURIComponent(`Fotka: ${kus.nazev}`)}&body=${encodeURIComponent(
+    `Ahoj, můžete mi prosím poslat fotku kusu ${kus.nazev}${glazura ? ` (${glazura})` : ""} za ${kus.cena}? Díky!`,
+  )}`;
+  return { kus, i, km, glazura, g, mail, ...cenovka(kus.cena) };
+});
+---
+<dialog class="omamori-dialog o2k-dialog" aria-labelledby="o2k-detail-nazev">
+  <div class="o2k-detail-obal">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <div class="o2k-detail" data-detail-obsah></div>
+    <div class="o2k-listovani">
+      <button type="button" class="odkaz-tlacitko" data-detail-predchozi>← předchozí</button>
+      <span class="o2k-poradi"></span>
+      <button type="button" class="odkaz-tlacitko" data-detail-dalsi>další →</button>
+    </div>
+  </div>
+</dialog>
+
+{detaily.map(({ kus, i, km, glazura, g, mail, castka, mena }) => (
+  <template data-detail={kus.id}>
+    <div class:list={["o2k-detail-foto", { "o2k-detail-foto-balik": !kus.fotky.length }]}>
+      {kus.fotky.length ? (
+        <>
+          <div class="o2k-snimky">
+            {kus.fotky.map((p, k) => (
+              <Image
+                src={p.src}
+                alt={p.alt}
+                width={900}
+                widths={[480, 720, 900]}
+                sizes="(min-width: 960px) 520px, 92vw"
+                format="webp"
+                class:list={["o2k-snimek", { je: k === 0 }]}
+                data-snimek={k}
+              />
+            ))}
+          </div>
+          {kus.fotky.length > 1 && (
+            <div class="o2k-pohledy" role="group" aria-label="Pohledy na kus">
+              {kus.fotky.map((p, k) => (
+                <button type="button" class="o2k-pohled" data-ukaz-snimek={k} aria-pressed={k === 0 ? "true" : "false"}>{p.popis}</button>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <Zabaleno tvar={kus.tvar ?? "bowl"} seme={i + 1} slama={false} class="o2k-detail-balik" />
+      )}
+    </div>
+
+    <div class="o2k-detail-info">
+      <p class="stitek">
+        {kus.odkud === "japonsko" ? <><span lang="ja">航空便</span> · z Japonska</> : <><span lang="ja">手作り</span> · z dílny</>}
+      </p>
+      <h2 id="o2k-detail-nazev" class="o2k-detail-nazev">{kus.nazev}</h2>
+      <p class="o2k-detail-autor">{kus.autor}</p>
+      {kus.novinka && <p class="o2k-detail-novinka"><span lang="ja">新作</span> novinka</p>}
+
+      {kus.druh && <p class="o2k-detail-druh"><span lang="ja">{kus.druh.znak}</span> {kus.druh.cteni}</p>}
+      {kus.druh && <p>{kus.druh.text}</p>}
+      {kus.druh?.detail && <p class="o2k-detail-pozn">{kus.druh.detail}</p>}
+      {kus.neznamy && <p class="o2k-detail-pozn">{kus.neznamy}</p>}
+      {kus.druh?.odkud && km && (
+        <p class="o2k-detail-cesta">
+          <span class="o2k-razitko-posta" lang="ja" aria-hidden="true">{kus.druh.odkud.znak}</span>
+          {kus.druh.odkud.mesto}, prefektura {kus.druh.odkud.prefektura} → Ořech · vzdušnou čarou asi {km.toLocaleString("cs-CZ")} km
+        </p>
+      )}
+
+      {glazura && (
+        <div class="o2k-detail-glazura" style={g ? `--g1:${g.svetlo};--g2:${g.stred};--g3:${g.stin}` : undefined}>
+          <span class="o2k-vzorek" aria-hidden="true"></span>
+          <p><b>{kus.glazura}.</b> {glazuraPopis[glazura] ?? ""}</p>
+        </div>
+      )}
+      {!kus.fotky.length && (
+        <p class="o2k-detail-pozn">
+          Čerstvě z pece, ještě zabalený v novinách — fotku doplníme. <a href={mail}>Chceš ji hned? Napiš nám.</a>
+        </p>
+      )}
+
+      <p class="o2k-detail-cena"><b>{castka}</b> {mena}</p>
+      <div class="o2k-detail-akce">
+        <button type="button" class="tlacitko" data-satek-pridat data-satek-id={kus.id}>Do šátku</button>
+      </div>
+    </div>
+  </template>
+))}

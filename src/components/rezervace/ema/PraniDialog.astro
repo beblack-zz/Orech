@@ -1,0 +1,38 @@
+---
+/**
+ * Přání party — sešit k tabuli. Dokud kami destičku nenajdeš, je tu jen
+ * stín a nápověda, kdy chodí; po přečtení jeho přání. Obsluhuje obecný
+ * scripts/parta2/sbirka.ts (klíč rezervace-prani).
+ */
+import Postavicka from "../../characters/Postavicka.astro";
+import { prani } from "../../../data/rezervace";
+import { parta } from "../../../data/parta";
+
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+---
+<dialog class="omamori-dialog rz-prani-dialog" data-sbirka-dialog aria-labelledby="rz-prani-nadpis">
+  <div class="omamori-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <p class="stitek"><span lang="ja">絵馬</span> · přání party</p>
+    <h2 id="rz-prani-nadpis" class="nadpis-2">Kdo si co přeje</h2>
+    <p class="omamori-perex">
+      Dokud nemáme skutečný kalendář, visí za obsazená místa ukázkové destičky — a mezi nimi
+      i destičky party. Každý kami chodí, kdy je mu to vlastní, a na destičce má napsané svoje
+      přání. Klikni na ni na tabuli a přečti si ho. Kdo přečte všech devět, ví o dílně všechno.
+    </p>
+    <ul class="omamori-seznam rz-prani-seznam">
+      {prani.map((p) => (
+        <li class="omamori-polozka rz-prani-polozka" data-sbirka-polozka={p.kdo}>
+          <span class="omamori-obr"><Postavicka id={p.kdo} size={72} varianta="kami" /></span>
+          <span class="omamori-jmeno">{jmeno(p.kdo)}</span>
+          <span class="omamori-napoveda">{p.napoveda}</span>
+          <span class="omamori-nalezen rz-prani-text">„{p.text}“</span>
+        </li>
+      ))}
+    </ul>
+    <div class="omamori-pata">
+      <p class="omamori-stav">Přečteno <b data-sbirka-pocet>0</b> z {prani.length}.</p>
+      <button type="button" class="tlacitko tlacitko-obrys" data-sbirka-reset>Zapomenout přání</button>
+    </div>
+  </div>
+</dialog>

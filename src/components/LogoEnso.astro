@@ -9,6 +9,7 @@
  * (data-tema="noc"), přepíná je CSS. Patička je tmavá vždycky.
  */
 import Enso from "./navrhy-loga/Enso.astro";
+import "../styles/znacka.css";
 
 interface Props {
   size?: number;
@@ -30,10 +31,10 @@ const maly = size < 56;
     </>
   )}
   <span
-    class={`font-serif font-medium whitespace-nowrap tracking-[0.04em] [word-spacing:-0.08em] ${invertovany ? "text-cream" : "text-espresso"}`}
-    style={`font-size: ${nazevPx}px; font-variation-settings: 'opsz' 48;`}
+    class={`znacka whitespace-nowrap ${invertovany ? "text-cream" : "text-espresso"}`}
+    style={`font-size: ${nazevPx}px;`}
   >
-    <span class="uppercase tracking-[0.08em]">Jiro</span> <em class={`italic font-normal ${invertovany ? "text-[#F0A58E]" : "text-sakura"}`}>saku</em>
+    JIRO <em class={`${invertovany ? "text-[#F0A58E]" : "text-sakura"}`}>saku</em>
   </span>
 </span>
 

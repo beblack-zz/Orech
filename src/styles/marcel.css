@@ -1,0 +1,125 @@
+/*
+ * Marcel — pracovní stránka postaviček jako kami, v novém vzhledu
+ * (styles/parta2.css). Každá postavička leží na vlastním papíře, obloha
+ * za nimi jde od rána do noci. Kapka má vedle původní kresby tři
+ * přehnané podoby (KapkaBubny.astro).
+ */
+
+.mc-sekce { position: relative; z-index: 2; padding: 28px 20px; }
+.mc-sekce:first-of-type { padding-top: 112px; }
+.mc-sekce:last-of-type { padding-bottom: 96px; }
+
+.mc .papir { width: min(760px, 100%); margin: 0 auto; text-align: center; }
+.mc .papir.mc-siroky { width: min(1240px, 100%); }
+.mc .papir.mc-siroky:has(.mc-rada) { width: min(860px, 100%); }
+
+.mc-kresba { display: block; width: min(320px, 72%); height: auto; margin: 0 auto 20px; }
+
+.mc-nadpis-1 { font-size: clamp(40px, 6vw, 72px); line-height: 0.98; margin: 12px 0 18px; }
+.mc .nadpis-2 { margin-left: auto; margin-right: auto; }
+.mc-perex { max-width: 54ch; margin: 0 auto 12px; color: var(--inkoust-2); }
+.mc-replika {
+  max-width: 36ch;
+  margin: 8px auto 0;
+  font-family: var(--f-ruka);
+  font-size: 25px;
+  line-height: 1.2;
+  color: var(--rumelka);
+}
+
+/* Kapka: původní kresba a vedle nová podoba — jen obrázky, bez popisků */
+.mc-rada {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 2.2vw, 32px);
+  align-items: center;
+  margin: 0 0 30px;
+}
+.mc-rada > * { display: block; width: 100%; height: auto; }
+
+/* Tvářičky: mřížka s číslem, názvem a popisem */
+.mc-mrizka {
+  list-style: none;
+  padding: 0;
+  margin: 30px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 36px 22px;
+}
+.mc-mrizka figure { margin: 0; }
+.mc-mrizka svg { display: block; width: min(184px, 100%); height: auto; margin: 0 auto 10px; }
+.mc-cislo {
+  display: block;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rumelka);
+}
+.mc-nazev {
+  display: block;
+  margin: 2px 0 4px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 24;
+  font-weight: 500;
+  font-size: 18px;
+}
+.mc-popis { display: block; font-size: 14.5px; line-height: 1.5; color: var(--inkoust-2); }
+
+/* Parta (ze stránky /parta): řada devíti postaviček se jmény a vzorník dospělých stylů */
+.mc-parta {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 0;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 26px 14px;
+  align-items: end;
+}
+.mc-parta li { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.mc-parta svg { display: block; width: min(104px, 100%); height: auto; }
+.mc-jmeno {
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--inkoust-2);
+}
+.mc-vzornik {
+  list-style: none;
+  padding: 0;
+  margin: 30px 0 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+.mc-vzornik li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 18px 12px 16px;
+  border-radius: 16px;
+  background: var(--papir-2);
+  box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.07);
+}
+.mc-vzornik svg { display: block; width: min(110px, 100%); height: auto; margin-bottom: 10px; }
+.mc-vzornik .mc-jmeno { font-size: 11px; color: var(--inkoust-3); }
+.mc-styl {
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 24;
+  font-weight: 500;
+  font-size: 16px;
+}
+@media (max-width: 1000px) {
+  .mc-parta { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .mc-vzornik { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .mc-parta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mc-vzornik { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

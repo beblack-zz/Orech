@@ -1,0 +1,148 @@
+---
+/**
+ * Tokonoma — výklenek v japonském pokoji, kde visí svitek a stojí jedna
+ * věc jen k dívání. Tady se v něm střídá naše tvorba: kusy, které
+ * neprodáváme (obchod.ts, tvorba) — proto tu není cena ani nic, co by
+ * znělo jako objednávka. Na svitku je jméno kusu znakem (obchod2.ts, mei).
+ *
+ * Kus na prkně se dá otočit stejně jako ve výloze (scripts/obchod2/
+ * tokonoma.ts). Vedle stojí Vázička — ona je ta váza s kytkou.
+ */
+import Kami from "../parta2/Kami.astro";
+import Nadoba from "../uvod2/Nadoba.astro";
+import TanukiSkryty from "./TanukiSkryty.astro";
+import { tvorba } from "../../data/obchod";
+import { mei } from "../../data/obchod2";
+import { pocetKusu } from "../../data/pocty";
+
+const t0 = tvorba[0];
+const m0 = mei[t0.name];
+/* Rohože tatami: obdélníky s tmavým lemem, kladené na střídačku */
+const tatami = [
+  { x: 0, y: 486, w: 300, h: 114 },
+  { x: 300, y: 486, w: 300, h: 114 },
+  { x: 600, y: 486, w: 200, h: 114 },
+];
+---
+<section class="o2-sekce o2-tokonoma-sekce" id="tokonoma" data-hodina="14" aria-labelledby="tokonoma-nadpis">
+  <div class="o2-tokonoma-mriz">
+    <div class="o2-tokonoma">
+      <svg class="o2-tokonoma-kresba" viewBox="0 0 800 600" aria-hidden="true">
+        <defs>
+          <linearGradient id="o2-tk-zed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E9DCC2" />
+            <stop offset="1" stop-color="#D9C7A6" />
+          </linearGradient>
+          <linearGradient id="o2-tk-vyklenek" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#CDB894" />
+            <stop offset="1" stop-color="#BFA67E" />
+          </linearGradient>
+          <linearGradient id="o2-tk-sloup" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#6E5236" />
+            <stop offset="0.5" stop-color="#A9835C" />
+            <stop offset="1" stop-color="#6E5236" />
+          </linearGradient>
+          <linearGradient id="o2-tk-deska" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#5E412A" />
+            <stop offset="1" stop-color="#3B2A1B" />
+          </linearGradient>
+          <linearGradient id="o2-tk-tatami" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#C9C088" />
+            <stop offset="1" stop-color="#B8AE72" />
+          </linearGradient>
+          <pattern id="o2-tk-rohoz" width="6" height="8" patternUnits="userSpaceOnUse">
+            <rect width="6" height="8" fill="url(#o2-tk-tatami)" />
+            <path d="M0 4 H6" stroke="#A39A5E" stroke-width="0.8" opacity="0.6" />
+          </pattern>
+          <linearGradient id="o2-tk-svetlo" x1="1" y1="0" x2="0" y2="0">
+            <stop offset="0" stop-color="#FFF6DE" stop-opacity="0.65" />
+            <stop offset="1" stop-color="#FFF6DE" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Zeď a výklenek */}
+        <rect width="800" height="490" fill="url(#o2-tk-zed)" />
+        <rect x="120" y="70" width="470" height="350" fill="url(#o2-tk-vyklenek)" />
+        <rect x="120" y="70" width="470" height="40" fill="#5A3E2A" opacity="0.18" />
+        {/* Svitek */}
+        <g class="o2-tk-svitek">
+          <path d="M355 70 V58" stroke="#3B2A1B" stroke-width="2" />
+          <rect x="292" y="84" width="126" height="290" fill="#8E6A3E" />
+          <rect x="300" y="96" width="110" height="266" fill="#C9A86A" />
+          <rect x="306" y="120" width="98" height="218" fill="#F6EEDC" />
+          <path d="M306 120 H404 M306 338 H404" stroke="#8E2A18" stroke-width="3" />
+          <rect x="286" y="372" width="138" height="9" rx="4.5" fill="#3B2A1B" />
+          <circle cx="284" cy="376.5" r="6" fill="#1E1612" />
+          <circle cx="426" cy="376.5" r="6" fill="#1E1612" />
+          <path d="M296 84 H414" stroke="#3B2A1B" stroke-width="4" stroke-linecap="round" />
+        </g>
+        {/* Vyvýšené prkno tokonomy s černým lakovaným okrajem */}
+        <path d="M120 420 H590 L600 440 H110 Z" fill="url(#o2-tk-deska)" />
+        <rect x="110" y="440" width="490" height="12" fill="#1E1612" />
+        <path d="M118 421 H592" stroke="#8A6448" stroke-width="1.4" opacity="0.6" />
+        {/* Sloup tokobashira — kmen se slupkou, každý jiný */}
+        <path d="M590 40 C596 160 586 300 594 452 L622 452 C616 300 624 160 618 40 Z" fill="url(#o2-tk-sloup)" />
+        <path d="M600 60 C604 180 596 300 602 440" stroke="#5A3E2A" stroke-width="1.2" fill="none" opacity="0.45" />
+        <ellipse cx="606" cy="220" rx="4" ry="9" fill="#5A3E2A" opacity="0.4" />
+        {/* Překlad nahoře */}
+        <rect x="100" y="40" width="530" height="30" fill="#7A5A3C" />
+        <path d="M100 70 H630" stroke="#3B2A1B" stroke-width="2" />
+        {/* Vedlejší výklenek s papírovým oknem */}
+        <rect x="640" y="70" width="140" height="300" fill="#F4ECDA" />
+        <g stroke="#7A5A3C" stroke-width="3">
+          <path d="M640 70 H780 V370 H640 Z" fill="none" stroke-width="6" />
+          <path d="M686 70 V370 M733 70 V370 M640 145 H780 M640 220 H780 M640 295 H780" />
+        </g>
+        <rect x="640" y="70" width="140" height="300" fill="url(#o2-tk-svetlo)" />
+        {/* Tatami */}
+        <rect x="0" y="486" width="800" height="114" fill="url(#o2-tk-rohoz)" />
+        {tatami.map((t) => (
+          <rect x={t.x} y={t.y} width={t.w} height={t.h} fill="none" stroke="#3E3A2A" stroke-width="5" />
+        ))}
+        <rect x="0" y="452" width="800" height="34" fill="#B49A70" />
+        <path d="M0 452 H800" stroke="#8A6A48" stroke-width="2" />
+        {/* Světlo z okna na podlaze */}
+        <path d="M640 486 L800 486 L800 600 L520 600 Z" fill="#FFF6DE" opacity="0.18" />
+      </svg>
+
+      <div class="o2-kakejiku" aria-live="polite">
+        <span class="o2-mei" lang="ja">{m0?.znak ?? ""}</span>
+        <span class="o2-mei-cteni">{m0?.cteni ?? ""}</span>
+      </div>
+
+      <div class="o2-tokonoma-kus o2-platno-obal" data-tokonoma-obal tabindex="0" role="application" aria-roledescription="otáčecí náhled" aria-label={`${t0.name}, ${t0.glaze.toLowerCase()}`}>
+        <canvas class="o2-platno" data-tokonoma-platno></canvas>
+        <svg class="o2-zaloha" viewBox="-60 -96 120 104" aria-hidden="true"><Nadoba tvar={t0.shape} x={0} y={0} s={1.4} glazura={t0.glaze} /></svg>
+      </div>
+
+      <Kami id="vazicka" class="o2-tokonoma-vazicka" />
+      <TanukiSkryty id="tokkuri" x={9.4} y={64} w={5.6} u={-10} />
+    </div>
+
+    <div class="o2-tokonoma-text papir">
+      <p class="stitek"><span lang="ja">床の間</span> · naše tvorba</p>
+      <h2 id="tokonoma-nadpis" class="nadpis-2">Jen k dívání</h2>
+      <p class="o2-tokonoma-perex">
+        V japonském pokoji bývá výklenek tokonoma. Visí v něm svitek a stojí jedna věc,
+        na kterou se člověk jen dívá. U nás se v něm střídá, co vzniklo v dílně.
+      </p>
+      <div class="o2-mei-karta" aria-live="polite">
+        <p class="o2-mei-nazev">{t0.name}</p>
+        <p class="o2-mei-meta">{t0.author} · {t0.glaze}{m0 && <> · jméno na svitku <span lang="ja">{m0.znak}</span> {m0.cteni}</>}</p>
+      </div>
+      <div class="o2-tokonoma-ovladani">
+        <button type="button" class="o2-sipka" data-tokonoma-predchozi aria-label="Předchozí kus">‹</button>
+        <ol class="o2-tokonoma-tecky">
+          {tvorba.map((k, i) => (
+            <li><button type="button" data-tokonoma-kus={i} aria-label={k.name} aria-current={i === 0 ? "true" : undefined}></button></li>
+          ))}
+        </ol>
+        <button type="button" class="o2-sipka" data-tokonoma-dalsi aria-label="Další kus">›</button>
+      </div>
+      <div class="o2-tokonoma-akce">
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-tokonoma-dno>Ukázat dno</button>
+      </div>
+      <p class="o2-tokonoma-pata">Naše tvorba · {pocetKusu(tvorba.length)}</p>
+    </div>
+  </div>
+</section>

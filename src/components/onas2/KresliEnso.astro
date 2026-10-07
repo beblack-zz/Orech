@@ -1,0 +1,55 @@
+---
+/**
+ * Méně dokonalosti, víc radosti — přístup dílny (uvod2.ts) a vedle papír,
+ * na který se dá jedním tahem nakreslit ensō. Štětec se kreslí do
+ * <canvas>: pomalý tah je tlustý, rychlý tenký, ke konci štětec vysychá.
+ * Po dokreslení se ozve někdo z party (onas2.ts — ensoReakce) a obrázek
+ * si jde uložit. Kdo nechce nebo nemůže kreslit, nechá kruh nakreslit.
+ * Logika ve scripts/onas2/enso.ts.
+ */
+import Enso from "../navrhy-loga/Enso.astro";
+import Postavicka from "../characters/Postavicka.astro";
+import { oDilne } from "../../data/uvod2";
+import { ensoReakce } from "../../data/onas2";
+
+const kdo = [...new Set(Object.values(ensoReakce).map((r) => r.kdo))];
+---
+<section class="enso-sekce" id="enso" data-hodina="19.7" aria-labelledby="enso-nadpis">
+  <div class="papir enso-papir">
+    <div class="enso-text">
+      <p class="stitek"><span lang="ja">円相</span> · ensō</p>
+      <h2 id="enso-nadpis" class="nadpis-2">Méně dokonalosti, <em>víc radosti.</em></h2>
+      <p class="enso-pristup">{oDilne.pristup}</p>
+      <p class="enso-vysvetleni">
+        Ensō je kruh jedním tahem štětce. V zenu se maluje na jeden nádech — jak se povede,
+        tak zůstane. Opravit se nedá, a proto je pokaždé jiný.
+      </p>
+      <div class="enso-znacka">
+        <Enso size={84} soumrak maly />
+        <p>I naše značka je ensō: kruh, který se nedotáhl. V mezeře kvete sakura.</p>
+      </div>
+    </div>
+
+    <div class="enso-kreslici" data-enso>
+      <div class="enso-papirek">
+        <canvas class="enso-platno" role="img" aria-label="Papír na ensō. Nakresli kruh jedním tahem — myší, prstem nebo perem."></canvas>
+        <p class="enso-pokyn" aria-hidden="true">Nakresli kruh<br />jedním tahem.</p>
+        <span class="enso-pecet" lang="ja" aria-hidden="true">ジロ作</span>
+      </div>
+      <div class="enso-odpoved-misto" aria-live="polite">
+        <div class="enso-odpoved" hidden>
+          <span class="enso-odpoved-kami" aria-hidden="true">
+            {kdo.map((id) => <span data-enso-kami={id} hidden><Postavicka id={id} size={84} varianta="kami" /></span>)}
+          </span>
+          <p class="enso-odpoved-text"><b class="enso-odpoved-jmeno"></b><span class="enso-odpoved-veta"></span></p>
+        </div>
+      </div>
+      <div class="enso-akce">
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-enso-znovu disabled>Nový papír</button>
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-enso-zaMe>Nakresli ho za mě</button>
+        <a class="tlacitko tlacitko-maly" data-enso-ulozit download="enso-jiro-saku.png" aria-disabled="true" role="link">Uložit si ho</a>
+      </div>
+      <noscript><p class="enso-noscript">Kreslení potřebuje JavaScript.</p></noscript>
+    </div>
+  </div>
+</section>

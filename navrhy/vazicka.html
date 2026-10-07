@@ -1,0 +1,1775 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vázička · pět návrhů</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Yuji+Syuku&display=swap" />
+<style>
+/*
+ * Pracovní list: pět návrhů Vázičky pro Partu 2. Mimo web, jen k prohlédnutí.
+ * Barvy, písma a papír jsou z styles/parta2.css, obloha z scripts/parta2/paleta.ts.
+ */
+:root {
+  --papir: #F7F1E3;
+  --papir-2: #EFE5D1;
+  --papir-3: #E2D4B9;
+  --inkoust: #2B2420;
+  --inkoust-2: #5C5047;
+  --inkoust-3: #8A7C70;
+  --rumelka: #C4432B;
+  --zlato: #D6A23A;
+  --zlato-2: #F3D27A;
+
+  --f-display: "Fraunces", Georgia, serif;
+  --f-text: "Newsreader", Georgia, serif;
+  --f-ruka: "Caveat", "Comic Sans MS", cursive;
+  --f-kanji: "Yuji Syuku", "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
+
+  --nebe-nahore: #3E86D3;
+  --nebe-stred: #8DC1EE;
+  --nebe-obzor: #DCEFF7;
+  --mrak-svetlo: #FFFFFF;
+  --mrak-stin: #BFD3EC;
+  --mrak-zare: #FFFFFF;
+  --kopec-daleko: #8FB3D6;
+  --kopec-blizko: #6E9A9C;
+  --hvezdy: 0;
+  --noc: 0;
+  --slunce-x: 50%;
+  --slunce-y: 18%;
+  --slunce-op: 1;
+  --slunce-barva: #FFF1C2;
+  --slunce-jadro: #FFF6E2;
+  --mesic-x: 80%;
+  --mesic-y: 20%;
+  --mesic-op: 0;
+  --odlesk: #F7C79A;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--f-text);
+  font-size: 17px;
+  line-height: 1.62;
+  color: var(--inkoust);
+  background: var(--nebe-obzor);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--rumelka); outline-offset: 3px; border-radius: 8px; }
+::selection { background: var(--zlato-2); color: var(--inkoust); }
+em, i { font-style: italic; }
+[lang="ja"] { font-family: var(--f-kanji); font-style: normal; }
+
+/* ——— Obloha přes celou stránku, jako na Partě 2 ——— */
+.nebe {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(to bottom, var(--nebe-nahore) 0%, var(--nebe-stred) 58%, var(--nebe-obzor) 100%);
+}
+.nebe .slunce, .jeviste .slunce {
+  position: absolute; left: var(--slunce-x); top: var(--slunce-y);
+  width: 38vmin; height: 38vmin; transform: translate(-50%, -50%);
+  opacity: var(--slunce-op); border-radius: 50%;
+  background: radial-gradient(circle, var(--slunce-jadro) 0 12%, color-mix(in srgb, var(--slunce-barva) 75%, transparent) 14%, color-mix(in srgb, var(--slunce-barva) 26%, transparent) 32%, transparent 68%);
+}
+.nebe .mesic, .jeviste .mesic {
+  position: absolute; left: var(--mesic-x); top: var(--mesic-y);
+  width: 11vmin; height: 11vmin; transform: translate(-50%, -50%);
+  opacity: var(--mesic-op); border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #FFFBEA 0 46%, #F4E7C2 62%, transparent 64%);
+  filter: drop-shadow(0 0 22px rgba(255, 246, 218, 0.55));
+}
+.hvezdy { position: absolute; inset: 0; width: 100%; height: 100%; opacity: var(--hvezdy); }
+
+/* ——— Rozvržení ——— */
+main, .hlava { position: relative; z-index: 1; }
+.sirka { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+.papir {
+  position: relative;
+  background: var(--papir);
+  border-radius: 28px;
+  padding: clamp(22px, 4vw, 56px);
+  box-shadow: 0 30px 70px -34px rgba(28, 20, 44, 0.55), 0 0 0 1px rgba(43, 36, 32, 0.06);
+  margin: 0 auto 40px;
+}
+.stitek {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--rumelka);
+}
+.stitek [lang="ja"] { letter-spacing: 0.06em; font-weight: 400; font-size: 1.3em; }
+.nadpis-1, .nadpis-2, .nadpis-3 {
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 120;
+  font-weight: 400; letter-spacing: -0.015em; text-wrap: balance;
+}
+.nadpis-1 { font-size: clamp(56px, 10vw, 128px); line-height: 0.92; margin: 12px 0 18px; }
+.nadpis-2 { font-size: clamp(34px, 4.6vw, 60px); line-height: 1.02; margin: 8px 0 12px; }
+.nadpis-3 { font-size: 22px; line-height: 1.2; margin: 30px 0 10px; font-variation-settings: "SOFT" 100, "WONK" 0, "opsz" 36; font-weight: 500; }
+.perex { font-size: clamp(18px, 1.9vw, 21px); line-height: 1.55; max-width: 640px; color: var(--inkoust-2); margin: 0; }
+p { margin: 0 0 12px; }
+.text-tichy { color: var(--inkoust-3); font-size: 15px; }
+
+/* ——— Hlavička s řadou ——— */
+.hlava { padding: clamp(28px, 6vw, 72px) 0 32px; }
+.hlava .papir { overflow: hidden; }
+.hlava-nahore { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: start; }
+.hlava-znak { font-family: var(--f-kanji); font-size: clamp(64px, 11vw, 150px); line-height: 0.9; color: var(--rumelka); writing-mode: vertical-rl; opacity: 0.9; margin: 0; }
+.rada {
+  position: relative;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+  margin-top: 28px; padding-top: 10px;
+}
+.rada::after {
+  content: ""; position: absolute; left: -60px; right: -60px; bottom: 34px; height: 2px;
+  background: linear-gradient(to right, transparent, var(--papir-3) 10%, var(--papir-3) 90%, transparent);
+}
+.rada a { text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: 18px; padding: 6px 0 0; transition: background 0.2s; }
+.rada a:hover { background: var(--papir-2); }
+.rada .kresba-obal { width: 100%; max-width: 170px; aspect-ratio: 1; }
+.rada-popis { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 14px; font-weight: 600; text-align: center; line-height: 1.2; padding-bottom: 8px; position: relative; z-index: 1; }
+.rada-popis span { display: block; font-family: var(--f-kanji); font-weight: 400; font-size: 18px; color: var(--rumelka); }
+.rada-ted .rada-popis { color: var(--inkoust-3); }
+
+/* ——— Zadání ——— */
+.dvoj { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px, 4vw, 56px); }
+.seznam { list-style: none; margin: 0; padding: 0; }
+.seznam li { position: relative; padding-left: 26px; margin: 0 0 10px; }
+.seznam li::before { content: ""; position: absolute; left: 4px; top: 0.66em; width: 9px; height: 9px; border-radius: 50%; background: var(--rumelka); }
+.seznam-pryc li::before { background: none; border: 1.6px solid var(--inkoust-3); }
+.seznam-pryc li { color: var(--inkoust-2); }
+.pozn {
+  margin-top: 28px; padding: 18px 22px; border-radius: 18px; background: var(--papir-2);
+  display: flex; gap: 16px; align-items: center;
+}
+.pozn-znak { font-family: var(--f-kanji); font-size: 40px; color: var(--rumelka); line-height: 1; }
+
+/* ——— Návrh ——— */
+.navrh-hlava { display: grid; grid-template-columns: auto 1fr; gap: clamp(16px, 3vw, 36px); align-items: start; margin-bottom: 26px; }
+.navrh-cislo { font-family: var(--f-kanji); font-size: clamp(68px, 9vw, 120px); line-height: 0.85; color: var(--rumelka); }
+.teze { font-size: clamp(18px, 1.8vw, 20px); color: var(--inkoust-2); max-width: 720px; margin: 0; }
+.navrh-telo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(22px, 4vw, 56px); align-items: start; }
+.navrh-telo > .jeviste-sloupec { position: sticky; top: 24px; }
+.body { counter-reset: bod; list-style: none; margin: 0; padding: 0; }
+.body li { counter-increment: bod; position: relative; padding-left: 38px; margin: 0 0 14px; }
+.body li::before {
+  content: counter(bod); position: absolute; left: 0; top: 2px;
+  width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--f-display); font-size: 13px; font-weight: 600;
+  background: var(--inkoust); color: var(--papir);
+}
+.body b { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; }
+.trojice { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 26px 0 6px; }
+.trojice > div { background: var(--papir-2); border-radius: 18px; padding: 14px 16px 12px; font-size: 15px; line-height: 1.5; }
+.trojice h4 { margin: 0 0 4px; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rumelka); }
+.cena { border-left: 3px solid var(--rumelka); padding: 4px 0 4px 18px; margin-top: 8px; }
+.metr { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin-top: 22px; font-size: 14px; color: var(--inkoust-2); }
+.tecky { letter-spacing: 3px; color: var(--rumelka); font-size: 13px; white-space: nowrap; }
+.tecky i { color: var(--papir-3); font-style: normal; }
+
+/* ——— Jeviště ——— */
+.jeviste {
+  position: relative; aspect-ratio: 1; width: 100%;
+  border-radius: 30px; overflow: hidden; isolation: isolate;
+  background: linear-gradient(to bottom, var(--nebe-nahore) 0%, var(--nebe-stred) 60%, var(--nebe-obzor) 100%);
+  box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.08), 0 20px 50px -30px rgba(28, 20, 44, 0.6);
+}
+.jeviste .slunce { width: 46%; height: 46%; }
+.jeviste .mesic { width: 13%; height: 13%; }
+.jev-kopce { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; }
+.jev-zem {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 21%;
+  background: linear-gradient(to bottom, #9DB86A 0%, #87A85C 30%, #6F9049 100%);
+  filter: brightness(calc(1 - var(--noc) * 0.62)) saturate(calc(1 - var(--noc) * 0.35));
+}
+.jev-zem::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 16px;
+  background: radial-gradient(60% 100% at 50% 100%, #9DB86A 60%, transparent 62%) 0 0 / 34px 16px repeat-x;
+}
+.jev-znak {
+  position: absolute; top: 5%; right: 6%; margin: 0;
+  font-family: var(--f-kanji); font-size: clamp(44px, 7vw, 78px); line-height: 1;
+  writing-mode: vertical-rl; color: #FFFFFF; opacity: 0.32; pointer-events: none;
+}
+.jev-postava {
+  position: absolute; left: 11%; width: 78%; bottom: 9.3%;
+  aspect-ratio: 1; display: block; z-index: 2;
+  -webkit-tap-highlight-color: transparent;
+}
+.jev-postava .kresba { transform-origin: 50% 86%; }
+.jev-bublina {
+  position: absolute; z-index: 3; left: 50%; top: 4.5%; margin: 0;
+  max-width: 84%; width: max-content;
+  transform: translate(-50%, 8px); opacity: 0; pointer-events: none;
+  padding: 10px 18px 12px; border-radius: 20px;
+  background: var(--papir); color: var(--inkoust);
+  font-family: var(--f-ruka); font-size: clamp(20px, 2.3vw, 25px); line-height: 1.12; text-align: center;
+  box-shadow: 0 14px 30px -16px rgba(28, 20, 44, 0.6);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.jev-bublina::after {
+  content: ""; position: absolute; left: 50%; bottom: -8px; width: 16px; height: 16px;
+  background: var(--papir); transform: translateX(-50%) rotate(45deg); border-radius: 3px;
+}
+.mluvi .jev-bublina { opacity: 1; transform: translate(-50%, 0); }
+.jev-cas {
+  position: absolute; left: 16px; bottom: 12px; z-index: 3; margin: 0;
+  font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+.jev-tip { margin: 10px 4px 0; font-size: 14px; color: var(--inkoust-3); text-align: center; }
+
+/* Zlaté mraky u Kasane leží v kresbě; svitek u Hyakki je papír místo oblohy */
+.jeviste-svitek { background: linear-gradient(170deg, #F4EAD3 0%, #ECDDBF 60%, #E2CFAB 100%); }
+.jeviste-svitek::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(to bottom, var(--nebe-nahore), var(--nebe-obzor));
+  opacity: calc(0.12 + var(--noc) * 0.22); mix-blend-mode: multiply;
+}
+.jeviste-svitek .vlakna { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.55; mix-blend-mode: multiply; }
+.svitek-text {
+  position: absolute; right: 7%; top: 7%; margin: 0; z-index: 1;
+  writing-mode: vertical-rl; font-family: var(--f-kanji); font-size: clamp(20px, 2.6vw, 30px);
+  line-height: 1.3; color: #2B2420; opacity: 0.86; letter-spacing: 0.08em;
+}
+.svitek-text small { font-size: 0.55em; opacity: 0.75; margin-top: 10px; }
+.svitek-pecet {
+  position: absolute; right: 7.6%; top: 49%; z-index: 1;
+  width: clamp(26px, 3.4vw, 38px); aspect-ratio: 1; border-radius: 4px;
+  background: var(--rumelka); color: #FBEFE3; display: grid; place-items: center;
+  font-family: var(--f-kanji); font-size: clamp(16px, 2vw, 22px); transform: rotate(-3deg);
+  box-shadow: inset 0 0 0 2px #FBEFE3, inset 0 0 0 3px var(--rumelka);
+}
+.svitek-zem { position: absolute; left: 6%; right: 6%; bottom: 13.2%; height: 2px; background: linear-gradient(to right, transparent, rgba(43, 36, 32, 0.25), transparent); }
+
+/* ——— Lupy ——— */
+.lupy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 30px; }
+.lupa { margin: 0; }
+.lupa-okno { position: relative; background: var(--papir-2); border-radius: 18px; overflow: hidden; aspect-ratio: 4 / 3; }
+.lupa-okno .kresba-obal { position: absolute; inset: 6px; }
+.lupa-okno .kresba { width: 100%; height: 100%; }
+.lupa figcaption { font-size: 14px; line-height: 1.4; color: var(--inkoust-2); margin-top: 8px; padding: 0 4px; }
+.lupa figcaption b { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; color: var(--inkoust); }
+
+/* ——— Systém glazur u návrhu 4 ——— */
+.system-obal { margin-top: 34px; padding-top: 6px; border-top: 1px solid var(--papir-3); }
+.system-obal > p { max-width: 720px; }
+.system { display: grid; grid-template-columns: repeat(9, 1fr); gap: 12px; margin: 18px 0 10px; }
+.stanice { text-align: center; font-size: 13px; line-height: 1.3; }
+.stanice-nebe { position: relative; aspect-ratio: 0.62; border-radius: 999px 999px 14px 14px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.1); }
+.stanice-nebe svg { position: absolute; left: 50%; bottom: 6%; width: 74%; transform: translateX(-50%); }
+.stanice b { display: block; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 15px; margin-top: 8px; }
+.stanice span { color: var(--inkoust-3); }
+.stanice em { display: block; color: var(--rumelka); font-style: normal; }
+.stanice.ja-jsem .stanice-nebe { box-shadow: 0 0 0 2.5px var(--rumelka); }
+
+/* ——— Srovnání ——— */
+.srovnani-jeviste { aspect-ratio: 2.6; border-radius: 30px; }
+.srovnani-jeviste .jev-zem { height: 26%; }
+.srovnani-rada { position: absolute; left: 2%; right: 2%; bottom: 11.4%; display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; z-index: 2; }
+.srovnani-rada .kresba-obal { aspect-ratio: 1; width: 100%; }
+.srovnani-popisky { display: grid; grid-template-columns: repeat(7, 1fr); margin: 10px 2% 0; text-align: center; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 13px; font-weight: 600; }
+.srovnani-popisky span { color: var(--inkoust-3); font-weight: 400; display: block; font-size: 12px; }
+
+/* ——— Čitelnost ——— */
+.citelnost { display: grid; grid-template-columns: auto repeat(5, 1fr); gap: 0; margin-top: 18px; border-radius: 20px; overflow: hidden; border: 1px solid var(--papir-3); }
+.citelnost > div { display: flex; align-items: center; justify-content: center; padding: 10px 6px; border-bottom: 1px solid var(--papir-3); min-height: 60px; }
+.citelnost > div.hlava-bunka { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--inkoust-3); min-height: 0; background: var(--papir-2); }
+.citelnost > div.jmeno { justify-content: flex-start; padding-left: 18px; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; white-space: nowrap; }
+.citelnost > div.jmeno span { font-family: var(--f-kanji); color: var(--rumelka); font-weight: 400; margin-right: 8px; }
+.citelnost > div.tma { background: #18204A; }
+.citelnost .kresba-obal { max-width: 100%; height: auto !important; aspect-ratio: 1; }
+.citelnost > div:nth-last-child(-n + 6) { border-bottom: 0; }
+
+/* ——— Tabulka ——— */
+.tabulka-obal { overflow-x: auto; margin-top: 18px; }
+table.tabulka { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 15px; }
+.tabulka th, .tabulka td { padding: 11px 12px; text-align: center; border-bottom: 1px solid var(--papir-3); }
+.tabulka th { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 15px; }
+.tabulka th span { display: block; font-family: var(--f-kanji); color: var(--rumelka); font-weight: 400; font-size: 22px; }
+.tabulka td:first-child, .tabulka th:first-child { text-align: left; color: var(--inkoust-2); }
+.tabulka tr:last-child td { border-bottom: 0; }
+.tabulka .doporuceny { background: color-mix(in srgb, var(--zlato-2) 28%, transparent); }
+
+/* ——— Doporučení ——— */
+.doporuceni { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(22px, 4vw, 56px); align-items: center; }
+.doporuceni .jeviste { max-width: 440px; }
+.doporuceni h3 { margin-top: 22px; }
+
+.pata { position: relative; z-index: 1; text-align: center; padding: 10px 16px 150px; margin: 0; font-size: 14px; }
+.pata span { display: inline-block; max-width: 620px; padding: 10px 20px; border-radius: 999px; background: color-mix(in srgb, var(--papir) 88%, transparent); color: var(--inkoust-2); box-shadow: 0 10px 30px -18px rgba(20, 16, 40, 0.6); }
+
+/* ——— Ovladač denní doby ——— */
+.hodiny {
+  position: fixed; z-index: 20; left: 50%; bottom: 16px; transform: translateX(-50%);
+  width: min(760px, calc(100% - 24px));
+  display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: center;
+  padding: 12px 18px 12px 20px; border-radius: 26px;
+  background: color-mix(in srgb, var(--papir) 94%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 50px -20px rgba(20, 16, 40, 0.65), 0 0 0 1px rgba(43, 36, 32, 0.08);
+}
+.hodiny-cas { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 48; font-size: 30px; line-height: 1; font-weight: 500; min-width: 3.4ch; }
+.hodiny-popis { grid-column: 1 / -1; font-size: 13px; color: var(--inkoust-2); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
+.hodiny input[type="range"] { width: 100%; accent-color: var(--rumelka); }
+.predvolby { display: flex; gap: 6px; flex-wrap: wrap; }
+.predvolby button {
+  font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 13px; font-weight: 600;
+  padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--papir-3);
+}
+.predvolby button:hover { border-color: var(--inkoust-3); }
+.predvolby button[aria-pressed="true"] { background: var(--inkoust); border-color: var(--inkoust); color: var(--papir); }
+.pohyb { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.pohyb input { accent-color: var(--rumelka); }
+
+/* ——— Kresby: obal, pohyb, reakce ——— */
+.kresba-obal { display: block; }
+.kresba { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* Dnešní kami podoba (postavicky.css: char-sway a jiskry) */
+.v-ted { animation: ted-kyv 4.8s ease-in-out infinite; transform-origin: 50% 86%; }
+@keyframes ted-kyv { 0%, 100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
+.v-ted .jiskra { animation: jiskra 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.v-ted .jiskra-2 { animation-delay: -0.9s; } .v-ted .jiskra-3 { animation-delay: -1.6s; } .v-ted .jiskra-4 { animation-delay: -2.1s; }
+@keyframes jiskra { 0%, 100% { transform: scale(0.4); opacity: 0.2; } 50% { transform: scale(1); opacity: 1; } }
+.v-pecinka .plamen { animation: plamen 1.4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes plamen { to { transform: scaleY(1.18); } }
+
+/* 1 Sensei */
+.s-dech { transform-origin: 90px 155px; animation: s-dech 6s ease-in-out infinite; }
+@keyframes s-dech { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.004, 1.014); } }
+.s-ikebana { transform-origin: 90px 50px; animation: s-vetve 7s ease-in-out infinite; }
+@keyframes s-vetve { 0%, 100% { transform: rotate(-0.8deg); } 50% { transform: rotate(1deg); } }
+.s-oko-o { opacity: 0; animation: s-oko-o 9s infinite; }
+.s-oko-z { animation: s-oko-z 9s infinite; }
+@keyframes s-oko-o { 0%, 68% { opacity: 0; } 70%, 84% { opacity: 1; } 86%, 100% { opacity: 0; } }
+@keyframes s-oko-z { 0%, 68% { opacity: 1; } 70%, 84% { opacity: 0; } 86%, 100% { opacity: 1; } }
+.mluvi .s-oko-o { animation: none; opacity: 1; }
+.mluvi .s-oko-z { animation: none; opacity: 0; }
+.s-padajici { animation: s-platek 9s linear infinite; opacity: 0; }
+@keyframes s-platek {
+  0% { transform: translate(84px, 24px) rotate(0deg); opacity: 0; }
+  6% { opacity: 1; }
+  35% { transform: translate(70px, 70px) rotate(160deg); }
+  70% { transform: translate(58px, 118px) rotate(330deg); opacity: 1; }
+  80% { transform: translate(55px, 152px) rotate(380deg); opacity: 0; }
+  100% { transform: translate(55px, 152px) rotate(380deg); opacity: 0; }
+}
+.reaguje.v-sensei, .reaguje .v-sensei { animation: s-poklona 1.4s ease-in-out; }
+@keyframes s-poklona { 0% { transform: none; } 30%, 58% { transform: rotate(-8deg) translateY(1%); } 100% { transform: none; } }
+
+/* 2 Heishi */
+.h-papir { transform-origin: 90px 57px; animation: h-papir 5.2s ease-in-out infinite; }
+@keyframes h-papir { 0%, 100% { transform: rotate(-1.8deg); } 50% { transform: rotate(2deg) scaleY(1.02); } }
+.h-konce { transform-origin: 90px 71px; animation: h-konce 4.4s ease-in-out infinite; }
+@keyframes h-konce { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2.4deg); } }
+.h-tvar { opacity: 0.2; transition: opacity 1.1s ease; }
+.mluvi .h-tvar { opacity: 1; transition-duration: 0.5s; }
+.reaguje .h-papir { animation: h-vzplanuti 1s ease-out; }
+@keyframes h-vzplanuti { 0% { transform: none; } 35% { transform: scale(1.06, 1.16); } 100% { transform: none; } }
+
+/* 3 Kasane */
+.k-sakura { transform-origin: 90px 44px; animation: k-sakura 8s ease-in-out infinite; }
+@keyframes k-sakura { 0%, 100% { transform: rotate(-0.6deg); } 50% { transform: rotate(0.9deg); } }
+.k-kour path { animation: k-kour 7s ease-in-out infinite; }
+.k-kour path + path { animation-delay: -3.5s; }
+@keyframes k-kour { 0% { transform: translateY(6px); opacity: 0; } 30%, 70% { opacity: 0.42; } 100% { transform: translateY(-12px); opacity: 0; } }
+.k-vejir { opacity: 0; transform: translateY(10px) rotate(8deg); transform-origin: 101px 112px; transition: opacity 0.5s, transform 0.6s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.mluvi .k-vejir { opacity: 1; transform: none; }
+
+/* 4 Nebe po dešti */
+.z-oci { transform-origin: 90px 106px; animation: z-mrk 6.5s infinite; }
+@keyframes z-mrk { 0%, 95%, 100% { transform: none; } 97% { transform: scaleY(0.12); } }
+.z-zornice { transition: transform 0.5s ease; }
+.mluvi .z-zornice { transform: translateX(-1.6px); }
+.z-rosa circle { animation: z-rosa 3.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.z-rosa g:nth-child(2) circle { animation-delay: -1.2s; } .z-rosa g:nth-child(3) circle { animation-delay: -2.1s; }
+@keyframes z-rosa { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.reaguje .z-telo { animation: z-narovnani 1.1s cubic-bezier(0.3, 1.5, 0.5, 1); transform-origin: 90px 155px; }
+@keyframes z-narovnani { 0% { transform: none; } 30% { transform: scale(0.97, 1.05); } 100% { transform: none; } }
+
+/* 5 Noční průvod */
+.hy-cela { animation: hy-krok 1.5s ease-in-out infinite; }
+@keyframes hy-krok { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.3px); } }
+.hy-lucerna { transform-origin: 157px 52px; animation: hy-lucerna 1.5s ease-in-out infinite; }
+@keyframes hy-lucerna { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+.hy-ruka { transform-origin: 61.4px 88px; animation: hy-ruka 1.5s ease-in-out infinite; }
+@keyframes hy-ruka { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(6deg); } }
+.reaguje .hy-cela { animation: hy-poskok 0.7s ease-out; }
+@keyframes hy-poskok { 0% { transform: none; } 40% { transform: translateY(-7px); } 100% { transform: none; } }
+.mluvi .hy-zor { transform: translateX(-2.4px); }
+.hy-zor { transition: transform 0.4s; }
+
+/* Malé a statické kresby se nehýbou; mimo obrazovku se pohyb zastaví */
+.staticke *, .staticke { animation: none !important; transition: none !important; }
+.bez-pohybu *, .mimo * { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ——— Mobil ——— */
+@media (max-width: 900px) {
+  .navrh-telo, .doporuceni, .dvoj { grid-template-columns: 1fr; }
+  .navrh-telo > .jeviste-sloupec { position: static; }
+  .rada { grid-template-columns: repeat(3, 1fr); row-gap: 10px; }
+  .rada::after { display: none; }
+  .trojice { grid-template-columns: 1fr; }
+  .system { grid-template-columns: repeat(3, 1fr); }
+  .lupy { grid-template-columns: 1fr 1fr; }
+  .srovnani-jeviste { aspect-ratio: 1.6; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .hlava-nahore { grid-template-columns: 1fr; }
+  .hlava-znak { display: none; }
+  .navrh-hlava { grid-template-columns: 1fr; gap: 0; }
+  .lupy { grid-template-columns: 1fr; }
+  .citelnost { grid-template-columns: auto repeat(3, 1fr); }
+  .citelnost .jen-siroke { display: none !important; }
+  .hodiny { grid-template-columns: auto 1fr; padding: 10px 14px; bottom: 10px; }
+  .hodiny-cas { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="nebe" aria-hidden="true">
+  <div class="slunce"></div>
+  <div class="mesic"></div>
+  <svg class="hvezdy" viewBox="0 0 100 100" preserveAspectRatio="none" data-hvezdy="70"></svg>
+</div>
+
+<header class="hlava">
+  <div class="sirka">
+    <div class="papir">
+      <div class="hlava-nahore">
+        <div>
+          <p class="stitek">Parta 2 · pracovní list postaviček</p>
+          <h1 class="nadpis-1">Vázička</h1>
+          <p class="perex">Nejstarší kus v dílně. Pět návrhů, jak ji zdospělit a přitáhnout blíž ke kami a ke Ghibli, aniž by přestala být z hlíny a glazury. Každý jde jinou cestou a každý je zároveň možnost, kam pak vzít celou partu.</p>
+        </div>
+        <p class="hlava-znak" lang="ja">花瓶</p>
+      </div>
+      <nav class="rada" aria-label="Návrhy">
+        <a href="#ted" class="rada-ted"><span class="kresba-obal" data-kresba="ted" data-staticke></span><span class="rada-popis"><span lang="ja">今</span>Teď</span></a>
+        <a href="#sensei"><span class="kresba-obal" data-kresba="sensei"></span><span class="rada-popis"><span lang="ja">一</span>Sensei</span></a>
+        <a href="#heishi"><span class="kresba-obal" data-kresba="heishi"></span><span class="rada-popis"><span lang="ja">二</span>Heishi</span></a>
+        <a href="#kasane"><span class="kresba-obal" data-kresba="kasane"></span><span class="rada-popis"><span lang="ja">三</span>Kasane</span></a>
+        <a href="#seiji"><span class="kresba-obal" data-kresba="seiji"></span><span class="rada-popis"><span lang="ja">四</span>Nebe po dešti</span></a>
+        <a href="#hyakki"><span class="kresba-obal" data-kresba="hyakki"></span><span class="rada-popis"><span lang="ja">五</span>Noční průvod</span></a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="sirka papir" id="ted" aria-labelledby="zadani-nadpis">
+    <p class="stitek">Zadání, jak mu rozumím</p>
+    <h2 class="nadpis-2" id="zadani-nadpis">Co zůstává a co odchází</h2>
+    <div class="dvoj">
+      <div>
+        <h3 class="nadpis-3">Zůstává</h3>
+        <ul class="seznam">
+          <li>Nejstarší kus v dílně. <i>Tsukumogami</i>, tedy předmět, který po sto letech služby dostane duši.</li>
+          <li>Sakury, každý den čerstvé.</li>
+          <li>Kannyū, jemné praskliny v glazuře. Stárne stylově.</li>
+          <li>Hlídá tvar a držení těla. Rovně sedět, rovně točit, dýchat.</li>
+          <li>Elegantní a voňavá.</li>
+          <li>Stejné plátno jako dnes: 180 × 180 a pata na 154. Kterýkoli návrh se dá vyměnit v <code>Postavicka.astro</code> a scény se nemusí upravovat.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="nadpis-3">Odchází</h3>
+        <ul class="seznam seznam-pryc">
+          <li>Ruměnec na tvářích, jiskřičky kolem a mašle.</li>
+          <li>Očka zavřená do úsměvu jako jediný výraz, který umí.</li>
+          <li>Ozdoby, které nic neznamenají. Co zůstane, má původ v řemesle nebo v tradici. Kdo se zeptá „proč?“, dostane odpověď.</li>
+        </ul>
+        <div class="pozn">
+          <span class="pozn-znak" lang="ja">時</span>
+          <p style="margin:0">Dole je posuvník denní doby. Obloha jde přes celou stránku jako na Partě 2 a návrhy na ni reagují, některé v noci svítí. Na každou Vázičku se dá kliknout.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ——— 1 ——— -->
+  <section class="sirka papir navrh" id="sensei" aria-labelledby="sensei-nadpis">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">一</span>
+      <div>
+        <p class="stitek">Návrh 1 · <span lang="ja">萩</span> hagi</p>
+        <h2 class="nadpis-2" id="sensei-nadpis">Sensei</h2>
+        <p class="teze">Stará mistrová, která už nic nedokazuje. Ze všech pěti má nejblíž k dnešní Vázičce. Je to pořád ona, jen dospěla a místo ozdob dostala řemeslo.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="jeviste-sloupec">
+        <div class="jeviste" data-jeviste="sensei">
+          <div class="slunce"></div><div class="mesic"></div>
+          <svg class="hvezdy" viewBox="0 0 100 100" preserveAspectRatio="none" data-hvezdy="26"></svg>
+          <svg class="jev-kopce" viewBox="0 0 400 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+            <path d="M0 268 C60 250 130 258 200 246 C270 234 340 252 400 242 V400 H0 Z" style="fill:var(--kopec-daleko)" />
+            <path d="M0 298 C90 282 170 290 250 278 C320 270 360 280 400 276 V400 H0 Z" style="fill:var(--kopec-blizko)" />
+          </svg>
+          <p class="jev-znak" lang="ja">萩</p>
+          <div class="jev-zem"></div>
+          <button type="button" class="jev-postava" aria-label="Sensei, klikni a něco ti řekne"><span class="kresba-obal" data-kresba="sensei"></span></button>
+          <p class="jev-bublina" aria-live="polite"></p>
+          <p class="jev-cas"></p>
+        </div>
+        <p class="jev-tip">Klikni na ni. Jedno oko občas pootevře samo.</p>
+      </div>
+      <div>
+        <ol class="body">
+          <li><b>Glazura shiro-hagi.</b> Mléčná a tlustá, ke dnu řídne a nechává holou hlínu. Praskliny za sto let ztmavly od čaje. U hagi se tomu říká <i>nanabake</i>, sedm proměn: kus mění barvu tím, jak se používá. Stárne doslova.</li>
+          <li><b>Gohon místo ruměnce.</b> Růžové skvrny, které na hagi vznikají v peci samy. Na tvářích vypadají jako ruměnec, jenže jsou i na boku a u dna. Je to glazura, ne líčidlo.</li>
+          <li><b>Patka wari-kōdai.</b> Nařezaná do zubů, jak ji hagi mívá. Stejnou má modrá miska z fotek dílny. Stojí na ní jako na nožkách, a přesto je to pořád nádoba.</li>
+          <li><b>Ikebana ze tří větví:</b> <i>shin, soe, hikae</i>, často vykládané jako nebe, člověk a země. Držení těla, které po tobě chce u kruhu, nosí na hlavě.</li>
+          <li><b>Horská sakura.</b> <i>Yamazakura</i> kvete zároveň s bronzovými lístky a je méně cukrová než obvyklá růžová.</li>
+          <li><b>Oči zavřené.</b> Jedno občas pootevře. Kontroluje, jestli se hrbíš.</li>
+        </ol>
+        <div class="trojice">
+          <div><h4>Kami</h4>Tsukumogami, jak má být: duši jí dal čas a používání, ne kouzlo.</div>
+          <div><h4>Ghibli</h4>Kvaš, měkké světlo zleva, teplý odraz oblohy zprava. Tak jsou kreslené věci v domě Sacuki a Mei.</div>
+          <div><h4>Dospělost</h4>Žádné ozdoby. Výraz nese obočí a jedno oko.</div>
+        </div>
+        <h3 class="nadpis-3">V noci</h3>
+        <p>Odraz oblohy na pravém boku se přebarvuje podle hodiny: ve dne je teplý, v noci měsíčně modrý.</p>
+        <h3 class="nadpis-3">Zbytek party</h3>
+        <p>Nejsnáz přenosný směr. Každý zůstane, kým je, a ozdobu vymění za jednu skutečnou techniku. Pecinka by měla popel a saze na rameni, protože se v ní doopravdy topí. Kapka by byla z průhledné glazury. Kachlík by měl razítko 正 vyryté do hlíny, ne nakreslené. Tváře zůstanou, jen bez ruměnce a jiskřiček.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">Je nejbezpečnější, a právě proto může zapadnout. Dospělost tu sedí v detailech (gohon, patka, praskliny) a ty v 64 px zmizí. V mapě cesty bude pořád vypadat skoro jako dnes.</p>
+        <div class="metr" data-metr="sensei"></div>
+      </div>
+    </div>
+    <div class="lupy">
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="sensei" data-vb="64 79 52 39" data-staticke></span></div><figcaption><b>Gohon.</b> Pod očima, ale i na boku. Obočí drží výraz, ústa skoro nic.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="sensei" data-vb="60 128 60 30" data-staticke></span></div><figcaption><b>Wari-kōdai.</b> Glazura končí kapkami nad holou hlínou, patka je nařezaná do zubů.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="sensei" data-vb="56 4 72 54" data-staticke></span></div><figcaption><b>Shin, soe, hikae.</b> Tři větve, tři směry. Yamazakura s bronzovými lístky.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ——— 2 ——— -->
+  <section class="sirka papir navrh" id="heishi" aria-labelledby="heishi-nadpis">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">二</span>
+      <div>
+        <p class="stitek">Návrh 2 · <span lang="ja">瓶子</span> heishi</p>
+        <h2 class="nadpis-2" id="heishi-nadpis">Heishi</h2>
+        <p class="teze">Vázička jako nádoba z domácího oltáře. Šintó své kami tradičně nezobrazuje, kami bydlí v předmětech. Proto má tvář jen jako odlesk v glazuře a ta se zaostří, až když na ni promluvíš.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="jeviste-sloupec">
+        <div class="jeviste" data-jeviste="heishi">
+          <div class="slunce"></div><div class="mesic"></div>
+          <svg class="hvezdy" viewBox="0 0 100 100" preserveAspectRatio="none" data-hvezdy="26"></svg>
+          <svg class="jev-kopce" viewBox="0 0 400 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+            <path d="M0 262 C70 246 140 254 210 240 C280 228 340 248 400 236 V400 H0 Z" style="fill:var(--kopec-daleko)" />
+            <path d="M0 300 C80 286 180 292 260 280 C330 272 370 282 400 278 V400 H0 Z" style="fill:var(--kopec-blizko)" />
+          </svg>
+          <p class="jev-znak" lang="ja">瓶</p>
+          <div class="jev-zem"></div>
+          <button type="button" class="jev-postava" aria-label="Heishi, klikni a něco ti řekne"><span class="kresba-obal" data-kresba="heishi"></span></button>
+          <p class="jev-bublina" aria-live="polite"></p>
+          <p class="jev-cas"></p>
+        </div>
+        <p class="jev-tip">Klikni na ni a tvář se zaostří. Večer posuň čas na noc.</p>
+      </div>
+      <div>
+        <ol class="body">
+          <li><b>Tvar heishi.</b> Úzké hrdlo, vysoká ramena, dlouhý štíhlý trup. Pár takových nádob patří k výbavě <i>kamidany</i>, domácího šintoistického oltáře, a podává se v nich kami saké.</li>
+          <li><b>Kuchisashi v hrdle.</b> Skládaný papír, který dává najevo, že nádoba patří kami. V noci prosvítá jako lampa.</li>
+          <li><b>Mizuhiki.</b> Šňůra z rumělky a zlata uvázaná do uzlu <i>awaji</i>. Ten se nedá jednoduše rozvázat, proto se váže na věci, které mají vydržet.</li>
+          <li><b>Porcelán seihakuji.</b> Bílý, ale v rytých linkách se glazura slévá do modrozelena. Žádný dekor, jen rýhy.</li>
+          <li><b>Tvář jako odlesk.</b> V klidu je skoro neviditelná. Po kliknutí se zaostří: úzké oči s rumělkou v koutcích jako u masky nó a malá ústa. Pak zase zmizí.</li>
+          <li><b>Jeden kvítek za uzlem.</b> Sakura na oltář nepatří. Je to její drobná neposlušnost a podle ní ji poznáš.</li>
+        </ol>
+        <div class="trojice">
+          <div><h4>Kami</h4>Nejvíc ze všech. Nádoba pro kami, papír pro kami, šňůra pro kami. Patří do rodiny shimenawy a shide, které na Partě 2 už visí.</div>
+          <div><h4>Ghibli</h4>Duchové z lázní v <i>Cestě do fantazie</i>, kteří mají místo tváře masku. Tichá, trochu nepatřičná, krásná.</div>
+          <div><h4>Dospělost</h4>Nesnaží se zalíbit a v tom je dospělá. Je klidná.</div>
+        </div>
+        <h3 class="nadpis-3">V noci</h3>
+        <p>Papír v hrdle se rozsvítí. Obloha ztmavne a z Vázičky je lampa.</p>
+        <h3 class="nadpis-3">Zbytek party</h3>
+        <p>Jsou dvě cesty. Opatrná: tvář jako odlesk dostane jen Pecinka, jediná skutečná kami z party (Kamado-gami), a ostatní tváře mají. Odvážná: celá parta je bez tváří, dokud nepromluví. Na Partě 2, kde se na kami kliká, by to byla hra sama o sobě.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">V 64 px je to bílá lahev s červenou šňůrkou a jako postavička se pozná až po kliknutí. Pro dětskou nabídku je nepoužitelná, ta se ale odsouvá.</p>
+        <div class="metr" data-metr="heishi"></div>
+      </div>
+    </div>
+    <div class="lupy">
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="heishi" data-vb="70 8 40 52" data-staticke></span></div><figcaption><b>Kuchisashi.</b> Skládaný papír, záhyby jako plamen.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="heishi" data-vb="70 56 40 36" data-staticke></span></div><figcaption><b>Awaji musubi.</b> Rumělka se zlatou nitkou, za uzlem jediný kvítek.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="heishi" data-vb="62 80 56 30" data-tvar-plna data-staticke></span></div><figcaption><b>Tvář, když mluví.</b> Rumělka v koutcích očí, v klidu z ní zbude odlesk.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ——— 3 ——— -->
+  <section class="sirka papir navrh" id="kasane" aria-labelledby="kasane-nadpis">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">三</span>
+      <div>
+        <p class="stitek">Návrh 3 · <span lang="ja">襲</span> kasane</p>
+        <h2 class="nadpis-2" id="kasane-nadpis">Kasane</h2>
+        <p class="teze">Nejdospělejší z pěti. Vázička jako dvorní dáma z období Heian: černá glazura jí teče jako vlasy, které tehdejší dámy nosily až na zem, a glazury se vpředu vrství jako dvanáct kimon.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="jeviste-sloupec">
+        <div class="jeviste" data-jeviste="kasane">
+          <div class="slunce"></div><div class="mesic"></div>
+          <svg class="hvezdy" viewBox="0 0 100 100" preserveAspectRatio="none" data-hvezdy="26"></svg>
+          <svg class="jev-kopce" viewBox="0 0 400 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+            <path d="M0 258 C80 244 150 252 220 238 C290 226 350 246 400 236 V400 H0 Z" style="fill:var(--kopec-daleko)" />
+            <path d="M0 296 C100 282 170 290 250 280 C320 272 370 280 400 276 V400 H0 Z" style="fill:var(--kopec-blizko)" />
+          </svg>
+          <p class="jev-znak" lang="ja">襲</p>
+          <div class="jev-zem"></div>
+          <button type="button" class="jev-postava" aria-label="Kasane, klikni a něco ti řekne"><span class="kresba-obal" data-kresba="kasane" data-pozadi></span></button>
+          <p class="jev-bublina" aria-live="polite"></p>
+          <p class="jev-cas"></p>
+        </div>
+        <p class="jev-tip">Klikni na ni. Dáma se nesměje nahlas.</p>
+      </div>
+      <div>
+        <ol class="body">
+          <li><b>Vlasy z tenmoku.</b> Černá glazura stéká z hrdla po stranách a končí kapkami nad patkou. Uprostřed nechává okno, ve kterém je tvář a roucho.</li>
+          <li><b>Kasane no irome.</b> Vrstvení kimon podle ročního období. <i>Sakura-gasane</i> je bílá přes růžovou. U glazur to funguje stejně: dvě vrstvy přes sebe dají třetí barvu.</li>
+          <li><b>Tvář po heiansku.</b> Oči jedním tahem (<i>hikime</i>), nos háčkem (<i>kagibana</i>), obočí vysoko na čele jako dva rozmazané obláčky (<i>hikimayu</i>), rty rumělkou. Takhle kreslí dámy svitky <i>Příběhu prince Genjiho</i>.</li>
+          <li><b>Smuteční sakura.</b> <i>Shidarezakura</i> splývá z hrdla jako druhý pramen vlasů.</li>
+          <li><b>Voňavá doslova.</b> Kolem ní stoupá kouř. Heianské dámy si šaty provoněly kadidlem <i>takimono</i> a poznávaly se podle vůně.</li>
+          <li><b>Zlatý znak genji-kō</b> na rouchu. Je z vonné hry, která má 52 znaků a každý patří jedné kapitole Genjiho. Za ní zlaté mraky <i>suyari-gasumi</i>, jak je malíři kladli přes scény.</li>
+          <li><b>Po kliknutí si zakryje ústa vějířem</b> <i>hiōgi</i>.</li>
+        </ol>
+        <div class="trojice">
+          <div><h4>Kami</h4>Nejméně ze všech. Je to spíš duch dvora než duch pece.</div>
+          <div><h4>Ghibli</h4>Spíš <i>Princezna Kaguya</i> než Totoro. Tímhle světem natočilo Ghibli celý film.</div>
+          <div><h4>Dospělost</h4>Nejvíc. Elegance, odstup, vůně a ironie skrytá za vějířem.</div>
+        </div>
+        <h3 class="nadpis-3">V noci</h3>
+        <p>Nic nesvítí, a to je slabina: na noční obloze černé vlasy splynou s tmou (v posledním sloupci čitelnosti je to vidět). Na noc by potřebovala světlý lem nebo lucernu.</p>
+        <h3 class="nadpis-3">Zbytek party</h3>
+        <p>Tady je potíž. Kasane je archetyp jedné postavy, ne styl pro celou partu. Každý by potřeboval vlastní historickou roli: Pecinka kněze u ohně, Kachlík úředníka s razítkem, Střípek potulného mnicha. Šlo by to, ale je to divadlo, ne dílna.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">Je to nejvíc kostým. Hrozí, že přestane být vázou a stane se panenkou. Na druhou stranu je Vázička jediná z party, které tahle role sedí bez natahování: nejstarší, elegantní, voňavá a s pravidly.</p>
+        <div class="metr" data-metr="kasane"></div>
+      </div>
+    </div>
+    <div class="lupy">
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="kasane" data-vb="66 62 48 38" data-staticke></span></div><figcaption><b>Hikime, kagibana, hikimayu.</b> Tři tahy a tečka rumělky.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="kasane" data-vb="64 94 52 40" data-staticke></span></div><figcaption><b>Sakura-gasane.</b> Bílá, světle růžová, růžová, rumělka, švestka. Pod tím znak genji-kō.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="kasane" data-vb="40 128 52 30" data-staticke></span></div><figcaption><b>Konce vlasů.</b> Tenmoku dotekla v kapkách těsně nad holou patku.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ——— 4 ——— -->
+  <section class="sirka papir navrh" id="seiji" aria-labelledby="seiji-nadpis">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">四</span>
+      <div>
+        <p class="stitek">Návrh 4 · <span lang="ja">雨過天青</span> seiji</p>
+        <h2 class="nadpis-2" id="seiji-nadpis">Nebe po dešti</h2>
+        <p class="teze">Seladon v barvě poledního nebe, v hodině, kdy Vázička na cestě hlíny stojí u kruhu. Z tohohle návrhu jde udělat systém pro celou partu: každý dostane glazuru v barvách oblohy své hodiny.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="jeviste-sloupec">
+        <div class="jeviste" data-jeviste="seiji">
+          <div class="slunce"></div><div class="mesic"></div>
+          <svg class="hvezdy" viewBox="0 0 100 100" preserveAspectRatio="none" data-hvezdy="26"></svg>
+          <svg class="jev-kopce" viewBox="0 0 400 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+            <path d="M0 264 C70 248 140 256 210 244 C280 232 340 250 400 240 V400 H0 Z" style="fill:var(--kopec-daleko)" />
+            <path d="M0 298 C90 284 170 290 250 280 C320 272 360 282 400 278 V400 H0 Z" style="fill:var(--kopec-blizko)" />
+          </svg>
+          <p class="jev-znak" lang="ja">青</p>
+          <div class="jev-zem"></div>
+          <button type="button" class="jev-postava" aria-label="Nebe po dešti, klikni a něco ti řekne"><span class="kresba-obal" data-kresba="seiji"></span></button>
+          <p class="jev-bublina" aria-live="polite"></p>
+          <p class="jev-cas"></p>
+        </div>
+        <p class="jev-tip">Klikni na ni. V noci se praskliny rozsvítí.</p>
+      </div>
+      <div>
+        <ol class="body">
+          <li><b>Tvar kinuta.</b> Dlouhý krk, válcové tělo a dvě ucha na krku (u nejslavnějšího kusu mají tvar fénixů). Seladonové vázy tohoto tvaru patří k nejvzácnějším kusům, které se do Japonska dostaly z Číny. Je to taky nejrovnější tvar vázy, jaký existuje, což se hodí na tu, co hlídá držení těla.</li>
+          <li><b>Barva z legendy.</b> Císař prý chtěl glazuru „barvy nebe po dešti, tam, kde se trhají mraky“. Odtud <span lang="ja">雨過天青</span>.</li>
+          <li><b>Praskliny dvojí:</b> velké tmavé a drobné zlatavé, čínsky „zlaté nitky a železné dráty“. Stárne stylově, a tentokrát dvakrát.</li>
+          <li><b>Fialová ústa, železná noha.</b> Kde je glazura tenká, prosvítá tmavý střep: okraj hrdla jde do fialova, patka do železa. U starých čínských seladonů typu <i>guan</i> je to jeden z poznávacích znaků.</li>
+          <li><b>Rosa po dešti</b> na glazuře.</li>
+          <li><b>Oči otevřené, víčka těžší.</b> Dívá se, nehodnotí. Bez ruměnce a bez úsměvu na objednávku, jen kouká trochu stranou. Na tvoje lokty.</li>
+          <li><b>Jedna větev.</b> Volně postavená do vysoké vázy, jak padne. V ikebaně se tomu říká <i>nageire</i>.</li>
+        </ol>
+        <div class="trojice">
+          <div><h4>Kami</h4>Středně. Je tsukumogami vzácného kusu, ne svatyně.</div>
+          <div><h4>Ghibli</h4>Hodně, přes světlo. Barva oblohy přejde do postavy, a to Ghibli dělá pořád: postava a krajina mají jednu paletu.</div>
+          <div><h4>Dospělost</h4>Otevřené klidné oči jsou dospělejší než zavřená očka. Vidí tě.</div>
+        </div>
+        <h3 class="nadpis-3">V noci</h3>
+        <p>Zlaté nitky v prasklinách se rozsvítí, jako by v nich zůstal kousek dne.</p>
+        <h3 class="nadpis-3">Zbytek party</h3>
+        <p>Glazura podle hodiny, viz pás pod kresbou. Obloha nad stránkou a parta by mluvily stejnou barvou.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">Modrozelená je v paletě nová barva. Dnes je studená jen obloha, Vázička by byla první postava v barvě nebe a přišla by o teplou tintu #C87E4E (profil a karta se přebarví). Systém navíc zavazuje: devět postav znamená devět rešerší a některé si budou blízko, třeba Vázička a Kapka jsou obě modré a musí je odlišit tvar. A kresba je zatím nejméně roztomilá z pěti, protože kinuta umí vypadat jako láhev. Systém na tvaru nezávisí, takže bych zkusil i baculatější seladon.</p>
+        <div class="metr" data-metr="seiji"></div>
+      </div>
+    </div>
+    <div class="system-obal">
+      <h3 class="nadpis-3">Glazura podle hodiny</h3>
+      <p>Každé zastavení na cestě hlíny má svou hodinu, a tím i svou oblohu. Každá postavička by dostala glazuru, která se k té obloze hodí a která opravdu existuje. Jedinou výjimkou je Střípek, ten má místo glazury zlato kintsugi. Kdo dojde na konec cesty, uvidí celý den v devíti barvách keramiky.</p>
+      <div class="system" data-system></div>
+      <p class="text-tichy">Za vázičkou je obloha dané hodiny podle <code>paleta.ts</code>, váza má barvy glazury. Šino a namako mají blízko ke kusům z fotek dílny, k bílému hrnku a modré misce.</p>
+    </div>
+    <div class="lupy">
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="seiji" data-vb="62 118 40 30" data-staticke></span></div><figcaption><b>Zlaté nitky a železné dráty.</b> Dvě sítě prasklin přes sebe, k tomu rosa.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="seiji" data-vb="68 26 44 33" data-staticke></span></div><figcaption><b>Ucha a fialová ústa.</b> Na hraně hrdla prosvítá tmavý střep.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="seiji" data-vb="66 96 48 36" data-staticke></span></div><figcaption><b>Těžká víčka.</b> Dívá se trochu stranou. Na tvoje lokty.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ——— 5 ——— -->
+  <section class="sirka papir navrh" id="hyakki" aria-labelledby="hyakki-nadpis">
+    <div class="navrh-hlava">
+      <span class="navrh-cislo" lang="ja">五</span>
+      <div>
+        <p class="stitek">Návrh 5 · <span lang="ja">百鬼夜行</span> hyakki yagyō</p>
+        <h2 class="nadpis-2" id="hyakki-nadpis">Noční průvod</h2>
+        <p class="teze">Vázička tak, jak by ji nakreslil malíř svitků před pěti sty lety. Tsukumogami nevymyslelo anime, pocházejí ze svitků, na kterých vyhozené nádobí ožije a v noci táhne městem.</p>
+      </div>
+    </div>
+    <div class="navrh-telo">
+      <div class="jeviste-sloupec">
+        <div class="jeviste jeviste-svitek" data-jeviste="hyakki">
+          <svg class="vlakna" aria-hidden="true">
+            <filter id="vlakna-f"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.18" numOctaves="3" seed="5" /><feColorMatrix values="0 0 0 0 0.45  0 0 0 0 0.36  0 0 0 0 0.24  0 0 0 0.55 -0.12" /></filter>
+            <rect width="100%" height="100%" filter="url(#vlakna-f)" />
+          </svg>
+          <p class="svitek-text" lang="ja">花瓶の付喪神<small>百鬼夜行より</small></p>
+          <span class="svitek-pecet" lang="ja" aria-hidden="true">形</span>
+          <div class="svitek-zem"></div>
+          <button type="button" class="jev-postava" aria-label="Noční průvod, klikni a něco ti řekne"><span class="kresba-obal" data-kresba="hyakki"></span></button>
+          <p class="jev-bublina" aria-live="polite"></p>
+        </div>
+        <p class="jev-tip">Popisek na svitku: <span lang="ja">花瓶の付喪神</span>, duch vázy, z nočního průvodu.</p>
+      </div>
+      <div>
+        <ol class="body">
+          <li><b>Tuš a lavírování.</b> Štětcová linka místo vektoru, barvy jen jako vodové skvrny na starém papíře.</li>
+          <li><b>Ruce a nohy.</b> Tenké, s kostnatými koleny, jak je mají tsukumogami na svitku <i>Tsukumogami emaki</i>. Na nohou geta.</li>
+          <li><b>Tělo je dnešní Vázička.</b> Tvar, šňůrka, praskliny i sakura v hrdle zůstávají. Mění se svět, ze kterého přišla.</li>
+          <li><b>Lucerna na větvi sakury.</b> Úvod 2 už má noční průvod party s lucernami. Tady by do něj patřila doopravdy, ne jako kulisa.</li>
+          <li><b>Jde zpříma.</b> I v průvodu duchů hlídá držení těla. Ostatní se šourají, ona kráčí.</li>
+          <li><b>Popisek štětcem a pečeť,</b> jako na svitku.</li>
+        </ol>
+        <div class="trojice">
+          <div><h4>Kami</h4>Hodně, ale z lidové strany. Yōkai a tsukumogami, ne svatyně.</div>
+          <div><h4>Ghibli</h4><i>Pom Poko</i> a jeho průvod strašidel. Takhle Ghibli kreslí, když cituje staré Japonsko.</div>
+          <div><h4>Dospělost</h4>Humor místo roztomilosti. Je zvláštní, ale ne strašidelná, a trochu ironická.</div>
+        </div>
+        <h3 class="nadpis-3">V noci</h3>
+        <p>Lucerna svítí víc a papír svitku zmodrá jen jako lavírování. Tma se na svitcích nekreslí, a je to tak dobře: na tmavém pozadí by tušová linka zmizela, proto má průvod vlastní papír.</p>
+        <h3 class="nadpis-3">Zbytek party</h3>
+        <p>Celá parta v jednom svitku: Pecinka vepředu jako nosítka s ohněm, Kapka cupitá v lavoru, Šamotka nese na zádech misky. Noční průvod na Úvodu 2 by dostal vlastní svitek, který se při scrollování rozvíjí.</p>
+        <h3 class="nadpis-3">Cena</h3>
+        <p class="cena">Nejvíc práce a nejvíc mimo styl. Vektorové scény Party 2 by se s tuší hádaly, takže by se buď překreslily, nebo by tuš patřila jen nočnímu průvodu. Končetiny pro devět postav znamenají devět nových kreseb, ne úpravy.</p>
+        <div class="metr" data-metr="hyakki"></div>
+      </div>
+    </div>
+    <div class="lupy">
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="hyakki" data-vb="138 46 36 46" data-staticke></span></div><figcaption><b>Chōchin.</b> Lucerna s <span lang="ja">花</span>, na konci kvetoucí větve.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="hyakki" data-vb="60 116 60 42" data-staticke></span></div><figcaption><b>Krok v geta.</b> Kostnatá kolena, zadní pata ve vzduchu.</figcaption></figure>
+      <figure class="lupa"><div class="lupa-okno"><span class="kresba-obal" data-kresba="hyakki" data-vb="70 58 40 32" data-staticke></span></div><figcaption><b>Tvář ze svitku.</b> Kulaté oči, malé zorničky, úsměv s koutky.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ——— Srovnání ——— -->
+  <section class="sirka papir" aria-labelledby="srovnani-nadpis">
+    <p class="stitek">Vedle sebe</p>
+    <h2 class="nadpis-2" id="srovnani-nadpis">Všech pět v jedné řadě</h2>
+    <p class="perex">Stejná velikost, jedna louka a hodina podle posuvníku. Vlevo dnešní Pecinka pro měřítko, protože ta by zůstala, dokud se nerozhodne o zbytku party.</p>
+    <div class="jeviste srovnani-jeviste" style="margin-top:24px">
+      <div class="slunce"></div><div class="mesic"></div>
+      <svg class="hvezdy" viewBox="0 0 100 100" preserveAspectRatio="none" data-hvezdy="40"></svg>
+      <svg class="jev-kopce" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <path d="M0 240 C150 220 300 232 450 214 C600 198 760 226 1000 206 V400 H0 Z" style="fill:var(--kopec-daleko)" />
+        <path d="M0 282 C200 262 380 274 560 258 C740 244 880 266 1000 256 V400 H0 Z" style="fill:var(--kopec-blizko)" />
+      </svg>
+      <div class="jev-zem"></div>
+      <div class="srovnani-rada">
+        <span class="kresba-obal" data-kresba="pecinka" data-staticke></span>
+        <span class="kresba-obal" data-kresba="ted"></span>
+        <span class="kresba-obal" data-kresba="sensei"></span>
+        <span class="kresba-obal" data-kresba="heishi"></span>
+        <span class="kresba-obal" data-kresba="kasane"></span>
+        <span class="kresba-obal" data-kresba="seiji"></span>
+        <span class="kresba-obal" data-kresba="hyakki"></span>
+      </div>
+    </div>
+    <div class="srovnani-popisky">
+      <div>Pecinka<span>dnes</span></div><div>Vázička<span>dnes</span></div><div>Sensei<span>一</span></div><div>Heishi<span>二</span></div><div>Kasane<span>三</span></div><div>Nebe po dešti<span>四</span></div><div>Noční průvod<span>五</span></div>
+    </div>
+  </section>
+
+  <section class="sirka papir" aria-labelledby="citelnost-nadpis">
+    <p class="stitek">Čitelnost</p>
+    <h2 class="nadpis-2" id="citelnost-nadpis">Jak vypadá v malém</h2>
+    <p class="perex">Na Partě 2 se Vázička kreslí ve 140 px ve scéně, v 72 px v omamori, v 64 px v mapě cesty a v 52 px v chatu prohlídky. Poslední sloupec je mapa cesty v noci.</p>
+    <div class="citelnost" data-citelnost></div>
+  </section>
+
+  <section class="sirka papir" aria-labelledby="tabulka-nadpis">
+    <p class="stitek">Srovnání</p>
+    <h2 class="nadpis-2" id="tabulka-nadpis">Co který návrh umí</h2>
+    <p class="perex">Je to můj odhad, ne měření. Víc teček znamená víc toho, co řádek popisuje. U pracnosti víc teček znamená méně práce.</p>
+    <div class="tabulka-obal"><table class="tabulka" data-tabulka></table></div>
+  </section>
+
+  <section class="sirka papir" aria-labelledby="doporuceni-nadpis">
+    <div class="doporuceni">
+      <div class="jeviste" data-jeviste="seiji">
+        <div class="slunce"></div><div class="mesic"></div>
+        <svg class="hvezdy" viewBox="0 0 100 100" preserveAspectRatio="none" data-hvezdy="26"></svg>
+        <svg class="jev-kopce" viewBox="0 0 400 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+          <path d="M0 264 C70 248 140 256 210 244 C280 232 340 250 400 240 V400 H0 Z" style="fill:var(--kopec-daleko)" />
+          <path d="M0 298 C90 284 170 290 250 280 C320 272 360 282 400 278 V400 H0 Z" style="fill:var(--kopec-blizko)" />
+        </svg>
+        <div class="jev-zem"></div>
+        <button type="button" class="jev-postava" aria-label="Nebe po dešti, klikni a něco ti řekne"><span class="kresba-obal" data-kresba="seiji"></span></button>
+        <p class="jev-bublina" aria-live="polite"></p>
+        <p class="jev-cas"></p>
+      </div>
+      <div>
+        <p class="stitek">Doporučení</p>
+        <h2 class="nadpis-2" id="doporuceni-nadpis">Já bych šel do čtyřky</h2>
+        <p>Nebe po dešti je jediný návrh, ze kterého vzniká systém, a ne jen hezčí kresba. Parta by poprvé nesla barvy oblohy, kolem které je celá Parta 2 postavená. Opírá se o skutečné řemeslo: každá z glazur existuje a k některým mají blízko kusy z fotek dílny. A v malém se čte díky siluetě s ušima.</p>
+        <h3 class="nadpis-3">Co to stojí</h3>
+        <p>Teplá parta dostane studené barvy. Devět postav znamená devět rešerší. Vázička a Kapka budou obě modré, takže je musí odlišit tvar a povrch: rovný seladon proti stékajícímu namaku. A tahle Vázička je z pěti kreseb nejméně roztomilá. Vybírám systém, ne kresbu, a tvar bych ještě zkoušel.</p>
+        <h3 class="nadpis-3">Co bych si vzal odjinud</h3>
+        <p>Jedno pootevřené oko ze Senseie, nejlepší výrazovou věc ze všech pěti. A tvář jako odlesk z Heishi pro Pecinku, jedinou skutečnou kami v partě.</p>
+        <h3 class="nadpis-3">Kdyby se měnila jen Vázička</h3>
+        <p>Pak Kasane. Je to riziko, ale Vázičce ta role sedí jako žádné jiné postavě a ostatní by vedle ní mohli zůstat, jak jsou.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<p class="pata"><span>Pracovní soubor mimo web. Až se vybere jeden směr, nebo kus z každého, dokreslím ve stejném jazyce zbylých osm.</span></p>
+
+<div class="hodiny" role="group" aria-label="Denní doba">
+  <span class="hodiny-cas" aria-live="polite">13:00</span>
+  <input type="range" min="0" max="24" step="0.05" value="13" aria-label="Hodina" />
+  <div class="hodiny-popis">
+    <span class="hodiny-text">poledne · u kruhu stojí Vázička</span>
+    <span class="predvolby">
+      <button type="button" data-h="5.6">Svítání</button>
+      <button type="button" data-h="13">Poledne</button>
+      <button type="button" data-h="20">Soumrak</button>
+      <button type="button" data-h="23">Noc</button>
+    </span>
+    <label class="pohyb"><input type="checkbox" checked /> Pohyb</label>
+  </div>
+</div>
+
+<script id="kresby">
+/* ==KRESBY== Kresby jsou funkce (u, o) → SVG. `u` je předpona id, aby se kresba dala vložit víckrát. */
+(function (g) {
+  const f = (n) => Math.round(n * 100) / 100;
+
+  /* Pseudonáhoda se semínkem — praskliny a skvrny vyjdou pokaždé stejně */
+  function R(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* Síť prasklin: rozházená mřížka bodů, sousedé spojení lehce prohnutými úsečkami */
+  function praskliny({ seed, x0, y0, x1, y1, krok, rozhoz = 0.36, hustota = 0.74 }) {
+    const r = R(seed);
+    const sl = Math.ceil((x1 - x0) / krok) + 1;
+    const ra = Math.ceil((y1 - y0) / krok) + 1;
+    const P = [];
+    for (let j = 0; j < ra; j++) {
+      P[j] = [];
+      for (let i = 0; i < sl; i++) {
+        const sx = (j % 2) * krok * 0.5;
+        P[j][i] = [x0 + i * krok + sx + (r() - 0.5) * krok * rozhoz * 2, y0 + j * krok + (r() - 0.5) * krok * rozhoz * 2];
+      }
+    }
+    let d = "";
+    const usek = (a, b) => {
+      const mx = (a[0] + b[0]) / 2 + (r() - 0.5) * krok * 0.28;
+      const my = (a[1] + b[1]) / 2 + (r() - 0.5) * krok * 0.28;
+      d += `M${f(a[0])} ${f(a[1])}Q${f(mx)} ${f(my)} ${f(b[0])} ${f(b[1])}`;
+    };
+    for (let j = 0; j < ra; j++) {
+      for (let i = 0; i < sl; i++) {
+        if (i + 1 < sl && r() < hustota) usek(P[j][i], P[j][i + 1]);
+        if (j + 1 < ra && r() < hustota) usek(P[j][i], P[j + 1][i]);
+        if (j + 1 < ra && i + 1 < sl && r() < hustota * 0.3) usek(P[j][i], P[j + 1][i + 1]);
+      }
+    }
+    return d;
+  }
+
+  /* Nepravidelná skvrna (gohon, záře glazury) */
+  function skvrna(cx, cy, rx, ry, seed, n = 9) {
+    const r = R(seed);
+    const p = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const k = 0.76 + r() * 0.38;
+      p.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]);
+    }
+    let d = "";
+    for (let i = 0; i < n; i++) {
+      const a = p[i];
+      const b = p[(i + 1) % n];
+      if (i === 0) {
+        const z = p[n - 1];
+        d += `M${f((z[0] + a[0]) / 2)} ${f((z[1] + a[1]) / 2)}`;
+      }
+      d += `Q${f(a[0])} ${f(a[1])} ${f((a[0] + b[0]) / 2)} ${f((a[1] + b[1]) / 2)}`;
+    }
+    return d + "Z";
+  }
+
+  /* Noční veličiny: na stránce z proměnné --noc, při kontrole kreseb pevné číslo */
+  const noc = (k = 1, z = 0) =>
+    typeof g.QA_NOC === "number" ? `opacity="${f(z + g.QA_NOC * k)}"` : `style="opacity:calc(${z} + var(--noc, 0) * ${k})"`;
+  const promenna = (vlastnost, nazev, zaloha) =>
+    typeof g.QA_NOC === "number" ? `${vlastnost}="${zaloha}"` : `style="${vlastnost}:var(${nazev}, ${zaloha})"`;
+
+  /* Ruční linka a zrno — stejný filtr jako kami/Kresba.astro, jen s nastavitelnou silou */
+  function filtry(u, { posun = 2.2, zrno = 0.55, barva = "0.23 0.18 0.16" } = {}) {
+    const [cr, cg, cb] = barva.split(" ");
+    return `
+    <filter id="${u}-tah" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4" result="vlna"/>
+      <feDisplacementMap in="SourceGraphic" in2="vlna" scale="${posun}" xChannelSelector="R" yChannelSelector="G" result="tah"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" result="zrno"/>
+      <feColorMatrix in="zrno" type="matrix" values="0 0 0 0 ${cr}  0 0 0 0 ${cg}  0 0 0 0 ${cb}  ${zrno} 0 0 0 -0.26" result="skvrny"/>
+      <feComposite in="skvrny" in2="tah" operator="in" result="zrnoVTvaru"/>
+      <feMerge><feMergeNode in="tah"/><feMergeNode in="zrnoVTvaru"/></feMerge>
+    </filter>
+    <filter id="${u}-m1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.1"/></filter>
+    <filter id="${u}-m2" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter>
+    <filter id="${u}-m3" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="6"/></filter>`;
+  }
+
+  /* Sakura: plátek se zářezem, květ, poupě, lístek, zlatý květ na látku */
+  const PLATEK = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
+  function sakura(u, p = {}) {
+    const {
+      pata = "#E58FA0", spicka = "#FDEFF0", obrys = "#C47C8B", sirka = 0.5, stred = "#B04459",
+      tycinky = "#D9A33A", pupen = "#D96A82", kalich = "#7E4E36", list = "#94573A", zlato = "#D6A23A",
+    } = p;
+    const t = [...Array(7)].map((_, i) => {
+      const a = (i / 7) * Math.PI * 2 + 0.3;
+      return [Math.cos(a), Math.sin(a)];
+    });
+    return `
+    <linearGradient id="${u}-plg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="-12.6">
+      <stop offset="0" stop-color="${pata}"/><stop offset="0.55" stop-color="${spicka}"/><stop offset="1" stop-color="${spicka}"/>
+    </linearGradient>
+    <path id="${u}-pl" d="${PLATEK}" fill="url(#${u}-plg)" stroke="${obrys}" stroke-width="${sirka}" stroke-linejoin="round"/>
+    <g id="${u}-kv">
+      ${[0, 72, 144, 216, 288].map((a) => `<use href="#${u}-pl" transform="rotate(${a}) translate(0 -1.2)"/>`).join("")}
+      <circle r="2.3" fill="${stred}" opacity="0.85"/>
+      <g stroke="${stred}" stroke-width="0.45" stroke-linecap="round">${t.map(([c, s]) => `<path d="M${f(c * 1.2)} ${f(s * 1.2)}L${f(c * 4.3)} ${f(s * 4.3)}"/>`).join("")}</g>
+      <g fill="${tycinky}">${t.map(([c, s]) => `<circle cx="${f(c * 4.5)}" cy="${f(s * 4.5)}" r="0.6"/>`).join("")}</g>
+    </g>
+    <g id="${u}-pu">
+      <path d="M0 0 C-2.7 -2.2 -3.1 -6.2 0 -9.4 C3.1 -6.2 2.7 -2.2 0 0 Z" fill="${pupen}" stroke="${obrys}" stroke-width="${sirka}"/>
+      <path d="M0 1.2 C-2.1 0.4 -2.6 -1.8 -1.7 -3.6 L0 -2.2 L1.7 -3.6 C2.6 -1.8 2.1 0.4 0 1.2 Z" fill="${kalich}"/>
+    </g>
+    <g id="${u}-li">
+      <path d="M0 0 C2.4 -2.8 6.8 -3.2 10.4 -0.6 C6.8 1.8 2.4 1.8 0 0 Z" fill="${list}"/>
+      <path d="M0.6 0 C3.6 -0.5 6.6 -0.7 9.6 -0.6" stroke="${kalich}" stroke-width="0.35" opacity="0.7"/>
+    </g>
+    <g id="${u}-kvz">
+      ${[0, 72, 144, 216, 288].map((a) => `<path d="${PLATEK}" transform="rotate(${a}) translate(0 -1.2)" fill="${zlato}"/>`).join("")}
+    </g>`;
+  }
+  const kv = (u, x, y, s, r = 0, id = "kv") => `<use href="#${u}-${id}" transform="translate(${x} ${y}) rotate(${r}) scale(${s})"/>`;
+  const obal = (o, trida, obsah) =>
+    `<svg viewBox="${o.viewBox || "0 0 180 180"}" class="kresba ${trida}" fill="none" aria-hidden="true">${obsah}</svg>`;
+
+  /* ———————————————————————— DNES: kami/Vazicka.astro ———————————————————————— */
+  function ted(u, o = {}) {
+    const obrys = "M71 44 Q75 47 76 54 C66 61 56 78 55 106 C54 130 68 150 82 150 L98 150 C112 150 126 130 125 106 C124 78 114 61 104 54 Q105 47 109 44 Q90 40 71 44 Z";
+    const jiskra = "M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z";
+    return obal(o, "v-ted", `
+    <defs>
+      ${filtry(u, { posun: 2.6, zrno: 0.6 })}
+      <radialGradient id="${u}-glazura" cx="0.36" cy="0.35" r="0.8">
+        <stop offset="0" stop-color="#FBF4E8"/><stop offset="0.6" stop-color="#EFE3D0"/><stop offset="1" stop-color="#DCCBB0"/>
+      </radialGradient>
+      <clipPath id="${u}-telo"><path d="${obrys}"/></clipPath>
+      <linearGradient id="${u}-stin" gradientUnits="userSpaceOnUse" x1="0" y1="0.5" x2="0" y2="-12.6">
+        <stop offset="0" stop-color="#9E4025"/><stop offset="0.45" stop-color="#B84A2B"/><stop offset="1" stop-color="#CF846F"/>
+      </linearGradient>
+      <path id="${u}-listek" fill="url(#${u}-stin)" d="${PLATEK}"/>
+      <g id="${u}-kvet">${[0, 72, 144, 216, 288].map((a) => `<use href="#${u}-listek" transform="rotate(${a}) translate(0 -1.7)"/>`).join("")}</g>
+    </defs>
+    <g transform="translate(90 150) scale(0.82) translate(-90 -150)">
+      <g filter="url(#${u}-tah)">
+        <path d="${obrys}" fill="url(#${u}-glazura)" stroke="#6B5D4F" stroke-width="1.7"/>
+        <g clip-path="url(#${u}-telo)" stroke="#6B5D4F" stroke-linecap="round" fill="none">
+          <path d="M84 55 C62 84 62 122 85 150" stroke-width="5" opacity="0.09"/>
+          <path d="M69 62 C58 88 58 118 67 143" stroke-width="4.5" opacity="0.08"/>
+          <path d="M96 55 C118 84 118 122 95 150" stroke-width="5" opacity="0.09"/>
+          <path d="M111 62 C122 88 122 118 113 143" stroke-width="4.5" opacity="0.08"/>
+          <g stroke-width="0.6" opacity="0.32">
+            <path d="M58 118 L70 112 L78 122 L92 116 L104 124 L116 116 L126 120"/>
+            <path d="M60 134 L72 128 L84 138 L98 132 L110 140 L122 132"/>
+            <path d="M70 112 L66 98 M78 122 L82 136 M92 116 L90 104 M104 124 L100 136 M116 116 L120 102"/>
+            <path d="M66 98 L58 92 M66 98 L76 96 M120 102 L112 96 M90 104 L98 100"/>
+            <path d="M72 128 L68 146 M98 132 L94 150 M110 140 L118 148"/>
+          </g>
+        </g>
+        <path d="M75 55 Q90 60 105 55" stroke="#B84A2B" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M96 58 C102 64 104 70 101 76 M98 58 C97 66 93 72 94 79" stroke="#B84A2B" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M97 58 C92 52 86 54 90 59 C93 61 95 60 97 58 C102 52 108 54 104 59 C101 61 99 60 97 58 Z" fill="#B84A2B"/>
+      </g>
+      <g>
+        <g filter="url(#${u}-m2)" fill="#CF846F" opacity="0.4"><ellipse cx="77" cy="98" rx="5.5" ry="3.5"/><ellipse cx="105" cy="98" rx="5.5" ry="3.5"/></g>
+        <path d="M80 90 Q83 86 86 90" stroke="#3A2E28" stroke-width="2" stroke-linecap="round"/>
+        <path d="M96 90 Q99 86 102 90" stroke="#3A2E28" stroke-width="2" stroke-linecap="round"/>
+        <path d="M85 102 Q90 107 95 102" stroke="#3A2E28" stroke-width="1.8" stroke-linecap="round"/>
+      </g>
+    </g>
+    <g transform="rotate(10 89 63)" filter="url(#${u}-tah)">
+      <path d="M89 63 C91 54 95 45 103 38" stroke="#6B5D4F" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M93 50 C91 48 89 46 87 44" stroke="#6B5D4F" stroke-width="1" stroke-linecap="round"/>
+      <path d="M91 57 C93 56 96 55 99 53" stroke="#6B5D4F" stroke-width="0.9" stroke-linecap="round"/>
+      <use href="#${u}-kvet" transform="translate(85 42) rotate(-24) scale(0.42)"/>
+      <use href="#${u}-kvet" transform="translate(102 51) rotate(46) scale(0.34)"/>
+      <use href="#${u}-kvet" transform="translate(105 35) rotate(26) scale(0.56)"/>
+    </g>
+    <g transform="translate(59 57)"><path class="jiskra jiskra-1" d="${jiskra}" fill="#E8B440"/></g>
+    <g transform="translate(55 74) scale(0.62)"><path class="jiskra jiskra-3" d="${jiskra}" fill="#C87E4E"/></g>
+    <g transform="translate(133 122) scale(0.9)"><path class="jiskra jiskra-2" d="${jiskra}" fill="#E8B440"/></g>
+    <g transform="translate(122 139) scale(0.6)"><path class="jiskra jiskra-4" d="${jiskra}" fill="#C87E4E"/></g>
+    <ellipse cx="90" cy="154" rx="19" ry="4" fill="#6B5D4F" opacity="0.2"/>`);
+  }
+
+  /* ———————————————————————— DNES: kami/Pecinka.astro (jen pro měřítko) ———————————————————————— */
+  function pecinka(u, o = {}) {
+    const shide = (x, y) => `<path transform="translate(${x} ${y})" d="M-4 0 h5 v6 h3 v6 h-3 v6 h3 v6 h-5 v-6 h-3 v-6 h3 v-6 h-3 Z" fill="#FBF7EE" stroke="#8A7A69" stroke-width="0.7" stroke-linejoin="round"/>`;
+    return obal(o, "v-pecinka", `
+    <defs>
+      ${filtry(u, { posun: 2.6, zrno: 0.6 })}
+      <radialGradient id="${u}-telo" cx="0.34" cy="0.25" r="0.85"><stop offset="0" stop-color="#CF6A47"/><stop offset="0.55" stop-color="#B84A2B"/><stop offset="1" stop-color="#97391F"/></radialGradient>
+    </defs>
+    <g filter="url(#${u}-tah)">
+      <rect x="108" y="42" width="14" height="24" rx="5" fill="#A8432A" stroke="#7E2F18" stroke-width="1.3"/>
+      <rect x="45" y="60" width="90" height="85" rx="20" fill="url(#${u}-telo)" stroke="#7E2F18" stroke-width="1.6"/>
+      <rect x="62" y="100" width="56" height="35" rx="8" fill="#3A2E28" opacity="0.4"/>
+      <ellipse cx="70" cy="148" rx="10" ry="5" fill="#3A2E28" opacity="0.3"/>
+      <ellipse cx="110" cy="148" rx="10" ry="5" fill="#3A2E28" opacity="0.3"/>
+    </g>
+    <ellipse cx="90" cy="124" rx="22" ry="12" fill="#E8B440" opacity="0.5" filter="url(#${u}-m2)"/>
+    <ellipse class="plamen" cx="80" cy="124" rx="6" ry="9" fill="#F0C55E"/>
+    <ellipse class="plamen" cx="92" cy="122" rx="5" ry="7" fill="#F0C55E"/>
+    <ellipse class="plamen" cx="100" cy="126" rx="4" ry="6" fill="#C87E4E"/>
+    <g filter="url(#${u}-tah)">
+      <path d="M44 70 Q90 80 136 70" stroke="#C9B186" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M44 70 Q90 80 136 70" stroke="#EBDDB8" stroke-width="5" stroke-linecap="round"/>
+      <path d="M44 70 Q90 80 136 70" stroke="#C9B186" stroke-width="5" stroke-dasharray="1.6 4.4"/>
+    </g>
+    ${shide(66, 75)}${shide(110, 75)}
+    <g filter="url(#${u}-m2)" fill="#E8B440" opacity="0.35"><ellipse cx="66" cy="92" rx="6" ry="4"/><ellipse cx="114" cy="92" rx="6" ry="4"/></g>
+    <ellipse cx="76" cy="86" rx="3.3" ry="4.2" fill="#3A2E28"/><ellipse cx="104" cy="86" rx="3.3" ry="4.2" fill="#3A2E28"/>
+    <circle cx="75" cy="84.3" r="1.3" fill="#FFF3D6"/><circle cx="103" cy="84.3" r="1.3" fill="#FFF3D6"/>
+    <path d="M84 96 Q90 101 96 96" stroke="#F4EBDD" stroke-width="2" stroke-linecap="round"/>`);
+  }
+
+  /* ———————————————————————— 1 · SENSEI (hagi) ———————————————————————— */
+  function sensei(u, o = {}) {
+    const telo = "M74 49 Q90 46 106 50.5 C107 53 105.5 56 102.5 57.5 C102 61 103.5 64.5 107 66.5 C121 73 131 86 130.5 101 C130 120 121 136 110 145.5 L70 145.5 C59 136 49.5 120 49.5 101 C49.5 86 59 73 73 66.5 C76.5 64.5 78 61 77.5 57.5 C74.5 56 73 53 74 49 Z";
+    const patka = "M70.5 144 H109.5 V154.5 H103.2 Q102.4 149.6 99.3 149.6 Q96.2 149.6 95.5 154.5 H84.5 Q83.8 149.6 80.7 149.6 Q77.6 149.6 76.8 154.5 H70.5 Z";
+    const hranice = "M30 30 H150 V137.6 C145 137.2 140.6 139.2 136.8 138.8 C133.2 138.4 131.6 141.8 128.4 141.4 C125.4 141 124.6 137.8 121 138.4 C117.6 139 117.4 143.6 114 143.8 C110.8 144 110.6 139.8 106.6 140 C103 140.2 102.6 142.6 99 142.4 C95.4 142.2 94.6 138.6 90.4 139 C86.4 139.4 86.2 144.2 82.4 144.4 C78.8 144.6 78.4 140.4 74.6 140.6 C71 140.8 70.2 143.4 66.4 142.8 C62.6 142.2 61.4 138.6 57.6 138.4 C53.4 138.2 50.6 139.6 46 138.6 L30 138.6 Z";
+    const jemne = praskliny({ seed: 7, x0: 44, y0: 54, x1: 136, y1: 148, krok: 8, hustota: 0.66 });
+    const huste = praskliny({ seed: 23, x0: 44, y0: 120, x1: 136, y1: 148, krok: 5, hustota: 0.5 });
+    const gohon = [[71.5, 103.5, 5.4, 3.6, 2], [108.5, 103.5, 5.4, 3.6, 5], [116, 126, 4, 2.6, 8], [64, 80, 3, 2.2, 13], [98, 128, 2.6, 1.8, 17], [85, 68, 2.4, 1.6, 19]];
+    return obal(o, "v-sensei", `
+    <defs>
+      ${filtry(u, { posun: 1.8 })}
+      ${sakura(u, { pata: "#E3909F", spicka: "#FDF1F0", obrys: "#C27F8C", stred: "#A9435A", pupen: "#D45E79", list: "#9A5A3A", kalich: "#6E4430" })}
+      <clipPath id="${u}-telo"><path d="${telo}"/></clipPath>
+      <clipPath id="${u}-glaz"><path d="${hranice}"/></clipPath>
+      <clipPath id="${u}-oko"><path d="M95.4 95.4 Q101 91.6 106.6 95.2 Q101 98.4 95.4 95.4 Z"/></clipPath>
+      <linearGradient id="${u}-hlina" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#E4B892"/><stop offset="0.5" stop-color="#CF9C77"/><stop offset="1" stop-color="#A26D4A"/>
+      </linearGradient>
+      <radialGradient id="${u}-glazura" cx="0.36" cy="0.3" r="0.85">
+        <stop offset="0" stop-color="#FFFAF3"/><stop offset="0.42" stop-color="#F5E9DC"/><stop offset="0.8" stop-color="#E6D0BE"/><stop offset="1" stop-color="#D4B6A0"/>
+      </radialGradient>
+      <linearGradient id="${u}-stin" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0.42" stop-color="#7A4E3A" stop-opacity="0"/><stop offset="1" stop-color="#7A4E3A" stop-opacity="0.34"/>
+      </linearGradient>
+      <linearGradient id="${u}-dno" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0.72" stop-color="#5A3A2C" stop-opacity="0"/><stop offset="1" stop-color="#5A3A2C" stop-opacity="0.3"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="90" cy="155.2" rx="27" ry="3.4" fill="#5A3A2C" opacity="0.24" filter="url(#${u}-m1)"/>
+    <g class="s-dech">
+      <g filter="url(#${u}-tah)">
+        <path d="${patka}" fill="url(#${u}-hlina)" stroke="#6E4F40" stroke-width="1.3" stroke-linejoin="round"/>
+        <path d="${telo}" fill="url(#${u}-hlina)"/>
+        <g clip-path="url(#${u}-telo)">
+          <g clip-path="url(#${u}-glaz)">
+            <rect x="40" y="40" width="100" height="110" fill="url(#${u}-glazura)"/>
+            <path d="${skvrna(114, 128, 16, 10, 3)}" fill="#E7AE98" opacity="0.5" filter="url(#${u}-m2)"/>
+            <path d="${skvrna(60, 122, 10, 14, 4)}" fill="#E9B9A4" opacity="0.4" filter="url(#${u}-m2)"/>
+            ${gohon.map(([x, y, rx, ry, s]) => `<path d="${skvrna(x, y, rx, ry, s)}" fill="#E39B8B" opacity="0.5" filter="url(#${u}-m1)"/>`).join("")}
+            <path d="${jemne}" stroke="#8B6450" stroke-width="0.42" opacity="0.26"/>
+            <path d="${huste}" stroke="#6F4A39" stroke-width="0.45" opacity="0.32"/>
+          </g>
+          <path d="${hranice}" stroke="#B88E74" stroke-width="0.9" opacity="0.7"/>
+          <g fill="#7A4A30" opacity="0.55">
+            <circle cx="76" cy="144.2" r="0.6"/><circle cx="96" cy="143.4" r="0.5"/><circle cx="104" cy="144.6" r="0.7"/><circle cx="86" cy="145" r="0.45"/>
+          </g>
+          <rect x="40" y="40" width="100" height="110" fill="url(#${u}-stin)"/>
+          <rect x="40" y="40" width="100" height="110" fill="url(#${u}-dno)"/>
+          <path d="M61 80 C56.4 92 56.4 110 60.6 124" stroke="#FFFDF8" stroke-width="5" stroke-linecap="round" opacity="0.55" filter="url(#${u}-m1)"/>
+          <path d="M124.6 84 C130 96 129.6 114 122.6 130" ${promenna("stroke", "--odlesk", "#F7C79A")} stroke-width="3.2" stroke-linecap="round" opacity="0.65" filter="url(#${u}-m1)"/>
+        </g>
+        <path d="${telo}" stroke="#6E4F40" stroke-width="1.5" stroke-linejoin="round"/>
+        <ellipse cx="90" cy="48.7" rx="12.2" ry="2.2" fill="#3B2A22"/>
+      </g>
+
+      <g class="s-ikebana" filter="url(#${u}-tah)">
+        <g stroke="#4A3226" stroke-linecap="round">
+          <path d="M89.2 49 C88.6 40 86.8 30 83.4 21 C81.6 16.5 79.6 13 77 10" stroke-width="1.9"/>
+          <path d="M86.2 31 C88.6 27 90.8 24.6 94 22.6" stroke-width="1"/>
+          <path d="M91 49 C94 44 99.5 39.5 106 36 C111 33.4 116 31 121.5 29.4" stroke-width="1.7"/>
+          <path d="M104.5 37 C107.5 38.4 110 40.8 111.6 44" stroke-width="0.9"/>
+          <path d="M88.5 49.5 C84 47.2 78 45.8 71 45.6 C68 45.5 65.6 45.8 63 46.6" stroke-width="1.5"/>
+        </g>
+        ${kv(u, 81.6, 17.2, 0.7, -125, "li")}${kv(u, 114.6, 31.6, 0.7, -30, "li")}${kv(u, 67.6, 45.6, 0.62, 170, "li")}${kv(u, 92.4, 23.6, 0.58, -50, "li")}${kv(u, 108.6, 40.2, 0.55, 60, "li")}
+        ${kv(u, 80.2, 14.6, 0.6, -30, "pu")}${kv(u, 85.2, 26.2, 0.55, -60, "pu")}${kv(u, 117.4, 30, 0.55, 50, "pu")}${kv(u, 76, 46.2, 0.52, -80, "pu")}
+        ${kv(u, 77.2, 10.6, 0.6, 12)}${kv(u, 82.8, 19.8, 0.48, -24)}${kv(u, 94.4, 22.2, 0.46, 30)}
+        ${kv(u, 121.6, 29.2, 0.55, 34)}${kv(u, 113.2, 32.2, 0.46, -8)}${kv(u, 111.8, 44.6, 0.41, 50)}${kv(u, 106.4, 35.6, 0.36, 70)}
+        ${kv(u, 63.2, 46.6, 0.53, -34)}${kv(u, 70.6, 45.6, 0.4, 8)}
+      </g>
+      <path d="M77.6 49.6 Q90 52.6 102.6 50" stroke="#F3E6D8" stroke-width="1.6" stroke-linecap="round"/>
+
+      <g class="s-tvar" stroke="#3B2A22" stroke-linecap="round">
+        <path d="M72.8 87.2 Q78.8 84.6 84.6 86.2" stroke="#6B4A3A" stroke-width="1.25" opacity="0.8"/>
+        <path d="M95.4 86.2 Q101.2 84.6 107.2 87.2" stroke="#6B4A3A" stroke-width="1.25" opacity="0.8"/>
+        <path d="M74.6 91.6 Q79 89.9 83.4 91.4" stroke-width="0.7" opacity="0.35"/>
+        <path d="M96.6 91.4 Q101 89.9 105.4 91.6" stroke-width="0.7" opacity="0.35"/>
+        <path d="M73.6 95 Q79 98.6 84.4 95" stroke-width="1.8"/>
+        <path d="M73.6 95 L71.9 93.9" stroke-width="1.1"/>
+        <g class="s-oko-z">
+          <path d="M95.6 95 Q101 98.6 106.4 95" stroke-width="1.8"/>
+          <path d="M106.4 95 L108.1 93.9" stroke-width="1.1"/>
+        </g>
+        <g class="s-oko-o">
+          <path d="M95.4 95.4 Q101 91.6 106.6 95.2 Q101 98.4 95.4 95.4 Z" fill="#FBF3E8" stroke="none"/>
+          <ellipse cx="100.4" cy="95.6" rx="2.2" ry="2.5" fill="#3B2A22" stroke="none" clip-path="url(#${u}-oko)"/>
+          <circle cx="101.1" cy="94.7" r="0.6" fill="#FFF6EA" stroke="none"/>
+          <path d="M95.4 95.4 Q101 91.6 106.6 95.2" stroke-width="1.8"/>
+          <path d="M106.6 95.2 L108.3 94" stroke-width="1.1"/>
+          <path d="M96.6 96.4 Q101 98.2 105.4 96.2" stroke-width="0.6" opacity="0.5"/>
+        </g>
+        <path d="M86.8 107.2 Q90.2 108.9 93.2 106.8" stroke-width="1.5"/>
+      </g>
+    </g>
+    <g class="s-padajici"><use href="#${u}-pl" transform="scale(0.42)"/></g>`);
+  }
+
+  /* ———————————————————————— 2 · HEISHI (oltářní nádoba) ———————————————————————— */
+  function heishi(u, o = {}) {
+    const telo = "M83 56 H97 C98.5 56 99 57.5 98 59 C97.5 61 98.5 63 101 64.5 C116 68 125 75 124.5 84 C124 98 112 120 104.5 146 C104 148 104.5 149.5 106 150.5 L106 154.5 H74 L74 150.5 C75.5 149.5 76 148 75.5 146 C68 120 56 98 55.5 84 C55 75 64 68 79 64.5 C81.5 63 82.5 61 82 59 C81 57.5 81.5 56 83 56 Z";
+    const ryhy = [[66, 79], [75, 83.4], [84, 88], [96, 92], [105, 96.6], [114, 101]];
+    const sMizuhiki = (d, w = 2.5) => `<path d="${d}" stroke="#C4432B" stroke-width="${w}"/><path d="${d}" stroke="#ECC774" stroke-width="0.7"/>`;
+    /* Kuchisashi: papír skládaný do harmoniky, záhyby se sbíhají do hrdla. Rovné hrany, aby to byl papír, ne pírko. */
+    const skladany = (body, sx, sy, cara = true) => {
+      let d = "";
+      for (let i = 0; i < body.length - 1; i++) {
+        const [ax, ay] = body[i], [bx, by] = body[i + 1];
+        d += `<path d="M${sx} ${sy} L${ax} ${ay} L${bx} ${by} Z" fill="${i % 2 ? "#E6DFD1" : "#FFFFFF"}"/>`;
+      }
+      const obr = `M${sx} ${sy} ${body.map(([x, y]) => `L${x} ${y}`).join(" ")} Z`;
+      return { d: d + (cara ? `<path d="${obr}" stroke="#A39A8B" stroke-width="0.7" stroke-linejoin="round"/>` : ""), obr };
+    };
+    const stredPapir = skladany([[86.6, 56], [84, 48.6], [83.4, 40.6], [85, 32.4], [88, 24.6], [90.4, 18], [91.2, 13.2], [94.8, 19], [97.8, 26.4], [99, 34.4], [98.4, 42.6], [96.2, 50.2], [93.4, 56]], 90, 57.4);
+    const bokL = [[85.4, 55.6], [81.6, 52], [78.6, 47.4], [76.8, 42], [76.4, 37.6], [79.4, 40.4], [82.6, 44.2], [85.4, 48.6], [87.4, 53]];
+    const levyPapir = skladany(bokL, 87, 56.6);
+    const pravyPapir = skladany(bokL.map(([x, y]) => [f(180 - x), y]), 93, 56.6);
+    const plamen = stredPapir.obr;
+    return obal(o, "v-heishi", `
+    <defs>
+      ${filtry(u, { posun: 1.2, zrno: 0.35 })}
+      ${sakura(u, { pata: "#E07F93", spicka: "#FFF3F3", obrys: "#C46F82", stred: "#A93B52" })}
+      <clipPath id="${u}-telo"><path d="${telo}"/></clipPath>
+      <radialGradient id="${u}-porc" cx="0.34" cy="0.26" r="0.92">
+        <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.4" stop-color="#F3F6F2"/><stop offset="0.78" stop-color="#DCE4E2"/><stop offset="1" stop-color="#C2CED0"/>
+      </radialGradient>
+      <linearGradient id="${u}-pata" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F1E6D4"/><stop offset="1" stop-color="#E2B080"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="90" cy="155.2" rx="20" ry="3" fill="#56666B" opacity="0.22" filter="url(#${u}-m1)"/>
+    <ellipse cx="91" cy="36" rx="17" ry="22" fill="#FFE2A6" filter="url(#${u}-m3)" ${noc(0.95)}/>
+    <g class="h-telo" filter="url(#${u}-tah)">
+      <path d="${telo}" fill="url(#${u}-porc)"/>
+      <g clip-path="url(#${u}-telo)">
+        <rect x="60" y="146.2" width="60" height="10" fill="url(#${u}-pata)"/>
+        <path d="M74 146.2 H106" stroke="#C5D3D1" stroke-width="0.9"/>
+        <path d="M61.6 75.4 Q90 82.6 118.4 75.4" stroke="#96BEB8" stroke-width="1.7" opacity="0.8"/>
+        <path d="M62 77.2 Q90 84.4 118 77.2" stroke="#FFFFFF" stroke-width="0.6" opacity="0.8"/>
+        ${ryhy.map(([a, b]) => `<path d="M${a} 100 Q${f((a + b) / 2 + (a < 90 ? -1.5 : 1.5))} 120 ${b} 138" stroke="#A9CCC6" stroke-width="1.1" opacity="0.5"/>`).join("")}
+        <path d="M74.8 139.2 Q90 141.8 105.2 139.2" stroke="#96BEB8" stroke-width="1.3" opacity="0.75"/>
+        <path d="M63.6 76.6 C60.6 82 60.8 89 63 95" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="66.4" cy="72.6" r="1.3" fill="#FFFFFF"/>
+        <path d="M66.4 101 C69.4 115 73 128 76.6 140" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+        <path d="M119.2 88 C116.4 104 110.6 122 105.4 138" stroke="#EEF5F3" stroke-width="1.2" stroke-linecap="round" opacity="0.55"/>
+      </g>
+      <path d="${telo}" stroke="#7D8B8D" stroke-width="1.3" stroke-linejoin="round"/>
+      <ellipse cx="90" cy="56.4" rx="7.2" ry="1.5" fill="#56625F"/>
+    </g>
+
+    <g class="h-papir" filter="url(#${u}-tah)">
+      ${levyPapir.d}${pravyPapir.d}${stredPapir.d}
+      <path d="${plamen}" fill="#FFE9B5" ${noc(0.45)}/>
+    </g>
+
+    <g filter="url(#${u}-tah)" stroke-linecap="round" stroke-linejoin="round">
+      <g class="h-konce">${sMizuhiki("M88.4 71.2 C87 75.6 85 79.6 82.2 84", 2.3)}${sMizuhiki("M91.6 71.2 C93 75.6 95 79.6 97.8 84", 2.3)}</g>
+      ${sMizuhiki("M81 62 Q90 66.4 99 62")}
+      ${sMizuhiki("M90 70 C84 63.6 75.6 66.6 77.6 72.6 C79.4 77.8 86.4 75.8 90 70")}
+      ${sMizuhiki("M90 70 C96 63.6 104.4 66.6 102.4 72.6 C100.6 77.8 93.6 75.8 90 70")}
+      ${sMizuhiki("M86.8 69.2 C85.4 63.4 94.6 63.4 93.2 69.2")}
+    </g>
+    ${kv(u, 90, 70.4, 0.52, 14)}
+
+    <g class="h-tvar" ${o.tvarPlna ? 'style="opacity:1"' : ""}>
+      <path d="M73.4 92.6 Q79 88.9 84.8 92.2 Q79 94.5 73.4 92.6 Z" fill="#2B2420"/>
+      <path d="M95.2 92.2 Q101 88.9 106.6 92.6 Q101 94.5 95.2 92.2 Z" fill="#2B2420"/>
+      <path d="M73.6 92.5 Q71.4 91.9 70 90.4 M106.4 92.5 Q108.6 91.9 110 90.4" stroke="#C4432B" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="M87.4 103.6 Q90 102.2 92.6 103.6 Q90 105.4 87.4 103.6 Z" fill="#C4432B"/>
+    </g>`);
+  }
+
+  /* ———————————————————————— 3 · KASANE (dvorní dáma) ———————————————————————— */
+  function kasane(u, o = {}) {
+    const telo = "M81.5 43.5 H98.5 C99.5 45 98.5 47 96.5 48.5 C96 52 98 55 103 58 C114 64 120 76 123 92 C126 110 131 130 135 146 C136 150 134 152.5 130 152.5 H50 C46 152.5 44 150 45 146 C49 130 54 110 57 92 C60 76 66 64 77 58 C82 55 84 52 83.5 48.5 C81.5 47 80.5 45 81.5 43.5 Z";
+    const okno = "M90 61 C99 61 105.5 67 107.6 76 C109.6 86 109.6 100 110.2 116 C110.8 130 112.8 142 114.4 156 H65.6 C67.2 142 69.2 130 69.8 116 C70.4 100 70.4 86 72.4 76 C74.5 67 81 61 90 61 Z";
+    const vrstvy = ["#FFFDF9", "#F8DADF", "#EDA6B2", "#C4432B", null];
+    const V = (k) => {
+      const d = k * 3.3;
+      return `M40 ${f(86 + d)} L90 ${f(104 + d)} L140 ${f(86 + d)} V160 H40 Z`;
+    };
+    /* Vějíř hiōgi: výseč kolem čepu (101,112) */
+    const P = (a, r) => [f(101 + r * Math.cos((a * Math.PI) / 180)), f(112 + r * Math.sin((a * Math.PI) / 180))];
+    const vysec = (a0, a1, r0, r1) => {
+      const [x0, y0] = P(a0, r1), [x1, y1] = P(a1, r1), [x2, y2] = P(a1, r0), [x3, y3] = P(a0, r0);
+      return r0 === 0
+        ? `M101 112 L${x0} ${y0} A${r1} ${r1} 0 0 1 ${x1} ${y1} Z`
+        : `M${x0} ${y0} A${r1} ${r1} 0 0 1 ${x1} ${y1} L${x2} ${y2} A${r0} ${r0} 0 0 0 ${x3} ${y3} Z`;
+    };
+    const vetevVlevo = [[84, 37, 0.3], [77, 33, 0.28], [70.6, 34.6, 0.3], [65, 39, 0.27], [62.4, 46, 0.25], [71.4, 39.4, 0.24], [69.4, 45.2, 0.26], [69.2, 51.4, 0.22]];
+    const vetevVpravo = [[98, 34, 0.28], [106, 28.4, 0.3], [115, 26.5, 0.32], [124, 28, 0.3], [130, 36, 0.3], [132.6, 47, 0.28], [133.4, 58, 0.27], [133, 68.4, 0.24],
+      [119.6, 31.5, 0.26], [122.6, 39.6, 0.27], [123.4, 48, 0.26], [123.1, 56.5, 0.25], [122, 64.6, 0.22], [107.5, 33.4, 0.24], [109.4, 40.6, 0.24], [109.7, 47.6, 0.22]];
+    const kvety = [...vetevVlevo, ...vetevVpravo]
+      .map(([x, y, s], i) => (i % 3 === 2 ? kv(u, x, y + 1.8, s * 1.5, 180 + ((i * 37) % 40) - 20, "pu") : kv(u, x, y, s, (i * 47) % 72)))
+      .join("");
+    return obal(o, "v-kasane", `
+    <defs>
+      ${filtry(u, { posun: 1.5, zrno: 0.4 })}
+      ${sakura(u, { pata: "#E2879A", spicka: "#FFF2F2", obrys: "#B9707F", stred: "#A13A51", pupen: "#C9566F", zlato: "#E2B75A" })}
+      <clipPath id="${u}-telo"><path d="${telo}"/></clipPath>
+      <clipPath id="${u}-okno"><path d="${okno}"/></clipPath>
+      <linearGradient id="${u}-vlasy" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#0E0C11"/><stop offset="0.16" stop-color="#2E2A38"/><stop offset="0.26" stop-color="#4A4860"/><stop offset="0.36" stop-color="#1B1820"/>
+        <stop offset="0.64" stop-color="#1B1820"/><stop offset="0.74" stop-color="#4A4860"/><stop offset="0.84" stop-color="#2E2A38"/><stop offset="1" stop-color="#0E0C11"/>
+      </linearGradient>
+      <radialGradient id="${u}-plet" cx="0.5" cy="0.2" r="0.62">
+        <stop offset="0" stop-color="#FFFEFB"/><stop offset="1" stop-color="#F0E6DA"/>
+      </radialGradient>
+      <linearGradient id="${u}-zlato" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F4DC95"/><stop offset="0.5" stop-color="#D6A23A"/><stop offset="1" stop-color="#E9C26A"/>
+      </linearGradient>
+      <linearGradient id="${u}-roucho" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#4A1E2C"/><stop offset="0.5" stop-color="#6A2E40"/><stop offset="1" stop-color="#43192A"/>
+      </linearGradient>
+    </defs>
+    ${o.pozadi ? `
+    <g opacity="0.95">
+      <path d="M-6 128 C-2 121 12 120 18 124 C24 118 40 118 46 123 H134 C140 117 158 117 164 123 C170 119 184 121 188 126 V134 C180 137 166 135 160 133 H36 C30 137 6 137 -2 134 C-5 133 -6 131 -6 128 Z" fill="url(#${u}-zlato)"/>
+      <path d="M112 16 C116 10 128 10 132 15 C136 11 148 11 152 16 H188 V25 H120 C114 25 110 21 112 16 Z" fill="url(#${u}-zlato)" opacity="0.85"/>
+      <path d="M-6 30 H30 C34 25 46 25 50 30 C46 35 38 36 32 35 H-6 Z" fill="url(#${u}-zlato)" opacity="0.7"/>
+      <g fill="#FBEBB8" opacity="0.8">${[[12, 126], [30, 130], [150, 124], [168, 129], [126, 18], [146, 21], [20, 31], [8, 129], [158, 131], [138, 15]].map(([x, y], i) => `<rect x="${x}" y="${y}" width="${1 + (i % 3) * 0.5}" height="${1 + (i % 2) * 0.6}" transform="rotate(${i * 23} ${x} ${y})"/>`).join("")}</g>
+    </g>` : ""}
+    <g class="k-kour" stroke="#9A8FA0" stroke-linecap="round">
+      <path d="M44 112 C37 104 48 96 42 87 C37 79 46 71 40 62 C36 56 40 49 37 43" stroke-width="0.9"/>
+      <path d="M36 118 C31 110 39 102 35 94 C31 86 37 78 33 72" stroke-width="0.7"/>
+    </g>
+    <ellipse cx="90" cy="153.6" rx="46" ry="3.2" fill="#2B2420" opacity="0.22" filter="url(#${u}-m1)"/>
+    <g class="k-telo" filter="url(#${u}-tah)">
+      <path d="${telo}" fill="url(#${u}-vlasy)"/>
+      <g clip-path="url(#${u}-telo)">
+        <g clip-path="url(#${u}-okno)">
+          <rect x="60" y="56" width="60" height="104" fill="url(#${u}-plet)"/>
+          ${vrstvy.map((c, k) => `<path d="${V(k)}" fill="${c || `url(#${u}-roucho)`}"/>`).join("")}
+          <path d="M40 86 L90 104 L140 86" stroke="#D9C6BC" stroke-width="0.6"/>
+          <g stroke="#2A0F18" stroke-width="0.8" opacity="0.35"><path d="M80 120 C79 130 78.4 140 78 150"/><path d="M100 120 C101 130 101.6 140 102 150"/></g>
+          ${[[78.6, 125], [101.6, 124], [72.6, 141], [107.4, 140], [90, 146.4]].map(([x, y], i) => kv(u, x, y, 0.2, i * 18, "kvz")).join("")}
+          <path d="M85 125 V133 M92.5 125 V133 M85 125 H92.5 M87.5 127.6 V133 M90 127.6 V133 M87.5 127.6 H90 M95 125 V133" stroke="#E2B75A" stroke-width="0.9"/>
+        </g>
+        <path d="M40 149.4 C48 149.8 52 148.8 58 149.6 C64 150.4 70 149.2 78 149.8 C88 150.4 96 149.2 104 149.8 C112 150.4 118 149 124 149.6 C130 150.2 134 149.4 140 149.6 V158 H40 Z" fill="#E9DCCB"/>
+        ${[[55, 151.2, 1.4], [63.6, 150.9, 1.1], [117.8, 151.4, 1.5], [126.4, 151, 1.1]].map(([x, y, w]) => `<path d="M${f(x - w)} 149.4 C${f(x - w)} ${f(y - 0.6)} ${f(x - w * 0.5)} ${y} ${x} ${y} C${f(x + w * 0.5)} ${y} ${f(x + w)} ${f(y - 0.6)} ${f(x + w)} 149.4 Z" fill="#141118"/>`).join("")}
+        <g stroke="#6A6C86" stroke-width="0.7" opacity="0.45">
+          <path d="M80 50 C72 60 64 80 61 100 C58 118 56 132 54 146"/>
+          <path d="M84 50 C78 62 72 80 69 100"/>
+          <path d="M96 50 C102 62 108 80 111 100"/>
+          <path d="M100 50 C108 60 116 80 119 100 C122 118 124 132 126 146"/>
+          <path d="M86.6 50 C84 60 80 70 76 78"/>
+        </g>
+        <g stroke="#15121A" stroke-width="1.6" stroke-linecap="round">
+          <path d="M73 74 C71 90 70.6 108 69.8 128 C69.4 136 68.6 142 68 146"/>
+          <path d="M107 74 C109 90 109.4 108 110.2 128 C110.6 136 111.4 142 112 146"/>
+        </g>
+        <path d="M90 44 V61" stroke="#5C5A70" stroke-width="0.8" opacity="0.8"/>
+      </g>
+      <path d="${telo}" stroke="#1A1620" stroke-width="1.2" stroke-linejoin="round"/>
+      <ellipse cx="90" cy="43.6" rx="7.6" ry="1.4" fill="#0B090D"/>
+      <path d="M82.6 44.6 Q90 46.4 97.4 44.6" stroke="#6D6A80" stroke-width="0.8" opacity="0.8"/>
+    </g>
+
+    <g class="k-sakura" filter="url(#${u}-tah)">
+      <g stroke="#4A3226" stroke-linecap="round">
+        <path d="M91 44.4 C94 33 104 25.6 115 26.4 C124 27.2 130.6 36 132.6 48 C134 56.6 133.8 64.6 133 72" stroke-width="1.4"/>
+        <path d="M115.4 26.6 C121 32 123.6 42 123.2 54 C123 60 122.2 64 121.4 68" stroke-width="0.7"/>
+        <path d="M104.6 28.6 C108.6 34 110.2 42 109.6 50" stroke-width="0.6"/>
+        <path d="M89 44.4 C85.6 36 78 31.6 70.6 34.6 C65.6 36.6 62.6 42.4 62 49" stroke-width="1.1"/>
+        <path d="M73.6 33.6 C70.4 38.6 69 45 69.2 52" stroke-width="0.6"/>
+      </g>
+      ${kvety}
+    </g>
+
+    <g class="k-tvar" stroke-linecap="round">
+      <ellipse cx="81" cy="71.2" rx="3.4" ry="1.8" fill="#3A2E33" opacity="0.5" filter="url(#${u}-m1)"/>
+      <ellipse cx="99" cy="71.2" rx="3.4" ry="1.8" fill="#3A2E33" opacity="0.5" filter="url(#${u}-m1)"/>
+      <path d="M76.4 82.6 Q80.6 81.2 84.6 82.4" stroke="#1E1A1F" stroke-width="1.3"/>
+      <path d="M95.4 82.4 Q99.4 81.2 103.6 82.6" stroke="#1E1A1F" stroke-width="1.3"/>
+      <path d="M90.2 85.6 Q91.8 88.4 89.8 89.1" stroke="#7A6457" stroke-width="0.9"/>
+      <path d="M87.9 94.4 Q90 93.3 92.1 94.4 Q90 95.9 87.9 94.4 Z" fill="#C4432B"/>
+      <path d="M88.4 94.5 H91.6" stroke="#8E2A1C" stroke-width="0.4"/>
+    </g>
+
+    <g class="k-vejir">
+      <path d="${vysec(-160, -60, 0, 22)}" fill="#F7EFE0" stroke="#8C7A5E" stroke-width="0.6" stroke-linejoin="round"/>
+      <path d="${vysec(-160, -60, 16.5, 22)}" fill="url(#${u}-zlato)" opacity="0.9"/>
+      <g stroke="#B9A57E" stroke-width="0.35">${[-150, -140, -130, -120, -110, -100, -90, -80, -70].map((a) => { const [x, y] = P(a, 22); return `<path d="M101 112 L${x} ${y}"/>`; }).join("")}</g>
+      ${kv(u, 93.6, 101.4, 0.24, 10)}${kv(u, 99, 98.8, 0.2, 40)}${kv(u, 89.2, 105.4, 0.18, 70)}
+      <path d="M80.3 104.5 C76.4 110 75.6 118 77.4 126" stroke="#5E8A5A" stroke-width="1"/>
+      <path d="M80.3 104.5 C78.6 111 79 119 81.4 126" stroke="#C4432B" stroke-width="1"/>
+      ${kv(u, 78.4, 113, 0.22, 20)}
+      <circle cx="101" cy="112" r="1.1" fill="#8C7A5E"/>
+    </g>`);
+  }
+
+  /* ———————————————————————— 4 · NEBE PO DEŠTI (seladon kinuta) ———————————————————————— */
+  function seiji(u, o = {}) {
+    const telo = "M72 31 Q90 28.4 108 31 C108.6 33 106.6 34.4 102.8 35 C98.6 35.7 96.4 37.4 95.8 41 C95.2 50 95.4 58 96.4 65 C98.4 70.4 105.6 72.4 111.4 74.6 C116 76.4 118.4 79.8 118.4 85 L115.6 140 C115.4 144 113.2 146.5 109 146.5 H71 C66.8 146.5 64.6 144 64.4 140 L61.6 85 C61.6 79.8 64 76.4 68.6 74.6 C74.4 72.4 81.6 70.4 83.6 65 C84.6 58 84.8 50 84.2 41 C83.6 37.4 81.4 35.7 77.2 35 C73.4 34.4 71.4 33 72 31 Z";
+    const patka = "M70 145.5 H110 L109.2 153.2 C109 154.4 108.2 155 107 155 H73 C71.8 155 71 154.4 70.8 153.2 Z";
+    const ucho = "M84.5 47 C80.4 44.6 75.4 46 74.4 50.6 C73.6 54.6 76.4 58.2 80.4 58 C82.4 57.9 83.8 56.8 84.6 55.4 L84.8 52.4 C83.6 53.8 82 54.4 80.6 54 C78.6 53.4 78 51 79.4 49.6 C80.8 48.2 83 48.8 84.6 50 Z";
+    const zelezo = praskliny({ seed: 3, x0: 58, y0: 30, x1: 122, y1: 150, krok: 14, hustota: 0.8 });
+    const zlato = praskliny({ seed: 9, x0: 60, y0: 72, x1: 120, y1: 148, krok: 6.2, hustota: 0.52 });
+    const zlatoKrk = praskliny({ seed: 12, x0: 82, y0: 36, x1: 98, y1: 74, krok: 6, hustota: 0.5 });
+    const ucha = (fill, stroke) => `<g transform="translate(84.6 52) scale(0.86) translate(-84.6 -52)"><path d="${ucho}" fill="${fill}" stroke="${stroke}" stroke-width="0.9" stroke-linejoin="round"/></g>`;
+    return obal(o, "v-seiji", `
+    <defs>
+      ${filtry(u, { posun: 1.4, zrno: 0.4, barva: "0.12 0.2 0.2" })}
+      ${sakura(u, { pata: "#E58C9D", spicka: "#FFF4F3", obrys: "#BF7686", stred: "#A6405A", list: "#7E8B52", kalich: "#5E5A34" })}
+      <clipPath id="${u}-telo"><path d="${telo}"/></clipPath>
+      <clipPath id="${u}-okoL"><path d="M73.6 105.4 Q79.2 100.4 84.4 106.2 Q79.4 110.6 73.6 105.4 Z"/></clipPath>
+      <clipPath id="${u}-okoP"><path d="M106.4 105.4 Q100.8 100.4 95.6 106.2 Q100.6 110.6 106.4 105.4 Z"/></clipPath>
+      <linearGradient id="${u}-seladon" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#5C8B8D"/><stop offset="0.14" stop-color="#84B1AE"/><stop offset="0.3" stop-color="#C0DED8"/><stop offset="0.4" stop-color="#D8ECE6"/>
+        <stop offset="0.53" stop-color="#A9CEC7"/><stop offset="0.76" stop-color="#84B0AD"/><stop offset="0.92" stop-color="#6A999A"/><stop offset="1" stop-color="#537D80"/>
+      </linearGradient>
+      <linearGradient id="${u}-shora" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#EAF6F2" stop-opacity="0.35"/><stop offset="0.5" stop-color="#EAF6F2" stop-opacity="0"/><stop offset="0.85" stop-color="#2F4E50" stop-opacity="0"/><stop offset="1" stop-color="#2F4E50" stop-opacity="0.3"/>
+      </linearGradient>
+      <linearGradient id="${u}-zelezo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6B4C40"/><stop offset="1" stop-color="#3E2A24"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="90" cy="155.4" rx="25" ry="3.1" fill="#2E4446" opacity="0.24" filter="url(#${u}-m1)"/>
+    <g class="z-telo">
+      <g filter="url(#${u}-tah)">
+        <path d="${patka}" fill="url(#${u}-zelezo)" stroke="#33221C" stroke-width="1" stroke-linejoin="round"/>
+        ${ucha("#9CC5BF", "#4A6C6E")}
+        <g transform="translate(180 0) scale(-1 1)">${ucha("#8DB9B4", "#4A6C6E")}</g>
+        <path d="${telo}" fill="url(#${u}-seladon)"/>
+        <g clip-path="url(#${u}-telo)">
+          <rect x="56" y="26" width="68" height="126" fill="url(#${u}-shora)"/>
+          <path d="${zelezo}" stroke="#2F2B2B" stroke-width="0.7" opacity="0.38"/>
+          <path d="${zlato}${zlatoKrk}" stroke="#C3943F" stroke-width="0.42" opacity="0.58"/>
+          <path d="${zlato}" stroke="#F6CF72" stroke-width="1.5" filter="url(#${u}-m1)" ${noc(0.85)}/>
+          <path d="M72 31 Q90 28.4 108 31 C108.6 33 106.6 34.4 102.8 35" stroke="#6E4F5E" stroke-width="1.8" opacity="0.6"/>
+          <path d="M66.6 90 C66 106 66.8 124 68.4 138" stroke="#F2FBF8" stroke-width="3" stroke-linecap="round" opacity="0.6" filter="url(#${u}-m1)"/>
+          <path d="M88.2 42 C87.6 52 87.8 60 88.6 66" stroke="#F2FBF8" stroke-width="1.6" stroke-linecap="round" opacity="0.6"/>
+          <circle cx="68.4" cy="86" r="1.4" fill="#FFFFFF" opacity="0.85"/>
+          <path d="M113.6 86 C114 92 114.2 96 113 98" stroke="#E6F4F1" stroke-width="0.9" stroke-linecap="round" opacity="0.6"/>
+        </g>
+        <path d="${telo}" stroke="#40605F" stroke-width="1.3" stroke-linejoin="round"/>
+        <ellipse cx="90" cy="30.8" rx="15.4" ry="1.7" fill="#2E3E3E"/>
+      </g>
+      <g class="z-rosa">
+        ${[[69, 116, 1.5], [112.6, 98.6, 1.3], [109.4, 132, 1.7], [72.4, 137, 1.1], [114.4, 120, 1.0]].map(([x, y, r]) => `<g><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${f(r * 1.15)}" fill="#E6F4F1" opacity="0.55"/><circle cx="${f(x - r * 0.35)}" cy="${f(y - r * 0.4)}" r="${f(r * 0.35)}" fill="#FFFFFF"/><path d="M${f(x - r * 0.8)} ${f(y + r * 0.9)} Q${x} ${f(y + r * 1.5)} ${f(x + r * 0.8)} ${f(y + r * 0.9)}" stroke="#4E7474" stroke-width="0.35" opacity="0.6"/></g>`).join("")}
+      </g>
+
+      <g class="z-vetev" filter="url(#${u}-tah)" transform="translate(0 0.5)">
+        <g stroke="#4A3226" stroke-linecap="round">
+          <path d="M90.6 30.4 C92 22 97 15 105 10.5 C109 8.2 113 7.2 117 7" stroke-width="1.5"/>
+          <path d="M98 16.5 C101 18 103 21 103.6 24" stroke-width="0.8"/>
+          <path d="M91.2 26 C88.4 21 85.6 18.6 81.6 17.6" stroke-width="0.8"/>
+        </g>
+        ${kv(u, 106.4, 10.4, 0.6, -150, "li")}${kv(u, 96, 18.4, 0.5, 40, "li")}
+        ${kv(u, 112.8, 7.6, 0.5, 70, "pu")}${kv(u, 100.6, 13.4, 0.46, 30, "pu")}${kv(u, 86, 19.4, 0.44, -50, "pu")}
+        ${kv(u, 117.4, 7.2, 0.46, 20)}${kv(u, 109.6, 9, 0.36, -30)}${kv(u, 103.8, 24.4, 0.34, 50)}${kv(u, 81.4, 17.4, 0.32, -40)}
+      </g>
+      <path d="M76 32 Q90 34.4 104 32" stroke="#CFE5E0" stroke-width="1.2" stroke-linecap="round"/>
+
+      <g class="z-tvar" stroke-linecap="round">
+        <path d="M73.4 97.8 Q78.8 95.2 84.2 97.4" stroke="#2C3B40" stroke-width="1.15" opacity="0.75"/>
+        <path d="M95.8 97.4 Q101.2 95.2 106.6 97.8" stroke="#2C3B40" stroke-width="1.15" opacity="0.75"/>
+        <g class="z-oci">
+          <path d="M73.6 105.4 Q79.2 100.4 84.4 106.2 Q79.4 110.6 73.6 105.4 Z" fill="#F4FAF7"/>
+          <path d="M106.4 105.4 Q100.8 100.4 95.6 106.2 Q100.6 110.6 106.4 105.4 Z" fill="#F4FAF7"/>
+          <g class="z-zornice">
+            <ellipse cx="80" cy="106" rx="2.7" ry="3.2" fill="#1F2A30" clip-path="url(#${u}-okoL)"/>
+            <ellipse cx="101.6" cy="106" rx="2.7" ry="3.2" fill="#1F2A30" clip-path="url(#${u}-okoP)"/>
+            <circle cx="80.9" cy="104.8" r="0.8" fill="#FFFFFF"/><circle cx="102.5" cy="104.8" r="0.8" fill="#FFFFFF"/>
+          </g>
+          <path d="M73.6 105.4 Q79.2 100.4 84.4 106.2" stroke="#1F2A30" stroke-width="1.55"/>
+          <path d="M106.4 105.4 Q100.8 100.4 95.6 106.2" stroke="#1F2A30" stroke-width="1.55"/>
+          <path d="M75 107.4 Q79.4 110 83.4 107.6" stroke="#1F2A30" stroke-width="0.6" opacity="0.5"/>
+          <path d="M105 107.4 Q100.6 110 96.6 107.6" stroke="#1F2A30" stroke-width="0.6" opacity="0.5"/>
+          <path d="M73.6 105.4 L71.8 104.2 M106.4 105.4 L108.2 104.2" stroke="#1F2A30" stroke-width="1"/>
+        </g>
+        <path d="M87 117 Q90 119.2 93 117" stroke="#2C3B40" stroke-width="1.4"/>
+      </g>
+    </g>`);
+  }
+
+  /* ———————————————————————— 5 · NOČNÍ PRŮVOD (tsukumogami ze svitku) ———————————————————————— */
+  function hyakki(u, o = {}) {
+    const obrys = "M70 42 Q74 45.4 76.4 52 C77.4 56 76.6 59.4 73.6 62.6 C63 72 56 86 55.4 106 C54.6 130 68 150 82 150 L98 150 C112 150 125.4 130 124.6 106 C124 86 117 72 106.4 62.6 C103.4 59.4 102.6 56 103.6 52 Q106 45.4 110 42 Q90 38.4 70 42 Z";
+    const T = "translate(90 120) scale(0.84) translate(-90 -150)";
+    const tus = "#1F1A17";
+    return obal(o, "v-hyakki", `
+    <defs>
+      ${filtry(u, {})}
+      <filter id="${u}-tus" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="2" seed="8" result="v"/>
+        <feDisplacementMap in="SourceGraphic" in2="v" scale="1.7" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <filter id="${u}-lavis" x="-15%" y="-15%" width="130%" height="130%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="2" result="v"/>
+        <feDisplacementMap in="SourceGraphic" in2="v" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="d"/>
+        <feGaussianBlur in="d" stdDeviation="0.5"/>
+      </filter>
+      ${sakura(u, { pata: "#EBA5B0", spicka: "#FBE9E6", obrys: tus, sirka: 0.55, stred: "#C4432B", tycinky: tus, pupen: "#E28C9C", kalich: "#6B5D4F", list: "#9AA36A" })}
+      <radialGradient id="${u}-lav" cx="0.42" cy="0.4" r="0.7">
+        <stop offset="0" stop-color="#F7EEDC"/><stop offset="0.7" stop-color="#EBD9B8"/><stop offset="1" stop-color="#D7B98F"/>
+      </radialGradient>
+      <radialGradient id="${u}-svit" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#FFE9B0"/><stop offset="1" stop-color="#FFB45C" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="91" cy="155.4" rx="30" ry="2.6" fill="${tus}" opacity="0.14" filter="url(#${u}-lavis)"/>
+    <g class="hy-cela">
+      <g class="hy-ruka" filter="url(#${u}-tus)" stroke="${tus}" stroke-linecap="round">
+        <path d="M61.4 88 C57 92.6 54.4 96 52.6 99.6 C50.6 103.4 49 106.6 47.4 109.6" stroke-width="1.5"/>
+        <path d="M47.4 109.6 L44.4 111.2 M47.4 109.6 L45.4 113.2 M47.6 109.8 L48 113.6" stroke-width="1"/>
+        <circle cx="52.6" cy="99.6" r="1.1" stroke-width="0.9"/>
+      </g>
+
+      <g filter="url(#${u}-tus)" stroke="${tus}" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 118 C84.4 125 83 129.6 81.6 134 C79.6 138.6 77.6 142 75.4 145.4" stroke-width="1.5"/>
+        <circle cx="81.6" cy="134" r="1.2" stroke-width="0.9"/>
+        <path d="M75.4 145.4 C77 147 78.6 148.2 80.6 148.8" stroke-width="1.3"/>
+        <g transform="rotate(16 82.4 152.6)">
+          <rect x="69.4" y="149.4" width="13" height="2.2" rx="0.8" fill="#9C7656" stroke-width="0.6"/>
+          <path d="M71.6 151.6 V154.4 M79.6 151.6 V154.4" stroke-width="1.6"/>
+          <path d="M74.4 149.4 Q76.2 146.8 78.2 149.4" stroke="#C4432B" stroke-width="0.9"/>
+        </g>
+        <path d="M94 118 C96.6 125 99 129.6 101 133.4 C102.4 138 103.4 142.4 104.2 146.6" stroke-width="1.5"/>
+        <circle cx="101" cy="133.4" r="1.2" stroke-width="0.9"/>
+        <path d="M104.2 146.6 C106 147.6 108.6 147.8 111 147.4" stroke-width="1.3"/>
+        <rect x="100.6" y="148.4" width="13" height="2.2" rx="0.8" fill="#9C7656" stroke-width="0.6"/>
+        <path d="M102.8 150.6 V154.4 M110.6 150.6 V154.4" stroke-width="1.6"/>
+        <path d="M105.6 148.4 Q107.4 145.8 109.4 148.4" stroke="#C4432B" stroke-width="0.9"/>
+        <path d="M86 118 C84.4 125 83 129.6 81.6 134 C79.6 138.6 77.6 142 75.4 145.4 M94 118 C96.6 125 99 129.6 101 133.4 C102.4 138 103.4 142.4 104.2 146.6" stroke-width="2.5" stroke-dasharray="6 10 4 13"/>
+      </g>
+
+      <g transform="${T}">
+        <path d="${obrys}" fill="url(#${u}-lav)" filter="url(#${u}-lavis)"/>
+        <path d="M118 80 C126 100 126 124 112 144" stroke="#C9A27A" stroke-width="7" opacity="0.32" filter="url(#${u}-lavis)"/>
+        <path d="M77 59 Q90 65 103 59" stroke="#B88C5E" stroke-width="7" opacity="0.32" filter="url(#${u}-lavis)"/>
+        <ellipse cx="90" cy="42.4" rx="18" ry="2.6" fill="${tus}" opacity="0.85"/>
+        <g stroke="${tus}" stroke-linecap="round" opacity="0.4" stroke-width="0.7" filter="url(#${u}-tus)">
+          <path d="M60 134 L72 128 L84 138 L98 132 L110 140 L122 132"/>
+          <path d="M72 128 L68 146 M98 132 L94 150 M84 138 L86 147"/>
+        </g>
+        <g filter="url(#${u}-lavis)" stroke-linecap="round">
+          <path d="M75 55 Q90 60 105 55" stroke="#C4432B" stroke-width="3.2"/>
+          <path d="M96 58 C102 64 104 70 101 76 M98 58 C97 66 93 72 94 79" stroke="#C4432B" stroke-width="1.8"/>
+          <path d="M97 58 C92 52 86 54 90 59 C93 61 95 60 97 58 C102 52 108 54 104 59 C101 61 99 60 97 58 Z" fill="#C4432B"/>
+        </g>
+        <path d="${obrys}" stroke="${tus}" stroke-width="1.7" stroke-linejoin="round" filter="url(#${u}-tus)"/>
+        <path d="${obrys}" stroke="${tus}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="34 26 14 40 22 30 46 22" stroke-dashoffset="8" filter="url(#${u}-tus)"/>
+      </g>
+
+      <g class="hy-tvar" stroke="${tus}" stroke-linecap="round">
+        <path d="M76.8 66.6 Q81 63.2 85.6 65.6" stroke-width="1.7"/>
+        <path d="M94.4 65.6 Q99 63.2 103.2 66.6" stroke-width="1.7"/>
+        <circle cx="81" cy="73.4" r="3.3" fill="#FBF6EA" stroke-width="0.9"/>
+        <circle cx="99" cy="73.4" r="3.3" fill="#FBF6EA" stroke-width="0.9"/>
+        <circle class="hy-zor" cx="82.2" cy="73.8" r="1.85" fill="${tus}" stroke="none"/>
+        <circle class="hy-zor" cx="100.2" cy="73.8" r="1.85" fill="${tus}" stroke="none"/>
+        <path d="M77.4 72.2 Q81 68.8 84.6 72.2 M95.4 72.2 Q99 68.8 102.6 72.2" stroke-width="1.5"/>
+        <path d="M86.2 84 Q90.4 87.4 94.6 84" stroke-width="1.25"/>
+        <path d="M85.4 83.2 L86.4 84.4 M95.4 83.2 L94.4 84.4" stroke-width="0.8"/>
+      </g>
+
+      <g filter="url(#${u}-tus)"><path d="M90 31.6 C88.6 25 85.4 19.6 80.4 15.6" stroke="${tus}" stroke-width="1.1" stroke-linecap="round"/></g>
+      ${kv(u, 80.4, 15.4, 0.36, -20)}${kv(u, 86.6, 22.6, 0.3, 30)}${kv(u, 83.4, 18.6, 0.42, -40, "pu")}
+
+      <g class="hy-tyc">
+        <g filter="url(#${u}-tus)" stroke="${tus}" stroke-linecap="round">
+          <path d="M127.4 104.6 C131 98 138 84 145 72 C149 64.6 153 58 157 52" stroke-width="1.7"/>
+          <path d="M145 72 C148.6 73 151 75.6 152.4 79" stroke-width="0.8"/>
+          <path d="M138.4 84 C135.6 82.4 133.6 80 132.8 77" stroke-width="0.7"/>
+        </g>
+        ${kv(u, 141, 79, 0.3, 10)}${kv(u, 148, 66, 0.34, -20)}${kv(u, 152.6, 79.4, 0.3, 40)}${kv(u, 133, 76.6, 0.28, -30)}
+        ${kv(u, 153.4, 58.8, 0.45, 20, "pu")}${kv(u, 137.4, 86.6, 0.4, -110, "pu")}
+        <g class="hy-lucerna">
+          <path d="M157 52 V59" stroke="${tus}" stroke-width="0.8"/>
+          <ellipse cx="157" cy="70" rx="16" ry="17" fill="url(#${u}-svit)" ${noc(0.6, 0.3)}/>
+          <rect x="151.6" y="58.6" width="10.8" height="3" rx="1" fill="#2B2420"/>
+          <ellipse cx="157" cy="70.4" rx="8.6" ry="10.4" fill="#F4D49B" stroke="${tus}" stroke-width="0.9" filter="url(#${u}-tus)"/>
+          <ellipse cx="157" cy="69.6" rx="5" ry="7" fill="#FFF1C9" opacity="0.8" filter="url(#${u}-m1)"/>
+          <g stroke="${tus}" stroke-width="0.45" opacity="0.55"><path d="M148.8 64.4 Q157 66.4 165.2 64.4"/><path d="M148.4 70.6 Q157 72.6 165.6 70.6"/><path d="M148.8 76.6 Q157 78.6 165.2 76.6"/></g>
+          <text x="157" y="73.4" text-anchor="middle" font-size="7.4" font-family="Yuji Syuku, Yu Mincho, serif" fill="#C4432B">花</text>
+          <rect x="151.6" y="79.8" width="10.8" height="3" rx="1" fill="#2B2420"/>
+          <path d="M157 82.8 V88.6" stroke="#C4432B" stroke-width="1.8" stroke-linecap="round"/>
+        </g>
+        <g filter="url(#${u}-tus)" stroke="${tus}" stroke-linecap="round">
+          <path d="M118.6 86 C123 92 125.6 97 127.4 100.6 C130 98.4 132 96 133.8 93.6" stroke-width="1.5"/>
+          <circle cx="127.4" cy="100.6" r="1.1" stroke-width="0.9"/>
+          <path d="M133.8 93.6 C135.6 93 136.6 94.6 135.6 96 C134.6 97.2 132.8 96.8 132.6 95.4" stroke-width="1"/>
+        </g>
+      </g>
+    </g>`);
+  }
+
+  g.KRESBY = { ted, pecinka, sensei, heishi, kasane, seiji, hyakki };
+})(typeof window !== "undefined" ? window : globalThis);
+/* ==/KRESBY== */
+</script>
+
+<script>
+(() => {
+  const KRESBY = window.KRESBY;
+
+  /* ——— Obloha: stejná paleta jako scripts/parta2/paleta.ts ——— */
+  const omez = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const mix = (a, b, t) => a + (b - a) * t;
+  const hex = (h) => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const mixBarva = (a, b, t) => { const A = hex(a), B = hex(b); return `#${A.map((v, i) => Math.round(mix(v, B[i], t)).toString(16).padStart(2, "0")).join("")}`; };
+  const NOC = ["#0B1026", "#18204A", "#2C2F5E", "#2A3366", "#141A3A", "#3A4478", "#1E2448", "#161B36"];
+  const PALETY = [
+    { h: 0, barvy: NOC, hvezdy: 1, noc: 1 },
+    { h: 4.5, barvy: ["#141B42", "#33397A", "#7E6A93", "#5B5A8E", "#2A2C5E", "#7A78A8", "#39407A", "#262B5A"], hvezdy: 0.8, noc: 0.85 },
+    { h: 5.5, barvy: ["#4A5A9A", "#C48FA6", "#F4B98E", "#F2C7C2", "#8E80AE", "#FFE4DC", "#8C7FAE", "#6A6694"], hvezdy: 0.1, noc: 0.35 },
+    { h: 6.5, barvy: ["#6F8FC8", "#E7B6A8", "#FBD9A0", "#FFE6D6", "#B49BB8", "#FFF4EC", "#9AA4C8", "#7C8BA8"], hvezdy: 0, noc: 0.08 },
+    { h: 8, barvy: ["#6FA4DA", "#B5D3EC", "#F4E8D2", "#FFFFFF", "#C3D2E6", "#FFFFFF", "#9FB9D2", "#7FA0A8"], hvezdy: 0, noc: 0 },
+    { h: 12, barvy: ["#3E86D3", "#8DC1EE", "#DCEFF7", "#FFFFFF", "#BFD3EC", "#FFFFFF", "#8FB3D6", "#6E9A9C"], hvezdy: 0, noc: 0 },
+    { h: 16, barvy: ["#4F8DD0", "#9EC6E8", "#EFE6CC", "#FFFDF6", "#C9CFE0", "#FFFFFF", "#9DB6CF", "#7D9C94"], hvezdy: 0, noc: 0 },
+    { h: 18.5, barvy: ["#5F7FBF", "#E2B48E", "#F8CF8A", "#FFE2C0", "#C99A9A", "#FFF2DE", "#A99BB8", "#8A8A9E"], hvezdy: 0, noc: 0.05 },
+    { h: 20, barvy: ["#3A3C7C", "#C0708A", "#F39A66", "#F7B49A", "#7A5E8E", "#FFD8C4", "#6E5E8E", "#4E4672"], hvezdy: 0.15, noc: 0.35 },
+    { h: 21, barvy: ["#1E2456", "#4E4A84", "#A86A7E", "#6E5E8E", "#2E2E62", "#8E7EA8", "#3C3A6E", "#2A2A55"], hvezdy: 0.6, noc: 0.75 },
+    { h: 22.5, barvy: NOC, hvezdy: 1, noc: 1 },
+    { h: 24, barvy: NOC, hvezdy: 1, noc: 1 },
+  ];
+  const PROMENNE = ["--nebe-nahore", "--nebe-stred", "--nebe-obzor", "--mrak-svetlo", "--mrak-stin", "--mrak-zare", "--kopec-daleko", "--kopec-blizko"];
+  function paleta(hodina) {
+    const h = ((hodina % 24) + 24) % 24;
+    let i = 0;
+    while (i < PALETY.length - 2 && PALETY[i + 1].h <= h) i++;
+    const a = PALETY[i], b = PALETY[i + 1];
+    const t = omez((h - a.h) / (b.h - a.h));
+    return { barvy: a.barvy.map((c, k) => mixBarva(c, b.barvy[k], t)), hvezdy: mix(a.hvezdy, b.hvezdy, t), noc: mix(a.noc, b.noc, t) };
+  }
+
+  /* ——— Kresby do stránky ——— */
+  let pocet = 0;
+  const kresli = (kdo, o = {}) => KRESBY[kdo](`k${++pocet}`, o);
+  document.querySelectorAll("[data-kresba]").forEach((el) => {
+    el.innerHTML = kresli(el.dataset.kresba, { viewBox: el.dataset.vb, pozadi: el.hasAttribute("data-pozadi"), tvarPlna: el.hasAttribute("data-tvar-plna") });
+    if (el.hasAttribute("data-staticke")) el.firstElementChild.classList.add("staticke");
+  });
+
+  /* Hvězdy */
+  document.querySelectorAll("[data-hvezdy]").forEach((svg, n) => {
+    let s = 17 + n * 31;
+    const r = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    svg.innerHTML = [...Array(Number(svg.dataset.hvezdy))].map(() => `<circle cx="${(r() * 100).toFixed(1)}" cy="${(r() * 62).toFixed(1)}" r="${(0.12 + r() * 0.28).toFixed(2)}" fill="#FFF8E4" opacity="${(0.4 + r() * 0.6).toFixed(2)}"/>`).join("");
+  });
+
+  /* ——— Repliky a reakce ——— */
+  const REPLIKY = {
+    sensei: ["Záda rovně. Ne tak. Rovně.", "Sto let jsem stála vedle čajové konvice. Odtud ty tmavé praskliny.", "Tři větve: nebe, člověk, země. Stejně se sedí u kruhu.", "Ten okraj je křivý schválně. Záda ne.", "Gohon. Ne, nečervenám se. To je glazura."],
+    heishi: ["…", "Na oltáři se nemluví. V dílně se to snese.", "Papír v hrdle znamená, že tu někdo bydlí.", "Rovně sedět, rovně točit. A dýchat.", "Sakura na oltář nepatří. Moje malá neposlušnost."],
+    kasane: ["Vůni poznáš dřív než tvar. U lidí i u váz.", "Dvě glazury přes sebe dají třetí barvu. Tomu se říká kasane.", "Lokty k tělu, má milá.", "Vlasy? Tenmoku. Teklo to celou noc.", "Čerstvé sakury, každý den. Člověk má mít standardy."],
+    seiji: ["Barva nebe po dešti, tam, kde se trhají mraky.", "Železné dráty a zlaté nitky. Praskám s rozmyslem.", "Lokty k tělu. Vidím to i odsud.", "V poledne mám barvu nebe. V noci taky, jen jiného.", "Rovně sedět, rovně točit. A dýchat — na to se často zapomíná."],
+    hyakki: ["Sto let na polici, a pak tě to v noci postaví na nohy.", "V průvodu se jde rovně. I když jsi váza.", "Lucernu nesu já. Kapka by ji utopila.", "Noční průvod stovky duchů. Nás je devět, tak se snažíme.", "Lokty k tělu. I když jsou tenké."],
+  };
+  const poradi = {};
+  document.querySelectorAll("[data-jeviste]").forEach((jev) => {
+    const kdo = jev.dataset.jeviste;
+    const tl = jev.querySelector(".jev-postava");
+    const bublina = jev.querySelector(".jev-bublina");
+    let casovac;
+    tl?.addEventListener("click", () => {
+      const i = (poradi[kdo] = ((poradi[kdo] ?? -1) + 1) % REPLIKY[kdo].length);
+      bublina.textContent = REPLIKY[kdo][i];
+      jev.classList.add("mluvi");
+      tl.classList.remove("reaguje");
+      void tl.offsetWidth;
+      tl.classList.add("reaguje");
+      clearTimeout(casovac);
+      casovac = setTimeout(() => { jev.classList.remove("mluvi"); tl.classList.remove("reaguje"); }, 3600);
+    });
+  });
+
+  /* Mimo obrazovku se pohyb zastaví — filtry s prasklinami jsou drahé */
+  const pozorovatel = new IntersectionObserver((zaznamy) => zaznamy.forEach((z) => z.target.classList.toggle("mimo", !z.isIntersecting)), { rootMargin: "120px" });
+  document.querySelectorAll(".jeviste, .rada, .lupy").forEach((el) => pozorovatel.observe(el));
+
+  /* ——— Systém glazur (návrh 4) ——— */
+  const SYSTEM = [
+    { kdo: "Hlínka", h: 7, glazura: "šino", popis: "bílá, kde ji oheň zrůžoví", barvy: ["#F6EFE4", "#EBB995", "#C9734E"] },
+    { kdo: "Bublinka", h: 8.5, glazura: "nuka", popis: "mléčná, z popela rýžových slupek", barvy: ["#F2F3EE", "#DADFD8", "#B5BFBD"] },
+    { kdo: "Kapka", h: 10, glazura: "namako", popis: "modrá, stéká v kapkách", barvy: ["#D8D0B4", "#5E86A3", "#2B4566"] },
+    { kdo: "Vázička", h: 13, glazura: "seiji", popis: "nebe po dešti", barvy: ["#D8ECE6", "#A9CEC7", "#6A999A"], ja: true },
+    { kdo: "Kachlík", h: 15.5, glazura: "ki-seto", popis: "žlutá, odpoledne na zdi", barvy: ["#F3E2A4", "#D9B25A", "#9E7A33"] },
+    { kdo: "Cedulka", h: 17.5, glazura: "ame", popis: "medová jako dřevo ema", barvy: ["#E9B86E", "#B9762F", "#6E3F17"] },
+    { kdo: "Šamotka", h: 20, glazura: "shinsha", popis: "měděná červená, místy do fialova jako soumrak v logu", barvy: ["#E0603C", "#B4466A", "#4E4A84"] },
+    { kdo: "Pecinka", h: 23, glazura: "yōhen tenmoku", popis: "černá s hvězdami", barvy: ["#7FB6C9", "#2C3E6E", "#0B1026"] },
+    { kdo: "Střípek", h: 29.5, glazura: "kintsugi", popis: "výjimka: zlato není glazura, ale oprava", barvy: ["#F0D58A", "#C99A2E", "#6A5A40"] },
+  ];
+  const cas = (h) => { const x = ((h % 24) + 24) % 24; const hod = Math.floor(x); return `${hod}:${String(Math.round((x - hod) * 60)).padStart(2, "0")}`; };
+  const system = document.querySelector("[data-system]");
+  if (system) {
+    system.innerHTML = SYSTEM.map((s, i) => {
+      const p = paleta(s.h);
+      const tecky = s.glazura.startsWith("yōhen") ? [[24, 38], [31, 33], [19, 46], [27, 52], [34, 44]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="#BFE6EE" opacity="0.85"/>`).join("") : "";
+      const nitky = s.glazura === "kintsugi" ? `<path d="M14 40 L22 46 L20 56 M22 46 L32 42 L38 50" stroke="#F4D27A" stroke-width="1.6" fill="none"/>` : "";
+      return `<div class="stanice${s.ja ? " ja-jsem" : ""}">
+        <div class="stanice-nebe" style="background:linear-gradient(to bottom, ${p.barvy[0]}, ${p.barvy[1]} 60%, ${p.barvy[2]})">
+          <svg viewBox="0 0 52 70" aria-hidden="true"><defs><linearGradient id="sg${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.barvy[0]}"/><stop offset="0.55" stop-color="${s.barvy[1]}"/><stop offset="1" stop-color="${s.barvy[2]}"/></linearGradient></defs>
+            <path d="M20 8 H32 C32 14 34 16 38 20 C46 27 48 38 46 50 C44 60 38 66 26 66 C14 66 8 60 6 50 C4 38 6 27 14 20 C18 16 20 14 20 8 Z" fill="url(#sg${i})" stroke="rgba(43,36,32,.45)" stroke-width="1"/>${tecky}${nitky}
+          </svg>
+        </div>
+        <b>${s.kdo}</b><span>${cas(s.h)}</span><em>${s.glazura}</em><span>${s.popis}</span>
+      </div>`;
+    }).join("");
+  }
+
+  /* ——— Čitelnost ——— */
+  const RADKY = [["今", "Teď", "ted"], ["一", "Sensei", "sensei"], ["二", "Heishi", "heishi"], ["三", "Kasane", "kasane"], ["四", "Nebe po dešti", "seiji"], ["五", "Noční průvod", "hyakki"]];
+  const VELIKOSTI = [140, 72, 64, 52];
+  const cit = document.querySelector("[data-citelnost]");
+  if (cit) {
+    let html = `<div class="hlava-bunka"></div>${VELIKOSTI.map((v, i) => `<div class="hlava-bunka${i === 1 ? " jen-siroke" : ""}">${v} px</div>`).join("")}<div class="hlava-bunka">64 px v noci</div>`;
+    RADKY.forEach(([znak, jmeno, kdo]) => {
+      html += `<div class="jmeno"><span lang="ja">${znak}</span>${jmeno}</div>`;
+      VELIKOSTI.forEach((v, i) => { html += `<div class="${i === 1 ? "jen-siroke" : ""}"><span class="kresba-obal" style="width:${v}px;height:${v}px">${kresli(kdo)}</span></div>`; });
+      html += `<div class="tma"><span class="kresba-obal" style="width:64px;height:64px">${kresli(kdo)}</span></div>`;
+    });
+    cit.innerHTML = html;
+    cit.querySelectorAll(".kresba").forEach((k) => k.classList.add("staticke"));
+  }
+
+  /* ——— Tabulka a metry ——— */
+  const KRITERIA = [
+    ["Ghibli", { sensei: 5, heishi: 3, kasane: 2, seiji: 4, hyakki: 4 }],
+    ["Kami", { sensei: 3, heishi: 5, kasane: 2, seiji: 3, hyakki: 4 }],
+    ["Dospělost", { sensei: 3, heishi: 4, kasane: 5, seiji: 4, hyakki: 3 }],
+    ["Sedí k Partě 2", { sensei: 4, heishi: 4, kasane: 3, seiji: 5, hyakki: 2 }],
+    ["Čte se v 64 px", { sensei: 4, heishi: 2, kasane: 3, seiji: 4, hyakki: 3 }],
+    ["Dá se rozdat partě", { sensei: 5, heishi: 3, kasane: 1, seiji: 5, hyakki: 3 }],
+    ["Pracnost (víc = méně práce)", { sensei: 4, heishi: 4, kasane: 2, seiji: 3, hyakki: 1 }],
+  ];
+  const NAVRHY = [["sensei", "一", "Sensei"], ["heishi", "二", "Heishi"], ["kasane", "三", "Kasane"], ["seiji", "四", "Nebe po dešti"], ["hyakki", "五", "Noční průvod"]];
+  const tecky = (n) => `<span class="tecky" aria-label="${n} z 5">${"●".repeat(n)}<i>${"●".repeat(5 - n)}</i></span>`;
+  const tab = document.querySelector("[data-tabulka]");
+  if (tab) {
+    tab.innerHTML = `<thead><tr><th></th>${NAVRHY.map(([id, z, j]) => `<th class="${id === "seiji" ? "doporuceny" : ""}"><span lang="ja">${z}</span>${j}</th>`).join("")}</tr></thead><tbody>${KRITERIA.map(([nazev, h]) => `<tr><td>${nazev}</td>${NAVRHY.map(([id]) => `<td class="${id === "seiji" ? "doporuceny" : ""}">${tecky(h[id])}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  }
+  document.querySelectorAll("[data-metr]").forEach((el) => {
+    el.innerHTML = KRITERIA.map(([nazev, h]) => `<span>${nazev}</span>${tecky(h[el.dataset.metr])}`).join("");
+  });
+
+  /* ——— Denní doba ——— */
+  const koren = document.documentElement;
+  const posuvnik = document.querySelector(".hodiny input[type=range]");
+  const casEl = document.querySelector(".hodiny-cas");
+  const textEl = document.querySelector(".hodiny-text");
+  const predvolby = [...document.querySelectorAll(".predvolby button")];
+  const ZASTAVENI = [[7, "u hroudy spí Hlínka"], [8.5, "u hnětení řádí Bublinka"], [10, "u vody sedí Kapka"], [13, "u kruhu stojí Vázička"], [15.5, "u sušení hlídá Kachlík"], [17.5, "u police visí Cedulka"], [20, "do pece se skládá na Šamotku"], [23, "topí se v Pecince"], [5.5, "ráno po výpalu, Střípek"]];
+  const doba = (h) => (h < 4.5 ? "noc" : h < 7 ? "svítání" : h < 11 ? "dopoledne" : h < 14 ? "poledne" : h < 18 ? "odpoledne" : h < 21.3 ? "soumrak" : "noc");
+  function nastav(h) {
+    const p = paleta(h);
+    p.barvy.forEach((c, k) => koren.style.setProperty(PROMENNE[k], c));
+    koren.style.setProperty("--hvezdy", p.hvezdy.toFixed(3));
+    koren.style.setProperty("--noc", omez((p.noc - 0.15) / 0.75).toFixed(3));
+    koren.style.setProperty("--odlesk", mixBarva("#F7C79A", "#9FB3E8", omez((p.noc - 0.2) / 0.6)));
+    const ts = (h - 5.3) / (20.4 - 5.3);
+    const vyska = Math.sin(Math.PI * omez(ts));
+    koren.style.setProperty("--slunce-x", `${(6 + 88 * omez(ts)).toFixed(2)}%`);
+    koren.style.setProperty("--slunce-y", `${(90 - vyska * 74).toFixed(2)}%`);
+    koren.style.setProperty("--slunce-op", (ts < 0 || ts > 1 ? 0 : omez(vyska * 4)).toFixed(3));
+    koren.style.setProperty("--slunce-barva", mixBarva("#FF9F6B", "#FFF1C2", omez(vyska * 1.6)));
+    const tm = ((((h - 20.6) % 24) + 24) % 24) / 9;
+    const vyskaM = Math.sin(Math.PI * omez(tm));
+    koren.style.setProperty("--mesic-x", `${(90 - 80 * omez(tm)).toFixed(2)}%`);
+    koren.style.setProperty("--mesic-y", `${(80 - vyskaM * 62).toFixed(2)}%`);
+    koren.style.setProperty("--mesic-op", (tm > 1 ? 0 : omez(vyskaM * 3)).toFixed(3));
+    const blizko = ZASTAVENI.find(([hz]) => Math.abs(hz - h) < 0.75);
+    casEl.textContent = cas(h);
+    textEl.textContent = `${doba(h)}${blizko ? ` · ${blizko[1]}` : ""}`;
+    document.querySelectorAll(".jev-cas").forEach((el) => (el.textContent = `${cas(h)} · ${doba(h)}`));
+    predvolby.forEach((b) => b.setAttribute("aria-pressed", String(Math.abs(Number(b.dataset.h) - h) < 0.05)));
+  }
+  posuvnik.addEventListener("input", () => nastav(Number(posuvnik.value)));
+  predvolby.forEach((b) => b.addEventListener("click", () => { posuvnik.value = b.dataset.h; nastav(Number(b.dataset.h)); }));
+  document.querySelector(".pohyb input").addEventListener("change", (e) => document.body.classList.toggle("bez-pohybu", !e.target.checked));
+  nastav(13);
+})();
+</script>
+</body>
+</html>

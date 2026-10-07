@@ -1,0 +1,60 @@
+---
+/**
+ * Jeden kus v krámku: přihrádka regálu (u keramiky z Japonska) nebo
+ * bedna (u kusů z dílny), v ní fotka — nebo kus zabalený v novinách,
+ * dokud fotku nemá. Pod ním hrana police s páskou, na které je fixou
+ * napsané jméno, a tlačítko do šátku; z hrany visí cenovka na provázku.
+ *
+ * Kliknutím na přihrádku se kus otevře v detailu (DetailKusu.astro,
+ * scripts/obchod2/kramek.ts). `data-satek-kus` čte šátek, aby přihrádku
+ * označil, když kus leží v šátku.
+ */
+import { Image } from "astro:assets";
+import Zabaleno from "./Zabaleno.astro";
+import type { KusVKramku } from "../../data/kramek";
+import { cenovka } from "../../data/kramek";
+
+interface Props {
+  kus: KusVKramku;
+  /** Pořadí v krámku — balíky podle něj vypadají každý jinak, první fotky se načtou hned */
+  i: number;
+  /** Bedny nejsou postavené úplně rovně */
+  naklon?: number;
+}
+const { kus, i, naklon = 0 } = Astro.props;
+const foto = kus.fotky[0];
+const { castka, mena } = cenovka(kus.cena);
+---
+<article
+  class:list={["o2k-kus", `o2k-kus-${kus.odkud}`, { "o2k-kus-zabaleny": !foto }]}
+  data-kramek-kus={kus.id}
+  data-satek-kus={kus.id}
+  style={naklon ? `--naklon:${naklon}deg` : undefined}
+>
+  <button type="button" class="o2k-okno" id={`kus-${kus.id}`} data-otevri-kus={kus.id} aria-label={`${kus.nazev}, ${kus.autor}, ${kus.cena}. ${foto ? "Prohlédnout" : "Rozbalit"}`}>
+    {foto ? (
+      <Image
+        src={foto.src}
+        alt={foto.alt}
+        width={600}
+        widths={[320, 480, 600]}
+        sizes="(min-width: 1100px) 260px, (min-width: 700px) 23vw, 45vw"
+        format="webp"
+        class="o2k-foto"
+        loading={i < 4 ? "eager" : "lazy"}
+      />
+    ) : (
+      <Zabaleno tvar={kus.tvar ?? "bowl"} seme={i + 1} class="o2k-balik" />
+    )}
+    <span class="o2k-okno-pokyn" aria-hidden="true">{foto ? "Prohlédnout" : "Rozbalit"}</span>
+  </button>
+
+  <div class="o2k-hrana">
+    <span class="o2k-paska" aria-hidden="true">{kus.nazev}<small>{kus.autor}</small></span>
+    <button type="button" class="o2k-do-satku" data-satek-pridat data-satek-id={kus.id} aria-describedby={`kus-${kus.id}`}>Do šátku</button>
+  </div>
+
+  <span class="o2k-cenovka" aria-hidden="true"><span class="o2k-cenovka-listek"><b>{castka}</b>{mena && <small>{mena}</small>}</span></span>
+  {kus.novinka && <span class="o2k-pop" aria-hidden="true"><span lang="ja">新作</span>novinka</span>}
+  <span class="o2k-v-satku" data-v-satku hidden>v šátku</span>
+</article>

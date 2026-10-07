@@ -152,6 +152,7 @@ export const razitka: Razitko[] = [
 export const jineSbirky = [
   { klic: "parta2-nalezeni", celkem: 9, kde: "Parta 2", co: "schovaných kami", href: "/parta-2" },
   { klic: "kurzy2-naradi", celkem: 6, kde: "Kurzy 2", co: "kusů ztraceného nářadí", href: "/kurzy-2" },
+  { klic: "onas2-zlato", celkem: 9, kde: "O nás 2", co: "šupinek zlata na kintsugi", href: "/o-nas-2" },
 ];
 
 /* ——— Roční období ——— */

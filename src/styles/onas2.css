@@ -1,0 +1,655 @@
+/*
+ * ——— O nás 2 ———
+ *
+ * Staví na parta2.css (barvy, písmo, papír, obloha, hlavička, kami,
+ * bubliny, oznámení, dialog) a přidává, co potřebuje příběh dílny:
+ * noc s kapkou a ensō, svitek emaki odvíjený zprava doleva, dva svitky
+ * kakejiku, papír na ensō, kintsugi, skupinové foto a večerní vítání.
+ */
+
+.n2 .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.n2 .preskocit {
+  position: fixed;
+  left: 12px;
+  top: -80px;
+  z-index: 100;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--inkoust);
+  color: var(--papir) !important;
+  font-family: var(--f-display);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.n2 .preskocit:focus { top: 12px; }
+.n2 .odkaz-tlacitko {
+  display: inline;
+  color: var(--rumelka) !important;
+  font-weight: 600 !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.n2 .tlacitko:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Papír svitku: teplý, s vlákny */
+.n2 {
+  --washi: #F4ECDA;
+  --washi-vlakna: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.09' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.45 0 0 0 0 0.32 0 0 0 0.5 -0.12'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23v)'/%3E%3C/svg%3E");
+}
+
+/* ——— Začátek: kapka a ensō ——— */
+
+.pocatek { position: relative; z-index: 2; min-height: 100svh; padding: 104px 20px 60px; display: flex; flex-direction: column; justify-content: center; }
+.pocatek-mriz {
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+}
+.pocatek-tategaki {
+  position: absolute;
+  z-index: 1;
+  right: clamp(10px, 2vw, 34px);
+  top: 96px;
+  margin: 0;
+  writing-mode: vertical-rl;
+  font-family: var(--f-kanji);
+  font-size: clamp(28px, 3.2vw, 48px);
+  letter-spacing: 0.16em;
+  color: rgba(255, 251, 242, 0.8);
+  text-shadow: 0 2px 14px rgba(10, 14, 40, 0.5);
+}
+.pocatek-text { padding: clamp(26px, 3.6vw, 52px); transform: rotate(-0.6deg); }
+.pocatek-nadpis {
+  margin: 12px 0 18px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: clamp(42px, min(5.4vw, 8.4vh), 86px);
+  line-height: 0.96;
+  letter-spacing: -0.022em;
+}
+.pocatek-nadpis em { display: block; color: var(--rumelka); font-weight: 300; }
+.pocatek-perex { margin: 0 0 24px; max-width: 46ch; color: var(--inkoust-2); font-size: clamp(16px, 1.2vw, 18px); }
+.pocatek-akce { display: flex; flex-wrap: wrap; gap: 10px; }
+.pocatek-pokyn { margin: 20px 0 0; font-family: var(--f-ruka); font-size: 24px; color: var(--inkoust-2); transform: rotate(-1.4deg); }
+
+.pocatek-scena { position: relative; width: min(600px, 100%); aspect-ratio: 1; justify-self: center; }
+.pocatek-kresba { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.pocatek-kapka-roste { transform-box: fill-box; transform-origin: 50% 0; transform: scale(0.15); }
+.pocatek-kapka-pada { opacity: 0; }
+.pocatek-kruh { opacity: 0; stroke-width: 2; transform-box: fill-box; transform-origin: center; vector-effect: non-scaling-stroke; }
+.pocatek-sprsk { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; }
+.bezi .pocatek-kapka-roste { animation: n2-kapka-roste 4s ease-in infinite; }
+.bezi .pocatek-kapka-pada { animation: n2-kapka-pada 4s cubic-bezier(0.55, 0, 1, 0.6) infinite; }
+.bezi .pocatek-kruh-1 { animation: n2-kruh 4s ease-out infinite; }
+.bezi .pocatek-kruh-2 { animation: n2-kruh 4s ease-out 0.35s infinite; }
+.bezi .pocatek-kruh-3 { animation: n2-kruh 4s ease-out 0.7s infinite; }
+.bezi .pocatek-sprsk { animation: n2-sprsk 4s ease-out infinite; }
+@keyframes n2-kapka-roste { 0% { transform: scale(0.15); } 22% { transform: scale(1); } 23%, 100% { transform: scale(0.15); } }
+@keyframes n2-kapka-pada {
+  0%, 22% { opacity: 0; transform: translateY(0); }
+  23% { opacity: 1; transform: translateY(0); }
+  33.5% { opacity: 1; transform: translateY(418px); }
+  34%, 100% { opacity: 0; transform: translateY(418px); }
+}
+@keyframes n2-kruh {
+  0%, 33% { opacity: 0; transform: scale(0.04); }
+  34% { opacity: 0.95; transform: scale(0.06); }
+  75% { opacity: 0; transform: scale(1.7); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+@keyframes n2-sprsk { 0%, 33% { opacity: 0; transform: translateY(0) scale(0.4); } 36% { opacity: 1; transform: translateY(-16px) scale(1.2); } 44%, 100% { opacity: 0; transform: translateY(-4px) scale(0.6); } }
+
+.pocatek-enso {
+  position: absolute;
+  left: 50%;
+  bottom: 17%;
+  width: 52%;
+  translate: -50% 0;
+  transform-origin: 50% 100%;
+}
+/* Ležet na hladině a čekat na kapku jen tehdy, když běží skript — bez něj ensō stojí rovnou.
+   Přechod má jen vstávání, ať se po načtení nepoloží viditelně. */
+.bezi:not(.stoji) .pocatek-enso { transform: perspective(600px) rotateX(80deg) scale(0.62); opacity: 0; }
+.stoji .pocatek-enso { transition: transform 1.9s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.7s ease-out; }
+.pocatek-enso .lg { display: block; width: 100%; }
+.pocatek-enso svg { width: 100%; height: auto; display: block; }
+.pocatek-scena.bezi:not(.stoji) .pocatek-enso * { animation-play-state: paused !important; }
+.pocatek-kapka-kami { position: absolute; z-index: 3; left: 4%; bottom: 10%; width: 15%; }
+
+.pocatek-dolu {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: center;
+  margin-top: 24px;
+  color: #FFFBF2;
+  text-decoration: none;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 15px;
+  text-shadow: 0 1px 14px rgba(10, 14, 40, 0.6);
+}
+.pocatek-dolu svg { width: 14px; height: 24px; animation: dolu 2.2s ease-in-out infinite; }
+
+@media (max-width: 920px) {
+  .pocatek { padding-top: 92px; }
+  .pocatek-mriz { grid-template-columns: minmax(0, 1fr); }
+  .pocatek-tategaki { display: none; }
+  .pocatek-scena { width: min(86vw, 460px); }
+}
+
+/* ——— Svitek ——— */
+
+.svitek { position: relative; z-index: 2; }
+.svitek-kotva { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; }
+.scena-tus { width: 100%; height: auto; display: block; overflow: visible; }
+
+/* Pod sebou: úzká obrazovka a bez skriptu */
+.svitek-okno { padding: 8vh 16px; }
+.svitek-pas {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 0;
+  border-radius: 6px;
+  background: var(--washi-vlakna), var(--washi);
+  background-size: 260px 260px, auto;
+  box-shadow: 0 30px 70px -34px rgba(28, 20, 44, 0.6), inset 0 0 0 1px rgba(120, 90, 50, 0.15);
+}
+.svitek-obal { position: relative; padding: clamp(26px, 4vw, 48px); }
+.svitek-zacatek { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; align-items: center; background: linear-gradient(90deg, rgba(160, 120, 70, 0.08), transparent); }
+.svitek-titul {
+  margin: 0;
+  padding: 18px 10px;
+  writing-mode: vertical-rl;
+  font-family: var(--f-kanji);
+  font-size: clamp(30px, 3.4vw, 46px);
+  letter-spacing: 0.18em;
+  color: #1E1612;
+  background: #FFFBF0;
+  border: 1px solid rgba(120, 90, 50, 0.3);
+  box-shadow: 0 4px 10px -6px rgba(0, 0, 0, 0.3);
+}
+.svitek-zacatek-text p { margin: 0; color: var(--inkoust-2); }
+.svitek-zacatek-text .nadpis-2 { margin-bottom: 10px; }
+.svitek-pecet {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  display: grid;
+  place-items: center;
+  padding: 6px 4px;
+  border: 2px solid var(--rumelka);
+  border-radius: 4px;
+  color: var(--rumelka);
+  font-family: var(--f-kanji);
+  font-size: 15px;
+  line-height: 1.05;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+  transform: rotate(-4deg);
+}
+.svitek-konec { text-align: center; }
+.svitek-konec-text { margin: 0; font-family: var(--f-ruka); font-size: 25px; color: var(--inkoust-2); }
+.svitek-scena { position: relative; display: grid; gap: 14px; padding: clamp(18px, 3vw, 32px); border-top: 1px dashed rgba(120, 90, 50, 0.3); }
+.svitek-text { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-items: start; }
+.svitek-mesic { grid-row: span 3; margin: 0; writing-mode: vertical-rl; font-family: var(--f-kanji); font-size: clamp(34px, 4vw, 52px); line-height: 1; letter-spacing: 0.08em; color: #1E1612; }
+.svitek-mesic-cesky { margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 96; font-weight: 500; font-size: 30px; line-height: 1.05; }
+.svitek-veta { margin: 4px 0 8px; font-size: 16px; line-height: 1.55; }
+.svitek-replika { margin: 0; font-family: var(--f-ruka); font-size: 23px; line-height: 1.15; color: var(--inkoust-2); }
+.svitek-replika b { display: block; font-family: var(--f-display); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rumelka); }
+.svitek-obraz { position: relative; }
+.svitek-kami { position: absolute; z-index: 3; }
+.svitek-role,
+.svitek-ukazatel { display: none; }
+
+/* Zlato ve scénách */
+.zlato-supinka { z-index: 4; opacity: 0.9; filter: none; animation: n2-trpyt 3.4s ease-in-out infinite; }
+.zlato-supinka svg { filter: drop-shadow(0 0 3px rgba(255, 220, 130, 0.9)); }
+.zlato-supinka.nalezen { opacity: 0.35; filter: grayscale(0.4); animation: none; }
+.zlato-supinka.nalezen-ted { animation: nalezen 0.75s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes n2-trpyt { 0%, 86%, 100% { transform: rotate(var(--u, 0deg)); filter: none; } 90% { transform: rotate(calc(var(--u, 0deg) + 12deg)) scale(1.2); filter: brightness(1.25); } }
+
+/* Odvíjení zprava doleva: jen na širokém okně se skriptem */
+.svitek.vodorovne .svitek-okno {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  padding: 0;
+  overflow: hidden;
+  overflow: clip;
+  display: flex;
+  align-items: center;
+}
+.svitek.vodorovne .svitek-pas {
+  --vyska: min(70vh, 620px);
+  position: relative;
+  width: max-content;
+  height: var(--vyska);
+  margin: 6vh 0 0;
+  display: flex;
+  flex-direction: row-reverse;
+  border-radius: 0;
+  will-change: transform;
+  box-shadow: 0 30px 60px -30px rgba(10, 8, 30, 0.6), inset 0 6px 0 rgba(120, 90, 50, 0.12), inset 0 -6px 0 rgba(120, 90, 50, 0.12);
+}
+.svitek.vodorovne .svitek-obal { flex: none; height: 100%; display: flex; align-items: center; }
+.svitek.vodorovne .svitek-zacatek {
+  width: calc(var(--vyska) * 0.95);
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 30px;
+  padding: 40px 54px 40px 40px;
+  background: linear-gradient(270deg, rgba(160, 120, 70, 0.16), transparent 70%);
+  border-left: 1px dashed rgba(120, 90, 50, 0.3);
+}
+.svitek.vodorovne .svitek-konec { width: calc(var(--vyska) * 0.7); justify-content: center; padding: 40px; border-right: 1px dashed rgba(120, 90, 50, 0.3); }
+.svitek.vodorovne .svitek-scena {
+  flex: none;
+  width: calc(var(--vyska) * 2.08);
+  height: 100%;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: clamp(16px, 2.4vw, 34px);
+  padding: 4% 3%;
+  border-top: 0;
+  border-left: 1px dashed rgba(120, 90, 50, 0.22);
+}
+.svitek.vodorovne .svitek-text {
+  flex: none;
+  width: calc(var(--vyska) * 0.42);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-self: stretch;
+  align-content: center;
+}
+.svitek.vodorovne .svitek-mesic { grid-column: 2; grid-row: 1 / span 3; font-size: clamp(40px, 6vh, 64px); }
+.svitek.vodorovne .svitek-obraz { flex: 1; min-width: 0; }
+.svitek.vodorovne .svitek-scena .svitek-obraz { opacity: 0.88; transition: opacity 0.6s; }
+.svitek.vodorovne .svitek-scena.je .svitek-obraz { opacity: 1; }
+.svitek.vodorovne .svitek-role {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  display: block;
+  width: calc(14px + var(--role, 0) * 34px);
+  height: calc(min(70vh, 620px) + 26px);
+  margin-top: 3vh;
+  border-radius: 12px;
+  translate: 0 -50%;
+  background: linear-gradient(90deg, #8A6A3E, #E9DCC0 22%, #FFF8E8 48%, #D9C7A0 72%, #6E5236);
+  box-shadow: 0 16px 26px -12px rgba(10, 8, 30, 0.6);
+  pointer-events: none;
+}
+.svitek.vodorovne .svitek-role::before,
+.svitek.vodorovne .svitek-role::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 26px;
+  height: 18px;
+  margin-left: -13px;
+  border-radius: 6px;
+  background: radial-gradient(ellipse at 40% 35%, #6E5236, #2B1E14 75%);
+}
+.svitek.vodorovne .svitek-role::before { top: -14px; }
+.svitek.vodorovne .svitek-role::after { bottom: -14px; }
+.svitek.vodorovne .svitek-role-vlevo { left: 0; }
+.svitek.vodorovne .svitek-role-vpravo { right: 0; }
+.svitek.vodorovne .svitek-ukazatel {
+  position: absolute;
+  left: 50%;
+  bottom: 4vh;
+  display: block;
+  width: min(320px, 50vw);
+  height: 2px;
+  margin: 0;
+  translate: -50% 0;
+  background: rgba(255, 251, 242, 0.35);
+  border-radius: 2px;
+}
+.svitek.vodorovne .svitek-ukazatel span {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--p, 0) * 100%);
+  width: 10px;
+  height: 10px;
+  margin: -5px -5px 0 0;
+  border-radius: 50%;
+  background: #FFFBF2;
+  box-shadow: 0 0 10px rgba(255, 240, 200, 0.9);
+}
+
+/* ——— Dva rukopisy ——— */
+
+@property --rozvin {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 100%;
+}
+.rukopisy { position: relative; z-index: 2; padding: 12vh 20px 10vh; }
+.rukopisy-hlava { width: min(820px, 100%); margin: 0 auto 34px; text-align: center; }
+.rukopisy-svetly { color: #FFFBF2; text-shadow: 0 2px 18px rgba(20, 16, 50, 0.5); }
+.rukopisy-perex { margin: 0 auto; max-width: 58ch; color: rgba(255, 251, 242, 0.9); text-shadow: 0 1px 12px rgba(20, 16, 50, 0.55); }
+.rukopisy-rada { width: min(1000px, 100%); margin: 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(24px, 5vw, 70px); align-items: start; }
+.kakejiku { position: relative; --rozvin: 100%; padding-top: 18px; }
+.kakejiku-1 { margin-top: 60px; }
+.kakejiku-tyc {
+  position: absolute;
+  z-index: 2;
+  left: -4%;
+  right: -4%;
+  top: 4px;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(#8A6A48, #4E3824);
+  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.4);
+}
+.kakejiku-tyc::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 60%;
+  height: 34px;
+  translate: -50% 0;
+  border: 2px solid #8A6A48;
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0;
+}
+.kakejiku-latka {
+  position: relative;
+  padding: 18px 16px 30px;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 6px, transparent 6px 12px),
+    linear-gradient(#5E6B4E, #4A5640);
+  box-shadow: 0 30px 60px -30px rgba(10, 8, 30, 0.7);
+  clip-path: inset(0 0 calc(100% - var(--rozvin)) 0);
+}
+.kakejiku-1 .kakejiku-latka { background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 6px, transparent 6px 12px), linear-gradient(#6E4E5A, #573C47); }
+.kakejiku-papir {
+  position: relative;
+  padding: clamp(18px, 2.6vw, 30px);
+  background: var(--washi-vlakna), #F8F1E1;
+  background-size: 260px 260px, auto;
+  box-shadow: inset 0 0 0 4px #C9A86A;
+}
+.kakejiku-foto { margin: 0 0 16px; aspect-ratio: 4 / 4.4; overflow: hidden; border-radius: 2px; box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.45); }
+.kakejiku-foto img { width: 100%; height: 100%; object-fit: cover; display: block; filter: sepia(0.12) saturate(0.92); }
+.kakejiku-jmeno { margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144; font-weight: 500; font-size: clamp(38px, 4vw, 54px); line-height: 0.95; letter-spacing: -0.02em; }
+.kakejiku-role { margin: 6px 0 12px; font-size: 14px; letter-spacing: 0.04em; color: var(--inkoust-3); }
+.kakejiku-role [lang="ja"] { font-family: var(--f-kanji); font-size: 17px; color: var(--rumelka); }
+.kakejiku-bio { margin: 0 0 12px; font-size: 15.5px; line-height: 1.6; }
+.kakejiku-vede { margin: 0; font-family: var(--f-ruka); font-size: 22px; color: var(--inkoust-2); }
+.kakejiku-vede a { font-family: var(--f-display); font-size: 15px; font-weight: 600; color: var(--rumelka); }
+.kakejiku-pecet { position: absolute; right: 16px; bottom: 16px; display: grid; place-items: center; width: 40px; height: 40px; border: 2px solid var(--rumelka); border-radius: 5px; color: var(--rumelka); font-family: var(--f-kanji); font-size: 24px; transform: rotate(-6deg); opacity: 0.85; }
+.kakejiku-valec {
+  position: absolute;
+  z-index: 2;
+  left: -6%;
+  right: -6%;
+  top: calc(18px + var(--rozvin));
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 9px;
+  background: linear-gradient(#5E412A, #2B1E14);
+  box-shadow: 0 8px 12px -4px rgba(0, 0, 0, 0.45);
+}
+.kakejiku-valec::before,
+.kakejiku-valec::after { content: ""; position: absolute; top: -3px; width: 20px; height: 24px; border-radius: 6px; background: #1E1612; }
+.kakejiku-valec::before { left: -8px; }
+.kakejiku-valec::after { right: -8px; }
+.rukopisy.ceka .kakejiku:not(.rozvinuto) { --rozvin: 0%; }
+.rukopisy.ceka .kakejiku { transition: --rozvin 1.6s cubic-bezier(0.45, 0, 0.25, 1); }
+.rukopisy-podpis { display: block; width: min(420px, 90%); height: auto; margin: 34px auto 0; }
+.rukopisy-podpis text { font-family: var(--f-ruka); font-size: 46px; fill: #FFE9C8; }
+@media (max-width: 760px) {
+  .rukopisy-rada { grid-template-columns: minmax(0, 1fr); }
+  .kakejiku-1 { margin-top: 0; }
+}
+
+/* ——— Ensō ——— */
+
+.enso-sekce { position: relative; z-index: 2; padding: 10vh 20px; }
+.enso-papir { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+.enso-text .nadpis-2 em { display: block; color: var(--rumelka); font-weight: 300; }
+.enso-pristup { margin: 0 0 14px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 36; font-size: 19px; line-height: 1.45; }
+.enso-vysvetleni { margin: 0 0 18px; color: var(--inkoust-2); }
+.enso-znacka { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 16px; background: var(--papir-2); }
+.enso-znacka p { margin: 0; font-size: 15px; color: var(--inkoust-2); }
+.enso-znacka .lg { flex: none; }
+.enso-kreslici { display: grid; gap: 14px; justify-items: center; }
+.enso-papirek {
+  position: relative;
+  width: min(440px, 100%);
+  aspect-ratio: 1;
+  border-radius: 6px;
+  box-shadow: 0 24px 40px -24px rgba(28, 20, 44, 0.55), 0 0 0 1px rgba(120, 90, 50, 0.18);
+  transform: rotate(0.8deg);
+}
+.enso-platno { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 6px; touch-action: none; cursor: crosshair; background: #FBF6EA; }
+.enso-pokyn {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  text-align: center;
+  font-family: var(--f-ruka);
+  font-size: 30px;
+  line-height: 1.1;
+  color: rgba(58, 46, 40, 0.42);
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.enso-pokyn.pryc { opacity: 0; }
+.enso-pecet {
+  position: absolute;
+  right: 6%;
+  bottom: 7%;
+  display: grid;
+  place-items: center;
+  padding: 5px 3px;
+  border: 2px solid var(--rumelka);
+  border-radius: 4px;
+  color: var(--rumelka);
+  font-family: var(--f-kanji);
+  font-size: 15px;
+  line-height: 1.05;
+  writing-mode: vertical-rl;
+  opacity: 0.85;
+  transform: rotate(-4deg);
+  pointer-events: none;
+}
+.enso-odpoved-misto { width: min(440px, 100%); }
+.enso-odpoved { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: center; }
+.enso-odpoved.nova { animation: n2-odpoved 0.45s cubic-bezier(0.3, 1.4, 0.5, 1); }
+@keyframes n2-odpoved { from { opacity: 0; transform: translateY(8px); } }
+.enso-odpoved-kami svg { width: 84px; height: auto; display: block; }
+.enso-odpoved-text { position: relative; margin: 0; padding: 12px 16px; border-radius: 16px; background: #FFFDF6; box-shadow: 0 10px 20px -12px rgba(28, 20, 44, 0.45); font-family: var(--f-ruka); font-size: 23px; line-height: 1.15; }
+.enso-odpoved-jmeno { display: block; font-family: var(--f-display); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rumelka); }
+.enso-akce { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.enso-akce [aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
+.enso-noscript { margin: 0; color: var(--inkoust-3); }
+@media (max-width: 860px) {
+  .enso-papir { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ——— Kintsugi ——— */
+
+.kintsugi-sekce { position: relative; z-index: 2; padding: 10vh 20px; }
+.kintsugi-mriz { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+.kintsugi-miska { position: relative; }
+.kintsugi-miska svg { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(0 30px 40px rgba(5, 5, 20, 0.5)); }
+.ks-spara-zlato,
+.ks-spara-svit { opacity: 0; transition: opacity 0.8s; }
+.ks-spara.je .ks-spara-zlato { opacity: 1; }
+.ks-spara.je .ks-spara-svit { opacity: 0.7; }
+.ks-spara.je { filter: drop-shadow(0 0 4px rgba(255, 210, 110, 0.75)); }
+.ks-lesk { opacity: 0; }
+.zalito .ks-lesk { animation: n2-lesk 1.8s ease-in-out; }
+@keyframes n2-lesk { 0% { opacity: 0; transform: skewX(-18deg) translateX(0); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: skewX(-18deg) translateX(620px); } }
+.zalito .ks-spara-svit { animation: n2-svit 1.8s ease-in-out; }
+@keyframes n2-svit { 50% { opacity: 1; stroke-width: 2.4; } }
+.kintsugi-stripek { position: absolute; z-index: 3; right: 2%; bottom: 4%; width: 18%; }
+.kintsugi-text { padding: clamp(24px, 3vw, 40px); }
+.kintsugi-perex { margin: 0 0 14px; }
+.kintsugi-kroky li { color: var(--inkoust-2); }
+.cela .kintsugi-kroky li,
+.kintsugi-mriz:has(.cela) .kintsugi-kroky li { color: var(--inkoust); }
+.kintsugi-dilna { margin: 0 0 14px; font-family: var(--f-ruka); font-size: 23px; line-height: 1.15; color: var(--inkoust-2); }
+.kintsugi-stav { margin: 0 0 14px; padding: 10px 14px; border-radius: 14px; background: var(--papir-2); font-size: 15px; }
+.kintsugi-stav b { font-family: var(--f-display); font-size: 19px; }
+.kintsugi-akce { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+@media (max-width: 860px) {
+  .kintsugi-mriz { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ——— Skupinové foto ——— */
+
+.foto-sekce { position: relative; z-index: 2; padding: 10vh 20px; }
+.foto-papir { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(20px, 3vw, 44px); align-items: center; }
+.foto-text p { color: var(--inkoust-2); }
+.foto-akce { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 16px; }
+.foto-odkaz { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 15px; color: var(--rumelka); text-decoration: none; }
+.foto-odkaz:hover { text-decoration: underline; text-underline-offset: 3px; }
+.foto-scena {
+  position: relative;
+  overflow: hidden;
+  padding: 26px 18px 18px;
+  border-radius: 18px;
+  background:
+    linear-gradient(to bottom, transparent 64%, #B49A70 64%, #9A7F56 100%),
+    linear-gradient(#EDE2CC, #E2D3B6);
+  box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.08);
+}
+.foto-skupina { position: relative; display: grid; justify-items: center; }
+.foto-rada { display: flex; justify-content: center; align-items: flex-end; gap: 2%; width: 100%; }
+.foto-rada-vzadu { width: 78%; margin-bottom: -4%; }
+.foto-kami { width: 17%; }
+.foto-rada-vzadu .foto-kami { width: 21%; }
+.foto-cedule {
+  position: relative;
+  margin: 10px 0 0;
+  padding: 6px 18px;
+  border-radius: 4px;
+  background: #FFFDF6;
+  box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.35), inset 0 0 0 2px #2B2420;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+}
+.foto-cedule [lang="ja"] { font-family: var(--f-kanji); font-weight: 400; color: var(--rumelka); margin-right: 4px; }
+.foto-odpocet {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(60px, 9vw, 120px);
+  color: #FFFDF6;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.foto-odpocet[lang="ja"] { font-family: var(--f-kanji); font-weight: 400; font-size: clamp(36px, 5vw, 64px); }
+.foto-odpocet.ted { animation: n2-odpocet 0.6s ease-out; }
+@keyframes n2-odpocet { from { transform: scale(1.6); opacity: 0; } 30% { opacity: 1; } }
+.foto-blesk { position: absolute; inset: 0; z-index: 6; background: #FFFFFF; opacity: 0; pointer-events: none; }
+.blesk .foto-blesk { animation: n2-blesk 0.7s ease-out; }
+@keyframes n2-blesk { 0% { opacity: 0; } 8% { opacity: 1; } 100% { opacity: 0; } }
+
+.foto-vysledek { grid-column: 1 / -1; justify-self: center; margin: 10px 0 0; text-align: center; }
+.foto-vysledek.vyjizdi { animation: n2-vyjizdi 0.9s cubic-bezier(0.2, 0.9, 0.3, 1); }
+@keyframes n2-vyjizdi { from { transform: translateY(-40px) rotate(-6deg) scale(0.85); opacity: 0; } }
+.foto-papirek {
+  position: relative;
+  width: min(520px, 90vw);
+  padding: 14px 14px 18px;
+  background: #FFFFFF;
+  box-shadow: 0 20px 40px -18px rgba(10, 8, 30, 0.6);
+  transform: rotate(-1.6deg);
+}
+.foto-snimek {
+  padding: 18px 12px 12px;
+  background: linear-gradient(to bottom, transparent 64%, #B49A70 64%, #9A7F56 100%), linear-gradient(#EDE2CC, #E2D3B6);
+  filter: sepia(0.28) saturate(1.15) contrast(1.04);
+}
+.foto-snimek .kami { pointer-events: none; rotate: var(--nakrivo, 0deg); }
+.foto-snimek .kami.utekla { visibility: hidden; }
+.foto-snimek .kami.rozmazana { filter: blur(2.5px); transform: translateY(-14%); }
+.foto-snimek .kami.mrk .tvar > ellipse { transform-box: fill-box; transform-origin: center; transform: scaleY(0.12); }
+.foto-snimek .kami.mrk .tvar > circle { opacity: 0; }
+.foto-datum {
+  position: absolute;
+  right: 26px;
+  bottom: 30px;
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  color: #FF8A2B;
+  text-shadow: 0 0 6px rgba(255, 138, 43, 0.75);
+}
+.foto-popisek { margin: 14px 0 0; font-family: var(--f-ruka); font-size: 25px; color: var(--inkoust-2); }
+@media (max-width: 860px) {
+  .foto-papir { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ——— Všichni jste vítáni ——— */
+
+.vitani { position: relative; z-index: 2; padding: 12vh 20px 14vh; }
+.vitani-mriz { width: min(1080px, 100%); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+.vitani-foto { position: relative; margin: 0; padding: 12px 12px 16px; background: #FFFDF6; box-shadow: 0 30px 60px -30px rgba(10, 8, 30, 0.7); transform: rotate(-2deg); }
+.vitani-foto img { width: 100%; height: auto; display: block; filter: brightness(0.94) sepia(0.12); }
+.vitani-foto figcaption { margin-top: 10px; font-family: var(--f-ruka); font-size: 22px; text-align: center; color: var(--inkoust-2); }
+.vitani-paska { position: absolute; left: 50%; top: -12px; width: 120px; height: 26px; translate: -50% 0; background: rgba(214, 162, 58, 0.55); transform: rotate(3deg); }
+.vitani-karta { position: relative; text-align: center; }
+.vitani-kami { width: 96px; margin: -78px auto 6px; }
+.vitani-text { margin: 0 auto 18px; max-width: 42ch; font-size: 17px; color: var(--inkoust-2); }
+.vitani-akce { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.vitani-adresa { margin: 18px 0 0; font-size: 15px; color: var(--inkoust-2); }
+.vitani-dal { margin: 12px 0 0; font-size: 15px; color: var(--inkoust-3); }
+.vitani-zlato { margin: 12px 0 0; font-family: var(--f-ruka); font-size: 23px; }
+.vitani-zlato .odkaz-tlacitko { font-family: var(--f-text); font-size: 15px; }
+@media (max-width: 860px) {
+  .vitani-mriz { grid-template-columns: minmax(0, 1fr); }
+  .vitani-foto { width: min(420px, 100%); justify-self: center; }
+}
+
+/* ——— Sešit zlata ——— */
+
+.zlato-seznam .omamori-obr { width: 54px; }
+.zlato-pata-akce { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ——— Méně pohybu ——— */
+
+@media (prefers-reduced-motion: reduce) {
+  .bezi .pocatek-kapka-roste,
+  .bezi .pocatek-kapka-pada,
+  .bezi .pocatek-kruh,
+  .bezi .pocatek-sprsk,
+  .pocatek-dolu svg,
+  .zlato-supinka,
+  .zalito .ks-lesk,
+  .foto-vysledek.vyjizdi { animation: none !important; }
+  .stoji .pocatek-enso { transition: none; }
+  .rukopisy.ceka .kakejiku { transition: none; }
+}

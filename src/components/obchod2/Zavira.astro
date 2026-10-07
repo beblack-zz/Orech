@@ -1,0 +1,46 @@
+---
+/**
+ * Večer: obchod zavírá. Tatáž dílna z ulice jako na Úvodu 2 (Fasada),
+ * jen v noci — výloha svítí, na dveřích visí 準備中. U dveří stojí
+ * keramický tanuki pro štěstí, jako před obchody v Japonsku.
+ */
+import Fasada from "../uvod2/Fasada.astro";
+import Tanuki from "./Tanuki.astro";
+import Kami from "../parta2/Kami.astro";
+import { kontakt, mapa } from "../../data/uvod2";
+import { sezonaMesice } from "../../data/uvod2";
+
+const sezona = sezonaMesice(new Date().getMonth() + 1);
+---
+<section class="o2-noc" id="zavira" data-hodina="21.8" aria-labelledby="zavira-nadpis">
+  <div class="o2-noc-scena" data-sezona={sezona}>
+    <Fasada noc listekObchod={false} class="o2-noc-fasada" />
+    <div class="o2-noc-tanuki" aria-hidden="true"><Tanuki velky /></div>
+    <svg class="o2-lucerna" viewBox="0 0 80 150" aria-hidden="true">
+      <path d="M40 0 V24" stroke="#2B2420" stroke-width="2" />
+      <rect x="26" y="22" width="28" height="7" rx="2" fill="#2B2420" />
+      <ellipse cx="40" cy="70" rx="30" ry="40" fill="#FFB55A" />
+      <ellipse cx="40" cy="66" rx="17" ry="25" fill="#FFE7A8" opacity="0.8" />
+      <path d="M12 52 H68 M10 70 H70 M12 88 H68" stroke="#C4432B" stroke-width="1.4" opacity="0.45" />
+      <text x="40" y="79" text-anchor="middle" font-size="26" font-family="Yuji Syuku, Yu Mincho, serif" fill="#2B2420">器</text>
+      <rect x="26" y="108" width="28" height="7" rx="2" fill="#2B2420" />
+      <path d="M40 115 V140" stroke="#C4432B" stroke-width="3.4" stroke-linecap="round" />
+    </svg>
+  </div>
+
+  <div class="o2-noc-karta papir">
+    <Kami id="cedulka" class="o2-noc-kami" />
+    <p class="stitek">Obchod zavírá</p>
+    <h2 id="zavira-nadpis" class="nadpis-2">Tanuki hlídá do rána.</h2>
+    <p class="o2-noc-text">Šátek ti tu necháme, i když stránku zavřeš. A s otázkami se klidně ozvi — napiš nebo zavolej.</p>
+    <div class="o2-noc-akce">
+      <a class="tlacitko" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+      <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+    </div>
+    <p class="o2-noc-adresa">
+      {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
+      <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
+    </p>
+    <p class="o2-noc-dal"><a href="/kurzy-2">Kurzy</a> · <a href="/uvod-2">Úvod</a> · <a href="/o-nas-2">O nás</a></p>
+  </div>
+</section>

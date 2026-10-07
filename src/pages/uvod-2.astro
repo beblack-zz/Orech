@@ -16,6 +16,7 @@
  * z dat (kurzy.ts, obchod.ts, parta.ts, kurzy2.ts, uvod2.ts).
  */
 import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
 import "@fontsource-variable/fraunces/full-italic.css";
 import "@fontsource-variable/newsreader";
 import "@fontsource-variable/newsreader/opsz-italic.css";
@@ -69,8 +70,9 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
   </head>
-  <body class="p2 u2">
+  <body class="p2 u2" data-stranka="uvod-2">
     <a class="preskocit" href="#prohlidka">Přeskočit na prohlídku dílny</a>
     <Nebe />
     <Hlavicka sber="razitka" />

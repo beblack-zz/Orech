@@ -1,0 +1,40 @@
+---
+/**
+ * Konec O nás 2: všichni jste vítáni. Večer, v okně se svítí, a vedle
+ * kuchyňka, kde se staví na kafe — fotka ze staré stránky O nás.
+ * Adresa a otevírací doba jsou odtamtud (onas2.ts, uvod2.ts).
+ */
+import { Image } from "astro:assets";
+import kuchynka from "../../images/o-nas-kuchynka.webp";
+import Kami from "../parta2/Kami.astro";
+import { kontakt, mapa, oDilne } from "../../data/uvod2";
+import { oNasTexty, zlato } from "../../data/onas2";
+---
+<section class="vitani" id="kontakt" data-hodina="22.4" aria-labelledby="vitani-nadpis">
+  <div class="vitani-mriz">
+    <figure class="vitani-foto">
+      <span class="vitani-paska" aria-hidden="true"></span>
+      <Image src={kuchynka} alt="Kuchyňka v dílně JIRO saku s keramikou na polici" width={760} widths={[380, 560, 760]} sizes="(min-width: 900px) 380px, 80vw" format="webp" />
+      <figcaption>Kuchyňka. Tady se staví na kafe.</figcaption>
+    </figure>
+    <div class="vitani-karta papir">
+      <Kami id="kapka" class="vitani-kami" />
+      <p class="stitek">{oDilne.vitani}</p>
+      <h2 id="vitani-nadpis" class="nadpis-2">{oDilne.kafe}</h2>
+      <p class="vitani-text">{oNasTexty.adresa}<br />{oNasTexty.oteviraci}</p>
+      <div class="vitani-akce">
+        <a class="tlacitko" href={`mailto:${kontakt.email}`}>Napsat nám</a>
+        <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+      </div>
+      <p class="vitani-adresa">
+        {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
+        <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
+      </p>
+      <p class="vitani-dal"><a href="/rezervace">Rezervovat hodinu</a> · <a href="/kurzy-2">Kurzy</a> · <a href="/obchod-2">Obchod</a></p>
+      <p class="vitani-zlato">
+        Zlata nalezeno <b data-sbirka-pocet>0</b> z {zlato.length}.
+        <button type="button" class="odkaz-tlacitko" data-sbirka-otevrit>Otevřít misku</button>
+      </p>
+    </div>
+  </div>
+</section>

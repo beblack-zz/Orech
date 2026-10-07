@@ -1,0 +1,35 @@
+/*
+ * Slovní značka JIRO saku — písmo Zodiak (Indian Type Foundry, Fontshare,
+ * ITF Free Font License: zdarma i komerčně). Hostované u nás, jen dva
+ * řezy, které značka potřebuje: tučné JIRO a kurzíva saku.
+ *
+ * Použití: <span class="znacka">JIRO <em>saku</em></span>
+ * Barvu kurzívy si nastavuje každé místo samo.
+ */
+@font-face {
+  font-family: "Zodiak";
+  src: url("/fonts/zodiak/zodiak-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zodiak";
+  src: url("/fonts/zodiak/zodiak-400-italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+.znacka {
+  font-family: "Zodiak", Georgia, serif;
+  font-weight: 700;
+  font-style: normal;
+  font-variation-settings: normal;
+  letter-spacing: 0.03em;
+}
+.znacka em {
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0;
+}

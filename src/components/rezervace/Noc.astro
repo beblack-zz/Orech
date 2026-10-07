@@ -1,0 +1,34 @@
+---
+/**
+ * Noc na konci Rezervace (終電 — poslední vlak). Vlak se po moři vrací
+ * k nástupišti s rozsvícenými okny (More.astro, more.ts) a pod kartou
+ * je pro něj volné místo, ať je vidět celý. Na kartě poslední odeslaná
+ * jízdenka (dopisuje skript z prohlížeče), kontakt pro ty, kdo radši
+ * volají.
+ */
+import { kontakt, mapa } from "../../data/uvod2";
+---
+<section class="rz-noc" id="rz-noc" data-hodina="22.6" aria-labelledby="rz-noc-nadpis">
+  <div class="rz-noc-karta papir">
+    <p class="stitek"><span lang="ja">終電</span> · poslední vlak</p>
+    <h2 id="rz-noc-nadpis" class="nadpis-2">Jízdenka počká do rána.</h2>
+    <div class="rz-posledni" hidden>
+      <p class="rz-posledni-nadpis">Naposledy odeslaná jízdenka</p>
+      <p class="rz-posledni-text"></p>
+      <p class="rz-posledni-pozn">Platí, až ji potvrdíme. Kdyby odpověď dlouho nepřicházela, ozvi se.</p>
+    </div>
+    <p class="rz-noc-text">Radši zavoláš, nebo napíšeš rovnou? Taky dobře.</p>
+    <div class="rz-noc-akce">
+      <a class="tlacitko" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+      <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+    </div>
+    <p class="rz-noc-adresa">
+      {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
+      <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
+    </p>
+    <p class="rz-noc-dal">
+      <a href="/kurzy-2">Kurzy</a> · <a href="/open-studio">Open studio</a> · <a href="/uvod-2">Úvod</a>
+    </p>
+  </div>
+  <p class="rz-noc-popisek" aria-hidden="true">Vlak jezdí jen jedním směrem — do dílny.</p>
+</section>

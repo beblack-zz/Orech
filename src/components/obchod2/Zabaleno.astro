@@ -1,0 +1,158 @@
+---
+/**
+ * Kus zabalený v novinách, jak se v Japonsku keramika nosí z obchodu:
+ * papír stažený nahoře do chomáčku a převázaný provázkem. V krámku tak
+ * stojí kusy z dílny, které ještě nemají fotku — podle tvaru je poznat,
+ * co v balíku je (miska, hrnek s uchem, váza, talíř).
+ *
+ * Noviny jsou jen kresba: sloupce řádků, titulek a fotka. `seme` určuje,
+ * jak řádky a titulek padnou, aby každý balík vypadal trochu jinak.
+ */
+import type { Tvar } from "../../data/obchod";
+import { nahoda } from "../parta2/tvary";
+
+interface Props {
+  tvar: Tvar;
+  seme: number;
+  /** Sláma kolem, jako v bedně */
+  slama?: boolean;
+  class?: string;
+}
+const { tvar, seme, slama = true, class: cls = "" } = Astro.props;
+const r = nahoda(seme * 7 + 3);
+const f = (n: number) => Math.round(n * 10) / 10;
+const id = `zab-${seme}-${tvar}`;
+
+/* Tělo balíku, krček (kde je provázek) a chomáček papíru nad ním */
+const TVARY: Record<Tvar, { telo: string; krk: number; vrsek?: string; sirka: number }> = {
+  bowl: {
+    telo: "M36 170 C28 150 32 120 58 105 C72 97 86 95 100 95 C114 95 128 97 142 105 C168 120 172 150 164 170 Q100 177 36 170 Z",
+    krk: 96,
+    vrsek: "M89 98 C82 88 70 84 66 74 C74 75 79 69 82 62 C87 69 92 63 96 56 C100 64 106 59 111 61 C113 69 121 70 128 68 C125 79 117 88 111 98 Z",
+    sirka: 70,
+  },
+  mug: {
+    telo: "M50 170 C44 142 44 112 60 94 C72 85 86 83 100 83 C114 83 126 85 136 92 C144 99 147 106 148 113 C162 112 168 126 162 140 C158 149 151 151 147 153 C147 161 147 166 145 170 Q100 177 50 170 Z",
+    krk: 84,
+    vrsek: "M90 86 C84 75 73 71 72 60 C80 62 85 56 88 49 C93 57 97 51 102 44 C105 52 110 48 115 50 C116 58 124 61 130 58 C126 69 118 77 111 86 Z",
+    sirka: 62,
+  },
+  vase: {
+    telo: "M62 171 C53 146 56 120 69 104 C76 95 82 88 84 76 C86 68 90 63 100 63 C110 63 114 68 116 76 C118 88 124 95 131 104 C144 120 147 146 138 171 Q100 177 62 171 Z",
+    krk: 65,
+    vrsek: "M91 66 C85 54 77 50 77 39 C85 41 90 35 93 28 C98 36 101 30 105 23 C108 31 112 28 117 30 C117 39 123 43 128 41 C122 51 114 59 109 66 Z",
+    sirka: 50,
+  },
+  plate: {
+    telo: "M16 170 C12 142 40 120 100 118 C160 120 188 142 184 170 Q100 180 16 170 Z",
+    krk: 0,
+    sirka: 88,
+  },
+};
+const t = TVARY[tvar];
+
+/* Noviny: sloupce řádků, mezi nimi mezery, sem tam titulek a fotka */
+const TITULKY = ["窯出し", "晴天", "陶器市", "新米", "祭り", "満月"];
+const titulek = TITULKY[Math.floor(r() * TITULKY.length)];
+const sklon = f((r() - 0.5) * 9);
+const radky: { x: number; y: number; w: number }[] = [];
+const titX = 46 + r() * 56;
+const titY = 112 + r() * 26;
+const fotX = r() > 0.5 ? 120 + r() * 20 : 34 + r() * 16;
+const fotY = 128 + r() * 18;
+for (let y = 20; y < 178; y += 6.6) {
+  for (const [od, doX] of [[10, 66], [72, 128], [134, 192]]) {
+    let x = od + r() * 4;
+    while (x < doX - 6) {
+      const w = Math.min(doX - x, 8 + r() * 26);
+      const vTitulku = x + w > titX - 4 && x < titX + 52 && y > titY - 18 && y < titY + 5;
+      const veFotce = x + w > fotX - 3 && x < fotX + 34 && y > fotY - 3 && y < fotY + 25;
+      if (!vTitulku && !veFotce) radky.push({ x: f(x), y: f(y), w: f(w) });
+      x += w + 3 + r() * 3;
+    }
+  }
+}
+
+/* Záhyby od krčku dolů, jak se papír stahuje */
+const zahyby =
+  tvar === "plate"
+    ? ["M100 120 C96 136 84 152 70 172", "M100 120 C108 138 124 154 140 172", "M60 128 C58 144 50 158 40 170", "M140 128 C144 144 152 158 162 170"]
+    : [
+        `M${100 - 6} ${t.krk + 2} C${96 - t.sirka * 0.1} ${t.krk + 26} ${100 - t.sirka * 0.5} ${t.krk + 52} ${100 - t.sirka * 0.6} 170`,
+        `M${100 + 6} ${t.krk + 2} C${104 + t.sirka * 0.12} ${t.krk + 28} ${100 + t.sirka * 0.45} ${t.krk + 54} ${100 + t.sirka * 0.55} 170`,
+        `M${100 - 10} ${t.krk + 3} C${100 - t.sirka * 0.6} ${t.krk + 14} ${100 - t.sirka * 0.95} ${t.krk + 32} ${100 - t.sirka * 1.05} ${t.krk + 58}`,
+        `M${100 + 10} ${t.krk + 3} C${100 + t.sirka * 0.62} ${t.krk + 16} ${100 + t.sirka * 0.95} ${t.krk + 34} ${100 + t.sirka * 1.04} ${t.krk + 60}`,
+        `M100 ${t.krk + 4} C${101} ${t.krk + 30} ${99} ${t.krk + 52} ${100 + (r() - 0.5) * 10} 172`,
+      ];
+
+/* Sláma: krátká stébla kolem dna */
+const stebla = slama
+  ? Array.from({ length: 46 }, () => {
+      const x = 6 + r() * 188;
+      const y = 164 + r() * 30;
+      const u = (r() - 0.5) * 2.4;
+      const d = 10 + r() * 22;
+      return { d: `M${f(x)} ${f(y)} l${f(Math.cos(u) * d)} ${f(Math.sin(u) * d * 0.5 - 2)}`, c: ["#E4C57E", "#CDA453", "#F2DEA2", "#B98F42"][Math.floor(r() * 4)], w: f(1.3 + r() * 1.2) };
+    })
+  : [];
+---
+<svg class={`zabaleno ${cls}`} viewBox="0 0 200 200" aria-hidden="true">
+  <defs>
+    <clipPath id={`${id}-telo`}><path d={t.telo} /></clipPath>
+    <radialGradient id={`${id}-stin`} cx="0.36" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="#F4EEDF" />
+      <stop offset="0.65" stop-color="#E4DCC8" />
+      <stop offset="1" stop-color="#C9BEA6" />
+    </radialGradient>
+  </defs>
+
+  {slama && stebla.slice(0, 20).map((s) => <path d={s.d} stroke={s.c} stroke-width={s.w} stroke-linecap="round" />)}
+  <ellipse cx="100" cy="171" rx={tvar === "plate" ? 86 : t.sirka + 6} ry="7" fill="#2B2420" opacity="0.22" />
+
+  {/* Tělo: papír, noviny, záhyby */}
+  <path d={t.telo} fill={`url(#${id}-stin)`} />
+  <g clip-path={`url(#${id}-telo)`}>
+    <g transform={`rotate(${sklon} 100 130)`} fill="#8C8273" opacity="0.42">
+      {radky.map((l) => <rect x={l.x} y={l.y} width={l.w} height="2.1" rx="0.6" />)}
+      <rect x={f(fotX)} y={f(fotY)} width="32" height="22" fill="#A99F8D" opacity="0.9" />
+      <path d={`M${f(fotX + 4)} ${f(fotY + 19)} l8 -9 l6 6 l5 -4 l7 7 Z`} fill="#6E6556" opacity="0.8" />
+      <text x={f(titX)} y={f(titY)} font-size="15" font-weight="700" fill="#2E2822" opacity="1.6" font-family="'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif">{titulek}</text>
+      <rect x="10" y={f(titY + 3)} width="180" height="0.8" fill="#2E2822" opacity="0.6" />
+    </g>
+    <g fill="none" stroke-linecap="round">
+      {zahyby.map((d) => <path d={d} stroke="#9F947F" stroke-width="2.2" opacity="0.45" />)}
+      {zahyby.map((d) => <path d={d} stroke="#FBF7EC" stroke-width="1.1" opacity="0.7" transform="translate(2.2 0)" />)}
+    </g>
+    <path d={t.telo} fill="none" stroke="#2B2420" stroke-opacity="0.12" stroke-width="6" transform="translate(3 4)" />
+  </g>
+  <path d={t.telo} fill="none" stroke="#8F846F" stroke-width="1.2" stroke-opacity="0.55" />
+
+  {/* Chomáček nahoře a provázek */}
+  {t.vrsek && (
+    <>
+      <path d={t.vrsek} fill="#EDE6D4" stroke="#8F846F" stroke-width="1.1" stroke-opacity="0.55" stroke-linejoin="round" />
+      <path d={`M${100 - 7} ${t.krk + 1} C96 ${t.krk - 12} 94 ${t.krk - 24} 90 ${t.krk - 30} M100 ${t.krk} C101 ${t.krk - 14} 102 ${t.krk - 28} 103 ${t.krk - 36} M${100 + 7} ${t.krk + 1} C108 ${t.krk - 12} 112 ${t.krk - 22} 117 ${t.krk - 28}`} fill="none" stroke="#B7AC95" stroke-width="1.3" stroke-linecap="round" />
+      <path d={`M${100 - 13} ${t.krk + 1} Q100 ${t.krk + 7} ${100 + 13} ${t.krk + 1}`} fill="none" stroke="#9A7445" stroke-width="3.4" stroke-linecap="round" />
+      <path d={`M${100 - 13} ${t.krk + 1} Q100 ${t.krk + 7} ${100 + 13} ${t.krk + 1}`} fill="none" stroke="#C9A066" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.4 1.6" />
+      <g fill="none" stroke="#A47B47" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d={`M${100 + 9} ${t.krk + 4} C${100 + 20} ${t.krk - 4} ${100 + 26} ${t.krk + 4} ${100 + 18} ${t.krk + 9} C${100 + 14} ${t.krk + 11} ${100 + 11} ${t.krk + 8} ${100 + 9} ${t.krk + 4}`} />
+        <path d={`M${100 + 9} ${t.krk + 4} C${100 + 2} ${t.krk - 6} ${100 - 6} ${t.krk - 1} ${100 + 1} ${t.krk + 7} C${100 + 4} ${t.krk + 9} ${100 + 7} ${t.krk + 7} ${100 + 9} ${t.krk + 4}`} />
+        <path d={`M${100 + 9} ${t.krk + 5} q2 9 -2 17 M${100 + 10} ${t.krk + 5} q8 7 9 15`} />
+      </g>
+    </>
+  )}
+  {tvar === "plate" && (
+    <g fill="none" stroke-linecap="round">
+      <path d="M18 156 Q100 168 182 156" stroke="#9A7445" stroke-width="3.4" />
+      <path d="M100 119 Q103 146 100 177" stroke="#9A7445" stroke-width="3.4" />
+      <path d="M18 156 Q100 168 182 156 M100 119 Q103 146 100 177" stroke="#C9A066" stroke-width="1.6" stroke-dasharray="2.4 1.6" />
+      <g stroke="#A47B47" stroke-width="2.4" stroke-linejoin="round">
+        <path d="M101 162 C112 150 122 156 114 164 C110 167 105 166 101 162 Z" />
+        <path d="M101 162 C90 150 80 156 88 164 C92 167 97 166 101 162 Z" />
+        <path d="M101 163 q-3 10 -9 16 M102 163 q5 9 11 14" />
+      </g>
+    </g>
+  )}
+
+  {slama && stebla.slice(20).map((s) => <path d={s.d} stroke={s.c} stroke-width={s.w} stroke-linecap="round" />)}
+</svg>

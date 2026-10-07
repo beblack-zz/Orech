@@ -1,0 +1,180 @@
+---
+/**
+ * Moře pod oblohou — pozadí celé Rezervace. Stojí na místě jako obloha
+ * (parta2/Nebe.astro) a zrcadlí ji: barvy vody jsou obrácené nebe, mraky
+ * a hvězdy se do ní zkopírují vzhůru nohama (scripts/rezervace/more.ts),
+ * pod sluncem a měsícem se třpytí cesta.
+ *
+ * Na obzoru vede trať po vodě: sloupy trolejí, nízké nástupiště se
+ * zábradlím, cedule stanice 胡桃 (kurumi — vlašský ořech, japonsky prostě
+ * Ořech) a dvouvozový vlak. Ráno přijede, když člověk sjede k výběru,
+ * odjede, a v noci se vrátí s rozsvícenými okny (more.ts). Všechno je
+ * jedna scéna; odraz pod hladinou je tatáž scéna přes <use>, převrácená
+ * a rozmazaná vlnkami, takže vlak a jeho odraz jedou vždycky spolu.
+ *
+ * Souřadnice jsou jednotky vlaku (components/rezervace/vlak.ts). Kolik
+ * scény je vidět, počítá skript podle šířky okna; výchozí výřez je pro
+ * široké okno.
+ */
+import { vlak, delka } from "./vlak";
+import { nahoda } from "../parta2/tvary";
+
+const L = delka(2);
+const r = nahoda(4417);
+
+/* Sloupy trolejí po šesti stech, kam až kamera dojede */
+const sloupy = Array.from({ length: 16 }, (_, i) => -2600 + i * 600);
+const vesaky = Array.from({ length: 48 }, (_, i) => -2600 + i * 200);
+const NASTUPISTE = { od: -60, do: 1720 };
+const sloupky: number[] = [];
+for (let x = NASTUPISTE.od + 6; x <= NASTUPISTE.do - 4; x += 26) sloupky.push(x);
+const lampy = [80, 660, 1240, 1690];
+
+/* Ve vlaku sedí stíny — jako ve filmu, tiší a průsvitní */
+const mista = (i: number) => Array.from({ length: 6 }, (_, k) => (r() < 0.45 + (i + k) * 0.02 ? { kdo: "stin" as const } : null));
+const vlakNaPozadi = vlak([{ mista: mista(0) }, { mista: mista(1) }], { smer: 1, trida: "vl-pozadi" });
+
+/* Vlnky: hustší u obzoru, k divákovi řidší a tlustší. Délky čárek jsou v pixelech. */
+const vlnky: { y: number; w: number; d: string; o: number; svetla: boolean; t: number }[] = [];
+{
+  let y = 0.6;
+  let krok = 0.9;
+  for (let i = 0; y < 100; i++) {
+    const svetla = i % 3 !== 0;
+    vlnky.push({
+      y: Math.round(y * 100) / 100,
+      w: Math.round((0.7 + y / 60) * 100) / 100,
+      d: `${Math.round(18 + r() * 80 + y)} ${Math.round(6 + r() * 26 + y / 3)}`,
+      o: Math.round((svetla ? 0.1 + r() * 0.1 : 0.12 + r() * 0.1) * 100) / 100,
+      svetla,
+      t: Math.round(14 + r() * 26),
+    });
+    y += krok;
+    krok *= 1.14;
+  }
+}
+---
+<div class="rz-more" aria-hidden="true">
+  <div class="rz-more-opar"></div>
+  <div class="rz-more-voda"></div>
+  {/* Sem skript zkopíruje mraky a hvězdy z oblohy, převrácené */}
+  <div class="rz-more-zrcadlo"><div class="rz-more-zrcadlo-obal"></div></div>
+  <div class="rz-more-cesta rz-more-cesta-slunce"></div>
+  <div class="rz-more-cesta rz-more-cesta-mesic"></div>
+
+  <svg class="rz-trat rz-trat-odraz" viewBox="-1107 -320 2774 640" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="rz-odraz-g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity="0.62" />
+        <stop offset="0.5" stop-color="#fff" stop-opacity="0.3" />
+        <stop offset="1" stop-color="#fff" stop-opacity="0" />
+      </linearGradient>
+      <mask id="rz-odraz-maska" maskUnits="userSpaceOnUse" x="-6000" y="0" width="16000" height="330">
+        <rect x="-6000" y="0" width="16000" height="320" fill="url(#rz-odraz-g)" />
+      </mask>
+    </defs>
+    <g mask="url(#rz-odraz-maska)">
+      <use href="#rz-svet" transform="scale(1 -1)" />
+    </g>
+  </svg>
+
+  {/* Vlnky ve dvou vrstvách, které se pomalu posouvají proti sobě — celé vrstvy, ne čárky, ať se moře nepřekresluje */}
+  {[true, false].map((svetle) => (
+    <svg class={`rz-more-vlnky ${svetle ? "rz-more-vlnky-svetle" : "rz-more-vlnky-tmave"}`} viewBox="0 0 100 100" preserveAspectRatio="none">
+      {vlnky.filter((v) => v.svetla === svetle).map((v) => (
+        <path
+          d={`M-5 ${v.y} H105`}
+          class="vlnka"
+          stroke-width={v.w}
+          stroke-dasharray={v.d}
+          stroke-dashoffset={v.t * 7}
+          stroke-opacity={v.o}
+          vector-effect="non-scaling-stroke"
+        />
+      ))}
+    </svg>
+  ))}
+
+  <svg class="rz-trat rz-trat-svet" viewBox="-1107 -320 2774 640" preserveAspectRatio="xMidYMid slice">
+    <g id="rz-svet">
+      {/* Troleje: nosné lano, věšáky a trolejový drát, na kterém jede sběrač */}
+      <g class="rz-trat-kov">
+        {sloupy.map((x) => (
+          <g>
+            <rect x={x} y="-300" width="8" height="300" />
+            <rect x={x - 3} y="-304" width="14" height="6" rx="2" />
+            <path d={`M${x} -262 H${x - 70} M${x} -232 L${x - 62} -262`} class="rz-trat-rameno" />
+            <path d={`M${x - 58} -262 V-178`} class="rz-trat-tah" />
+          </g>
+        ))}
+        <path d="M-2700 -176 H7000" class="rz-trat-drat" />
+        <path d="M-2700 -196 H7000" class="rz-trat-lano" />
+        {vesaky.map((x) => <path d={`M${x} -196 V-176`} class="rz-trat-vesak" />)}
+      </g>
+
+      {/* Nástupiště za tratí */}
+      <g class="rz-trat-nastupiste">
+        <rect x={NASTUPISTE.od} y="-24" width={NASTUPISTE.do - NASTUPISTE.od} height="12" class="rz-beton" />
+        <rect x={NASTUPISTE.od} y="-24" width={NASTUPISTE.do - NASTUPISTE.od} height="3" class="rz-beton-hrana" />
+        <rect x={NASTUPISTE.od} y="-12" width={NASTUPISTE.do - NASTUPISTE.od} height="12" class="rz-beton-stin" />
+        <g class="rz-zabradli">
+          {sloupky.map((x) => <rect x={x} y="-60" width="3.2" height="40" />)}
+          <rect x={NASTUPISTE.od + 4} y="-62" width={NASTUPISTE.do - NASTUPISTE.od - 8} height="3.4" rx="1.5" />
+          <rect x={NASTUPISTE.od + 4} y="-43" width={NASTUPISTE.do - NASTUPISTE.od - 8} height="2.6" rx="1.2" />
+        </g>
+        {lampy.map((x) => (
+          <g class="rz-lampa">
+            <rect x={x} y="-128" width="4" height="106" class="rz-lampa-sloup" />
+            <path d={`M${x - 9} -126 H${x + 13} L${x + 9} -134 H${x - 5} Z`} class="rz-lampa-hlava" />
+            <circle cx={x + 2} cy="-122" r="24" fill="url(#vl-zare)" class="rz-lampa-svit" />
+          </g>
+        ))}
+      </g>
+
+      {/* Cedule stanice — 駅名標. Znaky jsou tištěné, ne štětcem: cedule je z dílny dráhy */}
+      <g class="rz-cedule" transform="translate(1410 0)">
+        <rect x="10" y="-112" width="5" height="92" class="rz-cedule-noha" />
+        <rect x="135" y="-112" width="5" height="92" class="rz-cedule-noha" />
+        <rect x="0" y="-170" width="150" height="64" rx="3" class="rz-cedule-deska" />
+        <text x="75" y="-138" text-anchor="middle" class="rz-cedule-kanji" lang="ja">胡 桃</text>
+        <text x="75" y="-124" text-anchor="middle" class="rz-cedule-jmeno">OŘECH</text>
+        <rect x="0" y="-120" width="150" height="5" class="rz-cedule-pas" />
+        <text x="6" y="-109" class="rz-cedule-smer">← Praha</text>
+        <text x="144" y="-109" text-anchor="end" class="rz-cedule-smer">Dílna →</text>
+        <rect x="0" y="-170" width="150" height="64" rx="3" class="rz-cedule-svit" />
+      </g>
+
+      {/* Výpravčí: Kachlík pod cedulí stanice (je to ten, kdo chce, ať vlaky jezdí načas).
+          Výpravku zvedne, když vlak odjíždí (třída .vypravuje z more.ts). Plochá kresba
+          bez filtrů — v pozadí se scéna překresluje při každém pohybu vlaku. */}
+      <g class="rz-vypravci" transform="translate(1478 -24)">
+        <ellipse cx="0" cy="0" rx="22" ry="4" class="rz-vypravci-stin" />
+        <ellipse cx="-9" cy="-2" rx="7" ry="3.6" fill="#8E3F22" />
+        <ellipse cx="9" cy="-2" rx="7" ry="3.6" fill="#8E3F22" />
+        <rect x="-20" y="-44" width="40" height="40" rx="6" fill="#C66A3D" />
+        <rect x="-16" y="-40" width="32" height="32" rx="4" fill="none" stroke="#DE9467" stroke-width="1.6" />
+        <path d="M-9 -27 h5 M4 -27 h5" stroke="#3A2E28" stroke-width="1.4" stroke-linecap="round" />
+        <circle cx="-6.5" cy="-23.5" r="1.8" fill="#3A2E28" />
+        <circle cx="6.5" cy="-23.5" r="1.8" fill="#3A2E28" />
+        <path d="M-3 -17 H3" stroke="#3A2E28" stroke-width="1.4" stroke-linecap="round" />
+        <rect x="7" y="-15" width="7" height="7" rx="1" fill="#C4432B" />
+        <g class="rz-vypravka">
+          <path d="M20 -18 L20 -46" stroke="#5A4636" stroke-width="2.4" stroke-linecap="round" />
+          <circle cx="20" cy="-53" r="8.5" fill="#F7F5EE" stroke="#2E8B57" stroke-width="3.2" />
+        </g>
+      </g>
+
+      {/* Vlak — kde zrovna je, říká proměnná --vl-x (more.ts) */}
+      <g class="rz-trat-vlak">
+        <g class="rz-trat-brazda">
+          <path d={`M-40 1 H-6 M-150 3 H-50 M-260 5 H-140`} />
+          <path d={`M${L + 6} 1 H${L + 30}`} />
+        </g>
+        <Fragment set:html={vlakNaPozadi} />
+      </g>
+    </g>
+  </svg>
+</div>
+{/* Se skriptem vlak přijíždí (more.ts) — ať se před tím na chvilku neukáže u nástupiště.
+    Bez skriptu tenhle řádek neproběhne a vlak stojí u nástupiště. */}
+<script is:inline>document.querySelector(".rz-more")?.style.setProperty("--vl-x", "-4000");</script>

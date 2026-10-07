@@ -183,5 +183,5 @@ body.ig-stranka {
   color: #F5EBDA;
   font-size: 2.6cqw;
 }
-.post-pata span:first-child { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 4cqw; }
+.post-pata span:first-child { font-size: 4cqw; }
 .post-pata em { color: #F0A58E; }

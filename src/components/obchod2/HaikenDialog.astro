@@ -1,0 +1,43 @@
+---
+/**
+ * Kus z regálu v ruce: velké otáčecí plátno, glazura a co o ní říct,
+ * cena a „do šátku“. Šipkami se jde na další kus v regálu (jen mezi
+ * těmi, které filtr nechal svítit). Plní scripts/obchod2/regal.ts.
+ */
+---
+<dialog class="omamori-dialog haiken-dialog" aria-labelledby="haiken-nazev">
+  <div class="haiken-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <div class="haiken-stojan">
+      <div class="o2-platno-obal haiken-platno-obal" data-haiken-obal tabindex="0" role="application" aria-roledescription="otáčecí náhled" aria-label="Kus z regálu">
+        <canvas class="o2-platno" data-haiken-platno></canvas>
+      </div>
+      <div class="haiken-ovladani">
+        <button type="button" class="o2-sipka" data-otoc="-1" aria-label="Otočit doleva">↺</button>
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-haiken-dno>Ukázat dno</button>
+        <button type="button" class="o2-sipka" data-otoc="1" aria-label="Otočit doprava">↻</button>
+      </div>
+      <p class="haiken-napoveda">Táhni myší nebo prstem. Na klávesnici šipky.</p>
+    </div>
+    <div class="haiken-info">
+      <p class="stitek haiken-stitek">Na přání</p>
+      <h2 id="haiken-nazev" class="haiken-nazev">Kus</h2>
+      <p class="haiken-autor"></p>
+      <div class="haiken-glazura">
+        <span class="haiken-vzorek" aria-hidden="true"></span>
+        <p><b class="haiken-glazura-nazev"></b> <span class="haiken-glazura-popis"></span></p>
+      </div>
+      <p class="haiken-novinka" hidden><span lang="ja">新作</span> novinka</p>
+      <p class="haiken-cena"></p>
+      <div class="haiken-akce">
+        <button type="button" class="tlacitko" data-satek-pridat>Do šátku</button>
+      </div>
+      <div class="haiken-listovani">
+        <button type="button" class="odkaz-tlacitko" data-haiken-predchozi>← předchozí</button>
+        <span class="haiken-poradi"></span>
+        <button type="button" class="odkaz-tlacitko" data-haiken-dalsi>další →</button>
+      </div>
+      <p class="haiken-pozn">Je to kresba podle tvaru a glazury. Skutečný kus je vždycky trochu jiný — každý je originál.</p>
+    </div>
+  </div>
+</dialog>

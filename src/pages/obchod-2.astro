@@ -1,0 +1,88 @@
+---
+/**
+ * Obchod 2 — návrh nového vzhledu obchodu. Stejný svět jako Parta 2,
+ * Kurzy 2 a Úvod 2 (obloha, papír, písmo, parta), tady jako malý
+ * japonský obchod s nádobím, kde jde hlavně o zboží:
+ *
+ *   dopoledne  — krámek: regál s keramikou z Japonska, bedny s kusy
+ *                z dílny, pult; kliknutím se kus otevře v detailu
+ *   večer      — šátek furoshiki místo košíku, zaváže se a odejde mailem
+ *   noc        — obchod zavírá, u dveří hlídá tanuki
+ *
+ * Fotky jsou zatím jen u keramiky z Japonska (zdaleka.ts); kusy z dílny
+ * stojí zabalené v novinách, dokud nedostanou `fotky` v obchod.ts.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/obchod2.css";
+import "../styles/kramek.css";
+import { ClientRouter } from "astro:transitions";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Kramek from "../components/obchod2/Kramek.astro";
+import DetailKusu from "../components/obchod2/DetailKusu.astro";
+import Satek from "../components/obchod2/Satek.astro";
+import Zavira from "../components/obchod2/Zavira.astro";
+
+import { kramek } from "../data/kramek";
+import { druhy } from "../data/obchod2";
+import { pocetKusu } from "../data/pocty";
+
+/* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+Object.values(druhy).forEach((d) => {
+  pridej(d.znak);
+  pridej(d.text);
+  if (d.detail) pridej(d.detail);
+  if (d.odkud) pridej(d.odkud.znak);
+});
+/* Krámek (noren, štít, cedule, krabice, lucerna, účtenka), šátek, večerní ulice a tanuki u dveří */
+pridej("うつわ屋器航空便手作り新作済お会計風呂敷一二三酒通準備中");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Obchod — keramika z dílny i z Japonska · JIRO saku</title>
+    <meta name="description" content={`Ručně dělaná keramika z dílny v Ořechu a kusy z Japonska. ${pocetKusu(kramek.length)}, každý jen jednou — co vidíš, to dostaneš.`} />
+    <meta name="theme-color" content="#6FA4DA" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
+  </head>
+  <body class="p2 o2" data-stranka="obchod-2">
+    <a class="preskocit" href="#kramek">Přeskočit do krámku</a>
+    <Nebe />
+    <Hlavicka sber="zadny" />
+
+    <main>
+      <Kramek />
+      <Satek />
+      <Zavira />
+    </main>
+
+    <Paticka poznamka="Obchod 2 je návrh nového vzhledu webu. Fotky má zatím jen keramika z Japonska — kusy z dílny čekají v novinách, až se vyfotí." />
+    <DetailKusu />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/obchod2/hlavni.ts";
+    </script>
+  </body>
+</html>

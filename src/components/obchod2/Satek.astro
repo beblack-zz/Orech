@@ -1,0 +1,137 @@
+---
+/**
+ * Šátek furoshiki místo košíku. Co si člověk v krámku vybere, složí se
+ * na rozprostřený šátek; „Zavázat a napsat nám“ šátek zaváže a otevře
+ * e-mail se seznamem kusů, cenou a způsobem dopravy — stránka sama nic
+ * neodesílá. Pod tím tři kroky „jak nakoupit“ ze stávající stránky Obchod.
+ *
+ * Obsah šátku si pamatuje prohlížeč (scripts/obchod2/satek.ts). Seznam
+ * zboží pro skript je v JSON níže, obrázky kusů v <template>: fotka,
+ * nebo balík v novinách, dokud kus fotku nemá.
+ */
+import { getImage } from "astro:assets";
+import Zabaleno from "./Zabaleno.astro";
+import { kramek } from "../../data/kramek";
+import { obchodTexty } from "../../data/obchod2";
+import { kontakt } from "../../data/uvod2";
+
+const cislo = (s: string) => Number(s.replace(/[^\d]/g, ""));
+const nahledy = new Map(
+  await Promise.all(
+    kramek.filter((k) => k.fotky.length).map(async (k) => [k.id, (await getImage({ src: k.fotky[0].src, width: 160, format: "webp" })).src] as const),
+  ),
+);
+const zbozi = kramek.map((k) => ({
+  id: k.id,
+  nazev: k.druh ? `${k.nazev} (${k.druh.znak})` : k.nazev,
+  cena: cislo(k.cena),
+  cenaText: k.cena,
+  popis: k.odkud === "japonsko" ? `${k.autor} · z Japonska` : `${k.autor} · ${k.glazura}`,
+}));
+
+/* Vzor seigaiha — vlny moře: soustředné oblouky v řadách přes sebe */
+const vlna = (cx: number, cy: number) =>
+  `<path d="M${cx - 20} ${cy} A20 20 0 0 1 ${cx + 20} ${cy} Z" fill="#2E4A78"/>` +
+  `<path d="M${cx - 20} ${cy} A20 20 0 0 1 ${cx + 20} ${cy} M${cx - 14} ${cy} A14 14 0 0 1 ${cx + 14} ${cy} M${cx - 8} ${cy} A8 8 0 0 1 ${cx + 8} ${cy}" fill="none" stroke="#EFE4CC" stroke-width="1.3"/>`;
+const vzor = [vlna(0, 0), vlna(40, 0), vlna(20, 10), vlna(0, 20), vlna(40, 20)].join("");
+
+const roh = {
+  nahore: "200,16 292,108 108,108",
+  vpravo: "384,200 292,292 292,108",
+  dole: "200,384 108,292 292,292",
+  vlevo: "16,200 108,108 108,292",
+};
+---
+<section class="o2-sekce" id="satek" data-hodina="19" aria-labelledby="satek-nadpis">
+  <div class="papir o2-papir o2-papir-siroky">
+    <p class="stitek"><span lang="ja">風呂敷</span> · jak nakoupit</p>
+    <h2 id="satek-nadpis" class="nadpis-2">Zavaž si to do šátku</h2>
+    <p class="o2-papir-perex">
+      Furoshiki je čtvercový šátek, ve kterém se v Japonsku nosí skoro všechno — oběd, dárky i nákup.
+      Tady se do něj skládá, co chceš. Až ho zavážeš, otevře se e-mail se seznamem a my potvrdíme,
+      jestli je všechno ještě k mání.
+    </p>
+
+    <div class="o2-satek-mriz" data-satek data-email={kontakt.email}>
+      <div class="o2-satek-kresba">
+        <svg class="o2-satek-svg" viewBox="0 0 400 400" aria-hidden="true">
+          <defs>
+            <pattern id="o2-seigaiha" width="40" height="20" patternUnits="userSpaceOnUse" set:html={`<rect width="40" height="20" fill="#2E4A78"/>${vzor}`} />
+          </defs>
+          <ellipse cx="200" cy="378" rx="150" ry="14" fill="#2B2420" opacity="0.12" class="o2-satek-stin" />
+          <g class="o2-satek-latka">
+            <rect x="108" y="108" width="184" height="184" fill="url(#o2-seigaiha)" />
+            <g class="o2-satek-veci"></g>
+            {Object.entries(roh).map(([kde, body]) => (
+              <g class={`o2-roh o2-roh-${kde}`}>
+                <polygon class="o2-roh-lic" points={body} fill="url(#o2-seigaiha)" />
+                <polygon class="o2-roh-rub" points={body} fill="#4C6A9C" />
+              </g>
+            ))}
+            <path d="M200 16 L384 200 L200 384 L16 200 Z" fill="none" stroke="#22375C" stroke-width="3" stroke-linejoin="round" class="o2-satek-lem" />
+          </g>
+          <g class="o2-uzel">
+            <path d="M200 196 C176 168 150 160 136 170 C150 178 166 190 186 206 Z" fill="#3E5C8F" stroke="#22375C" stroke-width="2" />
+            <path d="M200 196 C224 168 250 160 264 170 C250 178 234 190 214 206 Z" fill="#3E5C8F" stroke="#22375C" stroke-width="2" />
+            <ellipse cx="200" cy="204" rx="20" ry="15" fill="#2E4A78" stroke="#22375C" stroke-width="2" />
+            <path d="M188 200 Q200 194 212 200" stroke="#EFE4CC" stroke-width="1.4" fill="none" opacity="0.7" />
+          </g>
+        </svg>
+        <p class="o2-satek-prazdno">Šátek je zatím prázdný. Vyber si něco v krámku.</p>
+      </div>
+
+      <div class="o2-satek-seznam">
+        <h3 class="o2-satek-nadpis">V šátku</h3>
+        <ul class="o2-satek-polozky" aria-live="polite"></ul>
+        <p class="o2-satek-celkem"><span>Celkem</span> <b>0 Kč</b></p>
+        <fieldset class="o2-satek-doprava">
+          <legend>Jak se k tobě dostane</legend>
+          <label class="o2-pilulka"><input type="radio" name="doprava" value="odber" checked /><span>Vyzvednu v dílně</span></label>
+          <label class="o2-pilulka"><input type="radio" name="doprava" value="zasilkovna" /><span>Pošlete Zásilkovnou</span></label>
+        </fieldset>
+        <label class="o2-pole">Jméno <input type="text" name="jmeno" autocomplete="name" maxlength="60" /></label>
+        <label class="o2-pole">Poznámka <small>nepovinné</small><textarea name="poznamka" rows="2" maxlength="400"></textarea></label>
+        <div class="o2-satek-akce">
+          <a class="tlacitko o2-zavazat" aria-disabled="true" role="link">Zavázat a napsat nám</a>
+          <button type="button" class="odkaz-tlacitko o2-rozvazat" hidden>Rozvázat</button>
+        </div>
+        <p class="o2-satek-pozn">Otevře se e-mail se seznamem. Kusy jsou originály — potvrdíme, jestli jsou ještě k mání, a domluvíme platbu.</p>
+      </div>
+    </div>
+
+    <ol class="o2-kroky">
+      {obchodTexty.kroky.map((k, i) => (
+        <li>
+          <span class="o2-krok-cislo" lang="ja" aria-hidden="true">{["一", "二", "三"][i]}</span>
+          <h3>{k.nazev}</h3>
+          <p>{k.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <template id="o2-ikony">
+    {kramek.map((k, i) =>
+      nahledy.has(k.id) ? (
+        <svg data-ikona={k.id} viewBox="0 0 80 80">
+          <clipPath id={`o2-ikona-orez-${i}`}><rect x="4" y="4" width="72" height="72" rx="12" /></clipPath>
+          <rect x="2" y="2" width="76" height="76" rx="14" fill="#F3E3B0" />
+          <image href={nahledy.get(k.id)} x="4" y="4" width="72" height="72" preserveAspectRatio="xMidYMid slice" clip-path={`url(#o2-ikona-orez-${i})`} />
+        </svg>
+      ) : (
+        <svg data-ikona={k.id} viewBox="0 0 200 200"><Zabaleno tvar={k.tvar ?? "bowl"} seme={i + 1} slama={false} /></svg>
+      ),
+    )}
+  </template>
+  <script type="application/json" id="o2-zbozi" set:html={JSON.stringify(zbozi)} />
+</section>
+
+<a class="o2-satek-tlacitko" href="#satek" hidden aria-label="Šátek s vybranými kusy">
+  <svg viewBox="0 0 48 44" aria-hidden="true">
+    <path d="M8 22 C8 36 16 40 24 40 C32 40 40 36 40 22 C40 16 34 14 24 14 C14 14 8 16 8 22 Z" fill="#2E4A78" stroke="#22375C" stroke-width="1.6" />
+    <path d="M24 16 C18 8 12 6 8 9 C12 11 16 14 20 18 Z M24 16 C30 8 36 6 40 9 C36 11 32 14 28 18 Z" fill="#3E5C8F" stroke="#22375C" stroke-width="1.4" />
+    <ellipse cx="24" cy="18" rx="5" ry="3.6" fill="#2E4A78" stroke="#22375C" stroke-width="1.4" />
+    <path d="M14 28 A8 8 0 0 1 22 28 M26 28 A8 8 0 0 1 34 28 M20 34 A8 8 0 0 1 28 34" stroke="#EFE4CC" stroke-width="1.2" fill="none" />
+  </svg>
+  <span class="o2-satek-pocet" data-satek-pocet>0</span>
+</a>

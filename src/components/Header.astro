@@ -14,19 +14,16 @@ import PrepinacTematu from "./PrepinacTematu.astro";
 type Odkaz = { href: string; label: string; accent?: boolean; skrtnuto?: boolean };
 
 const links: Odkaz[] = [
-  { href: "/", label: "Úvod" },
   { href: "/uvod-2", label: "Úvod 2" },
-  { href: "/kurzy", label: "Kurzy" },
   { href: "/kurzy-2", label: "Kurzy 2" },
   { href: "/deti", label: "Pro děti", skrtnuto: true },
-  { href: "/parta", label: "Parta", accent: true },
   { href: "/parta-2", label: "Parta 2" },
   { href: "/open-studio", label: "Open studio" },
   { href: "/rezervace", label: "Rezervace" },
-  { href: "/obchod", label: "Obchod" },
-  { href: "/dizajn", label: "Dizajn", skrtnuto: true },
-  { href: "/dizajn-2", label: "Dizajn 2.0" },
+  { href: "/obchod-2", label: "Obchod 2" },
   { href: "/o-nas", label: "O nás" },
+  { href: "/o-nas-2", label: "O nás 2" },
+  { href: "/marcel", label: "Marcel" },
 ];
 
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
@@ -51,7 +48,7 @@ const skrt = "line-through decoration-2 decoration-sakura";
     </div>
 
     <div class="flex items-center gap-2 xl:gap-4">
-    <nav class="hidden min-[1340px]:flex items-center gap-3">
+    <nav class="hidden min-[1400px]:flex items-center gap-3">
       {links.map((l) => (
         <a
           href={l.href}
@@ -75,7 +72,7 @@ const skrt = "line-through decoration-2 decoration-sakura";
 
     <button
       id="menu-toggle"
-      class="min-[1340px]:hidden text-espresso p-2"
+      class="min-[1400px]:hidden text-espresso p-2"
       aria-label="Otevřít menu"
       aria-controls="mobile-menu"
       aria-expanded="false"
@@ -91,7 +88,7 @@ const skrt = "line-through decoration-2 decoration-sakura";
 
 <div
   id="mobile-menu"
-  class="hidden min-[1340px]:hidden bg-cream border-b border-espresso/10"
+  class="hidden min-[1400px]:hidden bg-cream border-b border-espresso/10"
 >
   <nav class="container-x flex flex-col gap-3 py-4">
     {links.map((l) => (

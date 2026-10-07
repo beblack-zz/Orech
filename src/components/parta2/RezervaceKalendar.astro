@@ -1,0 +1,292 @@
+---
+/**
+ * Plovoucí odkaz na rezervace vpravo dole: jízdenka do dílny, stejným
+ * jazykem jako termíny na Kurzech 2. Japonská jízdenka (切符 kippu):
+ * trasa odsud do Ořechu, datum nejbližšího otevřeného dne a drobný
+ * ochranný podtisk (地紋 jimon) z vlnek. Na útržku 予約
+ * (rezervace) a šipka, nad jízdenkou cedulka Rezervovat.
+ *
+ * Útržek vpravo má barvu oblohy stránky (proměnné --nebe-*, které mění
+ * nebe.ts), takže se mění s denní dobou jako útržky jízdenek na Kurzech 2.
+ * Po najetí průvodčí cvakne kleštěmi: do horního okraje se vystřihne
+ * okvětní lístek sakury a vystřižený kousek spadne. Útržek se mezitím
+ * pootočí, jako by se chtěl utrhnout.
+ *
+ * Japonské znaky jsou tištěné, ne psané štětcem — jízdenka je z tiskárny.
+ * Proto systémové mincho, ne Yuji Syuku (to se stránkám stahuje jen se
+ * znaky, které na nich jsou).
+ *
+ * Datum se počítá až v prohlížeči (stránka je statická). Bez JS zůstane
+ * „úterý a pátek“. Na /rezervace se nevkládá.
+ */
+import "../../styles/znacka.css";
+import { rezervace as R } from "../../data/rezervace";
+
+/** Okvětní lístek sakury se zářezem nahoře, střed v 0,0 */
+const LISTEK =
+  "M0 4.2 C-3.2 3.2 -4.7 0 -3.8 -2.7 C-3.1 -4.4 -1.3 -4.8 -0.6 -3.5 L0 -2.5 L0.6 -3.5 C1.3 -4.8 3.1 -4.4 3.8 -2.7 C4.7 0 3.2 3.2 0 4.2 Z";
+const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
+---
+<a href="/rezervace" class="kal" data-kal transition:persist="kal" aria-label="Jízdenka do dílny — rezervace hodin">
+  <span class="kal-obal">
+  <span class="kal-nadpis" aria-hidden="true">Rezervovat</span>
+  <svg viewBox="0 0 220 120" aria-hidden="true">
+    <defs>
+      <!-- Ochranný podtisk: jemné vlnky -->
+      <pattern id="kal-jimon" width="12" height="5" patternUnits="userSpaceOnUse">
+        <path d="M0 2.5 Q3 0.4 6 2.5 T12 2.5" fill="none" stroke="#C4432B" stroke-width="0.35" opacity="0.22" />
+      </pattern>
+      <linearGradient id="kal-nebe" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" class="kal-nebe-a" />
+        <stop offset="0.62" class="kal-nebe-b" />
+        <stop offset="1" class="kal-nebe-c" />
+      </linearGradient>
+      <!-- Výřezy: půlkruhy u perforace, dírky perforace, cvaknutí kleští -->
+      <mask id="kal-maska" maskUnits="userSpaceOnUse" x="-10" y="-10" width="240" height="140">
+        <rect width="220" height="120" rx="7" fill="#fff" />
+        <circle cx="166" cy="0" r="6.5" fill="#000" />
+        <circle cx="166" cy="120" r="6.5" fill="#000" />
+        {PERFORACE.map((y) => <circle cx="166" cy={y} r="1.15" fill="#000" />)}
+        <path class="kal-dirka" d={LISTEK} fill="#000" />
+      </mask>
+    </defs>
+
+    <g mask="url(#kal-maska)">
+      <!-- Tělo jízdenky -->
+      <g class="kal-telo">
+        <rect width="168" height="120" fill="#FAF5EA" />
+        <rect width="168" height="120" fill="url(#kal-jimon)" />
+
+        <text x="12" y="16" class="kal-drobne kal-prolozene">JÍZDENKA DO DÍLNY</text>
+        <text x="155" y="16" text-anchor="end" class="kal-drobne kal-cislo" data-kal-cislo>No. 0000</text>
+        <path d="M12 21.5 H155" stroke="#C4432B" stroke-width="0.7" />
+        <path d="M12 23.3 H155" stroke="#C4432B" stroke-width="0.3" />
+
+        <text x="12" y="36" class="kal-stanice-jp">odsud</text>
+        <text x="155" y="36" text-anchor="end" class="kal-stanice-jp">do dílny</text>
+        <text x="12" y="55" class="kal-stanice">Tady</text>
+        <g class="kal-sipka">
+          <path d="M62 49.5 H86" stroke="#2B2420" stroke-width="1.1" />
+          <path d="M62 49.5 H86" stroke="#FAF5EA" stroke-width="0.5" stroke-dasharray="2.4 2.4" />
+          <path d="M85.5 46 L91.5 49.5 L85.5 53 Z" fill="#2B2420" />
+        </g>
+        <text x="155" y="55" text-anchor="end" class="kal-stanice">Ořech</text>
+
+        <path d="M12 65 H155" stroke="#2B2420" stroke-width="0.4" stroke-dasharray="1 2" opacity="0.5" />
+
+        <text x="12" y="77" class="kal-stanice-jp">nejbližší odjezd</text>
+        <text x="155" y="77" text-anchor="end" class="kal-stanice-jp">provoz · jízdné za hodinu</text>
+        <text x="12" y="90" class="kal-datum" data-kal-datum>úterý a pátek</text>
+        <text x="155" y="90" text-anchor="end" class="kal-cas">{R.od}–{R.do} h · {R.cena} Kč</text>
+
+        <text x="12" y="108" class="kal-pozn">Tam s hlínou, zpátky s hrnkem.</text>
+      </g>
+
+      <!-- Útržek -->
+      <g class="kal-utrzek">
+        <rect x="166" width="54" height="120" fill="url(#kal-nebe)" />
+        <circle cx="214" cy="6" r="20" class="kal-slunce" />
+        <text x="193" y="34" text-anchor="middle" class="kal-jp kal-utrzek-jp" lang="ja">予</text>
+        <text x="193" y="56" text-anchor="middle" class="kal-jp kal-utrzek-jp" lang="ja">約</text>
+        <g class="kal-tlacitko">
+          <circle cx="193" cy="88" r="11" fill="#FAF5EA" />
+          <path d="M188 88 H197.5 M194 84.3 L197.8 88 L194 91.7" fill="none" stroke="#2B2420" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      </g>
+    </g>
+
+    <!-- Vystřižený kousek, který po cvaknutí spadne -->
+    <path class="kal-kousek" d={LISTEK} fill="#FAF5EA" stroke="#C4432B" stroke-width="0.3" stroke-opacity="0.4" />
+  </svg>
+  </span>
+</a>
+
+<script>
+  import { rezervace as R } from "../../data/rezervace";
+
+  const KDY = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
+  const DNY_KRATCE = ["ne", "po", "út", "st", "čt", "pá", "so"];
+
+  /** Nejbližší den s otevřenou dílnou. Dnešek se počítá, dokud nezačala poslední hodina. */
+  function nejblizsi(ted: Date): Date | null {
+    for (let i = 0; i < 60; i++) {
+      const d = new Date(ted.getFullYear(), ted.getMonth(), ted.getDate() + i);
+      if (!R.dny.includes(d.getDay())) continue;
+      if (i === 0 && ted.getHours() >= R.do - 1) continue;
+      return d;
+    }
+    return null;
+  }
+
+  /*
+   * Vyplní se při načtení a po každém přechodu mezi stránkami (ClientRouter
+   * spouští skript jen jednou). Jízdenka se mezi stránkami přenáší celá
+   * (transition:persist), takže je to většinou jen pojistka.
+   */
+  function vypln() {
+    const kal = document.querySelector<HTMLAnchorElement>("[data-kal]");
+    const ted = new Date();
+    const d = nejblizsi(ted);
+    if (!kal || !d) return;
+    const dnes = new Date(ted.getFullYear(), ted.getMonth(), ted.getDate()).getTime();
+    const zaDni = Math.round((d.getTime() - dnes) / 86_400_000);
+    const kdy = zaDni === 0 ? "dnes" : zaDni === 1 ? "zítra" : DNY_KRATCE[d.getDay()];
+    const dvoj = (x: number) => String(x).padStart(2, "0");
+
+    const datum = kal.querySelector("[data-kal-datum]");
+    const cislo = kal.querySelector("[data-kal-cislo]");
+    if (datum) datum.textContent = `${kdy} ${d.getDate()}. ${d.getMonth() + 1}.`;
+    if (cislo) cislo.textContent = `No. ${String(d.getFullYear()).slice(2)}${dvoj(d.getMonth() + 1)}${dvoj(d.getDate())}`;
+
+    const slovy = zaDni <= 1 ? kdy : KDY[d.getDay()];
+    kal.setAttribute("aria-label", `Jízdenka do dílny — rezervace, nejbližší otevřeno ${slovy} ${d.getDate()}. ${d.getMonth() + 1}.`);
+  }
+  vypln();
+  document.addEventListener("astro:after-swap", vypln);
+</script>
+
+<style>
+  .kal {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 70;
+    width: 220px;
+    display: block;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Obchod 2 má vpravo dole šátek — jízdenka si stoupne nad něj */
+  :global(body:has(.o2-satek-tlacitko)) .kal { bottom: 96px; }
+
+  /* Nápis i jízdenka se natáčejí spolu */
+  .kal-obal {
+    display: grid;
+    justify-items: end;
+    gap: 7px;
+    transform: rotate(-3deg);
+    transform-origin: 100% 100%;
+    transition: transform 0.38s cubic-bezier(0.25, 1.15, 0.4, 1);
+  }
+  .kal svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 1px 0.5px rgba(43, 36, 32, 0.18)) drop-shadow(0 12px 14px rgba(28, 20, 44, 0.32));
+    transition: filter 0.4s ease;
+  }
+
+  /* Nápis nad jízdenkou, zarovnaný nad útržek */
+  /* Cedulka nad útržkem: písmo značky, rumělka */
+  .kal-nadpis {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 4px;
+    padding: 8px 15px 8px 15px;
+    border-radius: 999px;
+    background: #C4432B;
+    color: #FFFBF2;
+    font: 700 14px/1 "Zodiak", Georgia, serif;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    box-shadow: 0 10px 18px -9px rgba(28, 20, 44, 0.6);
+    transform-origin: 100% 100%;
+    transition: background 0.2s ease, transform 0.38s cubic-bezier(0.25, 1.15, 0.4, 1);
+  }
+
+  .kal-utrzek text { fill: #FFFBF2; }
+  .kal-utrzek-jp { font-size: 20px; filter: drop-shadow(0 0.5px 1.5px rgba(20, 16, 50, 0.45)); }
+
+  /* Barvy útržku z oblohy stránky */
+  .kal-nebe-a { stop-color: var(--nebe-nahore, #4F5E9C); }
+  .kal-nebe-b { stop-color: var(--nebe-stred, #C792A6); }
+  .kal-nebe-c { stop-color: var(--nebe-obzor, #F4BA90); }
+  .kal-slunce { fill: #FFF4D8; opacity: 0.35; }
+
+  /* Písmo */
+  :where(.kal) text { fill: #2B2420; }
+  .kal-jp { font-family: "Yu Mincho", YuMincho, "Hiragino Mincho ProN", "Noto Serif JP", "Noto Serif CJK JP", serif; font-weight: 600; }
+  .kal-drobne { font: 600 5.6px/1 var(--f-text, Georgia), serif; fill: #5C5047; font-variant-numeric: tabular-nums; }
+  .kal-prolozene { letter-spacing: 1.3px; }
+  .kal-cislo { letter-spacing: 0.5px; fill: #C4432B; }
+  .kal-stanice-jp { font: 400 6px/1 var(--f-text, Georgia), serif; fill: #8A7C70; letter-spacing: 0.3px; }
+  .kal-stanice { font: 700 17.5px/1 "Zodiak", Georgia, serif; letter-spacing: 0.2px; }
+  .kal-datum { font: 700 12.5px/1 "Zodiak", Georgia, serif; fill: #C4432B; letter-spacing: 0.3px; }
+  .kal-cas { font: 500 7.4px/1 var(--f-text, Georgia), serif; fill: #5C5047; font-variant-numeric: tabular-nums; }
+  .kal-pozn { font: italic 400 7.6px/1 "Zodiak", Georgia, serif; fill: #8A7C70; }
+
+
+  /* Pohyb: útržek se pootočí kolem dolního konce perforace, šipka popojede */
+  .kal-utrzek,
+  .kal-tlacitko,
+  .kal-sipka {
+    transform-box: view-box;
+    transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+  .kal-utrzek { transform-origin: 166px 120px; }
+  .kal-tlacitko circle { transition: fill 0.2s ease; }
+  .kal-tlacitko path { transition: stroke 0.2s ease; }
+
+  /* Cvaknutí kleští: dírka ve tvaru lístku a kousek, který spadne */
+  .kal-dirka,
+  .kal-kousek {
+    transform-box: view-box;
+    transform-origin: 0 0;
+    transform: translate(128px, 3px) scale(0);
+  }
+  .kal-dirka { transition: transform 0.12s ease-out; }
+  .kal-kousek { opacity: 0; }
+
+  /* Po najetí se jízdenka zvětší z pravého dolního rohu, aby šel přečíst drobný tisk */
+  .kal:focus-visible .kal-obal { transform: rotate(-1deg) scale(1.5); }
+  .kal:focus-visible .kal-nadpis { transform: scale(0.6667); }
+  @media (hover: hover) {
+    .kal:hover .kal-obal { transform: rotate(-1deg) scale(1.5); }
+    /* Cedulka zůstane stejně velká — jen ji jízdenka nadzvedne */
+    .kal:hover .kal-nadpis { transform: scale(0.6667); }
+  }
+  .kal:hover .kal-nadpis,
+  .kal:focus-visible .kal-nadpis { background: #A8361F; }
+  .kal:hover svg,
+  .kal:focus-visible svg {
+    filter: drop-shadow(0 1px 0.5px rgba(43, 36, 32, 0.18)) drop-shadow(0 20px 18px rgba(28, 20, 44, 0.36));
+  }
+  .kal:hover .kal-utrzek,
+  .kal:focus-visible .kal-utrzek { transform: rotate(3.5deg) translateX(1.5px); }
+  .kal:hover .kal-sipka,
+  .kal:focus-visible .kal-sipka { transform: translateX(2px); }
+  .kal:hover .kal-tlacitko,
+  .kal:focus-visible .kal-tlacitko { transform: translateX(2px); }
+  .kal:hover .kal-tlacitko circle,
+  .kal:focus-visible .kal-tlacitko circle { fill: #C4432B; }
+  .kal:hover .kal-tlacitko path,
+  .kal:focus-visible .kal-tlacitko path { stroke: #FFFBF2; }
+  .kal:hover .kal-dirka,
+  .kal:focus-visible .kal-dirka { transform: translate(128px, 3px) scale(1.3); transition-delay: 0.18s; }
+  .kal:hover .kal-kousek,
+  .kal:focus-visible .kal-kousek { animation: kal-pada 1.3s 0.18s cubic-bezier(0.4, 0.1, 0.7, 1) forwards; }
+
+  @keyframes kal-pada {
+    0% { opacity: 1; transform: translate(128px, 3px) scale(1.3) rotate(0deg); }
+    30% { opacity: 1; transform: translate(122px, 30px) scale(1.3) rotate(-70deg); }
+    65% { opacity: 1; transform: translate(131px, 72px) scale(1.3) rotate(-160deg); }
+    100% { opacity: 0; transform: translate(118px, 132px) scale(1.2) rotate(-250deg); }
+  }
+
+  .kal:focus-visible { outline: none; }
+  .kal:focus-visible svg { outline: 2px solid #C4432B; outline-offset: 4px; border-radius: 8px; }
+
+  @media (max-width: 600px) {
+    .kal { right: 10px; bottom: 12px; width: 168px; }
+    .kal-nadpis { font-size: 12.5px; padding: 7px 13px; }
+    :global(body:has(.o2-satek-tlacitko)) .kal { bottom: 86px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kal-obal, .kal-nadpis, .kal-utrzek, .kal-sipka, .kal-tlacitko, .kal-dirka { transition: none; }
+    .kal:hover .kal-kousek, .kal:focus-visible .kal-kousek { animation: none; }
+  }
+
+  @media print { .kal { display: none; } }
+</style>

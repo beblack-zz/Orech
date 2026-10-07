@@ -10,6 +10,7 @@
  * (patroni, průvodce, strom dovedností), je v data/kurzy2.ts.
  */
 import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
 import "@fontsource-variable/fraunces/full-italic.css";
 import "@fontsource-variable/newsreader";
 import "@fontsource-variable/newsreader/opsz-italic.css";
@@ -57,8 +58,9 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
   </head>
-  <body class="p2 k2">
+  <body class="p2 k2" data-stranka="kurzy-2">
     <Nebe />
     <Listi />
     <Hlavicka sber="naradi" />

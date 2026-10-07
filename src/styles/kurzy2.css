@@ -772,7 +772,7 @@
 .poukaz-od { display: block; margin-top: 1%; font-family: var(--f-ruka); font-size: clamp(16px, 1.7vw, 22px); color: var(--inkoust-2); }
 .poukaz-postava { position: absolute; right: 4%; bottom: 8%; width: 30%; }
 .poukaz-postava svg { width: 100%; height: auto; display: block; }
-.poukaz-znacka { position: absolute; left: 7%; bottom: 7%; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1; font-size: clamp(13px, 1.3vw, 16px); }
+.poukaz-znacka { position: absolute; left: 7%; bottom: 7%; font-size: clamp(13px, 1.3vw, 16px); }
 .poukaz-znacka em { color: var(--rumelka); }
 .poukaz-zadek { display: grid; align-content: center; gap: 10px; padding: 10%; transform: rotateY(180deg); background: linear-gradient(135deg, #2B2420, #4A3A30); color: var(--papir); }
 .poukaz-zadek .stitek { color: var(--zlato-2); }

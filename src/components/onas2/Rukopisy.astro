@@ -1,0 +1,56 @@
+---
+/**
+ * Jiřík a Renča jako dva svitky kakejiku, které se rozvinou, když na
+ * ně člověk dojede (scripts/onas2/rukopisy.ts). Fotky a texty jsou ze
+ * stránky O nás (uvod2.ts — lide), kolik kurzů kdo vede, se počítá
+ * z kurzy.ts. Pečeť je znak místa, kde ho v dílně najdeš: kruh, nebo pec.
+ */
+import { Image } from "astro:assets";
+import fotoJirik from "../../images/o-nas-jirik.webp";
+import fotoRenca from "../../images/o-nas-renca.webp";
+import { lide } from "../../data/uvod2";
+import { oNasTexty } from "../../data/onas2";
+import { kurzy } from "../../data/kurzy";
+import { pocetKurzu } from "../../data/pocty";
+
+const fotky: Record<string, { src: ImageMetadata; alt: string; znak: string; kde: string }> = {
+  "Jiřík": { src: fotoJirik, alt: "Jiřík točí hrnek na hrnčířském kruhu", znak: "轆", kde: "60% 30%" },
+  "Renča": { src: fotoRenca, alt: "Renča u cihlové pece na pálení keramiky", znak: "窯", kde: "30% 50%" },
+};
+---
+<section class="rukopisy" id="lide" data-hodina="18.9" aria-labelledby="rukopisy-nadpis">
+  <div class="rukopisy-hlava">
+    <p class="stitek stitek-svetly">Kdo tu točí</p>
+    <h2 id="rukopisy-nadpis" class="nadpis-2 rukopisy-svetly">Dva lektoři, dva rukopisy</h2>
+    <p class="rukopisy-perex">{oNasTexty.lektori}</p>
+  </div>
+  <div class="rukopisy-rada">
+    {lide.map((l, i) => {
+      const f = fotky[l.jmeno];
+      const n = kurzy.filter((k) => k.lektor === l.jmeno).length;
+      return (
+        <article class={`kakejiku kakejiku-${i}`} data-kakejiku aria-labelledby={`kakejiku-${i}-jmeno`}>
+          <span class="kakejiku-tyc" aria-hidden="true"></span>
+          <div class="kakejiku-latka">
+            <div class="kakejiku-papir">
+              {f && (
+                <figure class="kakejiku-foto">
+                  <Image src={f.src} alt={f.alt} width={720} widths={[360, 540, 720]} sizes="(min-width: 900px) 360px, 80vw" format="webp" style={`object-position:${f.kde}`} />
+                </figure>
+              )}
+              <h3 class="kakejiku-jmeno" id={`kakejiku-${i}-jmeno`}>{l.jmeno}</h3>
+              <p class="kakejiku-role">{l.role} · {f && <span lang="ja">{f.znak}</span>} {l.kde}</p>
+              <p class="kakejiku-bio">{l.bio}</p>
+              {n > 0 && <p class="kakejiku-vede">Teď vede {pocetKurzu(n)}. <a href="/kurzy-2#terminy">Termíny <span aria-hidden="true">→</span></a></p>}
+              {f && <span class="kakejiku-pecet" lang="ja" aria-hidden="true">{f.znak}</span>}
+            </div>
+          </div>
+          <span class="kakejiku-valec" aria-hidden="true"></span>
+        </article>
+      );
+    })}
+  </div>
+  <svg class="rukopisy-podpis" viewBox="0 0 420 80" role="img" aria-label="Jiřík a Renča">
+    <text x="210" y="56" text-anchor="middle">— Jiřík &amp; Renča</text>
+  </svg>
+</section>

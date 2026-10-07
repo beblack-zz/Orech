@@ -1,0 +1,89 @@
+---
+/**
+ * Odjezdová tabule (発車標) s hodinami vybraného dne — klapky pata-pata
+ * jako na Úvodu 2, jen tady se podle nich opravdu nastupuje. Každý řádek
+ * je jedna hodina v dílně: odjezd a příjezd, okénko s oblohou té hodiny
+ * a poznámka — volno, obsazeno, odjel, nebo nastupuješ, když je tvoje.
+ * Hodina se zamlouvá celá (sám nebo skupina do čtyř lidí), proto tabule
+ * neukazuje žádná místa.
+ *
+ * Řádky s časy jsou tady, protože hodiny jsou pořád stejné; obsazenost
+ * a den dopisuje skript (scripts/rezervace/odjezdy.ts) a při změně dne
+ * tabule překlapne. Okénko s oblohou má barvy z palety oblohy pro půlku
+ * té hodiny a slunce tam, kde v tu dobu stojí.
+ */
+import Flap from "../uvod2/Flap.astro";
+import { paleta } from "../../scripts/parta2/paleta";
+import { rezervace } from "../../data/rezervace";
+
+const dvoj = (n: number) => String(n).padStart(2, "0");
+const hodiny = Array.from({ length: rezervace.do - rezervace.od }, (_, i) => rezervace.od + i);
+
+/** Kde stojí slunce v danou hodinu — stejný vzorec jako obloha (nebe.ts) */
+const slunce = (h: number) => {
+  const ts = (h - 5.3) / (20.4 - 5.3);
+  const t = Math.min(1, Math.max(0, ts));
+  return { x: 10 + 80 * t, y: 88 - Math.sin(Math.PI * t) * 66, videt: ts > 0 && ts < 1 };
+};
+const radky = hodiny.map((h) => {
+  const nebe = paleta(h + 0.5).barvy;
+  return { h, cas: `${dvoj(h)}00`, nebe, slunce: slunce(h + 0.5) };
+});
+---
+<div class="rz-tabule" id="rz-odjezdy" role="region" data-hodina="10" data-rz-nebe aria-labelledby="rz-odjezdy-nadpis">
+  <span class="rz-tabule-tyc rz-tabule-tyc-l" aria-hidden="true"></span>
+  <span class="rz-tabule-tyc rz-tabule-tyc-p" aria-hidden="true"></span>
+  <div class="rz-tabule-deska">
+    <div class="rz-tabule-hlava">
+      <h2 class="rz-tabule-titul" id="rz-odjezdy-nadpis">
+        <span class="rz-stanice rz-stanice-svetla" aria-hidden="true"><small>OŘ</small>03</span>
+        <span lang="ja">発車</span> Odjezdy
+      </h2>
+      <p class="rz-tabule-den" aria-hidden="true">
+        <Flap text="—" class="rz-tabule-den-nazev" />
+        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i><Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i>
+      </p>
+      <p class="rz-tabule-hodiny" aria-hidden="true">
+        <span>teď</span>
+        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>:</i><Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" />
+      </p>
+    </div>
+    <p class="rz-tabule-sekki" aria-live="polite">Nejdřív vyber den.</p>
+
+    <div class="rz-tabule-sloupce" aria-hidden="true">
+      <span><span lang="ja">時刻</span> odjezd</span>
+      <span><span lang="ja">備考</span> poznámka</span>
+    </div>
+
+    <ol class="rz-tabule-radky" aria-label="Odjezdy vybraného dne — vyber jednu nebo víc hodin">
+      {radky.map((r) => (
+        <li class="rz-o" data-h={r.h}>
+          <button type="button" class="rz-o-volba" aria-pressed="false" disabled>
+            <span class="rz-o-cas" aria-hidden="true">
+              <Flap druh="cislice" text={r.cas[0]} /><Flap druh="cislice" text={r.cas[1]} /><i>:</i><Flap druh="cislice" text={r.cas[2]} /><Flap druh="cislice" text={r.cas[3]} />
+            </span>
+            <span class="rz-o-prijezd" aria-hidden="true">→ {r.h + 1}:00</span>
+            <span
+              class="rz-o-okno"
+              aria-hidden="true"
+              style={`--nebe-a:${r.nebe[0]};--nebe-b:${r.nebe[1]};--nebe-c:${r.nebe[2]}`}
+            >
+              {r.slunce.videt && <i style={`left:${r.slunce.x.toFixed(1)}%;top:${r.slunce.y.toFixed(1)}%`}></i>}
+            </span>
+            <span class="rz-o-stav" aria-hidden="true"><Flap text="" /></span>
+            <span class="rz-o-lampa" aria-hidden="true"></span>
+            <span class="sr-only rz-o-popis">{r.h}:00 až {r.h + 1}:00</span>
+          </button>
+        </li>
+      ))}
+    </ol>
+
+    <div class="rz-tabule-pata">
+      <p class="rz-tabule-rada">
+        Klikni na volný odjezd — klidně na víc. Hodina je celá vaše, ať jedeš sám, nebo až ve čtyřech.
+        Obloha nad mořem ukáže, jaké v tu hodinu bude v dílně světlo.
+      </p>
+    </div>
+  </div>
+  <p class="rz-simulace">Obsazenost je zatím jen ukázková — skutečný kalendář přijde později.</p>
+</div>

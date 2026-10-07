@@ -1,23 +1,63 @@
 ---
 /**
- * Rezervace — jednoduchá stránka v novém vzhledu. Den (úterý, pátek),
- * hodina nebo víc hodin za sebou, počet lidí 1–4 a cena. Odeslání otevře
- * e-mail s vyplněnými údaji, stránka sama nic neukládá. Volná a plná
- * místa jsou zatím simulovaná — viz data/rezervace.ts.
+ * Rezervace v novém vzhledu: hodina v dílně se kupuje jako jízdenka na
+ * vlak po vodě. Celá stránka stojí na moři pod oblohou (More.astro);
+ * na obzoru je stanice 胡桃 Ořech a vlak, který ráno přijede, odjede,
+ * když člověk sjede k výběru, a v noci se vrátí rozsvícený.
+ *
+ *   za svítání  nádraží: o co jde, kdy a za kolik, příští volný odjezd
+ *   dopoledne   pokladna: kolik vás pojede a den (lepenkové jízdenky)
+ *               a vedle klapková tabule s odjezdy toho dne — obloha
+ *               ukazuje světlo hodiny, na kterou člověk ukazuje
+ *   večer       jízdenka: z vybraných hodin se složí vláček, napíšeš
+ *               jméno a průvodčí jízdenku označí — odejde mailem
+ *   v noci      vlak se vrací, poslední odeslaná jízdenka, kontakt
+ *
+ * Pravidla jsou z data/rezervace.ts: úterý a pátek po hodinách od 9 do
+ * 18, cena za člověka a hodinu. Hodina je buď volná, nebo obsazená
+ * a zamlouvá se celá — sám nebo skupina do čtyř lidí. Stránka sama nic
+ * neukládá na server: odeslání otevře e-mail s vyplněnými údaji.
+ * Obsazenost je zatím simulovaná (scripts/rezervace/simulace.ts).
+ *
+ * Předchozí varianta s destičkami ema je odložená na /rezervace-ema.
  */
 import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
 import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
 import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/rezervace.css";
+import { ClientRouter } from "astro:transitions";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
+import More from "../components/rezervace/More.astro";
+import VlakKresby from "../components/rezervace/VlakKresby.astro";
+import Nadrazi from "../components/rezervace/Nadrazi.astro";
+import Pokladna from "../components/rezervace/Pokladna.astro";
+import Odjezdy from "../components/rezervace/Odjezdy.astro";
+import Jizdenka from "../components/rezervace/Jizdenka.astro";
+import Noc from "../components/rezervace/Noc.astro";
+
 import { rezervace } from "../data/rezervace";
 import { kontakt } from "../data/uvod2";
+import { sekki, DNY_ZNAK } from "../data/koyomi";
 
 const cena = rezervace.cena.toLocaleString("cs-CZ");
+
+/* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+sekki.forEach((s) => pridej(s.znak));
+DNY_ZNAK.forEach(pridej);
+pridej("切符売場発車次時刻備考乗車券運賃氏名日付人数胡桃行き予約済次は終電改札工房満席");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
 ---
 <!doctype html>
 <html lang="cs">
@@ -26,67 +66,48 @@ const cena = rezervace.cena.toLocaleString("cs-CZ");
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Rezervace · JIRO saku</title>
     <meta name="description" content={`Rezervuj si hodinu v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, ${cena} Kč za člověka a hodinu.`} />
-    <meta name="theme-color" content="#3E86D3" />
+    <meta name="theme-color" content="#6F8FC8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
   </head>
-  <body class="p2 rz">
+  <body class="p2 rz" data-stranka="rezervace">
+    <a class="preskocit" href="#rz-pokladna">Přeskočit na výběr odjezdu</a>
     <Nebe />
+    <More />
+    <VlakKresby />
     <Hlavicka sber="zadny" />
 
-    <main>
-      <section class="rz-sekce" data-hodina="11" aria-labelledby="rz-nadpis">
-        <div class="papir rz-papir" data-rezervace data-cena={rezervace.cena} data-email={kontakt.email}>
-          <p class="stitek">Rezervace</p>
-          <h1 id="rz-nadpis" class="nadpis-2">Vyber si hodinu v dílně</h1>
-          <p class="rz-perex">
-            Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin. {cena}&nbsp;Kč za člověka a hodinu.
-            Klikni na den, vyber jednu nebo víc hodin a kolik vás přijde.
-          </p>
+    <main data-rezervace data-cena={rezervace.cena} data-email={kontakt.email}>
+      <Nadrazi />
 
-          <noscript>
-            <p class="rz-noscript">Výběr termínu potřebuje JavaScript. Napiš nám na <a href={`mailto:${kontakt.email}`}>{kontakt.email}</a> a domluvíme se.</p>
-          </noscript>
-
-          <div class="rz-krok">
-            <h2 class="rz-otazka"><span>1</span> Kolik vás bude</h2>
-            <div class="rz-osoby" role="radiogroup" aria-label="Počet lidí">
-              {Array.from({ length: rezervace.maxOsob }, (_, i) => i + 1).map((n) => (
-                <label class="rz-pilulka">
-                  <input type="radio" name="osoby" value={n} checked={n === 1} />
-                  <span>{n} {n === 1 ? "člověk" : "lidi"}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div class="rz-krok">
-            <h2 class="rz-otazka"><span>2</span> Den</h2>
-            <div class="rz-dny" role="group" aria-label="Dny s volnými termíny"></div>
-          </div>
-
-          <div class="rz-krok">
-            <h2 class="rz-otazka"><span>3</span> Hodina <small>— můžeš jich vybrat víc</small></h2>
-            <p class="rz-den-nazev" aria-live="polite"></p>
-            <div class="rz-hodiny" role="group" aria-label="Hodiny vybraného dne"></div>
-            <ul class="rz-legenda" aria-hidden="true">
-              <li><i class="volno"></i>volno</li>
-              <li><i class="malo"></i>poslední místa</li>
-              <li><i class="plno"></i>obsazeno</li>
-            </ul>
-          </div>
-
-          <div class="rz-souhrn" aria-live="polite">
-            <p class="rz-souhrn-text">Zatím nic nevybráno.</p>
-            <p class="rz-cena"><span>Celkem</span> <b>0 Kč</b></p>
-            <a class="tlacitko rz-odeslat" aria-disabled="true" role="link">Rezervovat mailem</a>
-            <p class="rz-pozn">Otevře se e-mail s vybranými termíny. Rezervace platí, až ji potvrdíme.</p>
-          </div>
+      <section class="rz-sekce rz-hala" id="rz-pokladna" aria-labelledby="rz-pokladna-nadpis">
+        <noscript>
+          <p class="rz-noscript papir">Výběr odjezdu potřebuje JavaScript. Napiš nám na <a href={`mailto:${kontakt.email}`}>{kontakt.email}</a> a domluvíme se.</p>
+        </noscript>
+        <div class="rz-hala-mriz">
+          <Pokladna />
+          <Odjezdy />
         </div>
       </section>
+
+      <Jizdenka />
+      <Noc />
     </main>
 
-    <Paticka poznamka="Rezervace je návrh v novém vzhledu webu. Obsazenost termínů je zatím jen simulovaná." />
+    {/* Displej nad dveřmi: co bude dál a co máš vybrané */}
+    <div class="rz-displej" hidden>
+      <p class="rz-displej-text">
+        <span class="rz-displej-pristi"><span lang="ja">次は</span> příští zastávka <b>jízdenka</b></span>
+        <span class="rz-displej-souhrn"></span>
+      </p>
+      <a class="rz-displej-tlacitko" href="#rz-jizdenka">Pokračovat <span aria-hidden="true">→</span></a>
+    </div>
+
+    <Paticka poznamka="Rezervace je návrh v novém vzhledu webu. Obsazenost odjezdů je zatím jen simulovaná." />
 
     <script>
       import "../scripts/rezervace/hlavni.ts";

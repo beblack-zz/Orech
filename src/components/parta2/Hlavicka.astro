@@ -2,36 +2,49 @@
 /**
  * Hlavička nového vzhledu: plovoucí papírový pruh nad oblohou. Vpravo
  * sbírka schovaných věcí (na Partě omamori s kami, na Kurzech bedýnka
- * s nářadím, na Úvodu 2 sešit razítek) a zvonek fūrin, kterým se zapíná
- * zvuk.
+ * s nářadím, na Úvodu 2 sešit razítek, v O nás 2 zlato na kintsugi,
+ * na archivní /rezervace-ema přání party na destičkách ema; Rezervace
+ * sbírku nemá) a zvonkohra — visí z tlačítka, přečnívá přes spodní
+ * okraj pruhu a kliknutím se jí zvuk ztlumí.
+ *
+ * Sbírky v O nás 2 a na /rezervace-ema obsluhuje obecný scripts/parta2/sbirka.ts
+ * — proto mají tlačítka data-sbirka-tlacitko a počty data-sbirka-pocet.
  */
 import { razitka } from "../../data/uvod2";
+import { zlato } from "../../data/onas2";
+import { prani } from "../../data/rezervace";
 import Enso from "../navrhy-loga/Enso.astro";
+import Zvonkohra from "./Zvonkohra.astro";
+import "../../styles/znacka.css";
+import RezervaceKalendar from "./RezervaceKalendar.astro";
 
 interface Props {
-  /** zadny — stránka bez sbírky (třeba rezervace) */
-  sber?: "omamori" | "naradi" | "razitka" | "zadny";
+  /** zadny — stránka bez sbírky */
+  sber?: "omamori" | "naradi" | "razitka" | "zlato" | "ema" | "zadny";
 }
 const { sber = "omamori" } = Astro.props;
 const odkazy = [
-  { href: "/", label: "Úvod" },
   { href: "/uvod-2", label: "Úvod 2" },
-  { href: "/kurzy", label: "Kurzy" },
   { href: "/kurzy-2", label: "Kurzy 2" },
-  { href: "/parta", label: "Parta" },
   { href: "/parta-2", label: "Parta 2" },
   { href: "/open-studio", label: "Open studio" },
   { href: "/rezervace", label: "Rezervace" },
-  { href: "/obchod", label: "Obchod" },
-  { href: "/dizajn-2", label: "Dizajn 2.0" },
+  { href: "/obchod-2", label: "Obchod 2" },
   { href: "/o-nas", label: "O nás" },
+  { href: "/o-nas-2", label: "O nás 2" },
+  { href: "/marcel", label: "Marcel" },
+];
+/** Spáry misky v ikoně zlata — kolik jich je, tolik šupinek se hledá */
+const spary = [
+  "M9 14 L12 19 L10 23", "M15 14 L16 18", "M21 14 L20 19 L23 24", "M27 14 L26 17 L29 21",
+  "M33 15 L31 20", "M12 27 L16 29", "M20 24 L22 30", "M27 26 L25 31", "M30 23 L33 26",
 ];
 const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
 ---
-<header class="hlava">
+<header class="hlava" transition:name="hlava">
   <a href="/" class="hlava-znacka" aria-label="JIRO saku — úvod">
     <Enso size={40} soumrak maly />
-    <span>JIRO <em>saku</em></span>
+    <span class="znacka">JIRO <em>saku</em></span>
   </a>
 
   <nav class="hlava-nav" aria-label="Hlavní navigace">
@@ -41,7 +54,31 @@ const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
   </nav>
 
   <div class="hlava-akce">
-    {sber === "zadny" ? null : sber === "razitka" ? (
+    {sber === "zadny" ? null : sber === "zlato" ? (
+    <button type="button" class="sbirka-tlacitko zlato-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Zlato na kintsugi">
+      <svg viewBox="0 0 42 36" aria-hidden="true">
+        <ellipse cx="21" cy="33" rx="11" ry="2.2" fill="#2B2420" opacity="0.18" />
+        <path d="M4 13 C5 25 12 31 21 31 C30 31 37 25 38 13 Z" class="zlato-miska" />
+        <ellipse cx="21" cy="13" rx="17" ry="3.6" fill="#2B2420" opacity="0.35" />
+        <ellipse cx="21" cy="12.6" rx="15.5" ry="2.6" fill="#6B5D4F" opacity="0.55" />
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          {spary.map((d, i) => <path class="zlato-spara" data-spara={i} d={d} />)}
+        </g>
+      </svg>
+      <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{zlato.length}</span>
+    </button>
+    ) : sber === "ema" ? (
+    <button type="button" class="sbirka-tlacitko ema-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Přání party">
+      <svg viewBox="0 0 40 44" aria-hidden="true">
+        <path d="M20 2 Q15 8 20 13" stroke="#C4432B" stroke-width="1.8" fill="none" stroke-linecap="round" />
+        <path d="M20 2 Q15 8 20 13" stroke="#FBF7EE" stroke-width="1.8" fill="none" stroke-dasharray="2 2" />
+        <path d="M6 20 L20 11 L34 20 L34 39 Q34 41 32 41 L8 41 Q6 41 6 39 Z" class="ema-drevo" />
+        <path d="M4 21 L20 10.5 L36 21" stroke="#8A6A48" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        <text x="20" y="34" text-anchor="middle" font-size="12" font-family="Yuji Syuku, Yu Mincho, serif" fill="#3A2E28">願</text>
+      </svg>
+      <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{prani.length}</span>
+    </button>
+    ) : sber === "razitka" ? (
     <button type="button" class="razitka-tlacitko" aria-haspopup="dialog" aria-label="Sešit razítek">
       <svg viewBox="0 0 44 40" aria-hidden="true">
         <rect x="6" y="5" width="32" height="31" rx="3" class="razitka-desky" />
@@ -76,17 +113,9 @@ const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
     </button>
     )}
 
-    <button type="button" class="zvuk-tlacitko" aria-pressed="false" aria-label="Zapnout zvuk">
-      <svg viewBox="0 0 32 44" aria-hidden="true">
-        <path d="M16 1 V6" stroke="currentColor" stroke-width="1.4" />
-        <g class="furin-zvon">
-          <path d="M7 18 Q7 6 16 6 Q25 6 25 18 Z" fill="#DCEBF0" stroke="currentColor" stroke-width="1.4" />
-          <path d="M10 13 Q12 10 15 9" stroke="#C4432B" stroke-width="1.6" fill="none" stroke-linecap="round" />
-          <path d="M16 18 V26" stroke="currentColor" stroke-width="1" />
-          <rect x="12" y="26" width="8" height="15" rx="1" fill="#C4432B" />
-        </g>
-      </svg>
-      <span class="zvuk-popis">Zvuk</span>
+    {/* Při přechodu mezi stránkami se tlačítko přenese i se zvonkohrou, která se houpe dál (scripts/parta2/prechody.ts) */}
+    <button type="button" class="zvuk-tlacitko" aria-pressed="true" aria-label="Ztlumit zvuk" title="Ztlumit zvuk" transition:persist="zvonkohra">
+      <Zvonkohra />
     </button>
 
     <button type="button" class="hlava-menu-tlacitko" aria-expanded="false" aria-controls="hlava-menu" aria-label="Otevřít menu">
@@ -100,3 +129,5 @@ const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
     <a href={o.href} aria-current={tady === o.href ? "page" : undefined}>{o.label}</a>
   ))}
 </nav>
+
+{tady !== "/rezervace" && <RezervaceKalendar />}

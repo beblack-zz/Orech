@@ -1,0 +1,52 @@
+---
+/**
+ * Skupinové foto party jako japonská školní fotka (記念写真): dvě řady
+ * na schodech a vpředu cedulka. Tlačítko odpočítá, řekne „hai, chīzu“,
+ * blýskne a z fotky vyjede papírek s datem v rohu jako ze starého
+ * foťáku (scripts/onas2/foto.ts). Někdo vždycky mrkne.
+ */
+import Kami from "../parta2/Kami.astro";
+import type { PostavaId } from "../../data/parta";
+
+const vzadu: PostavaId[] = ["vazicka", "pecinka", "samotka", "cedulka"];
+const vpredu: PostavaId[] = ["kachlik", "hlinka", "stripek", "kapka", "bublinka"];
+const rok = new Date().getFullYear();
+---
+<section class="foto-sekce" id="parta" data-hodina="21.5" aria-labelledby="foto-nadpis">
+  <div class="papir foto-papir">
+    <div class="foto-text">
+      <p class="stitek"><span lang="ja">記念写真</span> · skupinové foto</p>
+      <h2 id="foto-nadpis" class="nadpis-2">Kdo tu ještě bydlí</h2>
+      <p>
+        Devět kami z dílny — hliněná parta, se kterou má Renča podle svého profilu na starosti
+        komunikaci. Fotit se nechávají neradi.
+      </p>
+      <div class="foto-akce">
+        <button type="button" class="tlacitko" data-foto>Vyfotit partu</button>
+        <a class="foto-odkaz" href="/parta-2">Seznam se s partou <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+
+    <div class="foto-scena" data-foto-scena>
+      <div class="foto-skupina">
+        <div class="foto-rada foto-rada-vzadu">
+          {vzadu.map((id) => <Kami id={id} class="foto-kami" />)}
+        </div>
+        <div class="foto-rada foto-rada-vpredu">
+          {vpredu.map((id) => <Kami id={id} class="foto-kami" />)}
+        </div>
+        <p class="foto-cedule"><span lang="ja">工房</span> JIRO saku · {rok}</p>
+      </div>
+      <p class="foto-odpocet" aria-live="assertive"></p>
+      <span class="foto-blesk" aria-hidden="true"></span>
+    </div>
+
+    <figure class="foto-vysledek" hidden>
+      <div class="foto-papirek">
+        <div class="foto-snimek"></div>
+        <span class="foto-datum" aria-hidden="true"></span>
+      </div>
+      <figcaption class="foto-popisek"></figcaption>
+    </figure>
+  </div>
+</section>

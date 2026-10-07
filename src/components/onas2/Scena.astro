@@ -1,0 +1,141 @@
+---
+/**
+ * Jedna scéna svitku — měsíc z prvního roku dílny, kreslený tuší
+ * (tahy z ./tus.ts). Tatáž místnost se měsíc po měsíci zaplňuje: garáž
+ * po havárii, podlaha a výloha, kruhy a stoly, trubky, Instagram, místo
+ * pro pec, hlína a první výpal, dny otevřených dveří a nakonec dílna,
+ * jak je teď. Barevné jsou jen věci, na kterých záleží — voda, glazury,
+ * noren, páska „PEC“; parta a zlato leží nad kresbou (Svitek.astro).
+ */
+import {
+  mistnost, vrata, okenko, trubkaPraskla, kaluz, kbelik, mop, kolecko, valecek, dira, vyloha,
+  kruh, rudl, stul, krabice, trubky, skrinka, drez, stativ, srdce, zasuvka, jiskra, merak,
+  paskaPec, pytel, pec, noren, clovek, slapoty, kalendar, police, desticky, skvrna, plocha, tah,
+} from "./tus";
+import { glazury } from "../../data/kurzy2";
+import { denOtevrenychDveri } from "../../data/uvod2";
+import { kurzy } from "../../data/kurzy";
+
+interface Props {
+  /** Měsíc 2026 (2–9), nebo 0 = teď */
+  m: number;
+}
+const { m } = Astro.props;
+
+const barvyGlazur = glazury.map((g) => g.stred);
+const MESICE_KRATCE = ["LEDEN", "ÚNOR", "BŘEZEN", "DUBEN", "KVĚTEN", "ČERVEN", "ČERVENEC", "SRPEN", "ZÁŘÍ", "ŘÍJEN", "LISTOPAD", "PROSINEC"];
+/* Kalendář „teď“: dny nejbližších kurzů v jejich měsíci */
+const k0 = kurzy[0];
+const dnyTed = k0 ? [...new Set(kurzy.filter((k) => k.date.getMonth() === k0.date.getMonth() && k.date.getFullYear() === k0.date.getFullYear()).map((k) => `${k.date.getDate()}.`))].slice(0, 4) : [];
+
+const scena = (() => {
+  switch (m) {
+    case 2:
+      return [
+        mistnost(),
+        vrata(96, 236, 220, 264),
+        okenko(700, 168, 124, 92, true),
+        trubkaPraskla(64, 940, 132, 528),
+        kaluz(540, 532, 320, 36),
+        kbelik(370, 506, 1, true),
+        kbelik(706, 512, 0.85, true),
+        mop(842, 504),
+      ];
+    case 3:
+      return [
+        mistnost(),
+        skvrna("M70 500 L930 500 L1000 600 L0 600 Z", "#8A8478", 0.12),
+        dira(150, 220),
+        vyloha(560, 160, 300, 236),
+        kolecko(270, 504),
+        valecek(440, 504),
+        kbelik(500, 506, 0.75),
+        plocha("M486 470 h28 v6 h-28 Z", "#E9E1D0", 0.9),
+      ];
+    case 4:
+      return [
+        mistnost(),
+        vyloha(560, 160, 300, 236),
+        rudl(118, 504),
+        kruh(178, 478, 0.82),
+        kruh(400, 504, 1),
+        stul(600, 504, 250),
+        tah([[640, 516], [700, 526]], 3.5),
+        tah([[716, 520], [716, 534], [742, 534]], 2.4),
+        krabice(870, 504, 96, 72),
+        krabice(884, 432, 64, 42),
+      ];
+    case 5:
+      return [
+        mistnost(),
+        trubky(110, 504),
+        skrinka(250, 504, 140, 86),
+        drez(260, 514),
+        skrinka(560, 504, 112, 168, true),
+        krabice(780, 504, 140, 30),
+        krabice(796, 474, 110, 24),
+      ];
+    case 6:
+      return [
+        mistnost(),
+        kruh(260, 504, 0.9),
+        stul(380, 504, 210),
+        stativ(770, 504),
+        srdce(740, 176, 1.1),
+        srdce(800, 150, 0.8),
+        srdce(770, 108, 1.3, "#C4432B"),
+        srdce(836, 92, 0.7),
+        srdce(712, 120, 0.6),
+      ];
+    case 7:
+      return [
+        mistnost(),
+        zasuvka(200, 300),
+        zasuvka(262, 300),
+        jiskra(262, 276),
+        tah([[262, 320], [270, 400], [330, 440]], 2.4),
+        merak(330, 470),
+        paskaPec(560, 418, 230, 72),
+      ];
+    case 8:
+      return [
+        mistnost(),
+        pytel(190, 504),
+        pytel(290, 504, 0.92),
+        pytel(240, 440, 0.86),
+        stul(390, 504, 230),
+        desticky(406, 408, barvyGlazur),
+        pec(780, 504),
+      ];
+    case 9:
+      return [
+        mistnost(),
+        plocha("M118 226 h196 v274 h-196 Z", "#FFE7B0", 0.55),
+        tah([[112, 504], [114, 360], [110, 222], [320, 220], [318, 360], [320, 504]], 5),
+        noren(124, 226, 186),
+        slapoty(170, 552, 6),
+        clovek(430, 504, 1.05),
+        clovek(520, 504, 0.82, "#5C5047"),
+        clovek(610, 504, 1.12),
+        clovek(700, 504, 0.7, "#5C5047"),
+        kalendar(820, 170, denOtevrenychDveri.terminy.map((d) => d.split(".")[0] + "."), "ZÁŘÍ"),
+      ];
+    default:
+      return [
+        mistnost(),
+        clovek(150, 470, 0.62, "#5C5047"),
+        clovek(410, 470, 0.66),
+        kruh(150, 504, 0.78),
+        kruh(280, 504, 0.78),
+        kruh(410, 504, 0.78),
+        stul(520, 504, 170),
+        pec(800, 504, false),
+        police(520, 196, 300, barvyGlazur),
+        dnyTed.length ? kalendar(850, 150, dnyTed, MESICE_KRATCE[k0!.date.getMonth()]) : "",
+      ];
+  }
+})().join("");
+---
+<svg class="scena-tus" viewBox="0 0 1000 600" aria-hidden="true">
+  <g filter="url(#tus-hrana)" set:html={scena} />
+</svg>

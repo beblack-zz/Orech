@@ -1,0 +1,60 @@
+---
+/**
+ * Kresby pro tabuli na /rezervace — jednou jako <symbol>, všude jinde se
+ * na ně jen odkazuje (<use>): destička ema, háček a devět kami, kteří na
+ * destičkách visí za obsazená místa (scripts/rezervace/deska.ts).
+ *
+ * Barvu dřeva a lemu destička bere z proměnných --ema-drevo a --ema-lem,
+ * takže tvoje destička může být jiná než destičky party, i když jde
+ * o jeden a tentýž symbol.
+ */
+import Postavicka from "../../characters/Postavicka.astro";
+import { parta } from "../../../data/parta";
+
+const tvar = "M6 22 L30 8 L54 22 L54 58 Q54 62 50 62 L10 62 Q6 62 6 58 Z";
+---
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="rz-ema-drevo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.35" />
+      <stop offset="1" stop-color="#7A5A3C" stop-opacity="0.18" />
+    </linearGradient>
+    <clipPath id="rz-ema-orez"><path d={tvar} /></clipPath>
+
+    <symbol id="rz-ema" viewBox="0 0 60 64">
+      <path d="M30 0 Q25 5 30 10" stroke="#C4432B" stroke-width="1.8" fill="none" stroke-linecap="round" />
+      <path d="M30 0 Q25 5 30 10" stroke="#FBF7EE" stroke-width="1.8" fill="none" stroke-dasharray="2 2" />
+      <path d={tvar} style="fill:var(--ema-drevo, #EBD6B0);stroke:var(--ema-lem, #8A6A48)" stroke-width="1.4" stroke-linejoin="round" />
+      <path d={tvar} fill="url(#rz-ema-drevo)" />
+      <g clip-path="url(#rz-ema-orez)" stroke="#B89466" stroke-width="0.7" fill="none" opacity="0.5">
+        <path d="M6 30 Q18 28 30 31 T54 29" />
+        <path d="M6 46 Q16 44 28 47 T54 45" />
+        <path d="M6 56 Q20 54 32 57 T54 55" />
+      </g>
+      <path d="M3 23 L30 6.5 L57 23" style="stroke:var(--ema-lem, #8A6A48)" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="30" cy="16" r="2.1" style="fill:var(--ema-lem, #8A6A48)" opacity="0.55" />
+    </symbol>
+
+    {/* Cizí přání se nečtou: na úvodní tabuli jsou jen klikyháky */}
+    <symbol id="rz-ema-psane" viewBox="0 0 60 64">
+      <use href="#rz-ema" />
+      <g stroke="#3A2E28" stroke-linecap="round" fill="none" opacity="0.62">
+        <path d="M16 31 C19 28 22 33 25 30 C28 27 31 33 35 30 C38 28 41 31 44 29" stroke-width="1.6" />
+        <path d="M14 40 C18 37 21 42 25 39 C29 36 33 42 37 38" stroke-width="1.4" />
+        <path d="M18 49 C21 47 24 51 28 48" stroke-width="1.3" />
+      </g>
+      <path d="M41 46 L47 46 L47 52 L41 52 Z" stroke="#C4432B" stroke-width="1.2" fill="none" opacity="0.8" />
+    </symbol>
+
+    <symbol id="rz-hacek" viewBox="0 0 12 14">
+      <circle cx="6" cy="3" r="2.6" fill="#5E452E" />
+      <path d="M6 4 V9 Q6 12 9 11.5" stroke="#3B2A1B" stroke-width="1.6" fill="none" stroke-linecap="round" />
+    </symbol>
+
+    {parta.map((p) => (
+      <symbol id={`rz-kami-${p.id}`} viewBox="0 0 180 180">
+        <Postavicka id={p.id} size={180} varianta="kami" />
+      </symbol>
+    ))}
+  </defs>
+</svg>

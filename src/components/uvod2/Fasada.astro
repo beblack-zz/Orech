@@ -16,9 +16,11 @@ import { produkty } from "../../data/obchod";
 
 interface Props {
   noc?: boolean;
+  /** Lístek „Obchod připravujeme“ ve výloze — Obchod 2 ho nepotřebuje, tam obchod je */
+  listekObchod?: boolean;
   class?: string;
 }
-const { noc = false, class: cls = "" } = Astro.props;
+const { noc = false, listekObchod = true, class: cls = "" } = Astro.props;
 const p = noc ? "fan" : "fad";
 const vyloha = produkty.slice(0, 4);
 /* Kde v regálu výlohy stojí první čtyři kusy z obchodu: x, pata, měřítko */
@@ -238,11 +240,13 @@ const kameny = Array.from({ length: 15 }, (_, i) => 176 + i * 58);
     {vyloha.map((k, i) => (
       <Nadoba tvar={k.shape} x={mista[i].x} y={mista[i].y} s={mista[i].s} glazura={k.glaze} />
     ))}
-    <g transform="rotate(-5 966 540)">
-      <rect x="934" y="514" width="64" height="44" rx="2" fill="#FBF6EA" stroke="#C9B48A" stroke-width="1" />
-      <text x="966" y="532" text-anchor="middle" font-size="12.5" fill="#3A2E28" font-family="Caveat, cursive">Obchod</text>
-      <text x="966" y="548" text-anchor="middle" font-size="11" fill="#C4432B" font-family="Caveat, cursive">připravujeme</text>
-    </g>
+    {listekObchod && (
+      <g transform="rotate(-5 966 540)">
+        <rect x="934" y="514" width="64" height="44" rx="2" fill="#FBF6EA" stroke="#C9B48A" stroke-width="1" />
+        <text x="966" y="532" text-anchor="middle" font-size="12.5" fill="#3A2E28" font-family="Caveat, cursive">Obchod</text>
+        <text x="966" y="548" text-anchor="middle" font-size="11" fill="#C4432B" font-family="Caveat, cursive">připravujeme</text>
+      </g>
+    )}
     <rect x="726" y="312" width="280" height="318" fill={`url(#${p}-sklo)`} />
     <g fill="#FFFFFF" opacity="0.28">
       <path d="M760 312 L800 312 L740 420 L726 420 L726 374 Z" />

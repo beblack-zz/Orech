@@ -1,0 +1,92 @@
+---
+/**
+ * O nás 2 — návrh nového vzhledu stránky O nás. Stejný svět jako
+ * ostatní dvojky (obloha, papír, písmo, parta); tady je první rok dílny
+ * jeden den, od noci do noci:
+ *
+ *   noc        — garáž po havárii: kapka, kruhy na vodě a z nich ensō
+ *   svítání…   — svitek emaki: měsíc po měsíci od února až do teď
+ *   západ      — Jiřík a Renča, dva svitky kakejiku
+ *   soumrak    — méně dokonalosti, víc radosti: nakresli si ensō
+ *   noc        — kintsugi, skupinové foto party a všichni jste vítáni
+ *
+ * Ve svitku se schovává devět šupinek zlata, kterými Střípek zalije
+ * misku (sbírka v hlavičce). Texty jsou ze stávající stránky O nás
+ * (uvod2.ts, onas2.ts), milníky z uvod2.ts, termíny z kurzy.ts.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/onas2.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import TusSprite from "../components/onas2/TusSprite.astro";
+import Pocatek from "../components/onas2/Pocatek.astro";
+import Svitek from "../components/onas2/Svitek.astro";
+import Rukopisy from "../components/onas2/Rukopisy.astro";
+import KresliEnso from "../components/onas2/KresliEnso.astro";
+import Kintsugi from "../components/onas2/Kintsugi.astro";
+import Foto from "../components/onas2/Foto.astro";
+import Vitani from "../components/onas2/Vitani.astro";
+import ZlatoDialog from "../components/onas2/ZlatoDialog.astro";
+
+import { sceny } from "../data/onas2";
+import { mesicZnak } from "../data/koyomi";
+
+/* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+sceny.forEach((s) => pridej(s.m ? mesicZnak(s.m) : "今"));
+pridej("工房物語絵巻ジロ作続円相金継ぎ記念写真轆窯はいチーズ");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>O nás — dílna v Ořechu · JIRO saku</title>
+    <meta name="description" content="Malá keramická dílna v Ořechu. Začalo to vodovodní havárií v garáži — rozvin si svitek s prvním rokem dílny, seznam se s Jiříkem a Renčou a nakresli si ensō." />
+    <meta name="theme-color" content="#141B42" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
+  </head>
+  <body class="p2 n2" data-stranka="o-nas-2">
+    <a class="preskocit" href="#svitek">Přeskočit na svitek</a>
+    <Nebe />
+    <Hlavicka sber="zlato" />
+    <TusSprite />
+
+    <main>
+      <Pocatek />
+      <Svitek />
+      <Rukopisy />
+      <KresliEnso />
+      <Kintsugi />
+      <Foto />
+      <Vitani />
+    </main>
+
+    <Paticka poznamka="O nás 2 je návrh nového vzhledu webu. Svitek, obloha i zvuky se kreslí a skládají přímo v prohlížeči — skutečné jsou jen fotky." />
+    <ZlatoDialog />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/onas2/hlavni.ts";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,148 @@
+---
+import Kresba from "../kami/Kresba.astro";
+import { uid } from "../dospele/uid";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+const u = uid();
+
+/*
+  Kapka s bubny hromu v kami podobě z Party 2 (kami/Kapka.astro): ruční
+  linka a zrno z Kresby, měkké světlo, otevřená zvědavá očka.
+
+  Vlastní pokus: kruh za zády není obruč, ale shimenawa — slaměný provaz,
+  kterým se v Japonsku značí, kde bydlí kami. Na něm visí čtyři lakované
+  bubny s rumělkovým mitsudomoe a mezi nimi papírky shide. Nad bubny
+  přeskakují dva zlaté blesky. Kapka stojí na geta a neposkakuje.
+*/
+const f = (n: number) => Math.round(n * 100) / 100;
+const STRED = { x: 90, y: 64 };
+const POLOMER = 48;
+const bod = (uhel: number) => ({
+  x: f(STRED.x + POLOMER * Math.cos((uhel * Math.PI) / 180)),
+  y: f(STRED.y + POLOMER * Math.sin((uhel * Math.PI) / 180)),
+});
+const bubny = [-180, -120, -60, 0].map(bod);
+const shide = [-150, -30].map(bod);
+const hrebiky = Array.from({ length: 12 }, (_, i) => {
+  const a = (i / 12) * Math.PI * 2;
+  return { x: f(Math.cos(a) * 13.6), y: f(Math.sin(a) * 13.6) };
+});
+const carka = "M0 -8.4 A8.4 8.4 0 0 1 8.11 -2.17 A6 6 0 0 0 0 -2.4 Z";
+const ZDVIH = 12;
+const geta = [71, 91];
+---
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <Kresba id={u} />
+    <radialGradient id={`${u}-telo`} cx="0.36" cy="0.42" r="0.75">
+      <stop offset="0" stop-color="#EBBDB7" />
+      <stop offset="0.5" stop-color="#D79A94" />
+      <stop offset="1" stop-color="#BE7F79" />
+    </radialGradient>
+    <radialGradient id={`${u}-kuze`} cx="0.38" cy="0.34" r="0.8">
+      <stop offset="0" stop-color="#FFF8E8" />
+      <stop offset="1" stop-color="#EAD7B2" />
+    </radialGradient>
+  </defs>
+
+  {/* Shimenawa: slaměný provaz místo obruče, spodek zajíždí za záda */}
+  <g filter={`url(#${u}-tah)`}>
+    <circle cx={STRED.x} cy={STRED.y} r={POLOMER} stroke="#B49A6C" stroke-width="6.6" />
+    <circle cx={STRED.x} cy={STRED.y} r={POLOMER} stroke="#EBDDB8" stroke-width="5" />
+    <circle cx={STRED.x} cy={STRED.y} r={POLOMER} stroke="#B49A6C" stroke-width="5" stroke-dasharray="1.8 4.4" />
+  </g>
+
+  {/* Papírky shide mezi bubny */}
+  {shide.map((p, i) => (
+    <g transform={`translate(${p.x} ${p.y + 2})`}>
+      <path class={`kami-shide ${i ? "kami-shide-2" : ""}`} d="M-4 0 h5 v6 h3 v6 h-3 v6 h3 v6 h-5 v-6 h-3 v-6 h3 v-6 h-3 Z" fill="#FBF7EE" stroke="#8A7A69" stroke-width="0.7" stroke-linejoin="round" />
+    </g>
+  ))}
+
+  {/* Bubny: černý lak, zlaté hřebíky, kůže a rumělkové mitsudomoe */}
+  {bubny.map((p, i) => (
+    <g transform={`translate(${p.x} ${p.y})`}>
+      <g filter={`url(#${u}-tah)`}>
+        <circle r="15.6" fill="#2F2622" stroke="#1E1714" stroke-width="1.2" />
+        <circle r="12.2" fill={`url(#${u}-kuze)`} stroke="#8A6A4A" stroke-width="0.7" />
+      </g>
+      <g fill="#E3B54C">{hrebiky.map((h) => <circle cx={h.x} cy={h.y} r="0.85" />)}</g>
+      <g class="tomoe" style={`animation-delay:${-i * 1.7}s`}>
+        <g transform="scale(1.26)" fill="#C4432B">
+          {[0, 120, 240].map((uh) => (
+            <g transform={`rotate(${uh})`}>
+              <path d={carka} />
+              <circle cx="0" cy="-5.4" r="3" />
+            </g>
+          ))}
+        </g>
+      </g>
+      <path d="M-9.6 -9.4 A13.6 13.6 0 0 1 3 -13.2" stroke="#7A6458" stroke-width="1" stroke-linecap="round" opacity="0.7" />
+    </g>
+  ))}
+
+  {/* Dva zlaté blesky nad bubny, se září */}
+  {[[30, 26, -10], [150, 24, 12]].map(([x, y, r]) => (
+    <g transform={`translate(${x} ${y}) rotate(${r})`}>
+      <path class="blesk" d="M2 -9 L-3 1 H1.6 L-2.4 10 L5 -2 H0.4 L4.4 -9 Z" fill="#F3D27A" fill-opacity="0.7" filter={`url(#${u}-mlha)`} />
+      <path class="blesk" d="M2 -9 L-3 1 H1.6 L-2.4 10 L5 -2 H0.4 L4.4 -9 Z" fill="#E8B440" stroke="#B98A1C" stroke-width="0.6" stroke-linejoin="round" />
+    </g>
+  ))}
+
+  {/* Déšť: pár kapek, které po ní přišly */}
+  <g fill="#C98C86" opacity="0.6">
+    <path d="M22 128 Q19 133 19 135 Q19 138 22 138 Q25 138 25 135 Q25 133 22 128 Z" />
+    <path d="M160 136 Q157.6 140 157.6 141.6 Q157.6 144 160 144 Q162.4 144 162.4 141.6 Q162.4 140 160 136 Z" />
+  </g>
+
+  {/* Vlnky na hladině místo stínu */}
+  <g stroke="#C98C86">
+    <ellipse cx="90" cy="161" rx="30" ry="5" stroke-width="1.2" opacity="0.5" />
+    <ellipse cx="90" cy="161" rx="20" ry="3.2" stroke-width="0.9" opacity="0.4" />
+  </g>
+
+  {/* Geta */}
+  <g stroke="#6B5D4F" stroke-linejoin="round" filter={`url(#${u}-tah)`}>
+    {geta.map((x) => (
+      <g>
+        <path d={`M${x + 2.4} 152.2 H${x + 6} V159.2 H${x + 2.4} Z M${x + 12} 152.2 H${x + 15.6} V159.2 H${x + 12} Z`} fill="#8C6444" stroke-width="0.9" />
+        <rect x={x} y="146" width="18" height="6.4" rx="1.4" fill="#C99A68" stroke-width="1.1" />
+        <path d={`M${x + 1.4} 147.8 H${x + 16.6}`} stroke="#E2BE8C" stroke-width="0.9" stroke-linecap="round" />
+      </g>
+    ))}
+  </g>
+
+  {/* Kapka v kami podobě, zvednutá na geta */}
+  <g transform={`translate(0 -${ZDVIH})`}>
+    <g filter={`url(#${u}-tah)`}>
+      <path d="M90 38 Q60 85 56 108 Q52 132 72 146 Q82 152 90 152 Q98 152 108 146 Q128 132 124 108 Q120 85 90 38 Z" fill={`url(#${u}-telo)`} stroke="#B47670" stroke-width="1.5" />
+      <ellipse cx="76" cy="98" rx="7" ry="15" fill="#FBE7E3" opacity="0.5" transform="rotate(-15 76 98)" />
+      <ellipse cx="52" cy="118" rx="7" ry="5" fill="#D79A94" stroke="#B47670" stroke-width="1" />
+      <ellipse cx="128" cy="118" rx="7" ry="5" fill="#D79A94" stroke="#B47670" stroke-width="1" />
+      <ellipse cx="80" cy="154" rx="8" ry="4" fill="#B87C76" />
+      <ellipse cx="100" cy="154" rx="8" ry="4" fill="#B87C76" />
+    </g>
+    <g class="tvar">
+      <g filter={`url(#${u}-mlha)`} fill="#B86A64" opacity="0.5">
+        <ellipse cx="71" cy="118" rx="6" ry="4" />
+        <ellipse cx="109" cy="118" rx="6" ry="4" />
+      </g>
+      <ellipse cx="79" cy="107" rx="3.4" ry="4.4" fill="#5E3430" />
+      <ellipse cx="101" cy="107" rx="3.4" ry="4.4" fill="#5E3430" />
+      <circle cx="78" cy="105.2" r="1.3" fill="#FFF8F2" />
+      <circle cx="100" cy="105.2" r="1.3" fill="#FFF8F2" />
+      <path d="M85 120 Q90 124 95 120" stroke="#8C5751" stroke-width="2" stroke-linecap="round" fill="none" />
+    </g>
+    {/* Pásky hanao přes chodidla */}
+    <path d="M73.6 158 Q80 150.6 86.4 158 M93.6 158 Q100 150.6 106.4 158" stroke="#C4432B" stroke-width="1.9" stroke-linecap="round" />
+  </g>
+</svg>
+
+<style>
+  .tomoe { animation: tomoe 14s linear infinite; }
+  @keyframes tomoe { to { transform: rotate(360deg); } }
+  .blesk { animation: blesk 3.2s steps(1) infinite; }
+  @keyframes blesk { 0%, 82% { opacity: 1; } 86% { opacity: 0.2; } 90% { opacity: 1; } 94% { opacity: 0.3; } }
+  @media (prefers-reduced-motion: reduce) { .tomoe, .blesk { animation: none; } }
+</style>

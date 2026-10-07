@@ -8,6 +8,7 @@
 import Postavicka from "../characters/Postavicka.astro";
 import Shimenawa from "../characters/kami/Shimenawa.astro";
 import Naradi from "./Naradi.astro";
+import "../../styles/znacka.css";
 import { parta } from "../../data/parta";
 import { castkyPoukazu } from "../../data/kurzy2";
 ---
@@ -66,7 +67,7 @@ import { castkyPoukazu } from "../../data/kurzy2";
             <span data-postava={p.id} hidden={p.id !== "kachlik"}><Postavicka id={p.id} size={150} varianta="kami" /></span>
           ))}
         </span>
-        <span class="poukaz-znacka">JIRO <em>saku</em> · Ořech</span>
+        <span class="poukaz-znacka znacka">JIRO <em>saku</em> · Ořech</span>
       </span>
       <span class="poukaz-strana poukaz-zadek">
         <span class="stitek">Jak ho uplatnit</span>

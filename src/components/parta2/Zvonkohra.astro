@@ -1,0 +1,156 @@
+---
+/**
+ * Zvonkohra v tlačítku zvuku v hlavičce. Visí na kroužku uvnitř pruhu
+ * a trubkami, srdcem i papírkem přečnívá dolů přes jeho okraj.
+ *
+ * Kresba je v klidové poloze spočítané fyzikou (scripts/parta2/
+ * zvonkohra-fyzika.ts) — bez skriptu tak visí rovně, se skriptem ji
+ * rozhoupe vítr (scripts/parta2/zvonkohra.ts). Prvky, se kterými skript
+ * hýbe, mají data-zk.
+ *
+ * Miska je obrácená čajová miska v glazuře tenmoku, nahoře neglazovaná
+ * nožka. Trubky mají barvy soumraku z loga, papírek tanzaku přechází
+ * do noci a svítí na něm květ sakury jako měsíc — stejný jako v ensō.
+ */
+import { kvetDefs } from "../navrhy-loga/sdilene";
+import { zvonkohra, zapis, TRUBKY, KROUZEK_R, MISKA, PRUMER, SRDCE_R, PAPIR, SKLON } from "../../scripts/parta2/zvonkohra-fyzika";
+
+const klidna = zvonkohra().poloha();
+const atributy: Record<string, Record<string, string>> = {};
+zapis(klidna, (klic, atribut, hodnota) => {
+  (atributy[klic] ??= {})[atribut] = hodnota;
+});
+const a = (klic: string) => atributy[klic] ?? {};
+
+const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+const mix = (c1: string, c2: string, t: number) => {
+  const A = hex(c1);
+  const B = hex(c2);
+  return `#${A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join("")}`;
+};
+/** Barevný kov: odstín trubky s trochou stříbra, světlo zleva shora */
+const kov = (barva: string) => {
+  const z = mix(barva, "#AEB3BD", 0.28);
+  return {
+    otvor: mix(z, "#000000", 0.65),
+    prechod: [
+      [0, mix(z, "#000000", 0.45)],
+      [0.16, z],
+      [0.36, mix(z, "#FFFFFF", 0.6)],
+      [0.5, mix(z, "#FFFFFF", 0.22)],
+      [0.78, mix(z, "#000000", 0.08)],
+      [1, mix(z, "#000000", 0.5)],
+    ] as [number, string][],
+  };
+};
+const trubky = TRUBKY.map((t) => ({ ...t, kov: kov(t.barva) }));
+
+const r = PRUMER / 2;
+const okrajRy = MISKA.r * SKLON;
+const nohaRy = MISKA.nohaR * SKLON;
+const srdceRy = SRDCE_R * SKLON;
+/* Obrys misky: od nožky se boky rozšíří a spadnou k okraji, spodní hrana je přední půlka okraje */
+const miska = [
+  `M${-MISKA.nohaR} ${MISKA.pata}`,
+  `C${-MISKA.nohaR - 5.9} ${MISKA.pata} ${-MISKA.r + 0.3} ${MISKA.pata + 2.8} ${-MISKA.r} ${MISKA.okraj}`,
+  `A${MISKA.r} ${okrajRy} 0 0 0 ${MISKA.r} ${MISKA.okraj}`,
+  `C${MISKA.r - 0.3} ${MISKA.pata + 2.8} ${MISKA.nohaR + 5.9} ${MISKA.pata} ${MISKA.nohaR} ${MISKA.pata}`,
+  "Z",
+].join(" ");
+const papirW = PAPIR.sirka / 2;
+const mesicY = PAPIR.vyska * 0.66;
+const snura = { stroke: "#5C5047", "stroke-width": 0.8, "stroke-linecap": "round" };
+const mosaz = "#B98D3E";
+---
+
+<span class="zvonkohra" aria-hidden="true">
+  <svg viewBox="-34 -8 68 136" width="68" height="136" focusable="false">
+    <defs>
+      {trubky.map((t, i) => (
+        <linearGradient id={`zk-t${i}`} x1="0" y1="0" x2="1" y2="0">
+          {t.kov.prechod.map(([o, c]) => <stop offset={o} stop-color={c} />)}
+        </linearGradient>
+      ))}
+      <linearGradient id="zk-lesk" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#FFF8EA" stop-opacity="0" />
+        <stop offset="0.4" stop-color="#FFF8EA" stop-opacity="0.95" />
+        <stop offset="1" stop-color="#FFF8EA" stop-opacity="0.1" />
+      </linearGradient>
+      <radialGradient id="zk-glazura" cx="0.34" cy="0.22" r="0.85">
+        <stop offset="0" stop-color="#6E4A37" />
+        <stop offset="0.38" stop-color="#3B2921" />
+        <stop offset="1" stop-color="#1D1511" />
+      </radialGradient>
+      <linearGradient id="zk-papir" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#C0708A" />
+        <stop offset="0.3" stop-color="#7A5E8E" />
+        <stop offset="0.62" stop-color="#4E4A84" />
+        <stop offset="1" stop-color="#2A2C5E" />
+      </linearGradient>
+      <linearGradient id="zk-papir-rub" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F3E6DC" />
+        <stop offset="1" stop-color="#DCD6E4" />
+      </linearGradient>
+      <radialGradient id="zk-zare">
+        <stop offset="0" stop-color="#FFE7A3" stop-opacity="0.85" />
+        <stop offset="0.45" stop-color="#FFE7A3" stop-opacity="0.3" />
+        <stop offset="1" stop-color="#FFE7A3" stop-opacity="0" />
+      </radialGradient>
+      <Fragment set:html={kvetDefs("zk", { barva: "#FBE9B7", obrys: "#E2B95A", sirkaObrysu: 1.4 })} />
+    </defs>
+
+    {/* Závěs v okapu hlavičky a kroužek */}
+    <ellipse cx="0" cy="-6.6" rx="2.4" ry="0.8" fill={mosaz} />
+    <path d={`M0 -6.2 V${-KROUZEK_R}`} stroke={mosaz} stroke-width="1.1" />
+    <circle cx="0" cy="0" r={KROUZEK_R} fill="none" stroke={mosaz} stroke-width="1.1" />
+
+    {/* Zezadu dopředu: zadní trubky, srdce s papírkem, přední trubky — skript pořadí hlídá dál */}
+    <g data-zk="visi">
+      {klidna.poradi.map((i) => i >= 0 ? (
+        <g data-zk={`trubka-${i}`}>
+          <line data-zk={`snurka-${i}`} {...a(`snurka-${i}`)} {...snura} />
+          <g data-zk={`telo-${i}`} {...a(`telo-${i}`)}>
+            <path d={`M${-r} 0 V${trubky[i].delka} A${r} ${r * SKLON} 0 0 0 ${r} ${trubky[i].delka} V0 Z`} fill={`url(#zk-t${i})`} />
+            <ellipse cx="0" cy="0" rx={r} ry={r * SKLON} fill={trubky[i].kov.otvor} />
+            <path data-zk={`lesk-${i}`} d={`M${-r} 0 V${trubky[i].delka} A${r} ${r * SKLON} 0 0 0 ${r} ${trubky[i].delka} V0 Z`} fill="url(#zk-lesk)" {...a(`lesk-${i}`)} />
+          </g>
+        </g>
+      ) : (
+        <g data-zk="stred">
+          <line data-zk="papir-snurka" {...a("papir-snurka")} {...snura} />
+          <g data-zk="papir" {...a("papir")}>
+            <g data-zk="papir-lic" {...a("papir-lic")}>
+              <rect x={-papirW} y="0" width={PAPIR.sirka} height={PAPIR.vyska} rx="0.8" fill="url(#zk-papir)" />
+              <rect x={-papirW + 0.3} y="0.3" width={PAPIR.sirka - 0.6} height={PAPIR.vyska - 0.6} rx="0.6" fill="none" stroke="#FBF6EA" stroke-opacity="0.3" stroke-width="0.6" />
+              <circle cx="0" cy="2.2" r="0.75" fill="#FBF6EA" opacity="0.85" />
+              <circle cx="0" cy={mesicY} r="6.5" fill="url(#zk-zare)" />
+              <use href="#zk-kvet" transform={`translate(0 ${mesicY}) rotate(14) scale(0.27)`} />
+            </g>
+            <g data-zk="papir-rub" {...a("papir-rub")}>
+              <rect x={-papirW} y="0" width={PAPIR.sirka} height={PAPIR.vyska} rx="0.8" fill="url(#zk-papir-rub)" />
+              <circle cx="0" cy="2.2" r="0.75" fill="#8A7C70" opacity="0.6" />
+              <circle cx="0" cy={mesicY} r="3.6" fill="#E9DCCB" />
+            </g>
+          </g>
+          <g data-zk="srdce" {...a("srdce")}>
+            <path d={`M${-SRDCE_R} 0 V2.2 A${SRDCE_R} ${srdceRy} 0 0 0 ${SRDCE_R} 2.2 V0 Z`} fill="#6B4730" />
+            <ellipse cx="0" cy="0" rx={SRDCE_R} ry={srdceRy} fill="#A57B52" />
+            <ellipse cx="0" cy="0" rx={SRDCE_R * 0.6} ry={srdceRy * 0.6} fill="none" stroke="#7E5A3B" stroke-width="0.4" opacity="0.7" />
+          </g>
+          <line data-zk="srdce-snurka" {...a("srdce-snurka")} {...snura} />
+        </g>
+      ))}
+    </g>
+
+    <g data-zk="miska" {...a("miska")}>
+      <line x1="0" y1={KROUZEK_R} x2="0" y2={MISKA.noha} {...snura} />
+      <path d={miska} fill="url(#zk-glazura)" />
+      <path d={`M${-MISKA.r + 0.5} ${MISKA.okraj - 0.1} A${MISKA.r} ${okrajRy} 0 0 0 ${MISKA.r - 0.5} ${MISKA.okraj - 0.1}`} fill="none" stroke="#A0622F" stroke-width="1.2" opacity="0.8" />
+      <ellipse cx="-6.3" cy="11.7" rx="4.3" ry="1.3" transform="rotate(-17 -6.3 11.7)" fill="#FFF5E6" opacity="0.22" />
+      <ellipse cx="-7.4" cy="11.5" rx="1.7" ry="0.45" transform="rotate(-17 -7.4 11.5)" fill="#FFF5E6" opacity="0.6" />
+      <path d={`M${-MISKA.nohaR} ${MISKA.noha} V${MISKA.pata} A${MISKA.nohaR} ${nohaRy} 0 0 0 ${MISKA.nohaR} ${MISKA.pata} V${MISKA.noha} Z`} fill="#A9825E" />
+      <ellipse cx="0" cy={MISKA.noha} rx={MISKA.nohaR} ry={nohaRy} fill="#D2B08A" />
+      <ellipse cx="0" cy={MISKA.noha} rx={MISKA.nohaR - 1.2} ry={nohaRy * 0.68} fill="#B89270" />
+    </g>
+  </svg>
+</span>

@@ -1,0 +1,204 @@
+---
+/**
+ * ARCHIV — předchozí varianta Rezervace (destičky ema ve svatyni),
+ * odložená 7. 10. 2026, když se /rezervace předělala na vlak po vodě.
+ * Nikam z webu nevede; nechává se kvůli srovnání. Používá vlastní kopie
+ * stylu a skriptu (rezervace-ema.css, scripts/rezervace/ema.ts)
+ * a komponenty z components/rezervace/ema/.
+ *
+ * Rezervace v novém vzhledu. Hodina v dílně se zamlouvá jako destička
+ * ema ve svatyni: vybereš den, pověsíš se na hodinu a napíšeš na
+ * destičku jméno. Stránka jde přes jeden den — za svítání se rozhoduje,
+ * dopoledne vybírá den, u tabule s hodinami ukazuje obloha světlo té
+ * hodiny, na kterou člověk ukazuje, večer se podepisuje a v noci visí.
+ *
+ * Pravidla jsou z data/rezervace.ts: úterý a pátek po hodinách od 9 do
+ * 18, 1–4 lidi, cena za člověka a hodinu. Odeslání otevře e-mail
+ * s vyplněnými údaji, stránka sama nic neukládá na server. Obsazenost
+ * je zatím simulovaná (scripts/rezervace/ema-simulace.ts) — za obsazená
+ * místa visí destičky party a na každé je přání (sbírka v hlavičce).
+ */
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/rezervace-ema.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Brana from "../components/rezervace/ema/Brana.astro";
+import EmaSprite from "../components/rezervace/ema/EmaSprite.astro";
+import PraniDialog from "../components/rezervace/ema/PraniDialog.astro";
+import Noc from "../components/rezervace/ema/Noc.astro";
+
+import { rezervace } from "../data/rezervace";
+import { kontakt } from "../data/uvod2";
+import { sekki, DNY_ZNAK } from "../data/koyomi";
+import { KAPACITA } from "../scripts/rezervace/ema-simulace";
+
+const cena = rezervace.cena.toLocaleString("cs-CZ");
+
+/* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+sekki.forEach((s) => pridej(s.znak));
+DNY_ZNAK.forEach(pridej);
+pridej("予約受付中絵馬願暦時名前今日準備中満員残");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+
+/** Postavičky do volby „kolik vás bude“ — každá další je o kousek menší */
+const lide = Array.from({ length: rezervace.maxOsob }, (_, i) => i + 1);
+const barvy = ["#9C7860", "#D79A94", "#93B39B", "#E8B440"];
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rezervace (ema, archiv) · JIRO saku</title>
+    <meta name="robots" content="noindex" />
+    <meta name="description" content={`Rezervuj si hodinu v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, ${cena} Kč za člověka a hodinu.`} />
+    <meta name="theme-color" content="#6F8FC8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+  </head>
+  <body class="p2 rz">
+    <a class="preskocit" href="#rz-vyber">Přeskočit na výběr hodiny</a>
+    <Nebe />
+    <Hlavicka sber="ema" />
+    <EmaSprite />
+
+    <main data-rezervace data-cena={rezervace.cena} data-email={kontakt.email}>
+      <Brana />
+
+      {/* ——— Dopoledne: kolik vás bude a který den ——— */}
+      <section class="rz-sekce" id="rz-vyber" data-hodina="8.4" aria-labelledby="rz-vyber-nadpis">
+        <div class="papir rz-papir">
+          <p class="stitek"><span lang="ja">暦</span> · den</p>
+          <h2 id="rz-vyber-nadpis" class="nadpis-2">Kolik vás bude a kdy</h2>
+
+          <noscript>
+            <p class="rz-noscript">Výběr termínu potřebuje JavaScript. Napiš nám na <a href={`mailto:${kontakt.email}`}>{kontakt.email}</a> a domluvíme se.</p>
+          </noscript>
+
+          <div class="rz-krok">
+            <h3 class="rz-otazka"><span class="rz-krok-cislo">1</span> Kolik vás bude</h3>
+            <div class="rz-osoby" role="radiogroup" aria-label="Počet lidí">
+              {lide.map((n) => (
+                <label class="rz-osoba">
+                  <input type="radio" name="osoby" value={n} checked={n === 1} />
+                  <span class="rz-osoba-karta">
+                    <svg viewBox="0 0 80 48" aria-hidden="true">
+                      {Array.from({ length: n }, (_, k) => {
+                        const x = 40 + (k - (n - 1) / 2) * 17;
+                        const s = 1 - k * 0.07;
+                        return (
+                          <g transform={`translate(${x.toFixed(1)} 46) scale(${s.toFixed(2)})`}>
+                            <circle cx="0" cy="-30" r="7" fill={barvy[k]} />
+                            <path d="M-11 0 C-11 -14 -7 -20 0 -20 C7 -20 11 -14 11 0 Z" fill={barvy[k]} />
+                          </g>
+                        );
+                      })}
+                    </svg>
+                    <b>{n}</b>
+                    <small>{n === 1 ? "člověk" : "lidi"}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div class="rz-krok">
+            <h3 class="rz-otazka"><span class="rz-krok-cislo">2</span> Den <small>— úterky a pátky na měsíc dopředu</small></h3>
+            <div class="rz-dny" role="group" aria-label="Dny, na které se dá rezervovat"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* ——— Hodina: tabule s háčky. Hodinu sekce si přepisuje skript ——— */}
+      <section class="rz-sekce rz-sekce-hodiny" id="rz-hodiny" data-hodina="10" data-rz-nebe aria-labelledby="rz-hodiny-nadpis">
+        <div class="papir rz-papir rz-papir-siroky">
+          <p class="stitek"><span lang="ja">時</span> · hodina</p>
+          <h2 id="rz-hodiny-nadpis" class="nadpis-2"><span class="rz-krok-cislo">3</span> Pověs destičku na hodinu</h2>
+          <p class="rz-den-nazev" aria-live="polite">Nejdřív vyber den.</p>
+          <p class="rz-papir-perex">
+            Každá hodina má {KAPACITA} háčků. Klikni na hodinu — klidně na víc — a tvoje destičky se na ni pověsí.
+            Obloha nad stránkou ukáže, jaké v tu hodinu bude v dílně světlo.
+          </p>
+          <div class="rz-deska" role="group" aria-label="Hodiny vybraného dne" style={`--hodin:${rezervace.do - rezervace.od}`}></div>
+          <ul class="rz-legenda" aria-hidden="true">
+            <li><i class="volno"></i>volno</li>
+            <li><i class="malo"></i>poslední místa</li>
+            <li><i class="plno"></i>obsazeno</li>
+            <li><i class="pryc"></i>už proběhlo</li>
+            <li><i class="moje"></i>tvoje destička</li>
+          </ul>
+          <p class="rz-simulace">
+            Obsazenost je zatím jen ukázková: za obsazená místa visí cizí destičky a mezi nimi
+            i destičky party. Klikni na ně — každý kami má na své napsané přání.
+          </p>
+        </div>
+      </section>
+
+      {/* ——— Večer: podpis a odeslání ——— */}
+      <section class="rz-sekce" id="rz-podpis" data-hodina="18.2" aria-labelledby="rz-podpis-nadpis">
+        <div class="papir rz-papir">
+          <p class="stitek"><span lang="ja">名前</span> · podpis</p>
+          <h2 id="rz-podpis-nadpis" class="nadpis-2"><span class="rz-krok-cislo">4</span> Napiš se na destičku</h2>
+
+          <div class="rz-podpis-mriz">
+            <div class="rz-ema-velka">
+              <svg class="rz-ema-velka-obr" viewBox="0 0 60 64" aria-hidden="true"><use href="#rz-ema" /></svg>
+              <label class="rz-ema-pole">
+                <span class="sr-only">Tvoje jméno</span>
+                <input type="text" name="jmeno" maxlength="24" autocomplete="name" spellcheck="false" placeholder="Tvoje jméno" />
+              </label>
+              <span class="rz-ema-razitko" lang="ja" aria-hidden="true">願</span>
+            </div>
+            <div class="rz-podpis-pole">
+              <label class="rz-pole">Telefon <small>nepovinné</small><input type="tel" name="telefon" autocomplete="tel" inputmode="tel" /></label>
+              <label class="rz-pole">Poznámka <small>nepovinné</small><textarea name="poznamka" rows="3" maxlength="300" placeholder="Třeba že přijdete poprvé."></textarea></label>
+            </div>
+          </div>
+
+          <div class="rz-souhrn" aria-live="polite">
+            <dl class="rz-souhrn-radky">
+              <div><dt>Den</dt><dd class="rz-s-den">ještě nevybraný</dd></div>
+              <div><dt>Hodiny</dt><dd class="rz-s-hodiny">ještě nevybrané</dd></div>
+              <div><dt>Kolik vás bude</dt><dd class="rz-s-lide">1 člověk</dd></div>
+              <div><dt>Počítáme</dt><dd class="rz-s-vypocet">{cena} Kč za člověka a hodinu</dd></div>
+            </dl>
+            <p class="rz-cena"><span>Celkem</span> <b>0 Kč</b></p>
+            <a class="tlacitko rz-odeslat" aria-disabled="true" role="link">Pověsit a poslat mailem</a>
+            <p class="rz-pozn">Otevře se e-mail s vybranými termíny. Rezervace platí, až ji potvrdíme.</p>
+          </div>
+        </div>
+      </section>
+
+      <Noc />
+    </main>
+
+    <div class="rz-listek" hidden>
+      <p class="rz-listek-text"></p>
+      <a class="tlacitko tlacitko-maly" href="#rz-podpis">Napsat se</a>
+    </div>
+
+    <Paticka poznamka="Archivní varianta rezervace s destičkami ema — platná rezervace je na /rezervace. Obsazenost termínů je zatím jen simulovaná — za obsazená místa visí ukázkové destičky." />
+    <PraniDialog />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/rezervace/ema.ts";
+    </script>
+  </body>
+</html>

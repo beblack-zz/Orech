@@ -1,0 +1,55 @@
+---
+/**
+ * První obrazovka Rezervace: nádraží na moři za svítání. Karta vlevo
+ * říká to podstatné — kdy, za kolik a jak; vlak na pozadí mezitím
+ * přijede a zastaví u cedule 胡桃 Ořech (More.astro).
+ *
+ * V kartě visí malá klapková cedulka s příštím volným odjezdem. Je to
+ * tlačítko: vybere ten den a hodinu a sjede k tabuli. Datum dopisuje
+ * skript (stránka je statická, datum z buildu by zestárlo); bez skriptu
+ * je cedulka schovaná a zůstane obecná věta o otevírací době.
+ */
+import Flap from "../uvod2/Flap.astro";
+import { rezervace } from "../../data/rezervace";
+
+const cena = rezervace.cena.toLocaleString("cs-CZ");
+---
+<section class="rz-nadrazi" id="rz-nadrazi" data-hodina="6.6" aria-labelledby="rz-nadpis">
+  <p class="rz-tategaki" lang="ja" aria-hidden="true">胡桃行き</p>
+
+  <div class="rz-nadrazi-karta papir">
+    <p class="stitek"><span lang="ja">切符</span> · jízdenka do dílny</p>
+    <h1 id="rz-nadpis" class="rz-nadpis">Vyber si hodinu. <em>Nastup.</em></h1>
+    <p class="rz-perex">
+      Hodina v dílně se tu kupuje jako jízdenka na vlak: vybereš den a odjezd — a celá hodina je vaše,
+      ať jedeš sám, nebo až ve čtyřech. Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin,
+      {cena}&nbsp;Kč za člověka a hodinu. Jízdenka odejde mailem a platí, až ji potvrdíme.
+    </p>
+
+    <button type="button" class="rz-pristi" data-rz-nejblizsi hidden>
+      <span class="rz-pristi-hlava"><span lang="ja">次発</span> příští volný odjezd</span>
+      <span class="rz-pristi-klapky" aria-hidden="true">
+        <Flap text="—" class="rz-pristi-den" />
+        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i><Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i>
+        <b class="rz-pristi-mezera"></b>
+        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>:</i><Flap druh="cislice" text="0" /><Flap druh="cislice" text="0" />
+      </span>
+      <span class="rz-pristi-akce">Nastoupit <span aria-hidden="true">→</span></span>
+      <span class="sr-only rz-pristi-popis"></span>
+    </button>
+
+    <p class="rz-dnes" aria-live="polite">Otevřeno je každé úterý a pátek, {rezervace.od}–{rezervace.do} hodin.</p>
+    <div class="rz-cta">
+      <a class="tlacitko" href="#rz-pokladna">Vybrat odjezd</a>
+    </div>
+    <p class="rz-pokyn">
+      V japonštině je úterý den ohně <span lang="ja">火</span> a pátek den zlata <span lang="ja">金</span>.
+      Stanice se jmenuje <span lang="ja">胡桃</span> — tak se japonsky řekne ořech.
+    </p>
+  </div>
+
+  <a class="rz-dolu" href="#rz-pokladna">
+    <span>K pokladně</span>
+    <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </a>
+</section>

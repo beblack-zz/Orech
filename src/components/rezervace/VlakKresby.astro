@@ -1,0 +1,140 @@
+---
+/**
+ * Kresby pro Rezervaci — jednou jako <defs>, všude jinde jen <use>:
+ * vůz vlaku po vodě, sběrač, stín cestujícího (sedí ve vlaku na pozadí,
+ * jako ve filmu) a tvoje postavička — na jízdence sedí ve vláčku tvoje
+ * skupina.
+ *
+ * Vůz má kabinu vlevo; druhý vůz se otočí zrcadlově. Souřadnice jsou
+ * „jednotky vlaku“: vůz je 520 dlouhý, y = 0 je hladina, nahoru záporně.
+ *
+ * Barvy, které se mění s denní dobou, jdou z CSS proměnných, a ty se
+ * do <use> dědí — vlak na pozadí tak bere oblohu stránky a vláček na
+ * jízdence oblohu svého odjezdu:
+ *   --vl-sklo     sklo oken (je skrz něj vidět nebe za vlakem)
+ *   --vl-sedadla  opěradla v dolní části okna
+ *   --vl-noc      0 ve dne, 1 v noci: ztmaví plech a rozsvítí okna
+ */
+import { OKNA, DVERE, KABINA, ZADNI } from "./vlak";
+
+const skla = [
+  { x: KABINA + 3, w: 20 },
+  ...OKNA.map((x) => ({ x: x + 3, w: 22 })),
+  { x: ZADNI + 3, w: 20 },
+];
+const SKLO_Y = -103;
+const SKLO_H = 36;
+/** Opěradla sedadel — dolní třetina okna je tmavší */
+const SEDADLA = 0.37;
+---
+<svg class="vl-sprite" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="vl-plech" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D46E58" />
+      <stop offset="1" stop-color="#BE5643" />
+    </linearGradient>
+    <linearGradient id="vl-plech-dole" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#AA4A3D" />
+      <stop offset="1" stop-color="#8E3B31" />
+    </linearGradient>
+    <radialGradient id="vl-zare" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFF6D8" stop-opacity="0.95" />
+      <stop offset="0.35" stop-color="#FFD98A" stop-opacity="0.45" />
+      <stop offset="1" stop-color="#FFB45A" stop-opacity="0" />
+    </radialGradient>
+
+    {/* Skla oken a dveří — přes ně se ořezávají cestující */}
+    <clipPath id="vl-okna-orez">
+      {skla.map((s) => <rect x={s.x} y={SKLO_Y} width={s.w} height={SKLO_H} rx="2.5" />)}
+      {DVERE.map((x) => <rect x={x + 6} y="-102" width="22" height="32" rx="2" />)}
+    </clipPath>
+
+    <g id="vl-vuz">
+      {/* Podvozek — skoro celý je pod vodou */}
+      <rect x="16" y="-18" width="488" height="18" fill="#2A2430" />
+      <rect x="56" y="-14" width="96" height="14" rx="4" fill="#1E1A24" />
+      <rect x="368" y="-14" width="96" height="14" rx="4" fill="#1E1A24" />
+
+      {/* Plech: dole tmavší červená, nahoře růžovější, krémový pás mezi */}
+      <path d="M0 -62 V-26 Q0 -16 10 -16 H510 Q520 -16 520 -26 V-62 Z" fill="url(#vl-plech-dole)" />
+      <path d="M0 -62 V-100 Q0 -118 18 -118 H504 Q520 -118 520 -102 V-62 Z" fill="url(#vl-plech)" />
+      <path d="M0 -100 Q0 -118 18 -118 H504 Q520 -118 520 -102" fill="none" stroke="#E08A70" stroke-width="2.4" opacity="0.7" />
+      <rect x="0" y="-64" width="520" height="5" fill="#EED8A4" />
+      <path d="M6 -110 H514" stroke="#8C392F" stroke-width="2" opacity="0.6" />
+
+      {/* Střecha a větráky */}
+      <path d="M2 -118 Q260 -135 518 -118 Z" fill="#8F8584" />
+      <path d="M30 -121 Q260 -133 490 -121" fill="none" stroke="#B9AEA8" stroke-width="2" opacity="0.8" />
+      {[110, 196, 300, 386].map((x) => <rect x={x} y="-133" width="28" height="6" rx="2.5" fill="#766C6B" />)}
+
+      {/* Žluté rámy oken a dveře */}
+      <rect x={KABINA} y="-106" width="26" height="42" rx="5" fill="#E7BA4F" />
+      {OKNA.map((x) => <rect x={x} y="-106" width="28" height="42" rx="4" fill="#E7BA4F" />)}
+      <rect x={ZADNI} y="-106" width="26" height="42" rx="5" fill="#E7BA4F" />
+      {DVERE.map((x) => (
+        <>
+          <rect x={x} y="-110" width="34" height="94" rx="3" fill="#E1B246" />
+          <path d={`M${x + 17} -66 V-22`} stroke="#B88A2E" stroke-width="1.2" opacity="0.6" />
+        </>
+      ))}
+      <rect x="476" y="-46" width="22" height="17" rx="2" fill="#EED8A4" />
+
+      {/* V noci se plech ztmaví — skla jsou nad závojem, takže svítí dál */}
+      <g class="vl-zavoj" fill="#0E1230">
+        <path d="M0 -26 V-100 Q0 -118 18 -118 H504 Q520 -118 520 -102 V-26 Q520 -16 510 -16 H10 Q0 -16 0 -26 Z" />
+        <path d="M2 -118 Q260 -135 518 -118 Z" />
+      </g>
+
+      {/* Sklo: nebe za vlakem a dole opěradla */}
+      <g class="vl-sklo">
+        {skla.map((s) => <rect x={s.x} y={SKLO_Y} width={s.w} height={SKLO_H} rx="2.5" />)}
+        {DVERE.map((x) => <rect x={x + 6} y="-102" width="22" height="32" rx="2" />)}
+      </g>
+      <g class="vl-sedadla">
+        {skla.map((s) => <rect x={s.x} y={SKLO_Y + SKLO_H * (1 - SEDADLA)} width={s.w} height={SKLO_H * SEDADLA} />)}
+      </g>
+      <g class="vl-svit">
+        {skla.map((s) => <rect x={s.x} y={SKLO_Y} width={s.w} height={SKLO_H * (1 - SEDADLA)} rx="2.5" />)}
+        {DVERE.map((x) => <rect x={x + 6} y="-102" width="22" height="32" rx="2" />)}
+      </g>
+      <g class="vl-svit vl-svit-dole">
+        {skla.map((s) => <rect x={s.x} y={SKLO_Y + SKLO_H * (1 - SEDADLA)} width={s.w} height={SKLO_H * SEDADLA} />)}
+      </g>
+      <g fill="#FFFFFF" opacity="0.3">
+        {skla.map((s) => <path d={`M${s.x + 2} ${SKLO_Y} h7 l-9 14 v-7 z`} />)}
+      </g>
+
+      {/* Světlo na čele kabiny */}
+      <rect x="-4" y="-112" width="7" height="10" rx="2.5" fill="#F4E8C4" />
+    </g>
+
+    <g id="vl-pantograf" fill="none" stroke="#3B3538" stroke-width="2.2" stroke-linejoin="round">
+      <rect x="176" y="-130" width="48" height="5" rx="1.5" fill="#4A4346" stroke="none" />
+      <path d="M200 -128 L184 -150 L200 -172 L216 -150 Z" />
+      <path d="M178 -173 H222" stroke-width="3.4" stroke-linecap="round" />
+    </g>
+
+    {/* Stín cestujícího: hlava, krk a ramena, vršek hlavy v 0,0 */}
+    <path id="vl-stin" d="M0 0 C4.6 0 6.4 3.6 6.4 7.6 C6.4 11.4 4.4 14 2.6 15 L3 17.4 C8.6 18.6 11 22.6 11.4 30 L-11.4 30 C-11 22.6 -8.6 18.6 -3 17.4 L-2.6 15 C-4.4 14 -6.4 11.4 -6.4 7.6 C-6.4 3.6 -4.6 0 0 0 Z" />
+
+    {/* Tvoje postavička ve vlaku — stejná jako ve volbě „kolik vás pojede“ */}
+    <g id="vl-ty">
+      <circle cx="0" cy="8" r="7" />
+      <path d="M-11 31 C-11 19 -7 15 0 15 C7 15 11 19 11 31 Z" />
+    </g>
+
+  </defs>
+</svg>
+<style is:global>
+  /* Výchozí barvy vlaku: sklo bere oblohu stránky, noc jde s hvězdami */
+  .rz {
+    --vl-noc: var(--hvezdy, 0);
+    --vl-sklo: color-mix(in srgb, var(--nebe-obzor) 58%, #EFE4E4);
+    --vl-sedadla: color-mix(in srgb, var(--nebe-stred) 38%, #5E4A56);
+  }
+  .vl-sklo { fill: var(--vl-sklo); }
+  .vl-sedadla { fill: var(--vl-sedadla); }
+  .vl-zavoj { opacity: calc(var(--vl-noc) * 0.62); }
+  .vl-svit { fill: #FFDC92; opacity: var(--vl-noc); }
+  .vl-svit-dole { fill: #B97A44; }
+</style>

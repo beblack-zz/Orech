@@ -1,0 +1,253 @@
+---
+import { uid } from "../dospele/uid";
+import { chomac } from "../../parta2/tvary";
+
+interface Props { class?: string; size?: number; }
+const { class: cls = "", size = 64 } = Astro.props;
+const u = uid();
+
+/*
+  Střípek jako kami: velký bílý střep, který medituje na obláčku jako
+  božstvo, a kolem něj se vznášejí menší střípky.
+
+  Slepený je zlatem (kintsugi) a některé kusy pocházejí z jiného nádobí
+  (jobicugi): japonské vlnky seigaiha kobaltem na bílé a český modrotisk
+  v barvách loga.
+
+  Zlato tu záměrně vybočuje z ploché kresby. Spáry jsou tvary s
+  nepravidelnou šířkou, jako tažené štětcem, a osvětluje je filtr:
+  reliéf z rozmazaného obrysu a zrna prášku, rozptýlené světlo zleva
+  shora a ostrý odlesk. Tak se chová lak se zlatým práškem, který stojí
+  kousek nad glazurou.
+*/
+const f = (n: number) => Math.round(n * 100) / 100;
+
+const strep = "M58 62 Q92 50 124 56 L130 78 L122 92 L134 112 L120 130 H62 L50 112 L57 96 L48 80 Z";
+const kusVlny = "M100 52.6 Q112 53.4 124 56 L130 78 L114 82 L104 70 Z";
+const kusModrotisk = "M57 96 L74 106 L80 130 H62 L50 112 Z";
+
+/* Pseudonáhoda se semínkem: šířka spáry vyjde pokaždé stejně */
+function nahoda(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+/* Spára jako tvar: lomená čára s plynule kolísající šířkou */
+function spara(body: number[][], seed: number, zaklad = 1.6) {
+  const r = nahoda(seed);
+  const vzorky: number[][] = [];
+  for (let i = 0; i < body.length - 1; i++) {
+    const [ax, ay] = body[i];
+    const [bx, by] = body[i + 1];
+    const kroku = Math.max(4, Math.round(Math.hypot(bx - ax, by - ay) / 1.6));
+    for (let k = 0; k < kroku; k++) {
+      const t = k / kroku;
+      vzorky.push([ax + (bx - ax) * t, ay + (by - ay) * t]);
+    }
+  }
+  vzorky.push(body[body.length - 1]);
+  let w = zaklad;
+  const L: number[][] = [];
+  const P: number[][] = [];
+  vzorky.forEach(([x, y], i) => {
+    const [px, py] = vzorky[Math.max(0, i - 1)];
+    const [nx, ny] = vzorky[Math.min(vzorky.length - 1, i + 1)];
+    const dx = nx - px, dy = ny - py, l = Math.hypot(dx, dy) || 1;
+    w = Math.min(2.3, Math.max(0.75, w + (r() - 0.5) * 0.38));
+    const kraj = i === 0 || i === vzorky.length - 1 ? 0.55 : 1;
+    L.push([x - (dy / l) * w * kraj, y + (dx / l) * w * kraj]);
+    P.push([x + (dy / l) * w * kraj, y - (dx / l) * w * kraj]);
+  });
+  const b = ([x, y]: number[]) => `${f(x)} ${f(y)}`;
+  return `M${L.map(b).join(" L")} L${P.reverse().map(b).join(" L")} Z`;
+}
+const spary = [
+  spara([[100, 52.6], [101.4, 61], [104, 70], [109, 76.4], [114, 82], [122, 80.4], [130, 78]], 3),
+  spara([[57, 96], [65.6, 101], [74, 106], [76.4, 118], [80, 130]], 8),
+  spara([[114, 82], [117.4, 97], [112.4, 111], [116, 121], [119, 130]], 13),
+];
+/* Loužičky zlata, kde se spáry potkávají */
+const louzicky = [[104, 70, 2.5, 2], [114, 82, 2.7, 2.2], [74, 106, 2.4, 1.9]];
+
+const kusy: { x: number; y: number; d: string; vypln: "bila" | "vlny" | "modrotisk"; zlato?: number[][]; r: number }[] = [
+  { x: 30, y: 64, d: "M-8 -6 L6 -9 L9 3 L-3 8 Z", vypln: "bila", zlato: [[6, -9], [9, 3]], r: -12 },
+  { x: 152, y: 56, d: "M-7 -7 L8 -4 L5 8 L-6 5 Z", vypln: "vlny", r: 10 },
+  { x: 24, y: 100, d: "M-6 -5 L7 -6 L5 6 L-7 4 Z", vypln: "modrotisk", r: 8 },
+  { x: 156, y: 96, d: "M-7 -4 L5 -8 L8 5 L-4 7 Z", vypln: "bila", zlato: [[-7, -4], [5, -8]], r: -6 },
+  { x: 90, y: 28, d: "M-9 2 Q0 -4 9 -1 L7 4 Q0 0.6 -7 6 Z", vypln: "bila", zlato: [[9, -1], [7, 4]], r: 4 },
+];
+const vypln = { bila: `url(#${u}-glazura)`, vlny: `url(#${u}-seigaiha)`, modrotisk: `url(#${u}-modrotisk-pud)` };
+
+/*
+  Obláček stejně jako mraky na obloze webu (parta2/Nebe.astro): bez
+  obrysu, chomáče z helperu chomac s rovným dnem, nahoře růžový, dole
+  do levandulové, se světlými odlesky. Barvy jsou ze svítání (výchozí
+  --mrak-* v parta2.css). Zadní kupa je tvarem přímo mrak z oblohy,
+  zmenšený; přední řada je nižší val, do kterého se střep zaboří.
+*/
+const oblakZadni = {
+  telo: [
+    chomac(300, 192, 282, 70, 22, 5, 0.25, 0.66),
+    chomac(118, 146, 112, 86, 14, 6, 0.4, 0.7),
+    chomac(300, 118, 160, 104, 16, 7, 0.4, 0.7),
+    chomac(482, 146, 112, 86, 14, 8, 0.4, 0.7),
+  ],
+  svetlo: [
+    chomac(96, 110, 56, 38, 10, 9, 1, 0.7),
+    chomac(270, 72, 80, 48, 12, 10, 1, 0.7),
+    chomac(460, 110, 56, 38, 10, 11, 1, 0.7),
+  ],
+};
+const oblakPredni = {
+  telo: [
+    chomac(90, 148, 58, 10, 16, 21, 0.3, 0.66),
+    chomac(61, 139, 20, 13, 11, 22, 0.4, 0.7),
+    chomac(90, 135, 25, 15, 12, 23, 0.4, 0.7),
+    chomac(119, 139, 20, 13, 11, 24, 0.4, 0.7),
+  ],
+  svetlo: [
+    chomac(56, 133.5, 8, 4.6, 8, 25, 1, 0.7),
+    chomac(84, 128, 10.5, 5.4, 9, 26, 1, 0.7),
+    chomac(114, 133.5, 8, 4.6, 8, 27, 1, 0.7),
+  ],
+};
+const MRAK = { svetlo: "#F2C8C2", stin: "#9083AF", zare: "#FFE6DD" };
+---
+<svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
+  <defs>
+    <radialGradient id={`${u}-glazura`} cx="0.36" cy="0.32" r="0.85">
+      <stop offset="0" stop-color="#FFFFFF" /><stop offset="0.6" stop-color="#F4F0E8" /><stop offset="1" stop-color="#DED6C8" />
+    </radialGradient>
+    <linearGradient id={`${u}-strep-hrana`} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E9DECD" /><stop offset="1" stop-color="#C9B9A2" />
+    </linearGradient>
+    <pattern id={`${u}-seigaiha`} width="8" height="4" patternUnits="userSpaceOnUse">
+      <rect width="8" height="4" fill="#FBF8F2" />
+      {[[0, 2], [8, 2], [4, 4]].map(([cx, cy]) => (
+        <g>
+          <circle cx={cx} cy={cy} r="4" fill="#FBF8F2" stroke="#2F4E9C" stroke-width="0.55" />
+          <circle cx={cx} cy={cy} r="2.8" stroke="#2F4E9C" stroke-width="0.55" />
+          <circle cx={cx} cy={cy} r="1.6" stroke="#2F4E9C" stroke-width="0.55" />
+        </g>
+      ))}
+    </pattern>
+    {/* Modrotisk v barvách loga: tečky na přechodu z rumělky do noci */}
+    <linearGradient id={`${u}-modrotisk-pud`} x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#C4432B" /><stop offset="0.35" stop-color="#C0708A" /><stop offset="0.7" stop-color="#7A5E8E" /><stop offset="1" stop-color="#4E4A84" />
+    </linearGradient>
+    <pattern id={`${u}-modrotisk`} width="5" height="5" patternUnits="userSpaceOnUse">
+      <circle cx="1.25" cy="1.25" r="0.7" fill="#F4F1EA" />
+      <circle cx="3.75" cy="3.75" r="0.7" fill="#F4F1EA" />
+    </pattern>
+
+    {/*
+      Zlato jako kov: reliéf z rozmazaného obrysu se zrnem prášku,
+      rozptýlené světlo tónuje zlatou barvu, ostrý odlesk se přičte navrch.
+    */}
+    <filter id={`${u}-kov`} x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.85" result="vyska" />
+      <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="2" seed="7" result="zrno" />
+      <feComposite in="zrno" in2="vyska" operator="arithmetic" k1="0" k2="0.1" k3="1" k4="0" result="povrch" />
+      <feDiffuseLighting in="povrch" surfaceScale="3.2" diffuseConstant="1.05" lighting-color="#FFFFFF" result="svetlo">
+        <feDistantLight azimuth="235" elevation="46" />
+      </feDiffuseLighting>
+      <feSpecularLighting in="povrch" surfaceScale="3.2" specularConstant="1.6" specularExponent="20" lighting-color="#FFF5D8" result="lesk">
+        <feDistantLight azimuth="235" elevation="46" />
+      </feSpecularLighting>
+      <feFlood flood-color="#DDA93E" result="barva" />
+      <feComposite in="barva" in2="svetlo" operator="arithmetic" k1="1.18" k2="0" k3="0" k4="0" result="tonovana" />
+      <feComposite in="lesk" in2="SourceAlpha" operator="in" result="leskUvnitr" />
+      <feComposite in="tonovana" in2="leskUvnitr" operator="arithmetic" k1="0" k2="1" k3="0.9" k4="0" result="kov" />
+      <feComposite in="kov" in2="SourceAlpha" operator="in" />
+    </filter>
+    <filter id={`${u}-stin-kovu`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="0.7" /></filter>
+
+    {/* Obláček jako mraky na obloze: světlo nahoře, stín dole */}
+    <linearGradient id={`${u}-oblak`} gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="260">
+      <stop offset="0" stop-color={MRAK.svetlo} /><stop offset="0.5" stop-color={MRAK.svetlo} /><stop offset="1" stop-color={MRAK.stin} />
+    </linearGradient>
+    <linearGradient id={`${u}-oblak-pred`} gradientUnits="userSpaceOnUse" x1="0" y1="119" x2="0" y2="158">
+      <stop offset="0" stop-color={MRAK.svetlo} /><stop offset="0.45" stop-color={MRAK.svetlo} /><stop offset="1" stop-color="#B49BBE" />
+    </linearGradient>
+    <filter id={`${u}-mekce`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" /></filter>
+    <clipPath id={`${u}-strep`}><path d={strep} /></clipPath>
+  </defs>
+
+  {/* Poletující střípky */}
+  {kusy.map((k, i) => (
+    <g transform={`translate(${k.x} ${k.y}) rotate(${k.r})`}>
+      <g class="kus" style={`animation-delay:${-i * 0.9}s`}>
+        <path d={k.d} transform="translate(1.2 2.2)" fill={`url(#${u}-strep-hrana)`} stroke="#6B5D4F" stroke-width="0.8" stroke-linejoin="round" />
+        <path d={k.d} fill={vypln[k.vypln]} stroke="#6B5D4F" stroke-width="0.9" stroke-linejoin="round" />
+        {k.vypln === "modrotisk" && <path d={k.d} fill={`url(#${u}-modrotisk)`} />}
+        {k.zlato && <path d={spara(k.zlato, 20 + i, 1.1)} fill="#C99430" filter={`url(#${u}-kov)`} />}
+      </g>
+    </g>
+  ))}
+
+  {/* Obláček, zadní kupa: zmenšený mrak z oblohy */}
+  <g transform="translate(14 92) scale(0.255)">
+    <g fill={`url(#${u}-oblak)`}>{oblakZadni.telo.map((d) => <path d={d} />)}</g>
+    <g fill={MRAK.zare} opacity="0.55">{oblakZadni.svetlo.map((d) => <path d={d} />)}</g>
+  </g>
+
+  {/* Velký střep */}
+  <path d={strep} transform="translate(2.6 4.4)" fill={`url(#${u}-strep-hrana)`} stroke="#6B5D4F" stroke-width="1.3" stroke-linejoin="round" />
+  <path d={strep} fill={`url(#${u}-glazura)`} />
+  <g clip-path={`url(#${u}-strep)`}>
+    <path d={kusVlny} fill={`url(#${u}-seigaiha)`} />
+    <path d={kusModrotisk} fill={`url(#${u}-modrotisk-pud)`} />
+    <path d={kusModrotisk} fill={`url(#${u}-modrotisk)`} />
+    <g transform="translate(64 116)" fill="#F4F1EA">
+      <path d="M0 6 V-1" stroke="#F4F1EA" stroke-width="0.9" />
+      <path d="M-3.2 -1 C-3.4 -4.6 -1.6 -6.6 0 -7.4 C1.6 -6.6 3.4 -4.6 3.2 -1 C2 -0.2 1 0 0 -1.6 C-1 0 -2 -0.2 -3.2 -1 Z" />
+      <path d="M0 3 C-2 1.6 -3.8 1.8 -4.6 3 C-3.4 4 -1.6 4 0 3 Z M0 3 C2 1.6 3.8 1.8 4.6 3 C3.4 4 1.6 4 0 3 Z" />
+    </g>
+    <path d="M63 68 Q67.6 80 66.6 93" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.7" />
+    <path d="M59 63.6 Q92 52 123 57.8" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity="0.9" />
+  </g>
+  <path d={strep} stroke="#6B5D4F" stroke-width="1.5" stroke-linejoin="round" />
+
+  {/* Kintsugi: stín pod lakem a kovové zlato */}
+  <g fill="#2A1608" opacity="0.35" filter={`url(#${u}-stin-kovu)`} transform="translate(0.6 0.9)">
+    {spary.map((d) => <path d={d} />)}
+    {louzicky.map(([x, y, rx, ry]) => <ellipse cx={x} cy={y} rx={rx} ry={ry} />)}
+  </g>
+  <g fill="#C99430" filter={`url(#${u}-kov)`}>
+    {spary.map((d) => <path d={d} />)}
+    {louzicky.map(([x, y, rx, ry]) => <ellipse cx={x} cy={y} rx={rx} ry={ry} />)}
+  </g>
+
+  {/* Obláček, přední val: střep do něj sedá. Měkký stín ho odliší od zadní kupy. */}
+  <g fill="#7A6A9E" opacity="0.28" filter={`url(#${u}-mekce)`} transform="translate(0 2.5)">
+    {oblakPredni.telo.map((d) => <path d={d} />)}
+  </g>
+  <g fill={`url(#${u}-oblak-pred)`}>{oblakPredni.telo.map((d) => <path d={d} />)}</g>
+  <g fill={MRAK.zare} opacity="0.7">{oblakPredni.svetlo.map((d) => <path d={d} />)}</g>
+
+  {/* Tvář: zavřené oči, medituje */}
+  <g class="tvar" stroke="#3A2E28" stroke-linecap="round">
+    <ellipse cx="80" cy="97" rx="4.4" ry="2.6" fill="#F2B2A2" stroke="none" opacity="0.5" />
+    <ellipse cx="106" cy="96.4" rx="4.4" ry="2.6" fill="#F2B2A2" stroke="none" opacity="0.5" />
+    <path d="M79 80.4 Q84 78.4 88.6 79.8 M96.4 79.4 Q101 78 105.8 79.6" stroke-width="1.3" opacity="0.85" />
+    <path d="M79.4 88.2 Q84 92 88.6 88.2 M96.6 87.6 Q101.2 91.4 105.8 87.6" stroke-width="1.9" />
+    <path d="M79.4 88.2 L78 87.4 M105.8 87.6 L107.2 86.8" stroke-width="1.1" />
+    <path d="M89.6 99.6 Q93 101.8 96.4 99.6" stroke-width="1.7" />
+  </g>
+
+  {/* Ruce a chodidla přes obláček */}
+  <ellipse cx="47" cy="114" rx="6.4" ry="4.8" fill={`url(#${u}-glazura)`} stroke="#6B5D4F" stroke-width="1.1" />
+  <ellipse cx="137" cy="113" rx="6.4" ry="4.8" fill={`url(#${u}-glazura)`} stroke="#6B5D4F" stroke-width="1.1" />
+  <ellipse cx="80" cy="137" rx="7" ry="4.2" fill={`url(#${u}-glazura)`} stroke="#6B5D4F" stroke-width="1.1" />
+  <ellipse cx="102" cy="137" rx="7" ry="4.2" fill={`url(#${u}-glazura)`} stroke="#6B5D4F" stroke-width="1.1" />
+</svg>
+
+<style>
+  .kus { animation: kus-vznas 4.2s ease-in-out infinite; }
+  @keyframes kus-vznas { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(6deg); } }
+  @media (prefers-reduced-motion: reduce) { .kus { animation: none; } }
+</style>

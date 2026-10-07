@@ -1,0 +1,83 @@
+---
+/**
+ * Regál „Na přání“ — kusy z dílny v přihrádkách, každý s visačkou.
+ * Filtry tvar a glazura nic neschovávají, jen zhasnou přihrádky, které
+ * nesedí — regál drží tvar a hned je vidět, kolik toho zbylo. Kliknutím
+ * se kus vezme do ruky v dialogu (HaikenDialog.astro).
+ *
+ * Všechno je z obchod.ts; barvy glazur z kurzy2.ts.
+ */
+import Nadoba from "../uvod2/Nadoba.astro";
+import TanukiSkryty from "./TanukiSkryty.astro";
+import { produkty } from "../../data/obchod";
+import type { Tvar } from "../../data/obchod";
+import { glazury } from "../../data/kurzy2";
+import { pocetKusu } from "../../data/pocty";
+
+const TVARY: { tvar: Tvar; nazev: string }[] = [
+  { tvar: "bowl", nazev: "Misky" },
+  { tvar: "mug", nazev: "Hrnky" },
+  { tvar: "vase", nazev: "Vázy" },
+  { tvar: "plate", nazev: "Talíře" },
+];
+const pocet = (t: Tvar) => produkty.filter((k) => k.shape === t).length;
+/** Glazury, které v regálu opravdu jsou, v pořadí z kurzy2.ts */
+const vRegalu = glazury.filter((g) => produkty.some((k) => k.glaze.toLowerCase() === g.nazev));
+---
+<section class="o2-sekce" id="regal" data-hodina="11" aria-labelledby="regal-nadpis">
+  <div class="papir o2-papir o2-papir-siroky o2-regal-papir">
+    <p class="stitek"><span lang="ja">棚</span> · na přání</p>
+    <h2 id="regal-nadpis" class="nadpis-2">Regál z dílny</h2>
+    <p class="o2-papir-perex">
+      Kusy od nás, každý jiný, jak vyšel z pece. Klikni a vezmi si ho do ruky.
+      Kdo hledá něco konkrétního, ať zhasne, co nechce.
+    </p>
+
+    <div class="o2-filtry">
+      <div class="o2-filtry-rada" role="group" aria-label="Tvar">
+        <button type="button" class="o2-filtr" data-filtr-tvar="vse" aria-pressed="true">Všechno <small>{produkty.length}</small></button>
+        {TVARY.filter((t) => pocet(t.tvar) > 0).map((t) => (
+          <button type="button" class="o2-filtr" data-filtr-tvar={t.tvar} aria-pressed="false">{t.nazev} <small>{pocet(t.tvar)}</small></button>
+        ))}
+      </div>
+      <div class="o2-filtry-rada o2-filtry-glazury" role="group" aria-label="Glazura">
+        <button type="button" class="o2-vzorek o2-vzorek-vse" data-filtr-glazura="vse" aria-pressed="true" aria-label="Všechny glazury"><span>vše</span></button>
+        {vRegalu.map((g) => (
+          <button
+            type="button"
+            class="o2-vzorek"
+            data-filtr-glazura={g.nazev}
+            aria-pressed="false"
+            aria-label={`Glazura ${g.nazev}`}
+            title={g.nazev}
+            style={`--g1:${g.svetlo};--g2:${g.stred};--g3:${g.stin}`}
+          ><span></span></button>
+        ))}
+      </div>
+      <p class="o2-filtr-stav" aria-live="polite">Svítí všech {pocetKusu(produkty.length)}.</p>
+    </div>
+
+    <div class="o2-regal">
+      {produkty.map((k, i) => (
+        <div class="o2-prihradka" data-prihradka={i} data-tvar={k.shape} data-glazura={k.glaze.toLowerCase()}>
+          <button type="button" class="o2-kus" data-kus={i} aria-label={`${k.name}, ${k.glaze.toLowerCase()}, ${k.price}. Vzít do ruky`}>
+            <svg class="o2-kus-obr" viewBox="-46 -90 92 94" aria-hidden="true">
+              <ellipse cx="0" cy="2" rx="34" ry="4" fill="#2B2420" opacity="0.12" />
+              <Nadoba tvar={k.shape} x={0} y={0} s={k.shape === "vase" ? 1.25 : 1.3} glazura={k.glaze} />
+            </svg>
+          </button>
+          <div class="o2-visacka">
+            <span class="o2-visacka-provazek" aria-hidden="true"></span>
+            <b>{k.name}</b>
+            <span>{k.price}</span>
+            {k.tag && <i class="o2-novinka" title={k.tag}><span lang="ja">新作</span> {k.tag.toLowerCase()}</i>}
+          </div>
+          <span class="o2-v-satku" hidden>v šátku</span>
+        </div>
+      ))}
+      <TanukiSkryty id="me" x={45.6} y={8} w={4.6} u={-6} class="o2-regal-tanuki" />
+      <TanukiSkryty id="kao" x={95.4} y={66} w={4.2} u={12} class="o2-regal-tanuki" />
+    </div>
+    <p class="o2-regal-pata">Na přání · {pocetKusu(produkty.length)} · autor <b>{[...new Set(produkty.map((k) => k.author))].join(", ")}</b></p>
+  </div>
+</section>

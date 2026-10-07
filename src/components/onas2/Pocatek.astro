@@ -1,0 +1,72 @@
+---
+/**
+ * Začátek O nás 2 — noc v garáži. Z prasklé trubky kape do kaluže, po
+ * kapce se rozejdou kruhy a z posledního kruhu se postaví ensō ze
+ * značky (scripts/onas2/pocatek.ts). Dílna začala vodovodní havárií —
+ * a Kapka u kaluže tvrdí, že s tím nemá nic společného.
+ *
+ * S omezeným pohybem nic nepadá: ensō stojí rovnou a kaluž je klidná.
+ */
+import Enso from "../navrhy-loga/Enso.astro";
+import Kami from "../parta2/Kami.astro";
+import { oDilne } from "../../data/uvod2";
+---
+<section class="pocatek" id="pocatek" data-hodina="3.6" aria-labelledby="pocatek-nadpis">
+  <p class="pocatek-tategaki" lang="ja" aria-hidden="true">工房物語</p>
+  <div class="pocatek-mriz">
+    <div class="pocatek-text papir">
+      <p class="stitek">O nás · dílna v Ořechu</p>
+      <h1 id="pocatek-nadpis" class="pocatek-nadpis">Všechno začalo <em>jednou kapkou.</em></h1>
+      <p class="pocatek-perex">{oDilne.zacatek}</p>
+      <div class="pocatek-akce">
+        <a class="tlacitko" href="#svitek">Rozvinout svitek</a>
+        <a class="tlacitko tlacitko-obrys" href="#lide">Kdo tu točí</a>
+      </div>
+      <p class="pocatek-pokyn">Kapka tvrdí, že to nebyla ona.</p>
+    </div>
+
+    <div class="pocatek-scena" data-pocatek>
+      <svg class="pocatek-kresba" viewBox="0 0 600 600" aria-hidden="true">
+        <defs>
+          <radialGradient id="pocatek-kaluz" cx="0.5" cy="0.45" r="0.6">
+            <stop offset="0" stop-color="#3B4A78" />
+            <stop offset="0.7" stop-color="#1E2648" />
+            <stop offset="1" stop-color="#141A36" stop-opacity="0" />
+          </radialGradient>
+          <linearGradient id="pocatek-trubka" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#9AA3A8" />
+            <stop offset="0.5" stop-color="#5E676D" />
+            <stop offset="1" stop-color="#3A4246" />
+          </linearGradient>
+        </defs>
+        {/* Trubka pod stropem a prasklina, ze které kape */}
+        <rect x="0" y="40" width="600" height="26" fill="url(#pocatek-trubka)" />
+        <rect x="140" y="34" width="22" height="38" rx="3" fill="#4E565B" />
+        <rect x="438" y="34" width="22" height="38" rx="3" fill="#4E565B" />
+        <path d="M292 64 L300 74 L306 64" stroke="#2A3034" stroke-width="2" fill="none" />
+        <ellipse class="pocatek-kapka-roste" cx="300" cy="74" rx="6" ry="8" fill="#9CC3DA" />
+        <ellipse class="pocatek-kapka-pada" cx="300" cy="74" rx="6" ry="9" fill="#BFE0F2" />
+        {/* Kaluž s odleskem měsíce */}
+        <ellipse cx="300" cy="500" rx="270" ry="56" fill="url(#pocatek-kaluz)" />
+        <ellipse cx="368" cy="492" rx="40" ry="6" fill="#FFF6DA" opacity="0.28" />
+        <g class="pocatek-kruhy" fill="none" stroke="#CFE6F4">
+          <ellipse class="pocatek-kruh pocatek-kruh-1" cx="300" cy="496" rx="120" ry="24" />
+          <ellipse class="pocatek-kruh pocatek-kruh-2" cx="300" cy="496" rx="120" ry="24" />
+          <ellipse class="pocatek-kruh pocatek-kruh-3" cx="300" cy="496" rx="120" ry="24" />
+        </g>
+        <g class="pocatek-sprsk" fill="#CFE6F4">
+          <circle cx="288" cy="488" r="3" /><circle cx="312" cy="486" r="2.4" /><circle cx="300" cy="480" r="2" />
+        </g>
+      </svg>
+      <div class="pocatek-enso">
+        <Enso size={300} soumrak anim class="pocatek-enso-logo" />
+      </div>
+      <Kami id="kapka" class="pocatek-kapka-kami" />
+    </div>
+  </div>
+
+  <a class="pocatek-dolu" href="#svitek">
+    <span>Rozvinout svitek</span>
+    <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </a>
+</section>

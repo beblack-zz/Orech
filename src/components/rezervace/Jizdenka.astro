@@ -1,0 +1,115 @@
+---
+/**
+ * Jízdenka (乗車券) — souhrn rezervace a podpis. Nahoře na jízdence je
+ * obrázek jako na pamětních jízdenkách: vláček na moři, který má tolik
+ * vozů, kolik hodin si člověk vybral, na cedulce každého vozu hodinu
+ * a v oknech tvoje postavičky vedle stínů ostatních cestujících. Obloha
+ * obrázku je obloha první vybrané hodiny (scripts/rezervace/jizdenka.ts).
+ *
+ * Údaje se vyplňují samy, jméno se píše rovnou na jízdenku. Tlačítko
+ * Označit a poslat: průvodčí cvakne kleštěmi (do jízdenky se vystřihne
+ * ořech), dopadne razítko 予約済 a vláček odjede — pak se otevře e-mail.
+ * Telefon a poznámka jsou vedle, jízdenka by s nimi byla přeplněná.
+ */
+import { rezervace } from "../../data/rezervace";
+
+const cena = rezervace.cena.toLocaleString("cs-CZ");
+
+/* Ochranný podtisk (地紋 jimon) z drobných vlnek — jako na jízdenkách JR */
+const jimon = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='22' height='9'><path d='M0 4.5 Q5.5 0.5 11 4.5 T22 4.5' fill='none' stroke='#3E8C84' stroke-width='0.55' opacity='0.28'/></svg>`,
+)}")`;
+---
+<section class="rz-sekce rz-nastup" id="rz-jizdenka" data-hodina="17.6" aria-labelledby="rz-jizdenka-nadpis">
+  <div class="rz-nastup-karta papir">
+    <p class="stitek"><span lang="ja">乗車券</span> · jízdenka</p>
+    <h2 id="rz-jizdenka-nadpis" class="nadpis-2"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>04</span> Napiš se na jízdenku</h2>
+
+    <div class="rz-nastup-mriz">
+      <div class="rz-listek" style={`--jimon:${jimon}`}>
+        <div class="rz-listek-obraz" aria-hidden="true">
+          <svg class="rz-listek-scena" viewBox="-290 -282 1100 440" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="rz-l-nebe" gradientUnits="userSpaceOnUse" x1="0" y1="-282" x2="0" y2="-14">
+                <stop offset="0" style="stop-color:var(--l-nebe-a)" />
+                <stop offset="0.62" style="stop-color:var(--l-nebe-b)" />
+                <stop offset="1" style="stop-color:var(--l-nebe-c)" />
+              </linearGradient>
+              <linearGradient id="rz-l-more" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="158">
+                <stop offset="0" style="stop-color:color-mix(in srgb, var(--l-nebe-c) 84%, #1B2350)" />
+                <stop offset="0.45" style="stop-color:color-mix(in srgb, var(--l-nebe-b) 80%, #1B2350)" />
+                <stop offset="1" style="stop-color:color-mix(in srgb, var(--l-nebe-a) 76%, #0B1030)" />
+              </linearGradient>
+              <radialGradient id="rz-l-slunce" cx="0.5" cy="0.5" r="0.5">
+                <stop offset="0" stop-color="#FFF8E2" />
+                <stop offset="0.3" stop-color="#FFF1C8" stop-opacity="0.9" />
+                <stop offset="0.55" stop-color="#FFD9A0" stop-opacity="0.35" />
+                <stop offset="1" stop-color="#FFC890" stop-opacity="0" />
+              </radialGradient>
+              <linearGradient id="rz-l-odraz-g" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#fff" stop-opacity="0.6" />
+                <stop offset="1" stop-color="#fff" stop-opacity="0" />
+              </linearGradient>
+              <mask id="rz-l-odraz" maskUnits="userSpaceOnUse" x="-6000" y="0" width="16000" height="240">
+                <rect x="-6000" y="0" width="16000" height="230" fill="url(#rz-l-odraz-g)" />
+              </mask>
+            </defs>
+            <rect class="rz-l-nebe" x="-6000" y="-3000" width="16000" height="3000" fill="url(#rz-l-nebe)" />
+            <circle class="rz-l-slunce" cx="0" cy="-200" r="90" fill="url(#rz-l-slunce)" />
+            <rect class="rz-l-more" x="-6000" y="-14" width="16000" height="3000" fill="url(#rz-l-more)" />
+            <path d="M-6000 -14 H10000" stroke="#FFF1DE" stroke-width="2" opacity="0.6" />
+            <g class="rz-l-odraz" mask="url(#rz-l-odraz)"><use href="#rz-l-vlak" transform="scale(1 -1)" /></g>
+            <g class="rz-l-vlnky">
+              {[6, 13, 22, 34, 50, 72, 100, 136].map((y, i) => (
+                <path d={`M-6000 ${y} H10000`} stroke={i % 3 ? "#FFFFFF" : "#2E3466"} stroke-opacity={i % 3 ? 0.16 : 0.2} stroke-width={1.4 + i * 0.5} stroke-dasharray={`${60 + i * 23} ${18 + i * 7}`} />
+              ))}
+            </g>
+            <g id="rz-l-vlak" class="rz-l-vlak"></g>
+          </svg>
+          <p class="rz-listek-prazdno">Vyber odjezd a vlak přijede.</p>
+        </div>
+
+        <div class="rz-listek-telo">
+          <p class="rz-listek-hlava">
+            <span><span lang="ja">乗車券</span> Jízdenka do dílny</span>
+            <span class="rz-listek-cislo">№ <b>—</b></span>
+          </p>
+          <p class="rz-listek-trasa">
+            <span class="rz-listek-stanice"><span lang="ja">胡桃</span> Ořech</span>
+            <span class="rz-listek-sipka" aria-hidden="true"></span>
+            <span class="rz-listek-stanice"><span lang="ja">工房</span> Dílna</span>
+          </p>
+          <dl class="rz-listek-udaje" aria-live="polite">
+            <div><dt><span lang="ja" aria-hidden="true">日付</span> Den</dt><dd class="rz-l-den">ještě nevybraný</dd></div>
+            <div><dt><span lang="ja" aria-hidden="true">時刻</span> Odjezd</dt><dd class="rz-l-hodiny">ještě nevybraný</dd></div>
+            <div><dt><span lang="ja" aria-hidden="true">人数</span> Cestující</dt><dd class="rz-l-lide">1 člověk</dd></div>
+            <div><dt><span lang="ja" aria-hidden="true">運賃</span> Jízdné</dt><dd class="rz-l-cena">{cena} Kč za člověka a hodinu</dd></div>
+          </dl>
+          <label class="rz-listek-jmeno">
+            <span class="rz-listek-jmeno-popis"><span lang="ja" aria-hidden="true">氏名</span> Jméno</span>
+            <input type="text" name="jmeno" maxlength="40" autocomplete="name" spellcheck="false" placeholder="Tvoje jméno" />
+          </label>
+          <p class="rz-listek-platnost">Platí pro uvedený den a odjezd, až ji potvrdíme.</p>
+          <span class="rz-listek-razitko" aria-hidden="true"><span lang="ja">予約済</span><small>odesláno</small></span>
+        </div>
+
+        <div class="rz-listek-utrzek" aria-hidden="true">
+          <span class="rz-listek-utrzek-znak" lang="ja">改札</span>
+          <span class="rz-listek-utrzek-text">kontrola</span>
+          <span class="rz-listek-dirka"></span>
+          <span class="rz-listek-ustrizek"></span>
+        </div>
+      </div>
+
+      <div class="rz-nastup-pole">
+        <label class="rz-pole">Telefon <small>nepovinné, kdybychom něco potřebovali</small><input type="tel" name="telefon" autocomplete="tel" inputmode="tel" /></label>
+        <label class="rz-pole">Poznámka <small>nepovinné</small><textarea name="poznamka" rows="3" maxlength="300" placeholder="Třeba že přijdete poprvé."></textarea></label>
+        <p class="rz-cena"><span>Celkem</span> <b>0 Kč</b></p>
+        <p class="rz-cena-vypocet">{cena} Kč za člověka a hodinu</p>
+        <a class="tlacitko rz-odeslat" aria-disabled="true" role="link">Označit a poslat</a>
+        <p class="rz-pozn">Otevře se e-mail s vybranými odjezdy. Jízdenka platí, až ji potvrdíme.</p>
+        <p class="rz-chybi" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+</section>
