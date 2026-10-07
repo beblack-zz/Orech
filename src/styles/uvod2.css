@@ -53,90 +53,7 @@
 }
 .stanice-odkaz:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* ——— Roční období ———
- * Stromy, země a sníh v kresbách berou barvy z proměnných. Každá scéna
- * má vlastní data-sezona (fasáda a prohlídka podle dneška, rok dílny
- * podle měsíce), takže se nepřebíjejí.
- */
-[data-sezona] {
-  --sak-1: #D98C8A;
-  --sak-2: #EBA9A6;
-  --sak-3: #F7CFCB;
-  --ore-1: #3B5C33;
-  --ore-2: #578241;
-  --ore-3: #84AC56;
-  --zem-1: #8DB35C;
-  --zem-2: #55803B;
-  --koruna: 1;
-  --koruna-orech: 1;
-  --snih: 0;
-  --kvetiny: 1;
-  --zem-listi: 1;
-}
-[data-sezona="zima"] { --koruna: 0; --koruna-orech: 0; --snih: 1; --kvetiny: 0; --zem-listi: 0; --zem-1: #CAD5D2; --zem-2: #9CAEA6; }
-[data-sezona="predjari"] { --koruna: 0; --koruna-orech: 0; --kvetiny: 0.25; --zem-listi: 0; --zem-1: #9DB36A; --zem-2: #6B8A48; }
-[data-sezona="jaro"] { --ore-1: #5E8A3E; --ore-2: #7FAE52; --ore-3: #A9CE72; }
-[data-sezona="leto"] { --sak-1: #4E7A3A; --sak-2: #6E9A4B; --sak-3: #94BC64; --zem-listi: 0; }
-[data-sezona="podzim"] {
-  --sak-1: #B5532E;
-  --sak-2: #D9773A;
-  --sak-3: #EDA552;
-  --ore-1: #A9822A;
-  --ore-2: #CFA23A;
-  --ore-3: #E8C35A;
-  --kvetiny: 0.2;
-  --zem-1: #A3AE5E;
-  --zem-2: #6E7E3A;
-}
-.sak-1 { fill: var(--sak-1); }
-.sak-2 { fill: var(--sak-2); }
-.sak-3 { fill: var(--sak-3); }
-.ore-1 { fill: var(--ore-1); }
-.ore-2 { fill: var(--ore-2); }
-.ore-3 { fill: var(--ore-3); }
-.sak-1, .sak-2, .sak-3, .ore-1, .ore-2, .ore-3 { transition: fill 0.9s; }
-.koruna { opacity: var(--koruna); transition: opacity 0.9s; }
-.koruna-orech { opacity: var(--koruna-orech); transition: opacity 0.9s; }
-.snih { opacity: var(--snih); transition: opacity 0.9s; }
-.koruna-zem { opacity: var(--zem-listi); transition: opacity 0.9s; }
-.rez-kvetiny { opacity: var(--kvetiny); transition: opacity 0.9s; }
-
-/* Padající sníh, plátky a listí. Sloupec je vysoký jako scéna a padá
- * celý (translate v procentech jeho výšky); točí se jen vločka v ::before. */
-.castice { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 2; }
-.castice-kus {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 1.1%;
-  display: none;
-  animation: castice-pad var(--d) linear infinite;
-  animation-delay: var(--z);
-}
-.castice-kus::before {
-  content: "";
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  animation: castice-toc 2.8s ease-in-out infinite alternate;
-}
-.castice-velky { width: 1.5%; }
-[data-sezona="zima"] .castice-kus,
-[data-sezona="jaro"] .castice-kus,
-[data-sezona="podzim"] .castice-kus { display: block; }
-[data-sezona="zima"] .castice-kus { width: 0.6%; }
-[data-sezona="zima"] .castice-kus::before { border-radius: 50%; background: #FFFFFF; opacity: 0.9; animation: none; }
-[data-sezona="jaro"] .castice-kus::before { border-radius: 80% 0 80% 0; background: #F2B8B4; }
-[data-sezona="podzim"] .castice-kus::before { border-radius: 0 80% 0 80%; background: #E2A33A; }
-[data-sezona="podzim"] .castice-kus:nth-child(3n)::before { background: #C9772E; }
-@keyframes castice-pad {
-  from { transform: translate(0, -12%); }
-  to { transform: translate(var(--dx), 100%); }
-}
-@keyframes castice-toc {
-  from { transform: rotate(-35deg) scaleX(1); }
-  to { transform: rotate(50deg) scaleX(0.45); }
-}
+/* Roční období (proměnné stromů, země a sněhu, padající částice) jsou v dilna-rez.css. */
 
 /* ——— Noren ——— */
 
@@ -665,127 +582,7 @@
   .stanice-nazev { font-size: 38px; }
 }
 
-/* ——— Dílna v řezu ——— */
-
-.rez { position: relative; width: 100%; aspect-ratio: 1600 / 1000; container-type: inline-size; }
-.rez-kresba { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
-.rez-mista,
-.rez-parta { position: absolute; inset: 0; pointer-events: none; }
-.rez-parta { z-index: 3; }
-.rez-mista { z-index: 4; }
-.rez-misto {
-  position: absolute;
-  pointer-events: auto;
-  border-radius: 0.6cqw;
-  transition: box-shadow 0.2s, background 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.rez-misto:hover,
-.rez-misto:focus-visible,
-.rez-misto.ukazane {
-  outline: none;
-  background: rgba(255, 246, 220, 0.16);
-  box-shadow: 0 0 0 0.14cqw rgba(255, 252, 240, 0.95), 0 0 1.2cqw 0.2cqw rgba(255, 210, 130, 0.85);
-}
-.rez-kami { position: absolute; pointer-events: auto; }
-.rez-bublinka,
-.rez-samotka {
-  opacity: 0;
-  transform: scale(0.3);
-  pointer-events: none !important;
-  transition: opacity 0.4s, transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
-}
-.rez.bublinka-venku .rez-bublinka,
-.rez[data-pec="otevrena"] .rez-samotka { opacity: 1; transform: none; pointer-events: auto !important; }
-
-/* Ukázat 1 pec · 2 stoly · 3 kruhy */
-.rez-misto.ukazane { animation: ukazane 1.2s ease-in-out infinite; }
-@keyframes ukazane { 50% { box-shadow: 0 0 0 0.3cqw rgba(255, 252, 240, 0.95), 0 0 2.4cqw 0.5cqw rgba(255, 210, 130, 0.95); } }
-
-/* Kruhy: čtyři podoby hlíny, točení proužky */
-.kruh-faze { display: none; transform-box: fill-box; transform-origin: 50% 100%; }
-.kruh[data-faze="0"] .kruh-faze[data-f="0"],
-.kruh[data-faze="1"] .kruh-faze[data-f="1"],
-.kruh[data-faze="2"] .kruh-faze[data-f="2"],
-.kruh[data-faze="3"] .kruh-faze[data-f="3"] { display: inline; }
-.kruh.roste .kruh-faze { animation: kruh-roste 0.55s cubic-bezier(0.3, 1.5, 0.5, 1); }
-@keyframes kruh-roste { from { transform: scale(0.72, 0.4); } }
-.kruh.toci .kruh-krouzek { animation: kruh-krouzek 0.45s linear infinite; }
-@keyframes kruh-krouzek { to { stroke-dashoffset: -26; } }
-.kruh.toci .kruh-pruhy { animation: kruh-pruhy 0.26s linear infinite; }
-@keyframes kruh-pruhy { to { transform: translateX(-20px); } }
-
-/* Hrouda na stole */
-.hrouda-telo { transform-box: fill-box; transform-origin: 50% 100%; }
-.hrouda.hnete .hrouda-telo { animation: hnet 0.42s cubic-bezier(0.3, 1.5, 0.5, 1); }
-.hrouda-kiku { transition: opacity 0.5s; }
-.rez.kiku .hrouda-kiku { opacity: 0.7; }
-
-/* Pec */
-.pec-zar { opacity: var(--zar, 0); transition: opacity 0.3s; }
-.pec-horko { opacity: calc(var(--zar, 0) * 0.95); }
-.pec-horko path { animation: pec-horko 1.6s ease-in-out infinite; }
-.pec-horko path:nth-child(2) { animation-delay: -0.5s; }
-.pec-horko path:nth-child(3) { animation-delay: -1s; }
-@keyframes pec-horko { 50% { transform: translateY(-6px); opacity: 0.4; } }
-.pec-viko { transform-box: view-box; transform-origin: 1056px 702px; transition: transform 0.75s cubic-bezier(0.3, 1.3, 0.5, 1); }
-.rez[data-pec="otevrena"] .pec-viko { transform: rotate(-64deg); }
-.pec-uvnitr { opacity: 0; transition: opacity 0.4s 0.3s; }
-.rez[data-pec="otevrena"] .pec-uvnitr { opacity: 1; }
-.rez-pec.tres { animation: pec-tres 0.5s ease-in-out; transform-box: fill-box; transform-origin: 50% 100%; }
-@keyframes pec-tres { 20% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } 80% { transform: rotate(-0.8deg); } }
-
-/* Kusy na polici */
-.kus { transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1); }
-.kus.vzaty { transform: translateY(-14px); }
-.kus-cedulka {
-  position: absolute;
-  z-index: 5;
-  margin: 0;
-  padding: 0.3cqw 0.5cqw 0.35cqw;
-  border-radius: 0.35cqw;
-  background: #FFFDF6;
-  box-shadow: 0 0.4cqw 0.9cqw -0.4cqw rgba(0, 0, 0, 0.45), 0 0 0 0.06cqw rgba(43, 36, 32, 0.15);
-  font-size: 0.5cqw;
-  line-height: 1.25;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(0.4cqw) rotate(-3deg);
-  transition: opacity 0.3s, transform 0.4s cubic-bezier(0.3, 1.5, 0.5, 1);
-  pointer-events: none;
-}
-.kus-cedulka b { display: block; font-family: var(--f-display); font-size: 1.05em; }
-.kus-cedulka span { color: var(--rumelka); font-weight: 600; }
-.kus-cedulka.je { opacity: 1; transform: rotate(-3deg); }
-
-/* Poukaz a lístek na nástěnce */
-.nastenka-poukaz { transform-box: fill-box; transform-origin: 50% 50%; }
-.nastenka-poukaz.otaci { animation: poukaz-otoc 0.6s ease-in-out; }
-@keyframes poukaz-otoc { 50% { transform: scaleX(0.02); } }
-.pz-zadek { opacity: 0; }
-.nastenka-poukaz.otoceny .pz-predek { opacity: 0; }
-.nastenka-poukaz.otoceny .pz-zadek { opacity: 1; }
-.nastenka-workshop.vlaje { animation: listek-vlaje 0.9s ease-in-out; transform-box: fill-box; transform-origin: 50% 0; }
-
-/* Kávovar */
-.kafe-para { opacity: 0; }
-.kavovar.vari .kafe-para { opacity: 1; }
-.kavovar.vari .kafe-para path { animation: kafe-para 1.4s ease-out infinite; }
-.kavovar.vari .kafe-para path:nth-child(2) { animation-delay: 0.3s; }
-.kavovar.vari .kafe-para path:nth-child(3) { animation-delay: 0.6s; }
-@keyframes kafe-para { from { transform: translateY(4px); opacity: 0; } 40% { opacity: 0.9; } to { transform: translateY(-14px); opacity: 0; } }
-
-/* Režim „rok“: věci se objevují s měsícem, kdy přibyly */
-.rez-rok [data-od] { transition: opacity 0.5s; }
-.rez-rok [data-od]:not(.je) { opacity: 0; }
-.rez-rok .rok-kami:not(.je) { display: none; }
-.rok-kapka { animation: rok-kapka 1.6s ease-in infinite; }
-.rok-kapka-2 { animation-delay: 0.8s; }
-@keyframes rok-kapka { from { transform: translateY(0); opacity: 1; } 90% { opacity: 1; } to { transform: translateY(330px); opacity: 0; } }
-.rok-vlnka { transform-box: fill-box; transform-origin: center; animation: rok-vlnka 1.6s ease-out infinite; }
-@keyframes rok-vlnka { from { transform: scale(0.2); opacity: 0.9; } to { transform: scale(1.6); opacity: 0; } }
-.rok-nahrava { animation: rok-nahrava 1s steps(2) infinite; }
-@keyframes rok-nahrava { 50% { opacity: 0.15; } }
+/* Dílna v řezu je v dilna-rez.css — sdílí ji Úvod 2 a Dílna. */
 
 /* ——— Odjezdová tabule ——— */
 
@@ -1369,7 +1166,6 @@
 .oslava-razitka svg { width: 42px !important; height: 42px; margin: 0 -2px !important; }
 .oslava-razitka svg:nth-child(odd) { transform: rotate(-8deg); }
 .oslava-razitka svg:nth-child(even) { transform: rotate(6deg); }
-.rez-ukaz { pointer-events: none !important; }
 
 /* ——— Méně pohybu ——— */
 

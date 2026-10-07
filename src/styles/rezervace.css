@@ -218,7 +218,6 @@
 .rz-vypravci-stin { fill: #2A2440; opacity: 0.25; }
 .rz-vypravka { transform-box: fill-box; transform-origin: 50% 100%; transform: rotate(115deg); transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1); }
 .vypravuje .rz-vypravka { transform: rotate(-12deg); }
-
 .rz-trat-vlak { transform: translateX(calc(var(--vl-x, 280) * 1px)); }
 .rz-trat-brazda path { fill: none; stroke: #FFF6EA; stroke-width: 1.8; stroke-linecap: round; opacity: calc(var(--vl-rychlost, 0) * 0.8); }
 
@@ -604,8 +603,8 @@
 .rz-tabule-obdobi { margin-left: 6px; font-size: 13.5px; color: rgba(237, 230, 214, 0.55); }
 .rz-tabule-obdobi [lang="ja"] { font-family: var(--f-kanji); font-size: 15px; color: rgba(255, 180, 90, 0.85); }
 
-/* Sloupce řádku: odjezd, příjezd, okénko s oblohou, poznámka, kontrolka */
-.rz-tabule-deska { --sloupce: 126px 52px 64px minmax(150px, 1fr) 12px; }
+/* Sloupce řádku: odjezd, příjezd, okénko s oblohou, kupé, poznámka, kontrolka */
+.rz-tabule-deska { --sloupce: 126px 52px 64px 86px minmax(150px, 1fr) 12px; }
 .rz-tabule-sloupce {
   display: grid;
   grid-template-columns: var(--sloupce);
@@ -618,11 +617,13 @@
 }
 .rz-tabule-sloupce [lang="ja"] { font-family: var(--f-kanji); letter-spacing: 0.04em; font-size: 12.5px; color: rgba(255, 180, 90, 0.75); margin-right: 3px; }
 .rz-tabule-sloupce > span:nth-child(1) { grid-column: 1 / 4; }
-.rz-tabule-sloupce > span:nth-child(2) { grid-column: 4 / 6; }
+.rz-tabule-sloupce > span:nth-child(2) { grid-column: 4; }
+.rz-tabule-sloupce > span:nth-child(3) { grid-column: 5 / 7; }
 
 .rz-tabule-radky { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .rz-o { position: relative; border-radius: 10px; transition: background 0.2s; }
 .rz-o-volba {
+  width: 100%;
   display: grid !important;
   grid-template-columns: var(--sloupce);
   align-items: center;
@@ -670,7 +671,28 @@
 
 
 .rz-tabule.bez-dne .rz-tabule-radky { opacity: 0.4; }
+/* Kupé se čtyřmi sedačkami — barvu sedačce dává fill a stroke na <svg> */
+.rz-o-mista { display: flex; gap: 5px; }
+.rz-sedacka {
+  width: 16px;
+  height: 18px;
+  flex: none;
+  fill: transparent;
+  stroke: rgba(237, 230, 214, 0.5);
+  transition: fill 0.3s, stroke 0.3s, transform 0.3s;
+}
+.rz-sedacka.obs { fill: #4A4F5A; stroke: #4A4F5A; }
+.rz-sedacka.pryc { stroke: rgba(237, 230, 214, 0.16); }
+.rz-sedacka.moje { fill: var(--jantar); stroke: var(--jantar); filter: drop-shadow(0 0 4px rgba(255, 180, 90, 0.7)); transform: translateY(-2px); }
+.rz-sedacka.vase { stroke: rgba(255, 180, 90, 0.75); }
+.rz-o-mista .rz-sedacka:nth-child(2) { transition-delay: 0.05s; }
+.rz-o-mista .rz-sedacka:nth-child(3) { transition-delay: 0.1s; }
+.rz-o-mista .rz-sedacka:nth-child(4) { transition-delay: 0.15s; }
+
 .rz-tabule-pata { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(237, 230, 214, 0.14); }
+.rz-legenda { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: rgba(237, 230, 214, 0.66); }
+.rz-legenda li { display: flex; align-items: center; gap: 6px; }
+.rz-legenda .rz-sedacka { width: 12px; height: 14px; transform: none; }
 .rz-tabule-rada { margin: 0; max-width: 52ch; font-size: 13.5px; color: rgba(237, 230, 214, 0.66); }
 .rz-simulace {
   width: min(560px, 100%);
@@ -959,12 +981,14 @@
   .rz-o { border-bottom: 1px solid rgba(237, 230, 214, 0.08); border-radius: 0; }
   .rz-o:last-child { border-bottom: 0; }
   .rz-o-volba {
-    grid-template-columns: auto auto 40px minmax(0, 1fr) 11px;
+    grid-template-columns: auto auto 40px auto minmax(0, 1fr) 11px;
     column-gap: 7px;
     padding: 8px 4px !important;
   }
   .rz-o-prijezd { font-size: 12px; }
   .rz-o-okno { width: 40px; height: 24px; }
+  .rz-o-mista { gap: 3px; }
+  .rz-o-mista .rz-sedacka { width: 12px; height: 14px; }
   .rz .rz-o-cas .flap-cislice { font-size: 15px; }
   .rz .rz-o-stav .flap { font-size: 14px; }
 
@@ -995,6 +1019,12 @@
 
   .rz-displej { left: 12px; right: 12px; transform: none; border-radius: 14px; animation: none; }
   .rz-displej-souhrn { font-size: 14px; white-space: normal; }
+}
+
+@media (max-width: 440px) {
+  .rz-o-volba { grid-template-columns: auto 34px auto minmax(0, 1fr) 10px; column-gap: 6px; }
+  .rz-o-prijezd { display: none; }
+  .rz-o-okno { width: 34px; }
 }
 
 /* ——— Méně pohybu ——— */

@@ -2,8 +2,8 @@
 /**
  * Kresby pro Rezervaci — jednou jako <defs>, všude jinde jen <use>:
  * vůz vlaku po vodě, sběrač, stín cestujícího (sedí ve vlaku na pozadí,
- * jako ve filmu) a tvoje postavička — na jízdence sedí ve vláčku tvoje
- * skupina.
+ * jako ve filmu), tvoje postavička — na jízdence sedí ve vláčku tvoje
+ * skupina — a sedačka kupé na tabuli odjezdů.
  *
  * Vůz má kabinu vlevo; druhý vůz se otočí zrcadlově. Souřadnice jsou
  * „jednotky vlaku“: vůz je 520 dlouhý, y = 0 je hladina, nahoru záporně.
@@ -123,6 +123,13 @@ const SEDADLA = 0.37;
       <path d="M-11 31 C-11 19 -7 15 0 15 C7 15 11 19 11 31 Z" />
     </g>
 
+
+    {/* Sedačka kupé zepředu — opěradlo, sedák a nožičky. Barvu (fill, stroke) dědí. */}
+    <symbol id="rz-sedacka" viewBox="0 0 16 18">
+      <path d="M4.5 1.2 H11.5 Q13.3 1.2 13.3 3 V10.4 H2.7 V3 Q2.7 1.2 4.5 1.2 Z" stroke-width="1.3" stroke-linejoin="round" />
+      <path d="M1.4 10.4 H14.6 Q15.4 10.4 15.4 11.2 V13.6 Q15.4 14.4 14.6 14.4 H1.4 Q0.6 14.4 0.6 13.6 V11.2 Q0.6 10.4 1.4 10.4 Z" stroke-width="1.3" stroke-linejoin="round" />
+      <path d="M3.4 14.4 V17 M12.6 14.4 V17" stroke-width="1.5" stroke-linecap="round" fill="none" />
+    </symbol>
   </defs>
 </svg>
 <style is:global>

@@ -1,0 +1,56 @@
+---
+/*
+  Pecinka s ohněm ve třech přehnaných podobách — kresby i běh jsou ve
+  scripts/pecinka-ohen:
+
+    v1  Plamenná svatozář: kaen kóhai z laku a zlata, Pecinka na skále iwakura
+    v2  Raku: v noční tuši vytáhne rozžhavenou misku a zakalí ji v kádi
+    v3  Prskavka na vějíři: senkó hanabi na malovaném uchiwa
+
+  Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
+  sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
+  prázdná, než se načte skript, a bez skriptu zůstane hezký obrázek. Skript
+  ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná, takže každá
+  podoba smí být na stránce jen jednou.
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/pecinka-ohen/kresby.js";
+
+interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  v1: "Pecinka na skále, za zády svatozář z plamenů se zlatými linkami",
+  v2: "Pecinka v noci vytahuje kleštěmi rozžhavenou misku a kalí ji v kádi s vodou",
+  v3: "Pecinka na malovaném vějíři drží japonskou prskavku, kolem letní noc",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "po-staticky" });
+---
+<div class={`pecinka-ohen ${cls}`} data-pecinka-ohen={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/pecinka-ohen/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .pecinka-ohen {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .pecinka-ohen:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .po-staticky, .po-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .po-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

@@ -227,20 +227,32 @@ body.p2 {
   z-index: 50;
   transform: translateX(-50%);
   width: min(1380px, calc(100% - 24px));
+  /* Výška napevno: ensō v levém konci a tah po okraji (tah-kresba.ts) počítají s 56 px */
+  height: 56px;
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 7px 8px 7px 12px;
+  /* Zleva nic — levý půlkruh bubliny patří celý kruhu ensō */
+  padding: 8px 8px 8px 0;
   border-radius: 999px;
   background: color-mix(in srgb, var(--papir) 90%, transparent);
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
   backdrop-filter: blur(12px) saturate(1.2);
   box-shadow: 0 10px 30px -14px rgba(28, 20, 44, 0.45), inset 0 0 0 1px rgba(43, 36, 32, 0.08);
 }
+/* Tah štětce po okraji bubliny (scripts/parta2/tah.ts) — kreslí se v pixelech pruhu */
+.hlava-tah {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
 .hlava-znacka {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   text-decoration: none;
   font-family: var(--f-display);
   font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 40;
@@ -249,8 +261,9 @@ body.p2 {
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
-.hlava-znacka svg { width: 40px; height: 40px; display: block; }
-.hlava-znacka .enso { display: block; }
+/* Ensō (HlavickaEnso.astro) zabere celou výšku pruhu, ať sedí soustředně s jeho levým půlkruhem */
+.hlava-enso { display: block; flex: none; width: 56px; height: 56px; margin: -8px 0; overflow: visible; }
+.hlava-znacka:focus-visible { border-radius: 999px; }
 .hlava-znacka em { color: var(--rumelka); font-weight: 400; }
 .hlava-nav { display: flex; gap: 2px; margin-left: auto; }
 .hlava-nav a {
@@ -263,7 +276,38 @@ body.p2 {
   transition: background 0.2s, color 0.2s;
 }
 .hlava-nav a:hover { background: rgba(43, 36, 32, 0.07); color: var(--inkoust); }
-.hlava-nav a[aria-current="page"] { background: var(--inkoust); color: var(--papir); }
+/*
+ * Aktuální stránka: místo hladké pilulky šmouha suchým štětcem pod nápisem
+ * v barvách loga (soumrak z rumělky do noci; kresba v tah-kresba.ts —
+ * zvyrazneni). Namaluje se při každém příchodu na stránku: štětec projede
+ * zleva doprava a písmo zesvětlá, jakmile je pod ním barva.
+ */
+.hlava-nav a[aria-current="page"] {
+  position: relative;
+  isolation: isolate;
+  background: none;
+  color: var(--papir);
+  animation: hlava-stranka-pismo 0.3s ease 0.3s both;
+}
+.hlava-stranka {
+  position: absolute;
+  z-index: -1;
+  top: -1px;
+  left: -6px;
+  width: calc(100% + 16px);
+  height: calc(100% + 2px);
+  overflow: visible;
+  pointer-events: none;
+}
+.hlava-stranka-odhal {
+  stroke-dasharray: 1 1;
+  animation: hlava-stranka-kresli 0.55s cubic-bezier(0.5, 0.05, 0.3, 1) 0.1s both;
+}
+@keyframes hlava-stranka-kresli { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes hlava-stranka-pismo { from { color: var(--inkoust); } to { color: var(--papir); } }
+@media (prefers-reduced-motion: reduce) {
+  .hlava-nav a[aria-current="page"], .hlava-stranka-odhal { animation: none; }
+}
 .hlava-akce { display: flex; align-items: center; gap: 4px; }
 .omamori-tlacitko,
 .zvuk-tlacitko {
@@ -292,10 +336,13 @@ body.p2 {
 /* Ztlumená zvonkohra visí dál, jen vybledne — nápis „Zvuk“ už v pruhu není */
 .zvonkohra svg { transition: opacity 0.4s; }
 .zvuk-tlacitko[aria-pressed="false"] .zvonkohra svg { opacity: 0.5; }
+/* Závěs visí přímo na tahu po okraji bubliny: krabička zvonkohry začíná
+   15 px pod horní hranou pruhu (tlačítko sedí uprostřed jeho výšky), závěs
+   je 1,4 px pod vršem kresby a tah běží 3,25 px pod okrajem (OSA v tah-kresba.ts) */
 .zvonkohra svg {
   position: absolute;
   left: 50%;
-  top: -9px;
+  top: -13.15px;
   width: 68px;
   height: 136px;
   margin-left: -34px;
@@ -1416,17 +1463,105 @@ body.p2 {
 
 /* ——— Patička ——— */
 
-.pata { position: relative; z-index: 2; padding: 56px 20px 64px; background: #2F2A22; color: #EFE5D3; }
-.pata-obsah { width: min(1140px, 100%); margin: 0 auto; display: grid; gap: 8px; }
-.pata-znacka { display: flex; align-items: center; gap: 12px; margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 34px; }
-.pata-znacka .enso { display: block; }
-.pata-znacka svg { display: block; }
+/* Řez hlínou: seshora kořeny, mezi nimi kontakt, pod tím vrstvy na kopání (components/parta2/Paticka.astro) */
+.pata { position: relative; z-index: 2; background: #2A221B; color: #EFE5D3; }
+.pata-hlina { position: relative; padding: clamp(56px, 7vw, 96px) 20px 48px; background: linear-gradient(#3A2F26, #2C241C 60%, #2A221B); }
+.pata-pozadi { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.pata-puda, .pata-puda svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.pata-koreny { position: absolute; top: -18px; left: 74%; width: clamp(1200px, 150vw, 2400px); aspect-ratio: 30 / 11; transform: translateX(-50%); }
+.pata-koreny svg { width: 100%; height: 100%; display: block; }
+.pata-obsah { position: relative; width: min(1140px, 100%); margin: 0 auto; }
+.pata-info { display: grid; grid-template-columns: 1.35fr 1fr 1fr 1.1fr; gap: 28px; font-size: 16.5px; line-height: 1.6; }
+.pata-info p { margin: 0; }
+.pata-info a { color: #FFF2DC; text-decoration-color: rgba(255, 242, 220, 0.35); text-underline-offset: 3px; }
+.pata-info a:hover { text-decoration-color: currentColor; }
+.pata-h { margin: 0 0 8px; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #F0A58E; }
+.pata-znacka { display: flex; align-items: center; gap: 12px; font-size: 32px; line-height: 1; }
+.pata-znacka svg { display: block; flex: none; }
 .pata-znacka em { color: #F0A58E; }
-.pata-adresa { margin: 0; opacity: 0.8; }
-.pata-nav { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 10px; }
-.pata-nav a { text-decoration: none; opacity: 0.85; }
-.pata-nav a:hover { opacity: 1; text-decoration: underline; }
-.pata-poznamka { max-width: 62ch; margin: 18px 0 0; font-size: 13.5px; opacity: 0.6; }
+.pata-podtitul { margin-top: 10px !important; color: rgba(239, 229, 211, 0.75); }
+.pata-nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 32px; padding: 14px 0; border-top: 1px solid rgba(239, 229, 211, 0.14); border-bottom: 1px solid rgba(239, 229, 211, 0.14); font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 500; }
+.pata-nav a { text-decoration: none; opacity: 0.88; }
+.pata-nav a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 4px; }
+.pata-tiraz { margin: 18px 0 0; font-size: 13.5px; color: rgba(239, 229, 211, 0.62); }
+.pata-poznamka { max-width: 62ch; margin: 6px 0 0; font-size: 13.5px; color: rgba(239, 229, 211, 0.5); }
+
+.vrstvy { list-style: none; margin: 0; padding: 0; }
+.vrstva { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 1.15s cubic-bezier(0.3, 0.7, 0.25, 1); }
+.vrstva.odkryta { grid-template-rows: 1fr; }
+.vrstva-obal { min-height: 0; overflow: hidden; }
+.vrstva-plocha {
+  position: relative;
+  min-height: clamp(300px, 34vw, 440px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(16px, 4vw, 56px);
+  padding: 48px max(20px, calc(50% - 560px)) 40px;
+}
+.vrstva-pozadi, .vrstva-pozadi svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.vrstva-nalez { position: relative; display: grid; place-items: center; }
+.vrstva-nalez svg { width: min(100%, 420px); height: auto; display: block; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.25)); }
+.vrstva.odkryta .vrstva-nalez svg { animation: nalez 1.3s 0.45s both cubic-bezier(0.3, 1.35, 0.5, 1); }
+@keyframes nalez { from { opacity: 0; transform: translateY(26px) scale(0.92) rotate(-3deg); } }
+.vrstva-text { position: relative; max-width: 46ch; }
+.vrstva:nth-child(even) .vrstva-nalez { order: 2; }
+.vrstva-hloubka { margin: 0; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #F0A58E; }
+.vrstva h3 { margin: 8px 0 10px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 72; font-weight: 400; font-size: clamp(28px, 3.2vw, 42px); line-height: 1.05; }
+.vrstva-text p:last-child { margin: 0; font-size: 18px; }
+.vrstva-svetla { color: var(--inkoust); }
+.vrstva-svetla .vrstva-hloubka { color: #8E3A22; }
+
+.kopani-akce {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 8px 20px 120px;
+  background: var(--kopani-barva, #2A221B);
+  transition: background 0.9s;
+  text-align: center;
+}
+.kopani-akce[hidden] { display: none; }
+.kopat {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 24px;
+  border-radius: 999px;
+  background: #EFE5D3;
+  color: var(--inkoust);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 15.5px;
+  line-height: 1.2;
+  transition: transform 0.2s, background 0.2s;
+}
+.kopat:hover { transform: translateY(-2px); background: #FFF8EA; }
+.kopat .lopata { display: inline-flex; transition: transform 0.3s; }
+.kopat:hover .lopata { transform: rotate(-18deg) translateY(2px); }
+.kopat.kope .lopata { animation: kopni 0.5s ease-in-out; }
+@keyframes kopni { 0%, 100% { transform: rotate(0); } 40% { transform: rotate(-38deg) translate(-2px, 4px); } 70% { transform: rotate(12deg) translate(1px, -2px); } }
+.kopani-pozn { margin: 0; max-width: 40ch; font-family: var(--f-ruka); font-size: 22px; line-height: 1.25; color: rgba(239, 229, 211, 0.82); }
+.kopani-svetle .kopani-pozn { color: rgba(43, 36, 32, 0.8); }
+.kopani-dovetek { margin: 4px 0 0; font-size: 13.5px; color: rgba(239, 229, 211, 0.55); }
+.kopani-svetle .kopani-dovetek { color: rgba(43, 36, 32, 0.6); }
+.drobky { position: absolute; left: 50%; top: 24px; width: 0; height: 0; pointer-events: none; }
+.drobky i { position: absolute; width: var(--r); height: var(--r); border-radius: 40%; background: var(--b); animation: drobek 0.9s cubic-bezier(0.2, 0.6, 0.4, 1) forwards; }
+@keyframes drobek { from { transform: translate(0, 0) rotate(0); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) rotate(var(--u)); opacity: 0; } }
+
+@media (max-width: 860px) {
+  .pata-info { grid-template-columns: 1fr 1fr; gap: 22px 18px; }
+  .pata-info > :first-child { grid-column: 1 / -1; }
+  .vrstva-plocha { grid-template-columns: 1fr; padding-top: 40px; padding-bottom: 36px; }
+  .vrstva:nth-child(even) .vrstva-nalez { order: 0; }
+  .vrstva-nalez svg { width: min(78%, 320px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vrstva, .kopani-akce { transition: none; }
+  .vrstva.odkryta .vrstva-nalez svg, .kopat.kope .lopata { animation: none; }
+}
 
 /* ——— Omamori ——— */
 

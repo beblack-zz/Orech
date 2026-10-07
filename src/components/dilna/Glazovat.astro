@@ -1,0 +1,198 @@
+---
+/**
+ * Glazovat — kout s glazurami. Na polici sedm kbelíků (šest glazur a jeden
+ * přikrytý, ten se otevře, až má člověk celou desku zkoušek), dole velký
+ * kbelík, do kterého se namáčí, a nad ním v kleštích tvůj kus po přežahu.
+ * Namočit celý nebo do půlky (okrajem napřed), dvě vrstvy nanejvýš,
+ * otřít dno, do pece. Syrová glazura je bledá a matná — barvu ukáže až
+ * pec. Kdo neotře dno, má kus přilepený k Šamotce.
+ *
+ * Kus je HTML mezi dvěma vrstvami kresby: zadní (zeď, police, vnitřek
+ * kbelíku a hladina) a přední (tělo kbelíku), takže se dá ponořit.
+ * Obsluhuje scripts/dilna/glazovat.ts.
+ */
+import Kami from "../parta2/Kami.astro";
+import Zkouska from "./Zkouska.astro";
+import Cinnost from "./Cinnost.astro";
+import { cinnosti, syrova, orechova } from "../../data/dilna";
+import { glazury } from "../../data/kurzy2";
+import { kusSvg, vychoziKus } from "./kus";
+
+const c = cinnosti.find((x) => x.id === "glazovat")!;
+const vsechny = [...glazury.map((g) => g.nazev), orechova.nazev];
+const X = (i: number) => 64 + i * 85.3;
+const vychozi = kusSvg(vychoziKus(), "prezah", { id: "gl-kus" });
+---
+<Cinnost cinnost={c} hodina={13.4}>
+  <div class="d-scena gl" data-glazovat>
+    <div class="d-scena-okno gl-okno">
+      <svg class="d-scena-svg gl-zadni" viewBox="0 0 640 520" aria-hidden="true">
+        <defs>
+          <linearGradient id="gl-zed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E9E2D3" />
+            <stop offset="1" stop-color="#CFC3AE" />
+          </linearGradient>
+          <linearGradient id="gl-kbel" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#D9D4C8" />
+            <stop offset="0.35" stop-color="#FBF8F1" />
+            <stop offset="1" stop-color="#C9C3B6" />
+          </linearGradient>
+        </defs>
+        <rect width="640" height="520" fill="url(#gl-zed)" />
+        <g stroke="#BFB29A" stroke-width="1" opacity="0.5">
+          <path d="M0 150 H640" /><path d="M0 300 H640" />
+        </g>
+
+        {/* Police s kbelíky */}
+        <rect x="16" y="112" width="608" height="9" fill="#9A7350" />
+        <path d="M16 121 H624" stroke="#6E5236" stroke-width="2" />
+        <path d="M60 121 L52 150 M580 121 L588 150" stroke="#6E5236" stroke-width="4" stroke-linecap="round" />
+        {vsechny.map((g, i) => (
+          <g class={`gl-sklenice ${g === orechova.nazev ? "gl-tajna" : ""}`} data-glazura={g}>
+            <path d={`M${X(i) - 29} 70 L${X(i) - 25} 112 L${X(i) + 25} 112 L${X(i) + 29} 70 Z`} fill="url(#gl-kbel)" stroke="#B9B4A8" stroke-width="1" />
+            <ellipse cx={X(i)} cy="70" rx="29" ry="6" fill="#ECE7DB" stroke="#B9B4A8" stroke-width="1" />
+            <ellipse class="gl-sklenice-hladina" cx={X(i)} cy="70.6" rx="25" ry="4.2" fill={syrova[g]} />
+            <rect x={X(i) - 22} y="84" width="44" height="16" rx="1.5" fill="#FBF7EC" stroke="#C9B48A" stroke-width="0.6" transform={`rotate(${i % 2 ? 2.5 : -2} ${X(i)} 92)`} />
+            <text x={X(i)} y="96" text-anchor="middle" font-family="Caveat, cursive" font-size={g.length > 10 ? 10.5 : 13} fill="#3A2E28" transform={`rotate(${i % 2 ? 2.5 : -2} ${X(i)} 92)`}>{g}</text>
+            {g === orechova.nazev && (
+              <g class="gl-poklice">
+                <path d={`M${X(i) - 33} 70 C${X(i) - 30} 52 ${X(i) + 30} 52 ${X(i) + 33} 70 Z`} fill="#8A6A48" />
+                <path d={`M${X(i) - 33} 70 H${X(i) + 33}`} stroke="#5E4632" stroke-width="2" />
+                <rect x={X(i) - 22} y="84" width="44" height="16" rx="1.5" fill="#3A2E28" transform={`rotate(2.5 ${X(i)} 92)`} />
+                <text x={X(i)} y="97" text-anchor="middle" font-family="Caveat, cursive" font-size="15" fill="#F3D27A" transform={`rotate(2.5 ${X(i)} 92)`}>?</text>
+              </g>
+            )}
+          </g>
+        ))}
+
+        {/* Velký kbelík: zadní okraj a hladina */}
+        <ellipse cx="320" cy="378" rx="116" ry="24" fill="#E4DFD3" stroke="#B9B4A8" stroke-width="1.4" />
+        <ellipse class="gl-hladina" cx="320" cy="381" rx="106" ry="19" fill={syrova.celadon} />
+        <ellipse class="gl-hladina-lesk" cx="296" cy="377" rx="44" ry="5" fill="#FFFFFF" opacity="0.35" />
+
+        {/* Stolička s houbičkou */}
+        <rect x="474" y="452" width="96" height="10" rx="3" fill="#B08660" />
+        <path d="M484 462 L478 516 M560 462 L566 516" stroke="#8A6A48" stroke-width="5" stroke-linecap="round" />
+        <rect x="0" y="508" width="640" height="12" fill="#B9AE9C" />
+      </svg>
+
+      {/* Kus v kleštích */}
+      <div class="gl-kus-obal">
+        <div class="gl-kus" data-kus-glazovani>
+          <svg class="gl-klieste" viewBox="0 0 100 600" aria-hidden="true">
+            <path d="M50 0 V500" stroke="#5C5047" stroke-width="5" />
+            <path d="M50 500 C34 516 26 552 24 594 M50 500 C66 516 74 552 76 594" stroke="#8C949B" stroke-width="9" fill="none" stroke-linecap="round" />
+            <path d="M50 500 C34 516 26 552 24 594 M50 500 C66 516 74 552 76 594" stroke="#D9E0E3" stroke-width="3" fill="none" stroke-linecap="round" />
+            <circle cx="50" cy="500" r="9" fill="#5E656B" />
+          </svg>
+          <div class="gl-kus-otoc">
+            <div class="gl-kus-kresba" set:html={vychozi} />
+          </div>
+          <div class="gl-kapky" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <svg class="d-scena-svg gl-predni" viewBox="0 0 640 520" aria-hidden="true">
+        <defs>
+          <linearGradient id="gl-kbel-p" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#CFC9BC" />
+            <stop offset="0.3" stop-color="#FBF8F1" />
+            <stop offset="0.55" stop-color="#F1ECE2" />
+            <stop offset="1" stop-color="#BDB6A8" />
+          </linearGradient>
+        </defs>
+        <path d="M204 378 C204 402 436 402 436 378 L420 508 L220 508 Z" fill="url(#gl-kbel-p)" stroke="#B9B4A8" stroke-width="1.4" />
+        <path d="M204 378 C204 402 436 402 436 378" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.8" />
+        <path d="M208 400 C240 414 400 414 432 400" stroke="#D9D4C8" stroke-width="2" fill="none" />
+        <g class="gl-stitek-kbel" transform="rotate(-2 320 450)">
+          <rect x="266" y="432" width="108" height="30" rx="2" fill="#FBF7EC" stroke="#C9B48A" stroke-width="0.8" />
+          <text class="gl-stitek-text" x="320" y="453" text-anchor="middle" font-family="Caveat, cursive" font-size="21" fill="#3A2E28">celadon</text>
+        </g>
+        <g class="gl-kapky-dopad"></g>
+        {/* Podlaha i vepředu — co je ponořené hlouběji než kbelík, je schované */}
+        <rect x="0" y="506" width="640" height="14" fill="#B9AE9C" />
+      </svg>
+
+      {/* Kbelíky na polici jsou tlačítka */}
+      <div class="gl-volba" role="radiogroup" aria-label="Glazura v kbelíku">
+        {vsechny.map((g, i) => (
+          <button
+            type="button"
+            role="radio"
+            class={`gl-sklenice-tlacitko ${g === orechova.nazev ? "gl-tajna-tlacitko" : ""}`}
+            data-glazura={g}
+            aria-checked={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? 0 : -1}
+            aria-label={g === orechova.nazev ? "Přikrytý kbelík — otevře se, až najdeš všech šest zkoušek glazur" : `Glazura ${g}`}
+            style={`left:${(((X(i) - 32) / 640) * 100).toFixed(2)}%;top:${((48 / 520) * 100).toFixed(2)}%;width:${((64 / 640) * 100).toFixed(2)}%;height:${((70 / 520) * 100).toFixed(2)}%`}
+          ></button>
+        ))}
+      </div>
+      <button type="button" class="gl-houba" aria-label="Otřít dno houbičkou" style={`left:${((488 / 640) * 100).toFixed(2)}%;top:${((420 / 520) * 100).toFixed(2)}%;width:${((68 / 640) * 100).toFixed(2)}%`}>
+        <svg viewBox="0 0 68 36" aria-hidden="true">
+          <rect x="2" y="6" width="64" height="28" rx="11" fill="#E8C35A" />
+          <rect x="2" y="6" width="64" height="12" rx="6" fill="#F3D27A" />
+          <g fill="#C9A23A" opacity="0.6"><circle cx="14" cy="24" r="2" /><circle cx="30" cy="28" r="1.6" /><circle cx="44" cy="22" r="1.8" /><circle cx="56" cy="28" r="1.4" /></g>
+        </svg>
+      </button>
+
+      <Kami id="kapka" class="d-scena-kami gl-kami" style="left:4%;top:70%;width:11%" />
+      <Zkouska id="tenmoku" class="gl-zkouska" style="left:15.4%;top:15.4%;width:3.2%" />
+
+      <p class="d-scena-stitek" aria-hidden="true"><span class="gl-faze">Po přežahu</span></p>
+
+      {/* Pec — přes celou scénu, když se pálí */}
+      <div class="gl-pec" hidden>
+        <svg class="gl-pec-kresba" viewBox="0 0 640 520" aria-hidden="true">
+          <defs>
+            <linearGradient id="gl-pec-ocel" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#7E868C" />
+              <stop offset="0.3" stop-color="#E8ECEE" />
+              <stop offset="0.55" stop-color="#B4BBC0" />
+              <stop offset="1" stop-color="#6A7278" />
+            </linearGradient>
+            <radialGradient id="gl-pec-zar" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0" stop-color="#FFF2C0" />
+              <stop offset="0.45" stop-color="#FFB050" stop-opacity="0.85" />
+              <stop offset="1" stop-color="#E0501E" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+          <rect width="640" height="520" fill="#2B2420" />
+          <ellipse class="gl-pec-zar" cx="320" cy="200" rx="300" ry="190" fill="url(#gl-pec-zar)" />
+          <rect x="170" y="200" width="300" height="260" rx="14" fill="url(#gl-pec-ocel)" />
+          <rect x="166" y="232" width="308" height="10" rx="4" fill="#8C949B" />
+          <rect x="166" y="330" width="308" height="8" rx="4" fill="#8C949B" />
+          <rect x="166" y="424" width="308" height="10" rx="4" fill="#8C949B" />
+          <path d="M190 460 L184 506 M450 460 L456 506" stroke="#3F4448" stroke-width="8" stroke-linecap="round" />
+          <ellipse cx="320" cy="202" rx="150" ry="28" fill="#C9CFD4" stroke="#8C949B" stroke-width="3" />
+          <ellipse cx="320" cy="198" rx="128" ry="20" fill="#DDE2E5" />
+          <rect x="302" y="176" width="36" height="14" rx="5" fill="#2B2B2B" />
+          <rect x="484" y="250" width="66" height="120" rx="8" fill="#D6DADD" stroke="#9AA3A8" stroke-width="2" />
+          <rect x="492" y="262" width="50" height="30" rx="3" fill="#1E2A22" />
+          <text class="gl-pec-displej" x="517" y="284" text-anchor="middle" font-size="17" fill="#7CFFA0" font-family="ui-monospace, Consolas, monospace">20</text>
+          <circle cx="504" cy="310" r="5" fill="#C4432B" /><circle cx="530" cy="310" r="5" fill="#5C5047" />
+          <path d="M517 370 C520 420 540 460 536 510" stroke="#1F1F1F" stroke-width="3" fill="none" />
+          <g class="gl-pec-horko" fill="none" stroke="#FFD9A0" stroke-width="3" stroke-linecap="round">
+            <path d="M270 160 C262 146 278 136 268 118" /><path d="M320 154 C312 138 328 128 318 106" /><path d="M370 160 C362 146 378 136 368 118" />
+          </g>
+        </svg>
+        <p class="gl-pec-text" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div class="d-ovladani">
+      <p class="d-rada" id="gl-rada" aria-live="polite"><b>Kapka radí</b><span class="d-rada-text">Vyber kbelík na polici. Syrová glazura je bledá — barvu ukáže až pec.</span></p>
+      <p class="gl-cizi">Zatím glazuješ naši misku. Vlastní si můžeš <a href="#placat">vyválet</a> nebo <a href="#tocit">vytočit</a> výš.</p>
+      <div class="d-tlacitka">
+        <div class="d-prepinac gl-jak" role="group" aria-label="Jak namáčet">
+          <button type="button" data-jak="cely" aria-pressed="true">Celý</button>
+          <button type="button" data-jak="horni" aria-pressed="false">Do půlky</button>
+        </div>
+        <button type="button" class="tlacitko tlacitko-maly gl-namocit">Namočit</button>
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys gl-otrit">Otřít dno</button>
+        <button type="button" class="tlacitko tlacitko-maly gl-vypalit" disabled>Do pece</button>
+      </div>
+      <button type="button" class="d-znovu gl-smyt">Smýt glazuru a začít znovu</button>
+    </div>
+  </div>
+</Cinnost>

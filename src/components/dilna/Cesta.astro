@@ -1,0 +1,51 @@
+---
+/**
+ * Jak to chodí — od zamluvené hodiny po hotový kus. Vlevo stojí na
+ * poličce tvůj kus (nebo naše miska, dokud si žádný neuděláš) a mění se
+ * podle kroku, u kterého člověk zrovna čte: hrouda, mokrá hlína, suchý,
+ * po přežahu, v syrové glazuře, hotový (scripts/dilna/cesta.ts). Délky
+ * jednotlivých kroků schválně nepíšu — dílna slibuje jen celek, 2–3 týdny.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import Zkouska from "./Zkouska.astro";
+import { kroky } from "../../data/dilna";
+import { kusSvg, vychoziKus } from "./kus";
+
+const vychozi = kusSvg(vychoziKus(), "hrouda", { id: "cesta-kus" });
+---
+<section class="d-sekce d-cesta" id="jak" data-hodina="16.6" aria-labelledby="jak-nadpis">
+  <div class="d-cesta-papir papir">
+    <div class="d-cesta-hlava">
+      <p class="stitek"><span lang="ja">工程</span> · jak to chodí</p>
+      <h2 id="jak-nadpis" class="nadpis-2">Od hroudy po hotový kus</h2>
+      <p class="d-cesta-perex">
+        Hodina v dílně je začátek. Hotový kus si odneseš za 2–3 týdny — mezitím ho čeká
+        sušení a dva výpaly. A jednou se pro něj vrátíš glazovat.
+      </p>
+    </div>
+
+    <div class="d-cesta-mriz">
+      <div class="d-cesta-polic" data-cesta-kus aria-hidden="true">
+        <div class="d-cesta-svetlo"></div>
+        <div class="d-cesta-kus" set:html={vychozi} />
+        <span class="d-cesta-prkno"></span>
+        <p class="d-cesta-cedulka"><span class="d-cesta-jmeno">naše miska</span><b class="d-cesta-stav">hrouda</b></p>
+      </div>
+
+      <ol class="d-kroky">
+        {kroky.map((k, i) => (
+          <li class="d-krok" data-krok={i} data-stav={k.stav}>
+            <span class="d-krok-cislo" aria-hidden="true">{i + 1}</span>
+            <span class="d-krok-kami" aria-hidden="true"><Postavicka id={k.kdo} size={64} varianta="kami" /></span>
+            <div class="d-krok-text">
+              <h3>{k.nazev}</h3>
+              <p>{k.text}</p>
+              {k.odkaz && <a class="d-odkaz" href={k.odkaz.href}>{k.odkaz.text} <span aria-hidden="true">→</span></a>}
+            </div>
+            {k.stav === "prezah" && <Zkouska id="železitá hnědá" class="d-krok-zkouska" />}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+</section>

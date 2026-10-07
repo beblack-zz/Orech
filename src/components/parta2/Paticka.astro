@@ -1,25 +1,94 @@
 ---
-/** Patička nového vzhledu — tichý papír pod loukou. Poznámku dole si stránka může poslat vlastní. */
+/**
+ * Patička nového vzhledu — řez hlínou pod loukou. Seshora prorůstají
+ * kořeny ořechu, mezi nimi kontakt a otevírací doba. Pod tím se dá kopat:
+ * každé kopnutí odkryje starší vrstvu s nálezem, od ořechu, který tu loni
+ * zahrabala veverka, až po trilobita (data/paticka.ts, kresby podzemi.ts).
+ *
+ * Bez skriptu zůstane jen kontakt — tlačítko Kopej se ukáže až s ním.
+ * Poznámku dole si stránka může poslat vlastní.
+ */
 import Enso from "../navrhy-loga/Enso.astro";
 import "../../styles/znacka.css";
+import { kontakt, mapa } from "../../data/uvod2";
+import { oteviraciDoba, vrstvy } from "../../data/paticka";
+import { koreny, puda, vrstva, nalez, lopatka } from "./podzemi";
+
 interface Props {
   poznamka?: string;
 }
 const {
   poznamka = "Parta 2 je návrh nového vzhledu webu. Obloha, krajina i zvuky se kreslí a skládají přímo v prohlížeči — žádné fotky, žádné nahrávky.",
 } = Astro.props;
+const rok = new Date().getFullYear();
 ---
 <footer class="pata">
-  <div class="pata-obsah">
-    <p class="pata-znacka"><Enso size={64} soumrak tema="tmave" /> <span class="znacka">JIRO <em>saku</em></span></p>
-    <p class="pata-adresa">Keramická dílna · Luční 235 · Ořech</p>
-    <nav class="pata-nav" aria-label="Patička">
-      <a href="/kurzy">Kurzy</a>
-      <a href="/open-studio">Open studio</a>
-      <a href="/obchod">Obchod</a>
-      <a href="/parta">Parta</a>
-      <a href="/o-nas">O nás</a>
-    </nav>
-    <p class="pata-poznamka">{poznamka}</p>
+  <div class="pata-hlina">
+    <div class="pata-pozadi" aria-hidden="true">
+      <div class="pata-puda" set:html={puda()} />
+      <div class="pata-koreny" set:html={koreny()} />
+    </div>
+
+    <div class="pata-obsah">
+      <div class="pata-info">
+        <div>
+          <p class="pata-znacka"><Enso size={54} soumrak tema="tmave" /> <span class="znacka">JIRO <em>saku</em></span></p>
+          <p class="pata-podtitul">Keramická dílna v Ořechu.</p>
+        </div>
+        <div>
+          <h2 class="pata-h">Kde</h2>
+          <p>{kontakt.ulice}<br />{kontakt.psc} {kontakt.obec}</p>
+          <p><a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a></p>
+        </div>
+        <div>
+          <h2 class="pata-h">Kdy</h2>
+          <p>{oteviraciDoba.dny}<br />{oteviraciDoba.cas}</p>
+        </div>
+        <div>
+          <h2 class="pata-h">Ozvi se</h2>
+          <p><a href={`mailto:${kontakt.email}`}>{kontakt.email}</a><br /><a href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a></p>
+        </div>
+      </div>
+      <nav class="pata-nav" aria-label="Patička">
+        <a href="/kurzy">Kurzy</a>
+        <a href="/dilna">Dílna</a>
+        <a href="/obchod">Obchod</a>
+        <a href="/parta">Parta</a>
+        <a href="/o-nas">O nás</a>
+      </nav>
+      <p class="pata-tiraz">© {rok} JIRO saku · {kontakt.ulice}, {kontakt.psc} {kontakt.obec}</p>
+      <p class="pata-poznamka">{poznamka}</p>
+    </div>
+  </div>
+
+  <div class="kopani" data-kopani>
+    <ol class="vrstvy" id="pata-vrstvy" aria-label="Starší vrstvy pod dílnou">
+      {vrstvy.map((v, i) => (
+        <li class:list={["vrstva", { "vrstva-svetla": v.svetla }]} aria-hidden="true" inert>
+          <div class="vrstva-obal">
+            <div class="vrstva-plocha">
+              <div class="vrstva-pozadi" set:html={vrstva(i)} />
+              <div class="vrstva-nalez" set:html={nalez(v.id)} />
+              <div class="vrstva-text">
+                <p class="vrstva-hloubka">{v.hloubka} · {v.doba}</p>
+                <h3>{v.nazev}</h3>
+                <p>{v.text}</p>
+              </div>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <div class="kopani-akce" hidden>
+      <div class="drobky" aria-hidden="true"></div>
+      <button type="button" class="kopat" aria-controls="pata-vrstvy"><span class="lopata" set:html={lopatka()} /><span class="kopat-text">Kopej hlouběji</span></button>
+      <p class="kopani-pozn" aria-live="polite">Pod hlínou je všechno, co tu kdy bylo.</p>
+      <p class="kopani-dovetek" hidden>Vrstvy jsou zjednodušené a hloubky přibližné.</p>
+    </div>
   </div>
 </footer>
+
+<script>
+  import { initPaticka } from "../../scripts/parta2/paticka";
+  document.addEventListener("astro:page-load", initPaticka);
+</script>

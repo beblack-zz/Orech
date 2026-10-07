@@ -421,6 +421,15 @@ export const drevo = (vyska = 1) => {
   ton(430 * vyska, 250 * vyska, 0.1, "triangle", 0.2);
   sumik(0.05, 1400 * vyska, 3, 0.2);
 };
+/** Rýč do hlíny v patičce: škrábnutí, žuchnutí, drolení */
+export const lopata = () => {
+  sumik(0.12, 1900, 1.4, 0.2);
+  window.setTimeout(() => {
+    ton(120, 48, 0.3, "sine", 0.4);
+    sumik(0.45, 320, 0.6, 0.35);
+  }, 130);
+  for (let i = 0; i < 5; i++) window.setTimeout(() => sumik(0.04, 900 + Math.random() * 900, 2, 0.12), 300 + i * 70 + Math.random() * 40);
+};
 /** Víko paulowniové krabice: nejdřív sklouzne, pak dosedne vedle */
 export const vicko = () => {
   sumik(0.45, 900, 0.6, 0.07);

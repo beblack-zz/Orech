@@ -34,6 +34,7 @@ interface Radek {
   btn: HTMLButtonElement;
   popis: HTMLElement;
   stav: Klapka;
+  sedacky: SVGSVGElement[];
 }
 
 export interface TabuleNastaveni {
@@ -54,6 +55,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
     btn: li.querySelector<HTMLButtonElement>(".rz-o-volba")!,
     popis: li.querySelector<HTMLElement>(".rz-o-popis")!,
     stav: new Klapka(li.querySelector<HTMLElement>(".rz-o-stav [data-flap]")!),
+    sedacky: [...li.querySelectorAll<SVGSVGElement>(".rz-o-mista .rz-sedacka")],
   }));
   const casKlapky = radky.map((r) => [...r.li.querySelectorAll<HTMLElement>(".rz-o-cas [data-flap]")].map((el) => new Klapka(el)));
 
@@ -94,15 +96,23 @@ export function initOdjezdy(n: TabuleNastaveni) {
     window.setTimeout(() => kl.nastav(cilova, mezi), zpozdeni);
   };
 
+  /** Kupé: volné, celé zabrané, odjeté, nebo vaše — tolik rozsvícených sedaček, kolik vás jede */
+  const kupe = (r: Radek, s: StavHodiny | null, osob: number, mam: boolean) =>
+    r.sedacky.forEach((el, i) => {
+      el.setAttribute("class", `rz-sedacka${mam ? (i < osob ? " moje" : " vase") : s === "plno" ? " obs" : s === "pryc" || !s ? " pryc" : ""}`);
+    });
+
   const radek = (r: Radek, h: Hodina | undefined, osob: number, mam: boolean, zaklapat: boolean, poradi: number) => {
     if (!h) {
       r.li.className = "rz-o pryc";
       r.btn.disabled = true;
       r.btn.setAttribute("aria-pressed", "false");
       klapni(r.stav, "", zaklapat, poradi * 70 + 30);
+      kupe(r, null, osob, false);
       return;
     }
     const s = stavHodiny(h);
+    kupe(r, s, osob, mam);
     r.li.className = `rz-o ${s}${mam ? " vybrana" : ""}`;
     r.btn.disabled = s !== "volno" && !mam;
     r.btn.setAttribute("aria-pressed", String(mam));

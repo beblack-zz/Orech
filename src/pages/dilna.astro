@@ -1,0 +1,108 @@
+---
+/**
+ * Dílna — hodina v keramické dílně v Ořechu. Nahrazuje stránku Open
+ * studio: hodina v dílně se platí stejně, ať je u toho lektor, nebo ne,
+ * a když lektor není, je to open studio. Stejný svět jako ostatní stránky
+ * nového vzhledu (obloha, papír, písmo, parta), tady jako jeden den
+ * v dílně od otevření do zhasnutí:
+ *
+ *   9:00    otevírá se — dílna v řezu z Úvodu 2 a „co chceš dělat?“
+ *   dopoledne  placat: plácnout hroudu, vyválet plát, vykrojit šablonu
+ *   poledne    točit: nakresli obrys a kruh ho vytočí
+ *   odpoledne  glazovat: namočit, otřít dno, vypálit
+ *              lektor, nebo open studio · jak to chodí od hroudy po
+ *              hotový kus · co je v ceně a kafe
+ *   večer      pravidla a otázky
+ *   noc        dílna zhasíná, tvůj kus čeká na polici, kontakt
+ *
+ * Co si člověk vyrobí, je „tvůj kus“ (components/dilna/kus.ts): jde s ním
+ * po stránce dál — glazuje se, pálí, stojí na polici v dílně i v noci.
+ * Po stránce je schovaných šest zkoušek glazur (sbírka v hlavičce).
+ *
+ * Kdy a za kolik je z data/rezervace.ts, zbytek z data/dilna.ts.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/dilna-rez.css";
+import "../styles/dilna.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Uvod from "../components/dilna/Uvod.astro";
+import Placat from "../components/dilna/Placat.astro";
+import Tocit from "../components/dilna/Tocit.astro";
+import Glazovat from "../components/dilna/Glazovat.astro";
+import Lektor from "../components/dilna/Lektor.astro";
+import Cesta from "../components/dilna/Cesta.astro";
+import Cena from "../components/dilna/Cena.astro";
+import Otazky from "../components/dilna/Otazky.astro";
+import Noc from "../components/dilna/Noc.astro";
+import ZkouskyDialog from "../components/dilna/ZkouskyDialog.astro";
+
+import { cinnosti, kdy } from "../data/dilna";
+import { sezonaMesice } from "../data/uvod2";
+
+/** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška */
+const sezona = sezonaMesice(new Date().getMonth() + 1);
+
+/* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+cinnosti.forEach((c) => {
+  pridej(c.znak);
+  pridej(c.japonsky);
+});
+pridej("工房工程茶先生一人釉見本一時間値段閉店規則質問");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dílna — hodina v keramické dílně · JIRO saku</title>
+    <meta name="description" content={`Hodina v keramické dílně v Ořechu: placat, točit na kruhu, glazovat. Každé ${kdy.dny} ${kdy.hodiny}, ${kdy.cena} ${kdy.zaCo}. Lektor je v ceně — a když ho nepotřebuješ, je to open studio. Kafe je samozřejmost.`} />
+    <meta name="theme-color" content="#6F8FC8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
+  </head>
+  <body class="p2 d2" data-stranka="dilna">
+    <a class="preskocit" href="#placat">Přeskočit na to, co se v dílně dělá</a>
+    <Nebe />
+    <Hlavicka sber="zkousky" />
+
+    <main>
+      <Uvod sezona={sezona} />
+      <Placat />
+      <Tocit />
+      <Glazovat />
+      <Lektor />
+      <Cesta />
+      <Cena />
+      <Otazky />
+      <Noc />
+    </main>
+
+    <Paticka poznamka="Dílna je návrh v novém vzhledu webu. Dílna v řezu, stůl, kruh i pec se kreslí přímo v prohlížeči — skutečné jsou jen fotky lektorů." />
+    <ZkouskyDialog />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/dilna/hlavni.ts";
+    </script>
+  </body>
+</html>

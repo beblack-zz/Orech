@@ -2,7 +2,7 @@
  * Marcel — pracovní stránka postaviček jako kami, v novém vzhledu
  * (styles/parta2.css). Každá postavička leží na vlastním papíře, obloha
  * za nimi jde od rána do noci. Kapka má vedle původní kresby tři
- * přehnané podoby (KapkaBubny.astro).
+ * přehnané podoby (KapkaBubny.astro), Pecinka s ohněm tři (PecinkaOhen.astro).
  */
 
 .mc-sekce { position: relative; z-index: 2; padding: 28px 20px; }
@@ -36,6 +36,13 @@
   margin: 0 0 30px;
 }
 .mc-rada > * { display: block; width: 100%; height: auto; }
+
+/* Pecinka s ohněm: tři podoby vedle sebe, bez textů, na mobilu pod sebou */
+.mc .papir.mc-siroky:has(.mc-rada-3) { width: min(1240px, 100%); }
+.mc-rada-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; }
+@media (max-width: 760px) {
+  .mc-rada-3 { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
+}
 
 /* Tvářičky: mřížka s číslem, názvem a popisem */
 .mc-mrizka {

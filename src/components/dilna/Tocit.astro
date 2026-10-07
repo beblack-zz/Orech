@@ -1,0 +1,177 @@
+---
+/**
+ * Točit — kruh z boku. Hlína se netočí myší kolem dokola (to umí kruh
+ * nanečisto na Kurzech 2), tady se kreslí obrys: táhneš od patky nahoru
+ * vpravo od osy a kruh to podle toho vytočí. Obrys se zrcadlí, hlína
+ * roste za čarou. Kdo nakreslí převis, tomu to spadne. Předlohy jsou
+ * pro ty, kdo kreslit nechtějí. Fyziku a kresbu řeší scripts/dilna/tocit.ts.
+ *
+ * Kresba: 1 mm = 1,1 jednotky, osa na x = 300, hlava kruhu na y = 470.
+ */
+import Kami from "../parta2/Kami.astro";
+import Zkouska from "./Zkouska.astro";
+import Cinnost from "./Cinnost.astro";
+import { cinnosti } from "../../data/dilna";
+
+const c = cinnosti.find((x) => x.id === "tocit")!;
+const S = 1.1;
+const ZAKLAD = 466;
+const mrizkaY = Array.from({ length: 6 }, (_, i) => ZAKLAD - (i + 1) * 50 * S);
+const mrizkaX = Array.from({ length: 6 }, (_, i) => 300 + (i + 1) * 25 * S);
+const predlohy = [
+  { id: "miska", nazev: "Miska" },
+  { id: "hrnek", nazev: "Hrnek" },
+  { id: "vaza", nazev: "Váza" },
+  { id: "talir", nazev: "Talíř" },
+];
+---
+<Cinnost cinnost={c} hodina={11.8} strana="vlevo">
+  <div class="d-scena tc" data-tocit>
+    <div class="d-scena-okno tc-okno">
+      <svg class="d-scena-svg" viewBox="0 0 600 560" aria-hidden="true">
+        <defs>
+          <linearGradient id="tc-zed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#EFE6D6" />
+            <stop offset="1" stop-color="#D9CBB2" />
+          </linearGradient>
+          <linearGradient id="tc-paprsek" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#FFF6DA" stop-opacity="0.8" />
+            <stop offset="1" stop-color="#FFF6DA" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="tc-hlava" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#7E858C" />
+            <stop offset="0.35" stop-color="#C9CFD4" />
+            <stop offset="0.6" stop-color="#A3AAB0" />
+            <stop offset="1" stop-color="#6B7278" />
+          </linearGradient>
+          <linearGradient id="tc-hlina" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#4E3729" />
+            <stop offset="0.28" stop-color="#9C7860" />
+            <stop offset="0.43" stop-color="#C9A184" />
+            <stop offset="0.6" stop-color="#9C7860" />
+            <stop offset="1" stop-color="#4E3729" />
+          </linearGradient>
+          <radialGradient id="tc-vnitrek" cx="0.5" cy="0.35" r="0.7">
+            <stop offset="0" stop-color="#3A291F" />
+            <stop offset="1" stop-color="#6E5040" />
+          </radialGradient>
+          <pattern id="tc-toceni" width="40" height="560" patternUnits="userSpaceOnUse">
+            <rect x="0" width="5" height="560" fill="#FFFFFF" opacity="0.14" />
+            <rect x="19" width="2" height="560" fill="#2E2018" opacity="0.16" />
+          </pattern>
+          <clipPath id="tc-orez"><path class="tc-tvar" d="M250 466 L350 466 L300 400 Z" /></clipPath>
+        </defs>
+
+        <rect width="600" height="560" fill="url(#tc-zed)" />
+        <path d="M0 0 L210 0 L520 560 L130 560 Z" fill="url(#tc-paprsek)" opacity="0.45" />
+
+        {/* Police s kusy, co schnou */}
+        <rect x="26" y="96" width="210" height="7" fill="#9A7350" />
+        <g fill="#C9B49C" stroke="#8E7A66" stroke-width="0.8" opacity="0.85">
+          <path d="M40 96 C38 78 50 70 62 70 C74 70 84 78 82 96 Z" />
+          <path d="M98 96 L100 58 L124 58 L126 96 Z" />
+          <path d="M146 96 C142 80 152 70 170 70 C188 70 196 80 192 96 Z" />
+          <path d="M206 96 C206 74 210 64 218 62 C226 64 230 74 230 96 Z" />
+        </g>
+
+        {/* Měřítko obrysu — kreslí se vpravo od osy */}
+        <g class="tc-mrizka" stroke="#8A7C70" stroke-width="0.8" opacity="0.28">
+          {mrizkaY.map((y) => <path d={`M300 ${y.toFixed(1)} H570`} />)}
+          {mrizkaX.map((x) => <path d={`M${x.toFixed(1)} 120 V${ZAKLAD}`} />)}
+        </g>
+        <g fill="#8A7C70" font-family="ui-monospace, Consolas, monospace" font-size="10" opacity="0.6">
+          {mrizkaY.map((y, i) => (i % 2 === 1 ? <text x="594" y={(y - 4).toFixed(1)} text-anchor="end">{(i + 1) * 5} cm</text> : null))}
+        </g>
+        <path d={`M300 108 V${ZAKLAD}`} stroke="#C4432B" stroke-width="1" stroke-dasharray="3 6" opacity="0.45" />
+
+        {/* Pedál a stojan kruhu */}
+        <path d="M150 512 L450 512 L430 560 L170 560 Z" fill="#5E656B" />
+        <rect x="470" y="534" width="70" height="14" rx="5" fill="#3F4448" />
+        <path d="M486 534 L500 520 L526 520 L530 534 Z" fill="#2B2F32" />
+
+        {/* Vana a hlava kruhu */}
+        <ellipse cx="300" cy="478" rx="214" ry="56" fill="#53595E" />
+        <ellipse cx="300" cy="474" rx="200" ry="48" fill="#3F4448" />
+        <ellipse class="tc-slikr" cx="300" cy="478" rx="150" ry="28" fill="#8E6E58" opacity="0.3" />
+        <ellipse cx="300" cy="476" rx="132" ry="26" fill="#5E656B" />
+        <ellipse cx="300" cy="470" rx="132" ry="26" fill="url(#tc-hlava)" />
+        <ellipse class="tc-krouzek" cx="300" cy="470" rx="96" ry="18" fill="none" stroke="#5E656B" stroke-width="1.6" stroke-dasharray="7 11" />
+
+        {/* Hlína — tvar přepisuje skript */}
+        <g class="tc-hlina-g">
+          <path class="tc-ucho" d="" fill="none" stroke="#9C7860" stroke-width="9" stroke-linecap="round" />
+          <path class="tc-tvar tc-hlina" d="M250 466 L350 466 L300 400 Z" fill="url(#tc-hlina)" stroke="#3B2A1B" stroke-opacity="0.3" />
+          <g clip-path="url(#tc-orez)">
+            <rect class="tc-prouzky" x="-40" y="0" width="680" height="560" fill="url(#tc-toceni)" />
+            <g class="tc-ryhy" stroke="#3E2C22" stroke-width="1.3" fill="none" opacity="0.25"></g>
+          </g>
+          <ellipse class="tc-okraj" cx="300" cy="400" rx="0" ry="0" fill="url(#tc-vnitrek)" stroke="#C9A184" stroke-width="2.4" />
+        </g>
+
+        {/* Přední okraj vany */}
+        <path d="M86 478 C104 548 496 548 514 478 L514 498 C496 572 104 572 86 498 Z" fill="#6B7176" />
+        <path d="M86 478 C104 548 496 548 514 478" stroke="#8C949B" stroke-width="3" fill="none" />
+
+        {/* Kyblík s vodou a houbička */}
+        <path d="M30 476 L38 548 L106 548 L114 476 Z" fill="#7E8C96" />
+        <ellipse cx="72" cy="476" rx="42" ry="9" fill="#9DB4C2" stroke="#5E6A72" stroke-width="3" />
+        <path d="M44 474 C60 470 84 470 100 474" stroke="#D6E6EE" stroke-width="2" fill="none" opacity="0.7" />
+        <rect x="84" y="462" width="30" height="16" rx="7" fill="#E8C35A" transform="rotate(-10 99 470)" />
+
+        {/* Čára, kterou člověk kreslí, a její zrcadlo */}
+        <path class="tc-cara" d="" fill="none" stroke="#C4432B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5" />
+        <path class="tc-cara tc-cara-zrcadlo" d="" fill="none" stroke="#C4432B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 6" opacity="0.5" />
+
+        {/* Žebro — dřevěná šablona, kterou se tvaruje */}
+        <g class="tc-zebro" opacity="0">
+          <path d="M0 -26 C10 -24 14 -8 10 6 C8 16 4 24 -2 28 L-14 24 C-8 12 -6 0 -10 -20 Z" fill="#D2A770" stroke="#8A6038" stroke-width="1.2" />
+          <circle cx="-4" cy="-8" r="3.4" fill="#8A6038" opacity="0.6" />
+        </g>
+
+        {/* Drát na odříznutí */}
+        <g class="tc-drat" opacity="0">
+          <path d="M0 0 H260" stroke="#B9C0C6" stroke-width="1.6" />
+          <rect x="-16" y="-6" width="14" height="12" rx="4" fill="#9C7246" />
+          <rect x="262" y="-6" width="14" height="12" rx="4" fill="#9C7246" />
+        </g>
+      </svg>
+
+      <div class="tc-dotyk" tabindex="0" role="application" aria-roledescription="kruh, na kterém se kreslí obrys" aria-label="Kruh s hroudou. Táhni od patky nahoru vpravo od osy a kruh vytočí, co nakreslíš. Bez myši vyber předlohu pod kruhem." aria-describedby="tc-rada"></div>
+
+      <Kami id="vazicka" class="d-scena-kami tc-kami" style="left:82%;top:38%;width:15%" />
+      <Zkouska id="popelová šedá" class="tc-zkouska" style="left:19.6%;top:80%;width:3.6%" />
+
+      <p class="d-scena-stitek" aria-hidden="true"><span class="tc-faze">Hrouda</span> · <span class="tc-mira">7 cm</span></p>
+
+      <div class="d-vysledek tc-vysledek" hidden>
+        <div class="d-vysledek-kus"></div>
+        <div class="d-vysledek-text">
+          <p class="d-vysledek-stitek">Tvůj kus</p>
+          <p class="d-vysledek-nazev"></p>
+          <label class="d-podpis">
+            <span>Podepiš se rydlem do dna</span>
+            <input type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="jméno" />
+          </label>
+          <div class="d-vysledek-akce">
+            <a class="tlacitko tlacitko-maly" href="#glazovat">Glazovat <span aria-hidden="true">↓</span></a>
+            <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys tc-znovu">Nová hrouda</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-ovladani">
+      <p class="d-rada" id="tc-rada" aria-live="polite"><b>Vázička radí</b><span class="d-rada-text">Nakresli obrys — od patky nahoru, vpravo od osy. Kruh to vytočí.</span></p>
+      <div class="d-tlacitka tc-predlohy" role="group" aria-label="Předlohy">
+        {predlohy.map((p) => (
+          <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-predloha={p.id}>{p.nazev}</button>
+        ))}
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys tc-ucho-tlacitko" aria-pressed="false">+ ucho</button>
+      </div>
+      <div class="d-tlacitka">
+        <button type="button" class="tlacitko tlacitko-maly tc-hotovo" disabled>Odříznout drátem</button>
+      </div>
+      <button type="button" class="d-znovu tc-znovu">Zmačkat a začít znovu</button>
+    </div>
+  </div>
+</Cinnost>

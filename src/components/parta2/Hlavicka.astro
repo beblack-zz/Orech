@@ -1,33 +1,40 @@
 ---
 /**
- * Hlavička nového vzhledu: plovoucí papírový pruh nad oblohou. Vpravo
+ * Hlavička nového vzhledu: plovoucí papírový pruh nad oblohou. V levém
+ * konci sedí ensō a opisuje křivku bubliny (HlavickaEnso.astro); jak se
+ * čte stránka, vybíhá z něj tah štětce po okraji pruhu (.hlava-tah,
+ * scripts/parta2/tah.ts) a cestou zavadí o zvonkohru. Vpravo
  * sbírka schovaných věcí (na Partě omamori s kami, na Kurzech bedýnka
  * s nářadím, na Úvodu 2 sešit razítek, v O nás 2 zlato na kintsugi,
- * na archivní /rezervace-ema přání party na destičkách ema; Rezervace
- * sbírku nemá) a zvonkohra — visí z tlačítka, přečnívá přes spodní
- * okraj pruhu a kliknutím se jí zvuk ztlumí.
+ * na archivní /rezervace-ema přání party na destičkách ema, v Dílně
+ * deska se zkouškami glazur; Rezervace sbírku nemá) a zvonkohra — visí
+ * z tlačítka, přečnívá přes spodní okraj pruhu a kliknutím se jí zvuk ztlumí.
  *
- * Sbírky v O nás 2 a na /rezervace-ema obsluhuje obecný scripts/parta2/sbirka.ts
- * — proto mají tlačítka data-sbirka-tlacitko a počty data-sbirka-pocet.
+ * Sbírky v O nás 2, Dílně a na /rezervace-ema obsluhuje obecný
+ * scripts/parta2/sbirka.ts — proto mají tlačítka data-sbirka-tlacitko
+ * a počty data-sbirka-pocet.
  */
 import { razitka } from "../../data/uvod2";
 import { zlato } from "../../data/onas2";
 import { prani } from "../../data/rezervace";
-import Enso from "../navrhy-loga/Enso.astro";
+import { zkousky } from "../../data/dilna";
+import HlavickaEnso from "./HlavickaEnso.astro";
 import Zvonkohra from "./Zvonkohra.astro";
+import { zvyrazneni } from "../../scripts/parta2/tah-kresba";
+import { noveId } from "../navrhy-loga/sdilene";
 import "../../styles/znacka.css";
 import RezervaceKalendar from "./RezervaceKalendar.astro";
 
 interface Props {
   /** zadny — stránka bez sbírky */
-  sber?: "omamori" | "naradi" | "razitka" | "zlato" | "ema" | "zadny";
+  sber?: "omamori" | "naradi" | "razitka" | "zlato" | "ema" | "zkousky" | "zadny";
 }
 const { sber = "omamori" } = Astro.props;
 const odkazy = [
   { href: "/uvod-2", label: "Úvod 2" },
   { href: "/kurzy-2", label: "Kurzy 2" },
   { href: "/parta-2", label: "Parta 2" },
-  { href: "/open-studio", label: "Open studio" },
+  { href: "/dilna", label: "Dílna" },
   { href: "/rezervace", label: "Rezervace" },
   { href: "/obchod-2", label: "Obchod 2" },
   { href: "/o-nas", label: "O nás" },
@@ -40,16 +47,44 @@ const spary = [
   "M33 15 L31 20", "M12 27 L16 29", "M20 24 L22 30", "M27 26 L25 31", "M30 23 L33 26",
 ];
 const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
+/** Aktuální stránka v menu je namalovaná tahem štětce (kresba v tah-kresba.ts) */
+const zv = zvyrazneni();
+const zvId = noveId("hlava-stranka");
 ---
 <header class="hlava" transition:name="hlava">
+  {/* Tah štětce po okraji bubliny — kreslí ho skript podle šířky pruhu */}
+  <svg class="hlava-tah" aria-hidden="true" focusable="false"></svg>
+
   <a href="/" class="hlava-znacka" aria-label="JIRO saku — úvod">
-    <Enso size={40} soumrak maly />
+    <HlavickaEnso />
     <span class="znacka">JIRO <em>saku</em></span>
   </a>
 
   <nav class="hlava-nav" aria-label="Hlavní navigace">
     {odkazy.map((o) => (
-      <a href={o.href} aria-current={tady === o.href ? "page" : undefined}>{o.label}</a>
+      <a href={o.href} aria-current={tady === o.href ? "page" : undefined}>
+        {/* Šmouha suchým štětcem v barvách loga — namaluje se při příchodu na stránku */}
+        {tady === o.href && (
+          <svg class="hlava-stranka" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <defs>
+              {/* Soumrak z loga (rumělka do noci), o kus sytější, ať na něm krémové písmo drží kontrast */}
+              <linearGradient id={`${zvId}-tus`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="0">
+                <stop offset="0" stop-color="#C4432B" />
+                <stop offset="0.35" stop-color="#A0527A" />
+                <stop offset="0.68" stop-color="#5E4E86" />
+                <stop offset="1" stop-color="#2A2C5E" />
+              </linearGradient>
+              <mask id={`${zvId}-m`} maskUnits="userSpaceOnUse" x="-10" y="-5" width="120" height="50">
+                <path class="hlava-stranka-odhal" d={zv.osa} pathLength="1" fill="none" stroke="#fff" stroke-width="44" />
+              </mask>
+            </defs>
+            <g mask={`url(#${zvId}-m)`} fill={`url(#${zvId}-tus)`}>
+              {zv.vlakna.map((d) => <path d={d} />)}
+            </g>
+          </svg>
+        )}
+        {o.label}
+      </a>
     ))}
   </nav>
 
@@ -66,6 +101,22 @@ const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
         </g>
       </svg>
       <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{zlato.length}</span>
+    </button>
+    ) : sber === "zkousky" ? (
+    <button type="button" class="sbirka-tlacitko zkousky-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Deska zkoušek glazur">
+      <svg viewBox="0 0 44 38" aria-hidden="true">
+        <circle cx="22" cy="3.2" r="1.6" fill="#5C5047" />
+        <path d="M22 3.2 L8 8 M22 3.2 L36 8" stroke="#5C5047" stroke-width="1" />
+        <rect x="3" y="7" width="38" height="29" rx="3" class="zkousky-deska" />
+        {zkousky.map((z, i) => (
+          <g transform={`translate(${7.5 + (i % 3) * 11.5} ${10 + Math.floor(i / 3) * 13.2})`}>
+            <rect width="7.5" height="10.6" rx="1" fill="#E6D6BE" />
+            <path d="M0 1 Q0 0 1 0 H6.5 Q7.5 0 7.5 1 V6.6 C5 7.6 2.6 6 0 7.2 Z" class="zkousky-dlazdice" data-zkouska={z.id} />
+            <circle cx="3.75" cy="2.2" r="0.8" fill="#5C4A3C" opacity="0.7" />
+          </g>
+        ))}
+      </svg>
+      <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{zkousky.length}</span>
     </button>
     ) : sber === "ema" ? (
     <button type="button" class="sbirka-tlacitko ema-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Přání party">

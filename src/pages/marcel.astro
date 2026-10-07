@@ -7,6 +7,9 @@
  * Kapka s bubny hromu má vedle původní kresby novou podobu (KapkaBubny.astro:
  * stuha a lakované bubny ze Zlatého listu, bubnuje paličkami). Je to jen
  * obrázek — bez popisku, ovládá se myší a zvuk jde přes vypínač v hlavičce.
+ *
+ * Pecinka s ohněm (PecinkaOhen.astro) má tři přehnané podoby vedle sebe,
+ * taky jen obrázky: plamenná svatozář, raku a prskavka na vějíři.
  */
 import "@fontsource-variable/fraunces/full.css";
 import { ClientRouter } from "astro:transitions";
@@ -26,6 +29,7 @@ import VazickaEnso from "../components/characters/kami-buh/VazickaEnso.astro";
 import KapkaRaijin from "../components/characters/kami-buh/KapkaRaijin.astro";
 import KapkaBubny from "../components/characters/kami-buh/KapkaBubny.astro";
 import StripekKintsugi from "../components/characters/kami-buh/StripekKintsugi.astro";
+import PecinkaOhen from "../components/characters/kami-buh/PecinkaOhen.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
 import { parta } from "../data/parta";
 import type { PostavaId } from "../data/parta";
@@ -134,6 +138,17 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
             Slepený je zlatem a dva kusy jsou z cizího nádobí: japonské vlnky seigaiha a český modrotisk.
           </p>
           <p class="mc-replika">„Spadl jsem ze stolu. Teď mám víc zlata než celá dílna.“</p>
+        </div>
+      </section>
+
+      {/* Pecinka s ohněm: tři přehnané podoby, jen obrázky bez textů */}
+      <section class="mc-sekce" data-hodina="15.3" aria-label="Pecinka s ohněm">
+        <div class="papir mc-siroky">
+          <div class="mc-rada mc-rada-3">
+            <PecinkaOhen varianta="v1" />
+            <PecinkaOhen varianta="v2" />
+            <PecinkaOhen varianta="v3" />
+          </div>
         </div>
       </section>
 

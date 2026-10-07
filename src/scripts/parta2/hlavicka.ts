@@ -1,13 +1,15 @@
 /**
- * Hlavička nového vzhledu: mobilní menu a zvonkohra, kterou se zvuk ztlumí.
- * Sdílí ji všechny stránky nového vzhledu.
+ * Hlavička nového vzhledu: mobilní menu, zvonkohra, kterou se zvuk ztlumí,
+ * a tah štětce po okraji bubliny (tah.ts). Sdílí ji všechny stránky nového
+ * vzhledu.
  *
  * Při přechodu mezi stránkami (prechody.ts) se tlačítko se zvonkohrou
  * přenáší do nové stránky (transition:persist), takže zvonkohra a zvuk se
- * nastaví jen poprvé a běží dál. Menu je na každé stránce nové.
+ * nastaví jen poprvé a běží dál. Menu a tah jsou na každé stránce nové.
  */
 import * as zvuk from "./zvuk";
 import { initZvonkohra } from "./zvonkohra";
+import { initTah } from "./tah";
 import { nacti, uloz } from "./stav";
 import { trvale } from "./prechody";
 
@@ -15,6 +17,8 @@ const KLIC_ZTLUMENO = "zvuk-ztlumeno";
 /** V téhle záložce už zvuk jednou hrál */
 const KLIC_HRALO = "zvuk-hralo";
 let zvukHotovy = false;
+/** Zvonkohra žije přes všechny stránky — tah na každé nové o ni zavadí */
+let zk: ReturnType<typeof initZvonkohra> | null = null;
 
 export function hlavicka() {
   initMenu();
@@ -22,6 +26,7 @@ export function hlavicka() {
     zvukHotovy = true;
     trvale(zvonkohraAZvuk);
   }
+  initTah({ zavadi: (sila) => zk?.cukni(sila) });
 }
 
 function initMenu() {
@@ -48,7 +53,7 @@ function zvonkohraAZvuk() {
    */
   const zv = document.querySelector<HTMLButtonElement>(".zvuk-tlacitko");
   const kresba = zv?.querySelector<SVGSVGElement>(".zvonkohra svg");
-  const zk = kresba ? initZvonkohra(kresba) : null;
+  zk = kresba ? initZvonkohra(kresba) : null;
   if (!zv) return;
   let chci = !nacti(KLIC_ZTLUMENO, false);
   const ukaz = () => {

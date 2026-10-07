@@ -1,4 +1,5 @@
 import type { PostavaId } from "./parta";
+import { kdy } from "./dilna";
 
 /**
  * Doplňky pro /uvod-2. Termíny, zboží, parta, poukaz a otázky se berou
@@ -45,22 +46,23 @@ export const nabidka = {
   },
 };
 
-/** Ze stránky Open studio (pages/open-studio.astro). */
-export const openStudio = {
+/**
+ * Hodina v dílně — stránka Open studio se přejmenovala na Dílnu a ceník
+ * je teď za hodinu (dilna.ts, rezervace.ts). Tady se jen přebírá, ať úvod
+ * a Dílna říkají totéž.
+ */
+export const openStudio: {
+  cenik: { nazev: string; cena: string; popis: string; mesicni?: boolean }[];
+  platnost: string;
+  pravidla: string[];
+} = {
   cenik: [
-    { nazev: "Modelování", cena: "300 Kč", popis: "Stůl, hlína a nástroje. Cena je za 90 minut, glazování v ceně." },
-    { nazev: "Točení na kruhu", cena: "400 Kč", popis: "Kruh jen pro tebe. Cena je za 90 minut, glazování v ceně." },
-    {
-      nazev: "Měsíční členství",
-      cena: "1 900 Kč / měs",
-      popis: "Neomezený přístup v otevíracích hodinách open studia. Hlína, glazury, výpal — vše v ceně.",
-      mesicni: true,
-    },
+    { nazev: "Hodina v dílně", cena: kdy.cena, popis: "Za člověka. Lektor je v ceně — a když ho nepotřebuješ, je to open studio." },
   ],
-  platnost: "Ceny platí pro říjen 2026",
+  platnost: `${kdy.dny}, ${kdy.hodiny} hodin`,
   pravidla: [
-    "Rezervuj si slot předem — kapacita je 6 lidí na směnu",
-    "Základní znalost kruhu je podmínka (absolvovaný kurz u nás nebo jinde)",
+    `Hodina se zamlouvá celá — přijdeš ${kdy.skupina}`,
+    "Na kruh bez lektora jen se základy (kurz u nás nebo odjinud)",
   ],
 };
 
@@ -153,6 +155,7 @@ export const jineSbirky = [
   { klic: "parta2-nalezeni", celkem: 9, kde: "Parta 2", co: "schovaných kami", href: "/parta-2" },
   { klic: "kurzy2-naradi", celkem: 6, kde: "Kurzy 2", co: "kusů ztraceného nářadí", href: "/kurzy-2" },
   { klic: "onas2-zlato", celkem: 9, kde: "O nás 2", co: "šupinek zlata na kintsugi", href: "/o-nas-2" },
+  { klic: "dilna-zkousky", celkem: 6, kde: "Dílna", co: "zkoušek glazur", href: "/dilna" },
 ];
 
 /* ——— Roční období ——— */

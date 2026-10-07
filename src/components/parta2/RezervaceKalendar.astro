@@ -3,18 +3,14 @@
  * Plovoucí odkaz na rezervace vpravo dole: jízdenka do dílny, stejným
  * jazykem jako termíny na Kurzech 2. Japonská jízdenka (切符 kippu):
  * trasa odsud do Ořechu, datum nejbližšího otevřeného dne a drobný
- * ochranný podtisk (地紋 jimon) z vlnek. Na útržku 予約
- * (rezervace) a šipka, nad jízdenkou cedulka Rezervovat.
+ * ochranný podtisk (地紋 jimon) z vlnek. Na útržku svisle REZERVOVAT
+ * v rumělkovém políčku.
  *
  * Útržek vpravo má barvu oblohy stránky (proměnné --nebe-*, které mění
  * nebe.ts), takže se mění s denní dobou jako útržky jízdenek na Kurzech 2.
  * Po najetí průvodčí cvakne kleštěmi: do horního okraje se vystřihne
  * okvětní lístek sakury a vystřižený kousek spadne. Útržek se mezitím
  * pootočí, jako by se chtěl utrhnout.
- *
- * Japonské znaky jsou tištěné, ne psané štětcem — jízdenka je z tiskárny.
- * Proto systémové mincho, ne Yuji Syuku (to se stránkám stahuje jen se
- * znaky, které na nich jsou).
  *
  * Datum se počítá až v prohlížeči (stránka je statická). Bez JS zůstane
  * „úterý a pátek“. Na /rezervace se nevkládá.
@@ -29,7 +25,6 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
 ---
 <a href="/rezervace" class="kal" data-kal transition:persist="kal" aria-label="Jízdenka do dílny — rezervace hodin">
   <span class="kal-obal">
-  <span class="kal-nadpis" aria-hidden="true">Rezervovat</span>
   <svg viewBox="0 0 220 120" aria-hidden="true">
     <defs>
       <!-- Ochranný podtisk: jemné vlnky -->
@@ -86,11 +81,9 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
       <g class="kal-utrzek">
         <rect x="166" width="54" height="120" fill="url(#kal-nebe)" />
         <circle cx="214" cy="6" r="20" class="kal-slunce" />
-        <text x="193" y="34" text-anchor="middle" class="kal-jp kal-utrzek-jp" lang="ja">予</text>
-        <text x="193" y="56" text-anchor="middle" class="kal-jp kal-utrzek-jp" lang="ja">約</text>
-        <g class="kal-tlacitko">
-          <circle cx="193" cy="88" r="11" fill="#FAF5EA" />
-          <path d="M188 88 H197.5 M194 84.3 L197.8 88 L194 91.7" fill="none" stroke="#2B2420" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+        <g class="kal-stitek">
+          <rect x="184" y="12" width="18" height="96" rx="3" />
+          <text transform="translate(196.6 60) rotate(-90)" text-anchor="middle" class="kal-stitek-text">REZERVOVAT</text>
         </g>
       </g>
     </g>
@@ -159,11 +152,8 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
   /* Obchod 2 má vpravo dole šátek — jízdenka si stoupne nad něj */
   :global(body:has(.o2-satek-tlacitko)) .kal { bottom: 96px; }
 
-  /* Nápis i jízdenka se natáčejí spolu */
   .kal-obal {
-    display: grid;
-    justify-items: end;
-    gap: 7px;
+    display: block;
     transform: rotate(-3deg);
     transform-origin: 100% 100%;
     transition: transform 0.38s cubic-bezier(0.25, 1.15, 0.4, 1);
@@ -177,26 +167,13 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
     transition: filter 0.4s ease;
   }
 
-  /* Nápis nad jízdenkou, zarovnaný nad útržek */
-  /* Cedulka nad útržkem: písmo značky, rumělka */
-  .kal-nadpis {
-    display: inline-flex;
-    align-items: center;
-    margin-right: 4px;
-    padding: 8px 15px 8px 15px;
-    border-radius: 999px;
-    background: #C4432B;
-    color: #FFFBF2;
-    font: 700 14px/1 "Zodiak", Georgia, serif;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-    box-shadow: 0 10px 18px -9px rgba(28, 20, 44, 0.6);
-    transform-origin: 100% 100%;
-    transition: background 0.2s ease, transform 0.38s cubic-bezier(0.25, 1.15, 0.4, 1);
+  /* Políčko s nápisem: rumělka, po najetí ztmavne */
+  .kal-stitek rect { fill: #C4432B; transition: fill 0.2s ease; }
+  .kal-stitek-text {
+    font: 700 10.5px/1 "Zodiak", Georgia, serif;
+    letter-spacing: 0.8px;
+    fill: #F4EBDD;
   }
-
-  .kal-utrzek text { fill: #FFFBF2; }
-  .kal-utrzek-jp { font-size: 20px; filter: drop-shadow(0 0.5px 1.5px rgba(20, 16, 50, 0.45)); }
 
   /* Barvy útržku z oblohy stránky */
   .kal-nebe-a { stop-color: var(--nebe-nahore, #4F5E9C); }
@@ -205,8 +182,11 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
   .kal-slunce { fill: #FFF4D8; opacity: 0.35; }
 
   /* Písmo */
-  :where(.kal) text { fill: #2B2420; }
-  .kal-jp { font-family: "Yu Mincho", YuMincho, "Hiragino Mincho ProN", "Noto Serif JP", "Noto Serif CJK JP", serif; font-weight: 600; }
+  /*
+   * Výchozí barva písma se dědí z <svg>. Pravidlo na `text` by Astro
+   * zpřísnilo atributem a přebilo by barvy jednotlivých nápisů.
+   */
+  .kal svg { fill: #2B2420; }
   .kal-drobne { font: 600 5.6px/1 var(--f-text, Georgia), serif; fill: #5C5047; font-variant-numeric: tabular-nums; }
   .kal-prolozene { letter-spacing: 1.3px; }
   .kal-cislo { letter-spacing: 0.5px; fill: #C4432B; }
@@ -219,14 +199,11 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
 
   /* Pohyb: útržek se pootočí kolem dolního konce perforace, šipka popojede */
   .kal-utrzek,
-  .kal-tlacitko,
   .kal-sipka {
     transform-box: view-box;
     transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
   }
   .kal-utrzek { transform-origin: 166px 120px; }
-  .kal-tlacitko circle { transition: fill 0.2s ease; }
-  .kal-tlacitko path { transition: stroke 0.2s ease; }
 
   /* Cvaknutí kleští: dírka ve tvaru lístku a kousek, který spadne */
   .kal-dirka,
@@ -240,14 +217,9 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
 
   /* Po najetí se jízdenka zvětší z pravého dolního rohu, aby šel přečíst drobný tisk */
   .kal:focus-visible .kal-obal { transform: rotate(-1deg) scale(1.5); }
-  .kal:focus-visible .kal-nadpis { transform: scale(0.6667); }
   @media (hover: hover) {
     .kal:hover .kal-obal { transform: rotate(-1deg) scale(1.5); }
-    /* Cedulka zůstane stejně velká — jen ji jízdenka nadzvedne */
-    .kal:hover .kal-nadpis { transform: scale(0.6667); }
   }
-  .kal:hover .kal-nadpis,
-  .kal:focus-visible .kal-nadpis { background: #A8361F; }
   .kal:hover svg,
   .kal:focus-visible svg {
     filter: drop-shadow(0 1px 0.5px rgba(43, 36, 32, 0.18)) drop-shadow(0 20px 18px rgba(28, 20, 44, 0.36));
@@ -256,12 +228,8 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
   .kal:focus-visible .kal-utrzek { transform: rotate(3.5deg) translateX(1.5px); }
   .kal:hover .kal-sipka,
   .kal:focus-visible .kal-sipka { transform: translateX(2px); }
-  .kal:hover .kal-tlacitko,
-  .kal:focus-visible .kal-tlacitko { transform: translateX(2px); }
-  .kal:hover .kal-tlacitko circle,
-  .kal:focus-visible .kal-tlacitko circle { fill: #C4432B; }
-  .kal:hover .kal-tlacitko path,
-  .kal:focus-visible .kal-tlacitko path { stroke: #FFFBF2; }
+  .kal:hover .kal-stitek rect,
+  .kal:focus-visible .kal-stitek rect { fill: #A8361F; }
   .kal:hover .kal-dirka,
   .kal:focus-visible .kal-dirka { transform: translate(128px, 3px) scale(1.3); transition-delay: 0.18s; }
   .kal:hover .kal-kousek,
@@ -279,12 +247,11 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
 
   @media (max-width: 600px) {
     .kal { right: 10px; bottom: 12px; width: 168px; }
-    .kal-nadpis { font-size: 12.5px; padding: 7px 13px; }
     :global(body:has(.o2-satek-tlacitko)) .kal { bottom: 86px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .kal-obal, .kal-nadpis, .kal-utrzek, .kal-sipka, .kal-tlacitko, .kal-dirka { transition: none; }
+    .kal-obal, .kal-utrzek, .kal-sipka, .kal-dirka { transition: none; }
     .kal:hover .kal-kousek, .kal:focus-visible .kal-kousek { animation: none; }
   }
 

@@ -1,7 +1,7 @@
 /**
  * Vstup pro /marcel. Obloha a hlavička se zvukem jsou společné s ostatními
- * stránkami nového vzhledu; Kapka s bubny hromu se spouští sama
- * (scripts/kapka-bubny/beh.js, přes komponentu KapkaBubny).
+ * stránkami nového vzhledu; Kapka s bubny hromu i Pecinka s ohněm se spouštějí samy
+ * (scripts/kapka-bubny/beh.js a scripts/pecinka-ohen/beh.js, přes své komponenty).
  */
 import { stranka } from "../parta2/prechody";
 import { spust } from "../parta2/stav";

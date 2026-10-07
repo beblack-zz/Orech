@@ -1,0 +1,64 @@
+---
+/**
+ * Lektor je v ceně hodiny, ale nemusí být — pak je to open studio.
+ * Přepínač mezi oběma; cena se nemění. Vpravo Jiřík a Renča jako dvě
+ * instantní fotky. V open studiu přes ně přistane lísteček, že jsou
+ * u kafe (scripts/dilna/lektor.ts). Bez skriptu jsou vidět oba seznamy.
+ */
+import { Image } from "astro:assets";
+import jirik from "../../../fotoorech/jirik.jpg";
+import renca from "../../../fotoorech/ren.jpg";
+import { lektor, kdy } from "../../data/dilna";
+import { lide } from "../../data/uvod2";
+
+/** Kde na fotce je to podstatné — stejné body jako na Úvodu 2 */
+const fotky: Record<string, { src: ImageMetadata; alt: string; kde: string }> = {
+  "Jiřík": { src: jirik, alt: "Jiřík u hrnčířského kruhu obrábí hrnek", kde: "60% 36%" },
+  "Renča": { src: renca, alt: "Renča u velké pece z cihel", kde: "40% 48%" },
+};
+---
+<section class="d-sekce d-lektor" id="lektor" data-hodina="15" aria-labelledby="lektor-nadpis">
+  <div class="d-lektor-papir papir" data-lektor>
+    <div class="d-lektor-text">
+      <p class="stitek"><span lang="ja">先生</span> · lektor</p>
+      <h2 id="lektor-nadpis" class="nadpis-2">Lektor je v ceně. <em>Nemusí být.</em></h2>
+      <p class="d-lektor-perex">
+        Hodina v dílně stojí {kdy.cena} za člověka — s lektorem i bez něj. Když začínáš, je u tebe
+        a ukáže ti, jak na to. Když víš, co děláš, je to open studio: dílna je tvoje a lektor tu
+        nemusí být vůbec.
+      </p>
+
+      <div class="d-prepinac d-lektor-prepinac" role="group" aria-label="S lektorem, nebo open studio" hidden>
+        <button type="button" data-rezim="s" aria-pressed="true"><span lang="ja" aria-hidden="true">先生</span> S lektorem</button>
+        <button type="button" data-rezim="bez" aria-pressed="false"><span lang="ja" aria-hidden="true">一人</span> Open studio</button>
+      </div>
+
+      <div class="d-lektor-seznamy">
+        <div class="d-lektor-rezim" data-pro="s">
+          <h3><span lang="ja" aria-hidden="true">先生</span> S lektorem</h3>
+          <ul>{lektor.s.map((t) => <li>{t}</li>)}</ul>
+        </div>
+        <div class="d-lektor-rezim" data-pro="bez">
+          <h3><span lang="ja" aria-hidden="true">一人</span> Open studio</h3>
+          <ul>{lektor.bez.map((t) => <li>{t}</li>)}</ul>
+        </div>
+      </div>
+
+      <p class="d-lektor-cena"><b>{kdy.cena}</b> {kdy.zaCo} — <span>v obou případech</span></p>
+    </div>
+
+    <div class="d-lektor-fotky">
+      {lide.map((l, i) => fotky[l.jmeno] && (
+        <figure class={`d-foto d-foto-${i}`}>
+          <span class="d-foto-paska" aria-hidden="true"></span>
+          <span class="d-foto-obraz">
+            <Image src={fotky[l.jmeno].src} alt={fotky[l.jmeno].alt} width={640} widths={[300, 460, 640]} sizes="(min-width: 861px) 260px, 56vw" format="webp" style={`object-position:${fotky[l.jmeno].kde}`} />
+          </span>
+          <figcaption>{l.jmeno} {l.kde}</figcaption>
+        </figure>
+      ))}
+      <p class="d-listecek" aria-hidden="true">Jsme u kafe.<br />Kdyby něco, zavolej.</p>
+      <p class="d-lektor-nikdo" aria-live="polite"></p>
+    </div>
+  </div>
+</section>

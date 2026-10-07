@@ -1,0 +1,164 @@
+---
+/**
+ * Ensō v levém konci hlavičky — sedí soustředně v půlkruhu bubliny
+ * a opisuje její křivku. Ve dvanácti z něj vybíhá vlas po okraji pruhu,
+ * ten maluje skript podle scrollu (scripts/parta2/tah.ts). Kresba obou
+ * je ve scripts/parta2/tah-kresba.ts.
+ *
+ * Jako ensō v soumraku ze značky: tah z rumělky do noci, v mezeře svítí
+ * květ jako měsíc. Rýha uvnitř je hlava hrnčířského kruhu — při scrollu
+ * se točí (data-ryha). Plátek (data-volny) spadne dovnitř kruhu, až tah
+ * doběhne na konci stránky.
+ *
+ * Při prvním načtení se kruh namaluje jedním tahem. Po přechodu na jinou
+ * stránku už ne — hlavička pak dostane třídu je-namalovana.
+ */
+import { kruh } from "../../scripts/parta2/tah-kresba";
+import { kvetDefs, noveId, UHLY_KVETU, ODSUN } from "../navrhy-loga/sdilene";
+
+const k = kruh();
+const id = noveId("hlava-enso");
+---
+
+<svg class="hlava-enso" viewBox="0 0 56 56" width="56" height="56" fill="none" aria-hidden="true" focusable="false">
+  <defs>
+    <Fragment set:html={kvetDefs(id, { barva: "#FBE9B7", obrys: "#E2B95A" })} />
+    {/* Záře kolem květu — jako měsíc nad Ořechem na Partě 2 */}
+    <filter id={`${id}-zare`} x="-90%" y="-90%" width="280%" height="280%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3.2" result="b1" />
+      <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="b2" />
+      <feFlood flood-color="#FFE7A3" flood-opacity="0.95" />
+      <feComposite in2="b1" operator="in" result="z1" />
+      <feFlood flood-color="#FFF6DA" flood-opacity="0.75" />
+      <feComposite in2="b2" operator="in" result="z2" />
+      <feMerge><feMergeNode in="z2" /><feMergeNode in="z1" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+    <mask id={`${id}-odhal`} maskUnits="userSpaceOnUse" x="-4" y="-4" width="64" height="64">
+      <path class="hlava-enso-odhal" d={k.odhal} pathLength="1" stroke="#fff" stroke-width={k.sirkaOdhalu} stroke-linecap="round" />
+    </mask>
+    {/* Rýha má odkrývání vlastní, ať se točí i s ním */}
+    <mask id={`${id}-odhal-ryha`} maskUnits="userSpaceOnUse" x="-4" y="-4" width="64" height="64">
+      <path class="hlava-enso-odhal-ryha" d={k.odhalRyha} pathLength="1" stroke="#fff" stroke-width="4.5" stroke-linecap="round" />
+    </mask>
+    <mask id={`${id}-tvar`} maskUnits="userSpaceOnUse" x="-4" y="-4" width="64" height="64">
+      <g mask={`url(#${id}-odhal)`} fill="#fff">
+        <path d={k.tah} />
+        <ellipse cx={k.kapka.x} cy={k.kapka.y} rx={k.kapka.rx} ry={k.kapka.ry} transform={`rotate(${k.kapka.uhel} ${k.kapka.x} ${k.kapka.y})`} />
+      </g>
+      <g data-ryha>
+        <g mask={`url(#${id}-odhal-ryha)`}><path d={k.ryha} fill="#fff" /></g>
+      </g>
+    </mask>
+  </defs>
+
+  <g mask={`url(#${id}-tvar)`}>
+    {k.vysece.map((v) => <path d={v.d} fill={v.barva} />)}
+  </g>
+
+  {/* Plátek, který spadne, až tah obejde celou bublinu */}
+  <g transform={`translate(${k.volny.x} ${k.volny.y})`} filter={`url(#${id}-zare)`}>
+    <g class="hlava-enso-volny" data-volny style={`--dx:${k.volnyPosun.dx}px; --dy:${k.volnyPosun.dy}px`}>
+      <use href={`#${id}-platek`} transform={`rotate(205) scale(${(k.kvetMeritko * 0.8).toFixed(3)}) translate(0 6.3)`} />
+    </g>
+  </g>
+
+  <g transform={`translate(${k.kvet.x} ${k.kvet.y}) rotate(14) scale(${k.kvetMeritko})`} filter={`url(#${id}-zare)`} class="hlava-enso-mesic">
+    {UHLY_KVETU.map((u, i) => (
+      <g class="hlava-enso-platek" style={`--i:${i}`}>
+        <use href={`#${id}-platek`} transform={`rotate(${u}) translate(0 -${ODSUN})`} />
+      </g>
+    ))}
+  </g>
+</svg>
+
+<style>
+  .hlava-enso-mesic {
+    animation: hlava-enso-svit 5s ease-in-out infinite;
+  }
+  @keyframes hlava-enso-svit {
+    50% {
+      opacity: 0.86;
+    }
+  }
+
+  /* Úvod: štětec dosedne a obejde kruh, pak rýha a nakonec rozkvete květ */
+  .hlava-enso-odhal {
+    stroke-dasharray: 1 1;
+    animation: hlava-enso-kresli 1.3s cubic-bezier(0.62, 0.04, 0.3, 1) 0.2s both;
+  }
+  .hlava-enso-odhal-ryha {
+    stroke-dasharray: 1 1;
+    animation: hlava-enso-kresli 0.7s cubic-bezier(0.5, 0, 0.3, 1) 1.1s both;
+  }
+  .hlava-enso-platek {
+    transform-origin: 0 0;
+    animation: hlava-enso-platek 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+    animation-delay: calc(1.35s + var(--i) * 0.09s);
+  }
+  :global(.je-namalovana) .hlava-enso-odhal,
+  :global(.je-namalovana) .hlava-enso-odhal-ryha,
+  :global(.je-namalovana) .hlava-enso-platek {
+    animation: none;
+  }
+
+  /* Konec stránky: plátek se utrhne z květu a sklouzne dovnitř kruhu */
+  .hlava-enso-volny {
+    transform-origin: 0 0;
+    opacity: 0;
+  }
+  :global(.je-dokresleno) .hlava-enso-volny {
+    opacity: 1;
+    animation: hlava-enso-pad 2.4s cubic-bezier(0.4, 0, 0.4, 1) both;
+  }
+
+  @keyframes hlava-enso-kresli {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes hlava-enso-platek {
+    from {
+      transform: scale(0) rotate(-50deg);
+      opacity: 0;
+    }
+    60% {
+      opacity: 1;
+    }
+    to {
+      transform: scale(1) rotate(0);
+      opacity: 1;
+    }
+  }
+  @keyframes hlava-enso-pad {
+    0% {
+      transform: translate(var(--dx), var(--dy)) rotate(-80deg);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    45% {
+      transform: translate(calc(var(--dx) * 0.3), calc(var(--dy) * 0.5)) rotate(12deg);
+    }
+    72% {
+      transform: translate(calc(var(--dx) * 0.2), calc(var(--dy) * 0.15)) rotate(-10deg);
+    }
+    100% {
+      transform: translate(0, 0) rotate(0);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hlava-enso-mesic,
+    .hlava-enso-odhal,
+    .hlava-enso-odhal-ryha,
+    .hlava-enso-platek,
+    :global(.je-dokresleno) .hlava-enso-volny {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,39 @@
+---
+/**
+ * Večer: pravidla dílny jako lístek připíchnutý na dveřích a vedle
+ * otázky, na které odpovídá parta — stejný rozhovor jako na Úvodu 2.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import { pravidla, otazky } from "../../data/dilna";
+import { parta } from "../../data/parta";
+
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+---
+<section class="d-sekce d-otazky" id="otazky" data-hodina="19.8" aria-labelledby="otazky-nadpis">
+  <div class="d-otazky-mriz">
+    <div class="d-pravidla">
+      <span class="d-pravidla-pripinacek" aria-hidden="true"></span>
+      <h2 class="d-pravidla-nadpis"><span lang="ja" aria-hidden="true">規則</span> Pravidla dílny</h2>
+      <ol>
+        {pravidla.map((p) => <li>{p}</li>)}
+      </ol>
+      <p class="d-pravidla-podpis" aria-hidden="true">— Jiřík &amp; Renča</p>
+    </div>
+
+    <div class="d-otazky-papir papir">
+      <p class="stitek"><span lang="ja">質問</span> · otázky</p>
+      <h2 id="otazky-nadpis" class="nadpis-2">Zeptej se dílny</h2>
+      <div class="d-chat">
+        {otazky.map((o) => (
+          <div class="d-chat-radek">
+            <p class="d-chat-q">{o.q}</p>
+            <div class="d-chat-a">
+              <span class="d-chat-kami" aria-hidden="true"><Postavicka id={o.kdo} size={52} varianta="kami" /></span>
+              <p><b>{jmeno(o.kdo)}</b>{o.a}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

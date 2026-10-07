@@ -413,6 +413,17 @@ export function zvonkohra() {
       rozjezd = 1;
     },
 
+    /**
+     * Tah štětce v hlavičce zavadil o závěs a popotáhl ho doprava: miska se
+     * nakloní a srdce s papírkem zůstanou kousek pozadu, takže se zhoupnou.
+     * Slabší než rozhoupej() — zazní jen tehdy, když srdce trubku opravdu trefí.
+     */
+    cukni(sila: number) {
+      miska.rychlost += 0.8 * sila;
+      vx[S] -= 45 * sila;
+      vx[P] -= 55 * sila;
+    },
+
     poloha(): Poloha {
       const sy2 = (i: number) => y[i] + z[i] * SKLON;
       const trubky = TRUBKY.map((_, i) => {

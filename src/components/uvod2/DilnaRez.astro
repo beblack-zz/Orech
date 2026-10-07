@@ -12,6 +12,11 @@
  *               Navíc kaluž po havárii, vrata garáže, lešení s barvou,
  *               páska „PEC“ na podlaze a šlápoty ze dne otevřených dveří.
  *               Měsíce přepíná scripts/uvod2/rok.ts.
+ *   dilna     — dílna jako v prohlídce, k tomu kbelíky s glazurou pod
+ *               nástěnkou, místo pro kus, který si člověk udělal na
+ *               stránce Dílna (dopisuje scripts/dilna/uvod.ts), a zkouška
+ *               glazury schovaná na parapetu výlohy. Klikací místa jsou
+ *               jiná — vedou k tomu, co se v dílně dělá.
  *
  * Souřadnice jsou ve viewBoxu 1600 × 1000 a HTML vrstvy nad kresbou
  * (tlačítka, parta) se počítají ze stejných čísel — proto ty helpery
@@ -24,13 +29,16 @@ import { produkty, tvorba } from "../../data/obchod";
 import { kurzy } from "../../data/kurzy";
 import { denOtevrenychDveri } from "../../data/uvod2";
 import type { PostavaId } from "../../data/parta";
+import { syrova } from "../../data/dilna";
+import Zkouska from "../dilna/Zkouska.astro";
 
 interface Props {
-  rezim: "prohlidka" | "rok";
+  rezim: "prohlidka" | "rok" | "dilna";
 }
 const { rezim } = Astro.props;
 const rok = rezim === "rok";
-const p = rok ? "rr" : "rp";
+const dilna = rezim === "dilna";
+const p = rok ? "rr" : dilna ? "rd" : "rp";
 
 /** Atributy pro režim „rok“: od kterého měsíce věc v dílně je (a do kterého) */
 const od = (m: number, doM?: number) => (rok ? { "data-od": m, ...(doM ? { "data-do": doM } : {}) } : {});
@@ -66,6 +74,13 @@ const kusMista = [
   { x: 1158, y: 630, s: 0.62, box: [1139, 594, 1180, 634] },
 ];
 const nase = tvorba.slice(0, 3);
+
+/* ——— Kbelíky s glazurou (jen v režimu „dilna“) ——— */
+const KBELIKY = [
+  { x: 1206, glazura: "celadon" },
+  { x: 1238, glazura: "tenmoku" },
+  { x: 1270, glazura: "shino" },
+];
 
 /* ——— Parta: kdo kde bydlí (x, pata, šířka) ——— */
 const parta: { id: PostavaId; x: number; pata: number; w: number; cls?: string }[] = rok
@@ -436,6 +451,29 @@ const denNazev = [denSlova.slice(0, -1).join(" "), denSlova[denSlova.length - 1]
       </g>
     </g>
 
+    {/* ——— Kbelíky s glazurou a kleště na namáčení ——— */}
+    {dilna && (
+      <g class="rez-kbeliky">
+        <circle cx="1238" cy="706" r="2" fill="#5C5047" />
+        <g stroke="#8C949B" stroke-width="2.4" fill="none" stroke-linecap="round">
+          <path d="M1238 707 C1232 716 1230 728 1234 740 M1238 707 C1244 716 1246 728 1242 740" />
+          <path d="M1234 740 L1231 745 M1242 740 L1245 745" />
+        </g>
+        {KBELIKY.map((k, i) => (
+          <g class="kbelik" data-kbelik={i}>
+            <path d={`M${k.x - 13} 772 C${k.x - 14} 758 ${k.x + 14} 758 ${k.x + 13} 772`} stroke="#9AA3A8" stroke-width="1.2" fill="none" />
+            <path d={`M${k.x - 15} 770 L${k.x - 12} 800 L${k.x + 12} 800 L${k.x + 15} 770 Z`} fill="#F4F1EA" stroke="#B9B4A8" stroke-width="1" />
+            <path d={`M${k.x - 14.6} 775 H${k.x + 14.6}`} stroke="#DCD7CB" stroke-width="1.4" />
+            <ellipse cx={k.x} cy="770" rx="15" ry="3.6" fill="#E9E4D8" stroke="#B9B4A8" stroke-width="1" />
+            <ellipse class="kbelik-hladina" cx={k.x} cy="770.4" rx="12.6" ry="2.5" fill={syrova[k.glazura]} />
+            <rect x={k.x - 8} y="783" width="16" height="7" rx="1" fill="#FBF7EC" stroke="#C9B48A" stroke-width="0.5" transform={`rotate(${i % 2 ? 3 : -4} ${k.x} 786)`} />
+            <path d={`M${k.x - 5} 786.5 H${k.x + 5}`} stroke="#5C5047" stroke-width="0.8" opacity="0.6" />
+          </g>
+        ))}
+        <path class="kbelik-michatko" d="M1238 770 L1250 740" stroke="#C9A37A" stroke-width="3" stroke-linecap="round" />
+      </g>
+    )}
+
     {/* ——— Regál s kusy ——— */}
     <g class="rez-police" {...od(8)}>
       <rect x="1094" y="512" width="5" height="288" fill="#3A3A3A" />
@@ -451,10 +489,12 @@ const denNazev = [denSlova.slice(0, -1).join(" "), denSlova[denSlova.length - 1]
           <Nadoba tvar={k.shape} x={kusMista[i].x} y={kusMista[i].y} s={kusMista[i].s} glazura={k.glaze} />
         </g>
       ))}
-      {nase.map((k, i) => (
+      {(dilna ? nase.slice(0, 2) : nase).map((k, i) => (
         <Nadoba tvar={k.shape} x={1110 + i * 28} y={700} s={k.shape === "vase" ? 0.5 : 0.56} glazura={k.glaze} />
       ))}
       <path d="M1100 770 h32 v-3 h-32 Z M1102 767 h28 v-3 h-28 Z" fill="#D8D6CC" stroke="#8A8A80" stroke-width="0.5" />
+      {/* Na místě třetího kusu stojí v Dílně ten tvůj, když nějaký máš */}
+      {dilna && <g class="rez-tvuj-kus" transform="translate(1167 700)"><Nadoba tvar={nase[2].shape} x={0} y={0} s={nase[2].shape === "vase" ? 0.5 : 0.56} glazura={nase[2].glaze} /></g>}
     </g>
 
     {/* ——— Stoly a židle ——— */}
@@ -644,7 +684,7 @@ const denNazev = [denSlova.slice(0, -1).join(" "), denSlova[denSlova.length - 1]
   </div>
 
   {/* ——— Tlačítka v kresbě ——— */}
-  {!rok && (
+  {rezim === "prohlidka" && (
     <div class="rez-mista">
       {/* Zvýraznění pro „1 pec · 2 stoly · 3 kruhy“ v úvodní kartě — jen kreslí, neklikají */}
       <span class="rez-misto rez-ukaz" data-ukaz-v="pec" style={misto(950, 672, 1084, 864)} aria-hidden="true"></span>
@@ -669,6 +709,20 @@ const denNazev = [denSlova.slice(0, -1).join(" "), denSlova[denSlova.length - 1]
           <b>{k.name}</b><span>{k.price}</span>
         </p>
       ))}
+    </div>
+  )}
+
+  {/* ——— Klikací místa na stránce Dílna ——— */}
+  {dilna && (
+    <div class="rez-mista">
+      {KRUHY.map((c, i) => (
+        <button type="button" class="rez-misto" data-akce="kruh" data-kruh={i} data-cinnost="tocit" style={misto(c - 48, 740, c + 48, 862)} aria-label={`Roztočit ${i + 1}. kruh`}></button>
+      ))}
+      <button type="button" class="rez-misto" data-akce="hrouda" data-cinnost="placat" style={misto(692, 700, 778, 748)} aria-label="Plácnout do hroudy na stole"></button>
+      <button type="button" class="rez-misto" data-akce="kbeliky" data-cinnost="glazovat" style={misto(1188, 736, 1290, 804)} aria-label="Zamíchat glazuru v kbelících"></button>
+      <button type="button" class="rez-misto" data-akce="pec" data-cinnost="pec" style={misto(950, 672, 1084, 862)} aria-label="Nakouknout do pece"></button>
+      <button type="button" class="rez-misto" data-akce="kafe" data-cinnost="kafe" style={misto(1292, 640, 1334, 694)} aria-label="Postavit na kafe"></button>
+      <Zkouska id="celadon" class="rez-zkouska" style={misto(557, 716, 579, 752)} />
     </div>
   )}
 

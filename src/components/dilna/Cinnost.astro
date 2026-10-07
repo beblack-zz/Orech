@@ -1,0 +1,46 @@
+---
+/**
+ * Jedna ze tří věcí, co se v dílně dělají (placat, točit, glazovat):
+ * papír s textem a technikami a vedle scéna, kterou si stránka pošle do
+ * slotu. Scény se střídají vpravo a vlevo, ať se stránka nečte jako
+ * katalog. Velký znak štětcem stojí za papírem.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import type { Cinnost } from "../../data/dilna";
+import { parta } from "../../data/parta";
+
+interface Props {
+  cinnost: Cinnost;
+  hodina: number;
+  /** Na které straně je scéna */
+  strana?: "vpravo" | "vlevo";
+}
+const { cinnost: c, hodina, strana = "vpravo" } = Astro.props;
+const kdo = parta.find((p) => p.id === c.kdo);
+---
+<section class={`d-sekce d-cinnost d-cinnost-${strana}`} id={c.id} data-hodina={hodina} aria-labelledby={`${c.id}-nadpis`}>
+  <p class="d-cinnost-znak" lang="ja" aria-hidden="true">{c.znak}</p>
+  <div class="d-cinnost-mriz">
+    <div class="d-cinnost-text papir">
+      <p class="stitek"><span lang="ja">{c.japonsky}</span> · {c.cteni}</p>
+      <h2 class="d-cinnost-nazev" id={`${c.id}-nadpis`}>{c.nazev}</h2>
+      <p class="d-cinnost-podtitul">{c.podtitul}</p>
+      <p class="d-cinnost-perex">{c.text}</p>
+      <dl class="d-techniky">
+        {c.techniky.map((t) => (
+          <div>
+            <dt>{t.nazev}</dt>
+            <dd>{t.text}</dd>
+          </div>
+        ))}
+      </dl>
+      <div class="d-lektor-tip">
+        {kdo && <span class="d-lektor-tip-kami" aria-hidden="true"><Postavicka id={kdo.id} size={56} varianta="kami" /></span>}
+        <p><b>S lektorem</b>{c.lektor}</p>
+      </div>
+    </div>
+    <div class="d-cinnost-scena">
+      <slot />
+    </div>
+  </div>
+</section>

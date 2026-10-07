@@ -1,0 +1,163 @@
+---
+/**
+ * Placat — stůl shora. Hrouda na plátně, po stranách dvě lišty, přes to
+ * válek. Nejdřív se hrouda dvakrát plácne dlaní, pak se válí: válek jede
+ * po lištách, takže plát bude všude stejně tlustý (6 mm). Kdo plát
+ * neotáčí, má z něj jazyk. Z hotového plátu se podle šablony vykrojí
+ * talíř, miska, hrnek nebo kachel — a to je „tvůj kus“, se kterým se
+ * jde dál glazovat. Fyziku řeší scripts/dilna/placat.ts.
+ *
+ * Kresba je v milimetrech: 640 × 440 mm stolu.
+ */
+import Kami from "../parta2/Kami.astro";
+import Zkouska from "./Zkouska.astro";
+import Cinnost from "./Cinnost.astro";
+import { cinnosti } from "../../data/dilna";
+
+const c = cinnosti.find((x) => x.id === "placat")!;
+const prkna = [96, 204, 318];
+---
+<Cinnost cinnost={c} hodina={10.2}>
+  <div class="d-scena pl" data-placat>
+    <div class="d-scena-okno pl-okno">
+      <svg class="d-scena-svg" viewBox="0 0 640 440" aria-hidden="true">
+        <defs>
+          <linearGradient id="pl-drevo" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#D2A672" />
+            <stop offset="1" stop-color="#B98A58" />
+          </linearGradient>
+          <linearGradient id="pl-lista" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#B08455" />
+            <stop offset="0.4" stop-color="#E4C79A" />
+            <stop offset="1" stop-color="#A47A4C" />
+          </linearGradient>
+          <linearGradient id="pl-valek" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#9C7246" />
+            <stop offset="0.3" stop-color="#F0D7AC" />
+            <stop offset="0.55" stop-color="#D2A770" />
+            <stop offset="1" stop-color="#7E5A36" />
+          </linearGradient>
+          <radialGradient id="pl-hlina" cx="0.42" cy="0.38" r="0.7">
+            <stop class="pl-hlina-svetlo" offset="0" stop-color="#C29A7C" />
+            <stop class="pl-hlina-stred" offset="0.6" stop-color="#9C7860" />
+            <stop class="pl-hlina-stin" offset="1" stop-color="#6E5040" />
+          </radialGradient>
+          <pattern id="pl-platno" width="6" height="6" patternUnits="userSpaceOnUse">
+            <path d="M0 1.5 H6 M0 4.5 H6" stroke="#C9BCA2" stroke-width="0.8" />
+            <path d="M1.5 0 V6 M4.5 0 V6" stroke="#D8CCB4" stroke-width="0.6" />
+          </pattern>
+          <pattern id="pl-otisk" width="6" height="6" patternUnits="userSpaceOnUse">
+            <path d="M0 1.5 H6 M0 4.5 H6 M1.5 0 V6 M4.5 0 V6" stroke="#5E4334" stroke-width="0.5" opacity="0.35" />
+          </pattern>
+          <clipPath id="pl-orez"><path class="pl-tvar" d="M320 180 a40 40 0 1 0 0.1 0 Z" /></clipPath>
+        </defs>
+
+        {/* Stůl a prkna */}
+        <rect width="640" height="440" fill="url(#pl-drevo)" />
+        <g stroke="#9C7246" stroke-width="2" opacity="0.5">
+          {prkna.map((y) => <path d={`M0 ${y} H640`} />)}
+        </g>
+        <g stroke="#A97E4E" stroke-width="1" fill="none" opacity="0.35">
+          <path d="M0 40 C120 34 220 50 360 42 S560 30 640 44" />
+          <path d="M0 150 C140 156 260 140 420 150 S580 160 640 152" />
+          <path d="M0 262 C100 256 240 270 380 262 S560 254 640 266" />
+          <path d="M0 380 C160 386 300 372 460 382 S600 390 640 380" />
+        </g>
+
+        {/* Plátno */}
+        <g transform="rotate(-0.8 320 220)">
+          <rect x="74" y="20" width="492" height="400" rx="5" fill="#000" opacity="0.12" transform="translate(3 4)" />
+          <rect x="74" y="20" width="492" height="400" rx="5" fill="#EFE7D5" />
+          <rect x="74" y="20" width="492" height="400" rx="5" fill="url(#pl-platno)" opacity="0.7" />
+          <path d="M80 26 H560" stroke="#FFFFFF" stroke-width="1.5" opacity="0.5" />
+        </g>
+
+        {/* Lišty — válek jede po nich */}
+        <g class="pl-listy">
+          <rect x="128" y="22" width="22" height="396" rx="3" fill="url(#pl-lista)" />
+          <rect x="490" y="22" width="22" height="396" rx="3" fill="url(#pl-lista)" />
+          <g fill="#5C4A3C" font-family="ui-monospace, Consolas, monospace" font-size="8" opacity="0.55">
+            <text x="139" y="410" text-anchor="middle">6</text>
+            <text x="501" y="410" text-anchor="middle">6</text>
+          </g>
+        </g>
+
+        {/* Hlína, odřezky, šablona */}
+        <g class="pl-hlina-g">
+          <path class="pl-stin" d="M320 180 a40 40 0 1 0 0.1 0 Z" fill="#3B2A1B" opacity="0.28" />
+          <path class="pl-tvar pl-hlina" d="M320 180 a40 40 0 1 0 0.1 0 Z" fill="url(#pl-hlina)" stroke="#4E3729" stroke-opacity="0.35" stroke-width="1" />
+          <g clip-path="url(#pl-orez)">
+            <rect class="pl-textura" x="0" y="0" width="640" height="440" fill="url(#pl-otisk)" opacity="0" />
+            <ellipse class="pl-lesk" cx="306" cy="200" rx="18" ry="12" fill="#E8CBB0" opacity="0.5" />
+          </g>
+          <g class="pl-dlane"></g>
+          <path class="pl-sablona" d="" fill="none" stroke="#C4432B" stroke-width="2" stroke-dasharray="7 6" opacity="0" />
+          <path class="pl-rez" d="" fill="none" stroke="#2B2420" stroke-width="1.4" opacity="0" />
+          <g class="pl-jehla" opacity="0">
+            <path d="M0 0 L0 -20" stroke="#B9C0C6" stroke-width="1.6" />
+            <rect x="-3.5" y="-52" width="7" height="34" rx="3" fill="#9C7246" />
+          </g>
+        </g>
+
+        {/* Nástroje vpravo na stole */}
+        <g class="pl-naradi" opacity="0.95">
+          <rect x="584" y="300" width="9" height="62" rx="4" fill="#9C7246" transform="rotate(12 588 330)" />
+          <path d="M597 362 L601 392" stroke="#B9C0C6" stroke-width="2" stroke-linecap="round" transform="rotate(12 588 330)" />
+          <rect x="574" y="96" width="44" height="30" rx="12" fill="#E8C35A" />
+          <g fill="#C9A23A" opacity="0.6"><circle cx="586" cy="106" r="2" /><circle cx="600" cy="114" r="1.6" /><circle cx="608" cy="104" r="1.4" /><circle cx="592" cy="118" r="1.5" /></g>
+        </g>
+
+        {/* Válek */}
+        <g class="pl-valek" transform="translate(0 64)">
+          <rect x="74" y="-13" width="492" height="34" rx="17" fill="#000" opacity="0.16" />
+          <rect x="30" y="-6" width="56" height="12" rx="6" fill="#8A6038" />
+          <rect x="554" y="-6" width="56" height="12" rx="6" fill="#8A6038" />
+          <rect x="80" y="-17" width="480" height="34" rx="17" fill="url(#pl-valek)" />
+          <path d="M92 -10 H548" stroke="#FFF4E0" stroke-width="2" opacity="0.5" stroke-linecap="round" />
+        </g>
+      </svg>
+
+      <div class="pl-dotyk" tabindex="0" role="application" aria-roledescription="stůl na válení" aria-label="Hrouda na plátně a válek. Klikni do hroudy, nebo táhni válek nahoru a dolů. Na klávesnici: mezerník plácne, šipky nahoru a dolů posouvají válek, R otočí plát." aria-describedby="pl-rada"></div>
+
+      <Kami id="hlinka" class="d-scena-kami pl-kami" style="left:88.6%;top:40%;width:10%" />
+      <Zkouska id="shino" class="pl-zkouska" style="left:11.2%;top:86.5%;width:3.4%" />
+
+      <p class="d-scena-stitek" aria-hidden="true"><span class="pl-faze">Hrouda</span> · <span class="pl-tloustka">60</span> mm</p>
+
+      <div class="d-vysledek pl-vysledek" hidden>
+        <div class="d-vysledek-kus"></div>
+        <div class="d-vysledek-text">
+          <p class="d-vysledek-stitek">Tvůj kus</p>
+          <p class="d-vysledek-nazev"></p>
+          <label class="d-podpis">
+            <span>Podepiš se rydlem do dna</span>
+            <input type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="jméno" />
+          </label>
+          <div class="d-vysledek-akce">
+            <a class="tlacitko tlacitko-maly" href="#glazovat">Glazovat <span aria-hidden="true">↓</span></a>
+            <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys pl-znovu">Nová hrouda</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-ovladani">
+      <p class="d-rada" id="pl-rada" aria-live="polite"><b>Hlínka radí</b><span class="d-rada-text">Začni dlaní. Plácni do hroudy — dvakrát, ať je z ní placka.</span></p>
+      <div class="d-tlacitka pl-tlacitka">
+        <button type="button" class="tlacitko tlacitko-maly pl-placni">Plácnout</button>
+        <button type="button" class="tlacitko tlacitko-maly pl-prejet" disabled>Přejet válkem</button>
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys pl-otocit" disabled>Otočit plát</button>
+      </div>
+      <div class="pl-sablony" role="group" aria-label="Šablony na vykrojení" hidden>
+        <p class="pl-sablony-nadpis">Vykrojit podle šablony</p>
+        <div class="pl-sablony-rada">
+          <button type="button" class="pl-sablona-tlacitko" data-sablona="talir"><span class="pl-sablona-tvar pl-tvar-kruh" aria-hidden="true"></span><b>Talíř</b><small>kruh ⌀ 20 cm</small></button>
+          <button type="button" class="pl-sablona-tlacitko" data-sablona="miska"><span class="pl-sablona-tvar pl-tvar-kruh pl-tvar-maly" aria-hidden="true"></span><b>Miska</b><small>kruh ⌀ 16 cm</small></button>
+          <button type="button" class="pl-sablona-tlacitko" data-sablona="hrnek"><span class="pl-sablona-tvar pl-tvar-obdelnik" aria-hidden="true"></span><b>Hrnek</b><small>pruh 24 × 9 cm</small></button>
+          <button type="button" class="pl-sablona-tlacitko" data-sablona="kachel"><span class="pl-sablona-tvar pl-tvar-ctverec" aria-hidden="true"></span><b>Kachel</b><small>čtverec 13 cm</small></button>
+        </div>
+      </div>
+      <button type="button" class="d-znovu pl-znovu">Zmačkat a začít znovu</button>
+    </div>
+  </div>
+</Cinnost>

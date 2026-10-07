@@ -2,10 +2,11 @@
 /**
  * Odjezdová tabule (発車標) s hodinami vybraného dne — klapky pata-pata
  * jako na Úvodu 2, jen tady se podle nich opravdu nastupuje. Každý řádek
- * je jedna hodina v dílně: odjezd a příjezd, okénko s oblohou té hodiny
- * a poznámka — volno, obsazeno, odjel, nebo nastupuješ, když je tvoje.
- * Hodina se zamlouvá celá (sám nebo skupina do čtyř lidí), proto tabule
- * neukazuje žádná místa.
+ * je jedna hodina v dílně: odjezd a příjezd, okénko s oblohou té hodiny,
+ * kupé se čtyřmi sedačkami a poznámka — volno, obsazeno, odjel, nebo
+ * nastupuješ, když je tvoje. Hodina se zamlouvá celá (sám nebo skupina do
+ * čtyř lidí), proto je kupé buď celé volné, nebo celé zabrané; u tvé
+ * hodiny se rozsvítí tolik sedaček, kolik vás jede.
  *
  * Řádky s časy jsou tady, protože hodiny jsou pořád stejné; obsazenost
  * a den dopisuje skript (scripts/rezervace/odjezdy.ts) a při změně dne
@@ -17,6 +18,7 @@ import { paleta } from "../../scripts/parta2/paleta";
 import { rezervace } from "../../data/rezervace";
 
 const dvoj = (n: number) => String(n).padStart(2, "0");
+const sedacky = Array.from({ length: rezervace.maxOsob }, (_, i) => i);
 const hodiny = Array.from({ length: rezervace.do - rezervace.od }, (_, i) => rezervace.od + i);
 
 /** Kde stojí slunce v danou hodinu — stejný vzorec jako obloha (nebe.ts) */
@@ -52,6 +54,7 @@ const radky = hodiny.map((h) => {
 
     <div class="rz-tabule-sloupce" aria-hidden="true">
       <span><span lang="ja">時刻</span> odjezd</span>
+      <span><span lang="ja">座席</span> kupé</span>
       <span><span lang="ja">備考</span> poznámka</span>
     </div>
 
@@ -70,6 +73,9 @@ const radky = hodiny.map((h) => {
             >
               {r.slunce.videt && <i style={`left:${r.slunce.x.toFixed(1)}%;top:${r.slunce.y.toFixed(1)}%`}></i>}
             </span>
+            <span class="rz-o-mista" aria-hidden="true">
+              {sedacky.map(() => <svg class="rz-sedacka" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg>)}
+            </span>
             <span class="rz-o-stav" aria-hidden="true"><Flap text="" /></span>
             <span class="rz-o-lampa" aria-hidden="true"></span>
             <span class="sr-only rz-o-popis">{r.h}:00 až {r.h + 1}:00</span>
@@ -79,6 +85,11 @@ const radky = hodiny.map((h) => {
     </ol>
 
     <div class="rz-tabule-pata">
+      <ul class="rz-legenda" aria-hidden="true">
+        <li><svg class="rz-sedacka" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> volné kupé</li>
+        <li><svg class="rz-sedacka obs" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> obsazené</li>
+        <li><svg class="rz-sedacka moje" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> vy</li>
+      </ul>
       <p class="rz-tabule-rada">
         Klikni na volný odjezd — klidně na víc. Hodina je celá vaše, ať jedeš sám, nebo až ve čtyřech.
         Obloha nad mořem ukáže, jaké v tu hodinu bude v dílně světlo.

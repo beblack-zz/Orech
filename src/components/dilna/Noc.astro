@@ -1,0 +1,44 @@
+---
+/**
+ * Noc — dílna zhasíná. Na poličce pod lucernou stojí tvůj kus s cedulkou
+ * (kreslí scripts/dilna/noc.ts); dokud si žádný neuděláš, je tam volné
+ * místo. Dole kontakt a cesta na Rezervaci.
+ */
+import Kami from "../parta2/Kami.astro";
+import { kontakt, mapa } from "../../data/uvod2";
+import { kdy } from "../../data/dilna";
+---
+<section class="d-sekce d-noc" id="kontakt" data-hodina="22.8" aria-labelledby="noc-nadpis">
+  <div class="d-noc-obsah">
+    <div class="d-noc-polic" data-noc-kus>
+      <svg class="d-noc-lucerna" viewBox="0 0 60 110" aria-hidden="true">
+        <path d="M30 0 V18" stroke="#2B2420" stroke-width="2" />
+        <rect x="16" y="18" width="28" height="6" rx="2" fill="#2B2420" />
+        <path d="M14 26 C8 50 8 74 14 96 L46 96 C52 74 52 50 46 26 Z" fill="#F6E2B0" />
+        <path d="M14 26 C8 50 8 74 14 96 L46 96 C52 74 52 50 46 26 Z" fill="none" stroke="#C4432B" stroke-width="1.6" />
+        <path d="M11 44 H49 M10 62 H50 M11 80 H49" stroke="#C4432B" stroke-width="0.8" opacity="0.5" />
+        <text x="30" y="68" text-anchor="middle" font-size="18" font-family="Yuji Syuku, Yu Mincho, serif" fill="#C4432B">工</text>
+        <rect x="16" y="96" width="28" height="6" rx="2" fill="#2B2420" />
+      </svg>
+      <div class="d-noc-kus" aria-hidden="true"></div>
+      <span class="d-noc-prkno" aria-hidden="true"></span>
+      <p class="d-noc-cedulka"><span class="d-noc-jmeno">volné místo</span></p>
+    </div>
+
+    <Kami id="pecinka" class="d-noc-kami" />
+    <p class="stitek stitek-svetly"><span lang="ja">閉店</span> · dílna zhasíná</p>
+    <h2 id="noc-nadpis" class="nadpis-2 d-svetly">Na polici je pro tebe místo.</h2>
+    <p class="d-noc-text">
+      Hodinu si zamluvíš na Rezervaci — každé {kdy.dny}, {kdy.hodiny} hodin. Radši píšeš, nebo voláš? Taky dobře.
+    </p>
+    <div class="d-noc-akce">
+      <a class="tlacitko tlacitko-svetle" href="/rezervace">Vybrat hodinu</a>
+      <a class="tlacitko tlacitko-svetle-obrys" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+      <a class="tlacitko tlacitko-svetle-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+    </div>
+    <p class="d-noc-adresa">
+      Dílna · {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
+      <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
+    </p>
+  </div>
+</section>

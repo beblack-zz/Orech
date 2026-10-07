@@ -1,0 +1,36 @@
+---
+/**
+ * Deska zkoušek glazur — šest zkušebních střípků schovaných po stránce
+ * Dílna. Dokud chybí, je tu nápověda, kde hledat. Obsluhuje obecný
+ * scripts/parta2/sbirka.ts (klíč dilna-zkousky); za celou desku se
+ * v koutě s glazurami odkryje ořechová glazura.
+ */
+import Zkouska from "./Zkouska.astro";
+import { zkousky } from "../../data/dilna";
+---
+<dialog class="omamori-dialog d-zkousky-dialog" data-sbirka-dialog aria-labelledby="zkousky-nadpis">
+  <div class="omamori-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <p class="stitek"><span lang="ja">釉見本</span> · zkoušky glazur</p>
+    <h2 id="zkousky-nadpis" class="nadpis-2">Šest zkoušek glazur</h2>
+    <p class="omamori-perex">
+      V každé dílně visí na zdi deska se zkušebními střípky — podle nich se vybírá glazura.
+      Tahle se rozsypala po stránce. Najdi všech šest a v koutě s glazurami se odkryje
+      kbelík, který jinde nemáme.
+    </p>
+    <ul class="omamori-seznam d-zkousky-seznam">
+      {zkousky.map((z) => (
+        <li class="omamori-polozka" data-sbirka-polozka={z.id}>
+          <span class="omamori-obr"><Zkouska id={z.id} ukazka /></span>
+          <span class="omamori-jmeno">{z.id}</span>
+          <span class="omamori-napoveda">{z.skrys}</span>
+          <span class="omamori-nalezen">nalezeno</span>
+        </li>
+      ))}
+    </ul>
+    <div class="omamori-pata">
+      <p class="omamori-stav">Nalezeno <b data-sbirka-pocet>0</b> z {zkousky.length}.</p>
+      <button type="button" class="tlacitko tlacitko-obrys" data-sbirka-reset>Rozsypat znovu</button>
+    </div>
+  </div>
+</dialog>

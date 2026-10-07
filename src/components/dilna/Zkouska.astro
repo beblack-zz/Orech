@@ -1,0 +1,50 @@
+---
+/**
+ * Zkouška glazury — zkušební střípek ve tvaru L, jaký visí v každé dílně
+ * na nástěnce: horní dvě třetiny v glazuře, dole holý střep, nahoře dírka
+ * na hřebík. Šest jich je schovaných po stránce Dílna; kliknutím se
+ * najdou (obecná sbírka, scripts/parta2/sbirka.ts, klíč dilna-zkousky).
+ *
+ * S `ukazka` je to jen obrázek — do dialogu se sbírkou.
+ */
+import { glazuraPodleNazvu } from "../../data/dilna";
+
+interface Props {
+  /** Název glazury z kurzy2.ts */
+  id: string;
+  class?: string;
+  style?: string;
+  /** Jen obrázek, ne tlačítko */
+  ukazka?: boolean;
+}
+const { id, class: cls = "", style, ukazka = false } = Astro.props;
+const g = glazuraPodleNazvu(id);
+const slug = id.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "-");
+const gid = `zk-${slug}${ukazka ? "-u" : ""}`;
+const Tag = ukazka ? "span" : "button";
+const atributy = ukazka
+  ? { class: `d-zkouska-obr ${cls}` }
+  : { type: "button", class: `d-zkouska ${cls}`, "data-sbirka-cil": id, style, "aria-label": `Zkušební střípek glazury ${id}` };
+---
+<Tag {...atributy}>
+  {g && (
+    <svg viewBox="0 0 40 60" aria-hidden="true">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color={g.stin} />
+          <stop offset="0.35" stop-color={g.svetlo} />
+          <stop offset="0.6" stop-color={g.stred} />
+          <stop offset="1" stop-color={g.stin} />
+        </linearGradient>
+      </defs>
+      <ellipse cx="21" cy="57" rx="16" ry="2.2" fill="#2B2420" opacity="0.2" />
+      <rect x="6" y="47" width="30" height="9" rx="1.6" fill="#C9AF8E" />
+      <rect x="9" y="4" width="22" height="47" rx="2" fill="#DCC6AA" />
+      <path d="M9 6 Q9 4 11 4 L29 4 Q31 4 31 6 L31 34 C27 36.5 24 33.5 20 35.5 C16 37.5 13 34 9 36 Z" fill={`url(#${gid})`} />
+      <path d="M9 33.4 C13 31.6 16 35 20 33 C24 31 27 34 31 31.8 L31 34 C27 36.5 24 33.5 20 35.5 C16 37.5 13 34 9 36 Z" fill={g.stin} opacity="0.55" />
+      <path d="M12 9 L12 29" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity="0.45" />
+      <circle cx="20" cy="11" r="2.4" fill="#5C4A3C" />
+      <path d="M14 43 H26" stroke="#A88E70" stroke-width="0.9" opacity="0.7" />
+    </svg>
+  )}
+</Tag>
