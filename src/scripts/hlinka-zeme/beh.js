@@ -10,11 +10,12 @@
  * jen když se jim změní klíč.
  *
  * Zvuk poslouchá vypínač v hlavičce nového vzhledu (parta2/zvuk.ts): hraje,
- * jen když je zvuk webu zapnutý. Tři kresby stojí vedle sebe, a tak zní
+ * jen když je zvuk webu zapnutý. Kresby stojí vedle sebe, a tak zní
  * jen ta, nad kterou je myš, nebo na kterou se naposledy klepnulo. Kapky
- * v džbánu jdou přes dozvuk, aby zněly jako z jeskyně.
+ * v džbánu jdou přes dozvuk, aby zněly jako z jeskyně. Tušová scéna (ruce)
+ * má vrstvy oříznuté skvrnou — ořez přidává obsahVrstvy z kresby.js.
  */
-import { kresby, pretoc } from "./kresby.js";
+import { kresby, pretoc, obsahVrstvy } from "./kresby.js";
 import { jeZapnuto } from "../parta2/zvuk";
 
 const NS = "http://www.w3.org/2000/svg";
@@ -256,9 +257,67 @@ const Zvuk = (() => {
         am.stop(t0 + 0.4);
       }
     },
+    /* ——— lampion (hózuki) ——— */
+    /* nožka šoupne v prachu */
+    sour: (t, out, s) => sumik(t, out, { typ: "lowpass", f: 1100, posun: 420, q: 0.7, vrchol: 0.16 * s, nabeh: 0.035, utlum: 0.13, buf: "hnedy" }),
+    /* zakopnutí: tupá rána do hlíny, mlasknutí a měchýřek, který se rozšustí */
+    zakop: (t, out, s) => {
+      ton(t, out, { f: 150, f2: 62, vrchol: 0.3 * s, nabeh: 0.003, utlum: 0.17 });
+      sumik(t, out, { typ: "lowpass", f: 520, posun: 170, q: 2.4, vrchol: 0.4 * s, nabeh: 0.003, utlum: 0.13, buf: "hnedy" });
+      sumik(t + 0.11, out, { f: 2400, posun: 1500, q: 1.2, vrchol: 0.09 * s, nabeh: 0.02, utlum: 0.22 });
+    },
+    /* plod zaplane: nádech světla a teplý tón, který vyskočí o oktávu */
+    zaplan: (t, out, s) => {
+      sumik(t, out, { f: 700, posun: 3200, q: 0.9, vrchol: 0.18 * s, nabeh: 0.08, utlum: 0.42 });
+      ton(t, out, { typ: "triangle", f: KOTO[0], f2: KOTO[5], vrchol: 0.09 * s, nabeh: 0.05, utlum: 0.7 });
+      ton(t + 0.07, out, { f: KOTO[8], vrchol: 0.045 * s, nabeh: 0.02, utlum: 0.9 });
+    },
+    /* světlušky se rozprsknou: sprška drobných cinknutí */
+    rozprsk: (t, out, s) => {
+      for (let i = 0; i < 6; i++) ton(t + i * 0.038, out, { f: KOTO[(i * 3) % KOTO.length] * 4, vrchol: 0.03 * s, nabeh: 0.002, utlum: 0.22 });
+    },
+    /* žabka cučigaeru: dvě krátká chraplavá zakvákání, druhé o kousek výš */
+    kero: (t, out, s) => {
+      for (let i = 0; i < 2; i++) {
+        const t0 = t + i * 0.2;
+        const o = ctx.createOscillator();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(400 + i * 50, t0);
+        o.frequency.exponentialRampToValueAtTime(540 + i * 50, t0 + 0.12);
+        const bq = ctx.createBiquadFilter();
+        bq.type = "bandpass";
+        bq.frequency.value = 1500;
+        bq.Q.value = 3;
+        /* chrapot: hlasitost se chvěje padesátkrát za vteřinu */
+        const g = ctx.createGain();
+        g.gain.value = 0.5;
+        const am = ctx.createOscillator();
+        am.frequency.value = 52;
+        const hloubka = ctx.createGain();
+        hloubka.gain.value = 0.5;
+        const zaklad = ctx.createGain();
+        obalka(zaklad, t0, 0.13 * s, 0.11, 0.012);
+        am.connect(hloubka).connect(g.gain);
+        o.connect(bq).connect(g).connect(zaklad).connect(out);
+        o.start(t0);
+        am.start(t0);
+        o.stop(t0 + 0.2);
+        am.stop(t0 + 0.2);
+      }
+    },
+    /* žabka dopadla do prachu */
+    dopad: (t, out, s) => {
+      ton(t, out, { f: 210, f2: 110, vrchol: 0.1 * s, nabeh: 0.002, utlum: 0.06 });
+      sumik(t, out, { typ: "lowpass", f: 700, q: 0.8, vrchol: 0.08 * s, nabeh: 0.002, utlum: 0.05, buf: "hnedy" });
+    },
+    /* bublina ze spaní praskla */
+    prask: (t, out, s) => {
+      ton(t, out, { f: 480, f2: 1500, vrchol: 0.1 * s, nabeh: 0.002, utlum: 0.05 });
+      sumik(t, out, { typ: "highpass", f: 2600, vrchol: 0.07 * s, nabeh: 0.001, utlum: 0.025 });
+    },
   };
   /* kapky a zvonky jdou i do dozvuku, ostatní nasucho */
-  const MOKRE = { suikin: 0.9, kon: 0.35, rin: 0.5, cvrcek: 0.3 };
+  const MOKRE = { suikin: 0.9, kon: 0.35, rin: 0.5, cvrcek: 0.3, zaplan: 0.4, rozprsk: 0.5, kero: 0.2 };
   return {
     /** odemknout v gestu (Safari jinak nedovolí) — hrát se pak bude, jen když je zvuk webu zapnutý */
     odemkni: () => {
@@ -321,7 +380,7 @@ const scena = (el, V) => {
       const v = L.v;
       const k = v.klic ? v.klic(st) : 0;
       if (!L.nakresleno || k !== L.klic) {
-        L.svg.innerHTML = v.kresli(st);
+        L.svg.innerHTML = obsahVrstvy(v, st);
         L.klic = k;
         L.nakresleno = true;
         L.uzly = null;

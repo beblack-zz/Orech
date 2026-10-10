@@ -1,0 +1,30 @@
+---
+/**
+ * Hlínka na schovávanou — malá zjednodušená kresba pro hry na hledání
+ * po webu, ve čtyřech barvách a dvou pózách, stejně jako Pecinka,
+ * Bublinka a Střípek vedle. Kresbu skládá ./hlinka.ts (jde ji volat i za
+ * běhu ve hře), pohyb je v styles/schovka.css.
+ *
+ *   <Hlinka barva="zlata" size={32} />
+ *   <Hlinka barva="pruhledna" poza="vykukuje" size={40} />
+ *
+ * Pod 22 px se kreslí podle zvláštní šestnáctkové mřížky — bez úsměvu,
+ * skvrn a žilek na lístcích a s jediným zetkem, které by se v tak malé
+ * velikosti slily.
+ */
+import "../../../styles/schovka.css";
+import { hlinkaSchovka } from "./hlinka";
+import type { SchovkaBarva, SchovkaPoza } from "./pecinka";
+import { uid } from "../dospele/uid";
+
+interface Props {
+  barva?: SchovkaBarva;
+  /** šířka v pixelech; vykukující je nižší */
+  size?: number;
+  poza?: SchovkaPoza;
+  class?: string;
+}
+const { barva = "logo", size = 32, poza = "stoji", class: cls = "" } = Astro.props;
+const svg = hlinkaSchovka({ barva, velikost: size, poza, id: uid(), trida: cls });
+---
+<Fragment set:html={svg} />

@@ -8,9 +8,9 @@
  * jen když se jim změní klíč.
  *
  * Zvuk poslouchá vypínač v hlavičce nového vzhledu (parta2/zvuk.ts): hraje,
- * jen když je zvuk webu zapnutý. Tři kresby stojí vedle sebe, a tak zní
+ * jen když je zvuk webu zapnutý. Kresby stojí vedle sebe, a tak zní
  * jen ta, nad kterou je myš, nebo na kterou se naposledy klepnulo — jinak
- * by praskání, syčení a prskání hrálo všechno přes sebe.
+ * by praskání, syčení a ťukání můr hrálo všechno přes sebe.
  */
 import { kresby, pretoc } from "./kresby.js";
 import { jeZapnuto } from "../parta2/zvuk";
@@ -150,6 +150,45 @@ const Zvuk = (() => {
       const f0 = PENTA[Math.floor(Math.random() * PENTA.length)];
       [[1, 1, 2.4], [2.76, 0.45, 1.5], [5.4, 0.22, 0.8], [8.93, 0.1, 0.4]].forEach(([k, g, doba]) => ton(t, out, { f: f0 * k, vrchol: 0.05 * s * g, utlum: doba }));
     },
+    /* Lampion — geta na dlažbě: dřevo o kámen, karan zvoní výš, koron hlouběji */
+    karan: (t, out, s) => {
+      ton(t, out, { typ: "triangle", f: 1180, f2: 1050, vrchol: 0.16 * s, nabeh: 0.001, utlum: 0.09 });
+      ton(t, out, { f: 2360, vrchol: 0.05 * s, nabeh: 0.001, utlum: 0.05 });
+      sumik(t, out, { f: 2400, q: 1.6, vrchol: 0.2 * s, nabeh: 0.001, utlum: 0.025 });
+    },
+    koron: (t, out, s) => {
+      ton(t, out, { typ: "triangle", f: 760, f2: 690, vrchol: 0.17 * s, nabeh: 0.001, utlum: 0.12 });
+      ton(t, out, { f: 1530, vrchol: 0.05 * s, nabeh: 0.001, utlum: 0.06 });
+      sumik(t, out, { f: 1600, q: 1.4, vrchol: 0.18 * s, nabeh: 0.001, utlum: 0.03 });
+    },
+    /* můra ťukne do papíru lucerny */
+    mura: (t, out, s) => sumik(t, out, { f: 3400 + Math.random() * 1200, q: 2.2, vrchol: 0.12 * s, nabeh: 0.001, utlum: 0.008 }),
+    /* rozhoupaný papír zašustí */
+    sust: (t, out, s) => sumik(t, out, { f: 3000, q: 0.6, vrchol: 0.1 * s, nabeh: 0.04, utlum: 0.2 }),
+    /* svíčka zhasne: tiché pff */
+    zhasni: (t, out, s) => {
+      sumik(t, out, { typ: "lowpass", f: 900, q: 0.6, vrchol: 0.24 * s, nabeh: 0.01, utlum: 0.32 });
+      ton(t, out, { f: 140, f2: 70, vrchol: 0.12 * s, nabeh: 0.005, utlum: 0.2 });
+    },
+    /* jiskra z komína doletí a lucerna se rozsvítí */
+    zapal: (t, out, s) => {
+      sumik(t, out, { f: 420, posun: 1800, q: 0.7, vrchol: 0.36 * s, nabeh: 0.03, utlum: 0.45 });
+      ton(t, out, { f: 90, f2: 55, vrchol: 0.3 * s, nabeh: 0.01, utlum: 0.25 });
+    },
+    /* čóčin-obake: papír se roztrhne do úst… */
+    trh: (t, out, s) => {
+      for (let i = 0; i < 6; i++) sumik(t + i * 0.022 + Math.random() * 0.01, out, { f: 1500 + i * 420, q: 1.1, vrchol: 0.16 * s, nabeh: 0.002, utlum: 0.02 + Math.random() * 0.02 });
+    },
+    /* … vyplázne jazyk … */
+    bero: (t, out, s) => {
+      ton(t, out, { f: 240, f2: 980, vrchol: 0.14 * s, nabeh: 0.01, utlum: 0.2 });
+      sumik(t + 0.02, out, { f: 1800, q: 2, vrchol: 0.08 * s, nabeh: 0.01, utlum: 0.08 });
+    },
+    /* … a polkne můru */
+    polk: (t, out, s) => {
+      ton(t, out, { f: 260, f2: 95, vrchol: 0.26 * s, nabeh: 0.004, utlum: 0.14 });
+      ton(t + 0.11, out, { f: 180, f2: 120, vrchol: 0.1 * s, nabeh: 0.004, utlum: 0.08 });
+    },
   };
   return {
     /** odemknout v gestu (Safari jinak nedovolí) — hrát se pak bude, jen když je zvuk webu zapnutý */
@@ -188,7 +227,7 @@ const scena = (el, V) => {
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("focusable", "false");
     if (v.styl) svg.style.cssText += `;${v.styl}`;
-    if (v.tezka || v.pruhlednost) svg.style.willChange = "transform";
+    if (v.tezka || v.pruhlednost || v.posun) svg.style.willChange = "transform";
     el.appendChild(svg);
     return { v, svg, klic: undefined, nakresleno: false };
   });
@@ -208,6 +247,12 @@ const scena = (el, V) => {
         L.nakresleno = true;
       }
       if (v.pruhlednost) L.svg.style.opacity = v.pruhlednost(st);
+      /* vrstva, která se celá posouvá (tělo při chůzi): jen transformace, obsah zůstává */
+      if (v.posun) {
+        const p = v.posun(st);
+        L.svg.style.transformOrigin = `${(p.ox / VB) * 100}% ${(p.oy / VB) * 100}%`;
+        L.svg.style.transform = `translate(${(p.dx / VB) * 100}%, ${(p.dy / VB) * 100}%) rotate(${p.rot}deg)`;
+      }
     }
     const slysi = znejici === el;
     for (const z of dyn.zvuk) if (slysi) Zvuk.hraj(z);

@@ -1,0 +1,157 @@
+/*
+ * Pecinka na schovávanou (components/characters/schovka): drobný pohyb
+ * malé kresby. Mrká, ve dvířkách jí poskakuje oheň, z komína občas
+ * vyjde obláček a zlatá se zablýskne. Každá kresba má vlastní posun
+ * --sp-z, aby víc schovaných Pecinek nemrkalo naráz.
+ * Bublinka vedle ní používá totéž (mrkání, plamínek pro bludičku, jiskra)
+ * a navíc se vznáší.
+ * Střípek (schovka/stripek.ts) používá totéž: vznáší se jako Bublinka,
+ * mrká, když vykukuje, zlatý se zablýskne — a vedle hlavy mu poletuje
+ * malý střípek.
+ * Hlínka (schovka/hlinka.ts) spí: dýchá, výhonek na temeni se jí kývá
+ * a nad hlavou stoupají zetka; když vykukuje, klimbá jedním okem
+ * a zlaté blikne rosa na lístku.
+ * Cedulka (schovka/cedulka.ts) visí na šňůrce a houpe se z jejího konce,
+ * mrká, tužkou vedle sebe občas zakmitá a druhý řádek se jí přitom píše
+ * znovu; když vykukuje, vlaje jí nad úkrytem šňůrka a rozhlíží se.
+ *
+ * Třída schovka-nalezena (na kresbě nebo na obalu kolem ní) je chvíle,
+ * kdy ji hráč najde: vyskočí, zmáčkne se a dopadne.
+ */
+.schovka { display: inline-block; overflow: visible; vertical-align: middle; }
+.schovka .sp-oci { transform-box: fill-box; transform-origin: 50% 50%; animation: sp-mrk 5.4s var(--sp-z, 0s) infinite; }
+@keyframes sp-mrk {
+  0%, 93%, 100% { transform: scaleY(1); }
+  95.5% { transform: scaleY(0.1); }
+}
+.schovka .sp-plamen { transform-box: fill-box; transform-origin: 50% 100%; animation: sp-plamen 0.62s var(--sp-z, 0s) infinite alternate ease-in-out; }
+@keyframes sp-plamen {
+  from { transform: scaleY(0.8); opacity: 0.8; }
+  to { transform: scaleY(1.06); opacity: 1; }
+}
+/* v SVG se px počítají v jednotkách kresby, takže obláček roste s ní */
+.schovka .sp-kour { transform-box: fill-box; transform-origin: 50% 50%; animation: sp-kour 3.2s var(--sp-z, 0s) infinite ease-out; }
+@keyframes sp-kour {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  12% { opacity: 0.5; }
+  100% { transform: translate(-1.5px, -8px) scale(1.7); opacity: 0; }
+}
+.schovka .sp-jiskra { transform-box: fill-box; transform-origin: 50% 50%; animation: sp-jiskra 3.6s var(--sp-z, 0s) infinite; }
+@keyframes sp-jiskra {
+  0%, 72%, 100% { transform: scale(0) rotate(0deg); opacity: 0; }
+  80% { transform: scale(1.15) rotate(45deg); opacity: 1; }
+  88% { transform: scale(0.5) rotate(90deg); opacity: 0.7; }
+}
+/* Bublinka (schovka/bublinka.ts) nestojí, vznáší se: celá kresba se pomalu houpe nahoru a dolů */
+.schovka .sb-let { transform-box: fill-box; transform-origin: 50% 50%; animation: sb-let 2.9s var(--sp-z, 0s) infinite alternate ease-in-out; }
+@keyframes sb-let {
+  from { transform: translateY(2%); }
+  to { transform: translateY(-3.5%); }
+}
+/* Střípek (schovka/stripek.ts): malý střípek vedle hlavy se pohupuje a natáčí, jiným tempem než celá kresba */
+.schovka .ss-kus { transform-box: fill-box; transform-origin: 50% 50%; animation: ss-kus 2.1s var(--sp-z, 0s) infinite alternate ease-in-out; }
+@keyframes ss-kus {
+  from { transform: translateY(0.7px) rotate(-8deg); }
+  to { transform: translateY(-1px) rotate(10deg); }
+}
+/* Hlínka (schovka/hlinka.ts): hrouda ve spánku dýchá a výhonek se kývá. Střed (zem pod nožkami, kořínek na temeni)
+   si kresba nese sama v jednotkách mřížky, proto tu není transform-box — procenta obrysu by se hýbala s jiskrou na lístku. */
+.schovka .sh-dech { animation: sh-dech 3.8s var(--sp-z, 0s) infinite alternate ease-in-out; }
+@keyframes sh-dech {
+  from { transform: scale(1.015, 0.975); }
+  to { transform: scale(0.99, 1.02); }
+}
+.schovka .sh-vyhonek { animation: sh-kyv 3.1s var(--sp-z, 0s) infinite alternate ease-in-out; }
+@keyframes sh-kyv {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(6deg); }
+}
+/* když vykukuje, prozradí ji výhonek: chvíli se jen pohupuje a pak se rozkmitá, jako když do něj někdo cvrnkne */
+.schovka-vykukuje .sh-vyhonek { animation: sh-cvrnk 4.4s var(--sp-z, 0s) infinite ease-in-out; }
+@keyframes sh-cvrnk {
+  0%, 100% { transform: rotate(-3deg); }
+  40% { transform: rotate(3deg); }
+  50% { transform: rotate(14deg); }
+  58% { transform: rotate(-10deg); }
+  66% { transform: rotate(7deg); }
+  74% { transform: rotate(-5deg); }
+  84% { transform: rotate(2deg); }
+}
+/* zetka: každé se vynoří, povyroste a rozplyne se, odspodu jedno po druhém (--sh-i je pořadí) */
+.schovka .sh-z { transform-box: fill-box; transform-origin: 50% 50%; animation: sh-z 3.6s calc(var(--sp-z, 0s) + var(--sh-i, 0) * 0.7s) infinite ease-in-out backwards; }
+@keyframes sh-z {
+  0% { transform: translate(-0.5px, 1px) scale(0.7); opacity: 0; }
+  22% { opacity: 1; }
+  55% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(0.6px, -1.4px) scale(1.1); opacity: 0; }
+}
+/* pootevřené oko klimbá: víčko pomalu spadne, chvíli zůstane a zase se zvedne */
+.schovka .sh-oko { transform-box: fill-box; transform-origin: 50% 0%; animation: sh-klimb 6.2s var(--sp-z, 0s) infinite ease-in-out; }
+@keyframes sh-klimb {
+  0%, 52%, 100% { transform: scaleY(1); }
+  66%, 80% { transform: scaleY(0.2); }
+  87% { transform: scaleY(1.12); }
+}
+/* Cedulka (schovka/cedulka.ts) visí na šňůrce: celá se houpe z jejího konce jako kyvadlo. Středy (konec šňůrky, dírka, kloub
+   šňůrky, ruka s tužkou) si kresba nese sama v jednotkách mřížky jako Hlínka, proto tu není transform-box. */
+.schovka .sc-houpe { animation: sc-houpe 3.4s var(--sp-z, 0s) infinite alternate ease-in-out; }
+@keyframes sc-houpe {
+  from { transform: rotate(-2.6deg); }
+  to { transform: rotate(2.6deg); }
+}
+/* když vykukuje, prozradí ji šňůrka: vlaje nad úkrytem a občas s ní škubne poryv; cíp jde za ní se zpožděním a přestřelí */
+.schovka-vykukuje .sc-snurka { animation: sc-vlaje 4.6s var(--sp-z, 0s) infinite ease-in-out; }
+@keyframes sc-vlaje {
+  0%, 100% { transform: rotate(-3deg); }
+  34% { transform: rotate(3deg); }
+  46% { transform: rotate(9deg); }
+  56% { transform: rotate(-7deg); }
+  66% { transform: rotate(5deg); }
+  78% { transform: rotate(-2deg); }
+}
+.schovka-vykukuje .sc-cip { animation: sc-cip 4.6s var(--sp-z, 0s) infinite ease-in-out; }
+@keyframes sc-cip {
+  0%, 100% { transform: rotate(5deg); }
+  34% { transform: rotate(-7deg); }
+  48% { transform: rotate(14deg); }
+  58% { transform: rotate(-22deg); }
+  68% { transform: rotate(13deg); }
+  80% { transform: rotate(-6deg); }
+}
+/* a rozhlíží se: oči ujedou na druhou stranu, chvíli tam zůstanou a vrátí se (mrkání běží uvnitř dál); procenta jsou z šířky obou očí */
+.schovka-vykukuje .sc-kouk { transform-box: fill-box; animation: sc-kouk 7s var(--sp-z, 0s) infinite ease-in-out; }
+@keyframes sc-kouk {
+  0%, 38%, 68%, 100% { transform: translateX(0); }
+  44%, 62% { transform: translateX(12%); }
+}
+/* tužka: většinu času jen je, pak s ní párkrát zakmitá, jako když píše… */
+.schovka .sc-tuzka { animation: sc-tuzka 7.2s var(--sp-z, 0s) infinite ease-in-out; }
+@keyframes sc-tuzka {
+  0%, 78%, 100% { transform: rotate(0deg); }
+  81% { transform: rotate(-5deg); }
+  84% { transform: rotate(4deg); }
+  87% { transform: rotate(-5deg); }
+  90% { transform: rotate(4deg); }
+  93% { transform: rotate(-3deg); }
+  96% { transform: rotate(1deg); }
+}
+/* …a ve stejnou chvíli se na destičce píše druhý řádek: nejdřív se zleva smaže, pak se zleva napíše. Cesta má délku jedna
+   (pathLength), čárka je celý řádek a mezera o kousek delší, ať ze smazaného nezbyde ani tečka kulatého konce. */
+.schovka .sc-pise { stroke-dasharray: 1 1.2; animation: sc-pise 7.2s var(--sp-z, 0s) infinite linear; }
+@keyframes sc-pise {
+  0%, 68% { stroke-dashoffset: 0; }
+  75%, 79% { stroke-dashoffset: -1.1; }
+  96%, 100% { stroke-dashoffset: -2.2; }
+}
+.schovka.schovka-nalezena,
+.schovka-nalezena .schovka { transform-origin: 50% 100%; animation: sp-hop 0.62s cubic-bezier(0.3, 0.7, 0.4, 1); }
+@keyframes sp-hop {
+  0% { transform: translateY(0) scale(1, 1); }
+  18% { transform: translateY(4%) scale(1.12, 0.86); }
+  45% { transform: translateY(-34%) scale(0.92, 1.1); }
+  72% { transform: translateY(0) scale(1.08, 0.9); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .schovka, .schovka * { animation: none !important; }
+}

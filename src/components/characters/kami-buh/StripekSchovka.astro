@@ -1,0 +1,230 @@
+---
+/*
+  Střípek na schovávanou — vzorník pro /marcel (čtvrtá podoba Střípka),
+  postavený stejně jako PecinkaSchovka.astro a BublinkaSchovka.astro vedle.
+  Samotná kresba je v ../schovka (Stripek.astro a stripek.ts) a je vždycky
+  malá; tady jsou čtyři barvy vedle sebe: na papíře, zmenšené až na 16 px,
+  ve tmě a jak vykukují zpoza hrany.
+
+  Kliknutí ukáže, jak ho hra „najde“: vyskočí, cinkne (zvuk webu, zlatý
+  zvoní výš) a rozletí se z něj střípky — tuš, sklo, zlato nebo soumrak —
+  a s nimi pár zlatých šupinek ze spár.
+*/
+import Stripek from "../schovka/Stripek.astro";
+
+const BARVY = ["cerna", "pruhledna", "zlata", "logo"] as const;
+/* stejné barvy jako u Pecinky a Bublinky (NAZVY v ../schovka/pecinka), jen v mužském rodě */
+const NAZVY = { cerna: "Černý", pruhledna: "Průhledný", zlata: "Zlatý", logo: "Barvy loga" } as const;
+---
+<div class="sts" data-stripek-schovka>
+  <p class="sts-stitek">Na papíře</p>
+  <ul class="sts-radek">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="sts-kus" data-barva={b} aria-label={`Střípek na schovávanou — ${NAZVY[b]}`}>
+          <Stripek barva={b} size={56} />
+        </button>
+        <span class="sts-nazev">{NAZVY[b]}</span>
+      </li>
+    ))}
+  </ul>
+
+  <p class="sts-stitek">Zmenšený · 32 · 24 · 16 px</p>
+  <ul class="sts-radek sts-male">
+    {BARVY.map((b) => (
+      <li>
+        {[32, 24, 16].map((v) => (
+          <button type="button" class="sts-kus" data-barva={b} aria-label={`${NAZVY[b]}, ${v} px`}>
+            <Stripek barva={b} size={v} />
+          </button>
+        ))}
+      </li>
+    ))}
+  </ul>
+
+  <p class="sts-stitek">V noci</p>
+  <ul class="sts-radek sts-noc">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="sts-kus" data-barva={b} aria-label={`${NAZVY[b]} v noci`}>
+          <Stripek barva={b} size={36} />
+        </button>
+      </li>
+    ))}
+  </ul>
+
+  <p class="sts-stitek">Vykukuje zpoza hrany</p>
+  <ul class="sts-radek sts-hrana">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="sts-kus" data-barva={b} aria-label={`${NAZVY[b]} vykukuje`}>
+          <Stripek barva={b} size={40} poza="vykukuje" />
+        </button>
+        <span class="sts-deska" aria-hidden="true"></span>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  import * as zvuk from "../../../scripts/parta2/zvuk";
+
+  type Barva = "cerna" | "pruhledna" | "zlata" | "logo";
+  /* z čeho je který Střípek; při nalezení se z něj rozletí střepy v těch barvách */
+  const STREPY: Record<Barva, { barvy: string[]; pocet: number }> = {
+    cerna: { barvy: ["#1E1A18", "#3A302A", "#2B2420"], pocet: 9 },
+    pruhledna: { barvy: ["#FFFFFF", "#CFE4F4", "#A9CBE2"], pocet: 9 },
+    zlata: { barvy: ["#F2C95E", "#FFF2BC", "#C9922E", "#FFFFFF"], pocet: 10 },
+    logo: { barvy: ["#C4432B", "#C0708A", "#7A5E8E", "#FBE9B7", "#2A2C5E"], pocet: 10 },
+  };
+  /* zlato ze spár: pár šupinek letí s každým, ať je jakékoli barvy */
+  const ZLATO = ["#E2B95A", "#FBE9B7", "#C9922E"];
+  const SUPINEK = 5;
+  /* čtyři tvary střepu (sts-strep-a až d), ať nejsou všechny stejné */
+  const TVARY = "abcd";
+  const klid = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+  /** jedna částice: vyletí ze středu pod úhlem u, otáčí se a spadne */
+  function castice(kus: HTMLElement, trida: string, barva: string, u: number, vel: number) {
+    const s = document.createElement("span");
+    s.className = `sts-castice ${trida}`;
+    const d = vel * (0.55 + Math.random() * 0.6);
+    s.style.setProperty("--dx", `${(Math.cos(u) * d).toFixed(1)}px`);
+    s.style.setProperty("--dy", `${(Math.sin(u) * d * 0.8 - vel * 0.3).toFixed(1)}px`);
+    s.style.setProperty("--r", `${Math.round(Math.random() * 540 - 270)}deg`);
+    s.style.setProperty("--d", `${(0.7 + Math.random() * 0.4).toFixed(2)}s`);
+    s.style.background = barva;
+    kus.append(s);
+    window.setTimeout(() => s.remove(), 1300);
+  }
+
+  function najdi(kus: HTMLElement) {
+    const barva = kus.dataset.barva as Barva;
+    kus.classList.remove("schovka-nalezena");
+    void kus.offsetWidth;
+    kus.classList.add("schovka-nalezena");
+    window.setTimeout(() => kus.classList.remove("schovka-nalezena"), 700);
+    if (barva === "zlata") zvuk.zlato();
+    else zvuk.nalezeno();
+    if (klid()) return;
+    const c = STREPY[barva];
+    const vel = kus.getBoundingClientRect().width || 40;
+    for (let i = 0; i < c.pocet; i++) {
+      castice(kus, `sts-strep sts-strep-${TVARY[i % TVARY.length]}`, c.barvy[i % c.barvy.length], (i / c.pocet) * Math.PI * 2 + Math.random() * 0.5, vel);
+    }
+    for (let i = 0; i < SUPINEK; i++) {
+      castice(kus, "sts-supinka", ZLATO[i % ZLATO.length], ((i + 0.5) / SUPINEK) * Math.PI * 2 + Math.random() * 0.8, vel);
+    }
+  }
+
+  /* jeden posluchač na celý dokument: přežije i přechod mezi stránkami */
+  document.addEventListener("click", (e) => {
+    const kus = (e.target as Element | null)?.closest?.<HTMLElement>("[data-stripek-schovka] .sts-kus");
+    if (kus) najdi(kus);
+  });
+</script>
+
+<style is:global>
+  /* Vzorník Střípka na schovávanou; střípky vyrábí skript, proto globálně */
+  .sts {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: clamp(14px, 3.2vw, 28px);
+    border-radius: 18px;
+    background: var(--papir-2, #efe5d1);
+    box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.07);
+    text-align: center;
+  }
+  .sts-stitek {
+    margin: 8px 0 4px;
+    font-family: var(--f-display);
+    font-variation-settings: "SOFT" 100;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--inkoust-3, #8a7a69);
+    text-align: left;
+  }
+  .sts-stitek:first-child { margin-top: 0; }
+  .sts-radek {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    align-items: end;
+  }
+  .sts-radek li { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+  .sts-male li { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 4px clamp(3px, 0.8vw, 7px); }
+  .sts-nazev {
+    font-family: var(--f-display);
+    font-variation-settings: "SOFT" 100, "opsz" 24;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--inkoust-2, #5e4f44);
+  }
+  /* noc: tmavý pruh s pár hvězdami, tady se černý schová skoro úplně */
+  .sts-noc {
+    padding: 12px 6px;
+    border-radius: 12px;
+    background:
+      radial-gradient(1px 1px at 12% 28%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 37% 70%, #ede6cf 99%, transparent),
+      radial-gradient(1.2px 1.2px at 63% 22%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 88% 64%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 76% 86%, rgba(237, 230, 207, 0.6) 99%, transparent),
+      linear-gradient(#141734, #262a5c);
+  }
+  /* hrana: deska, za kterou se Střípek schovává a drží se jí ručkama */
+  .sts-hrana li { gap: 0; }
+  .sts-deska {
+    display: block;
+    width: min(76px, 92%);
+    height: 16px;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(var(--papir-3, #e2d4b9), #d5c4a4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 1px 0 rgba(43, 36, 32, 0.06);
+  }
+  .sts-kus {
+    position: relative;
+    display: inline-flex;
+    padding: 2px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    line-height: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sts-hrana .sts-kus { padding: 2px 2px 0; margin-bottom: -1px; }
+  .sts-kus:focus-visible { outline: 2px solid var(--rumelka, #c4432b); outline-offset: 3px; }
+  /* co z něj vyletí: střepy v jeho barvách a zlaté šupinky ze spár */
+  .sts-castice {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
+    pointer-events: none;
+    z-index: 2;
+    animation: sts-let var(--d, 0.8s) cubic-bezier(0.15, 0.7, 0.35, 1) forwards;
+  }
+  @keyframes sts-let {
+    0% { transform: translate(0, 0) rotate(0deg) scale(0.6); opacity: 1; }
+    55% { opacity: 1; }
+    100% { transform: translate(var(--dx), calc(var(--dy) + 22px)) rotate(var(--r)) scale(0.9); opacity: 0; }
+  }
+  /* střepy: ostré hrany přes clip-path, čtyři tvary a dvě velikosti */
+  .sts-strep-a { clip-path: polygon(50% 0, 100% 70%, 20% 100%); }
+  .sts-strep-b { clip-path: polygon(8% 14%, 92% 0, 100% 76%, 30% 100%); }
+  .sts-strep-c { width: 9px; height: 8px; margin: -4px 0 0 -4.5px; clip-path: polygon(0 34%, 58% 0, 100% 52%, 44% 100%); }
+  .sts-strep-d { width: 6px; height: 8px; margin: -4px 0 0 -3px; clip-path: polygon(22% 0, 100% 24%, 70% 100%, 0 68%); }
+  /* zlatá šupinka: drobný kosočtverec */
+  .sts-supinka { width: 4px; height: 4px; margin: -2px 0 0 -2px; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+</style>

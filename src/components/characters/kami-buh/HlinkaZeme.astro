@@ -1,30 +1,41 @@
 ---
 /*
-  Hlínka, kami země, ve třech přehnaných podobách — kresby i běh jsou ve
-  scripts/hlinka-zeme:
+  Hlínka, kami země — podle Pecinky s ohněm, Bublinky jako strašidla
+  a Střípka a zlata. Kresby i běh jsou ve scripts/hlinka-zeme:
 
-    v1  Sakura: spí mezi kořeny posvátné převislé sakury, bez pozadí jako Pecinčina svatozář
-    v2  Drak nad Fudži: rytina po Hokusaiovi, vytáhne se z hroudy a honí perlu
-    v3  Suikinkutsu: čajová zahrada a pod ní zakopaný džbán, ve kterém zvoní kapky
+    sakura     01 Kami: spí pod posvátnou převislou sakurou, koruna se jí klene
+               nad hlavou a za ní visí bledý kotouč jako svatozář; čistá
+               kresba ve stylu lampionu, bez pozadí
+    ruce       02 Tušový lem — mokré ruce: spí na hrnčířském kruhu a dvě
+               ruce z noci ji vytáčejí do misky, konvičky, vázy
+    lampion    03 Lampion: bez pozadí, jde ze spaní a lampion jí vyrostl
+               z výhonku — chodí na místě, po cestě ji posouvá stránka
+    v1         Původní sakura s mechovým ostrovem, na stránce už není
+    v2         Drak nad Fudži: rytina po Hokusaiovi, vytáhne se z hroudy a honí perlu
+    v3         Suikinkutsu: čajová zahrada a pod ní zakopaný džbán, ve kterém zvoní kapky
 
-  Na stránce Marcel jsou jen v1 a v3, drak zůstal jen tady. Kdyby se vracel,
-  jeho kartuše potřebuje v podmnožině štětcového písma (pismoZnaku
-  v marcel.astro) znaky 富士越土竜.
+  Čtvrtá podoba, Na schovávanou, je HlinkaSchovka.astro. Původní sakura,
+  drak nad Fudži a suikinkutsu zůstaly jen tady, na stránce Marcel už
+  nejsou. Kdyby se drak vracel, jeho kartuše potřebuje v podmnožině štětcového písma (pismoZnaku v marcel.astro)
+  znaky 富士越土竜, nádržka v suikinkutsu znaky 五隹止矢.
 
   Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
   sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
   prázdná, než se načte skript, a bez skriptu zůstane hezký obrázek. Skript
   ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná, takže každá
-  podoba smí být na stránce jen jednou.
+  podoba smí být na stránce jen jednou (hz1-, hz2-, hz3-, hzk-, hzr-, hzl-).
 */
 import { kresby, celeSvg, pretoc } from "../../../scripts/hlinka-zeme/kresby.js";
 
-interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+interface Props { varianta: "v1" | "v2" | "v3" | "sakura" | "ruce" | "lampion"; class?: string; }
 const { varianta, class: cls = "" } = Astro.props;
 const popisy = {
   v1: "Hlínka spí mezi kořeny posvátné převislé sakury, za korunou svítí měsíc a padají okvětní lístky",
   v2: "Rytina s Rudou Fudži: Hlínka se vytáhne z hroudy jako hliněný drak a honí nad horou perlu",
   v3: "Čajová zahrada za soumraku a pod ní zakopaný džbán, ve kterém spí Hlínka a zvoní do něj kapky",
+  sakura: "Hlínka spí pod posvátnou převislou sakurou se slaměným provazem na kmeni; koruna plná květů se jí klene nad hlavou, za ní svítí bledý kotouč a padají okvětní lístky",
+  ruce: "Noc v rozpité tuši: Hlínka spí na hrnčířském kruhu a dvě velké ruce ze světlých linek ji vytáčejí do konvičky; na polici vzadu svítí obrysy tvarů, kterými už byla",
+  lampion: "Hlínka jde ze spaní se zavřenýma očima; výhonek na temeni se jí ohnul dopředu a nese svítící plod mochyně jako lampion, kolem létají světlušky",
 };
 const V = kresby[varianta];
 const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "hz-staticky" });

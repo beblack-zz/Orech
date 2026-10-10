@@ -1,32 +1,38 @@
 ---
 /*
-  Cedulka jako ema ve třech přehnaných podobách — kresby i běh jsou ve
-  scripts/cedulka-ema:
+  Cedulka jako ema — podle Pecinky s ohněm a ostatních. Kresby i běh jsou
+  ve scripts/cedulka-ema:
 
-    v1  Kůň na rubu: visí na kōhaku šňůře, za ní lakovaný kotouč a osm
-        malých em s partou; po kliknutí se otočí a na rubu cválá kůň
-    v2  Rydlo: odpolední dílna, Cedulka ryje jména do den misek a ví,
-        čí je která (najetím na misku na polici)
-    v3  Inari: tunel rumělkových bran, lišácké emy s domalovanými obličeji
-        a Cedulka mezi nimi; kliknutím si nasadí lišáckou masku
+    v1       01 Kami — kůň na rubu: visí na kōhaku šňůře, za ní lakovaný
+             kotouč a osm malých em s partou; po kliknutí se otočí a na
+             rubu cválá kůň. Bez pozadí.
+    v2       02 Tušový lem — rydlo: noční dílna v rozpité tuši, oknem svítí
+             měsíc. Cedulka ryje jména do den misek a ví, čí je která
+             (najetím na misku na polici); jména svítí.
+    lampion  03 Lampion: bez pozadí, jde v dřevěných botičkách geta z rohu
+             na roh a nese dřevěnou lucernu s nápisem JIRO — chodí na
+             místě, po cestě ji posouvá stránka jako průvod na Domku 2
+    v3       Inari: tunel rumělkových bran, lišácké emy s domalovanými
+             obličeji a Cedulka mezi nimi; na stránce Marcel už není
 
-  v1 je bez pozadí jako první Pecinka s ohněm, v2 a v3 jsou celé scény
-  jako její raku. Kresba je čistý generátor bez DOM, takže první snímek se
+  Čtvrtá podoba, Na schovávanou, je CedulkaSchovka.astro. Kresba je čistý generátor bez DOM, takže první snímek se
   vykreslí už při sestavení stránky a vloží se sem jako obyčejné SVG;
   skript ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná, takže
   každá podoba smí být na stránce jen jednou.
 
-  Jména se píšou písmem Caveat a znaky na bráně písmem Yuji Syuku — obojí
-  musí načíst stránka (Marcel to dělá).
+  Jména se píšou písmem Caveat, znaky na bráně písmem Yuji Syuku a JIRO na
+  lucerně písmem značky Zodiak (styles/znacka.css) — všechno musí načíst
+  stránka (Marcel to dělá).
 */
 import { kresby, celeSvg, pretoc } from "../../../scripts/cedulka-ema/kresby.js";
 
-interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+interface Props { varianta: "v1" | "v2" | "v3" | "lampion"; class?: string; }
 const { varianta, class: cls = "" } = Astro.props;
 const popisy = {
   v1: "Cedulka visí na červenobílé šňůře před rumělkovým kotoučem, kolem ní malé destičky s celou partou; na rubu má namalovaného koně",
-  v2: "Cedulka v odpolední dílně ryje do dna misky jméno a staví misky na polici",
+  v2: "Noční dílna v rozpité tuši: oknem svítí měsíc a Cedulka v jeho světle ryje do dna misky jméno, které svítí; hotové misky staví na polici",
   v3: "Cedulka visí mezi lišáckými destičkami ve svatyni Inari, za nimi vede tunel rumělkových bran",
+  lampion: "Cedulka jde v dřevěných botičkách z rohu na roh a nese na tyčce dřevěnou lucernu s nápisem JIRO; v jejím světle vedle ní ťape miska, které svítí na cestu domů",
 };
 const V = kresby[varianta];
 const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "ce-staticky" });

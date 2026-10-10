@@ -1,0 +1,68 @@
+---
+/*
+  Střípek a zlato — podle Pecinky s ohněm a Bublinky jako strašidla. Kresby
+  i běh jsou ve scripts/stripek-zlato:
+
+    prstenec  01 Kami: medituje na obláčku, za zády svatozář z okraje rozbitého
+              talíře slepeného zlatem, kolem obíhají střípky
+    noc       02 Tušový lem: prasklá noc — tma praská, trhliny zalévá štětcem
+              svítivou žlutou (ne kovovým zlatem), a když je noc celá
+              žilkovaná, na chvíli se rozední
+    lampion   03 Lampion: letí na obláčku s papírovou lucernou slepenou zlatem,
+              bez pozadí a trochu z boku — vznáší se na místě, po cestě ho
+              posouvá stránka jako průvod na Domku 2
+
+  Čtvrtá podoba, Na schovávanou, je StripekSchovka.astro.
+
+  Střípek je tsukumogami: hrnek, který spadl ze stolu a dostal duši. Vypadá
+  jako na původní kresbě (StripekKintsugi.astro) — bílý střep slepený zlatem,
+  dva kusy z cizího nádobí, obláček v barvách svítání —, jen už nemá jeden
+  výraz: umí se leknout, soustředit se s jazykem v koutku i být pyšný.
+
+  Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
+  sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
+  prázdná, než se načte skript, a bez skriptu zůstane hezký obrázek. Skript
+  ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná (sz1-, sz2-
+  a sz2r-, szl-), takže každá podoba smí být na stránce jen jednou.
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/stripek-zlato/kresby.js";
+
+interface Props { varianta: "prstenec" | "noc" | "lampion"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  prstenec: "Střípek, bílý střep slepený zlatem, medituje se zavřenýma očima na růžovém obláčku; za zády má jako svatozář okraj rozbitého porcelánového talíře slepený zlatem a kolem něj obíhají menší střípky",
+  noc: "Noc v rozpité tuši, popraskaná jako glazura: Střípek na obláčku zalévá štětcem trhliny svítivou žlutou, dole na papíře stojí miska s barvou",
+  lampion: "Střípek letí na obláčku a nese na bambusové tyči papírovou lucernu slepenou zlatem; kolem světla krouží malé střípky a za ním se sype zlatý prach",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "sz-staticky" });
+---
+<div class={`stripek-zlato ${cls}`} data-stripek-zlato={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/stripek-zlato/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .stripek-zlato {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .stripek-zlato:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .sz-staticky, .sz-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .sz-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

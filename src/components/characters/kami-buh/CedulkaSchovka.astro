@@ -1,0 +1,260 @@
+---
+/*
+  Cedulka na schovávanou — vzorník pro /marcel (čtvrtá podoba Cedulky),
+  postavený stejně jako PecinkaSchovka.astro, BublinkaSchovka.astro,
+  StripekSchovka.astro a HlinkaSchovka.astro vedle. Samotná kresba je
+  v ../schovka (Cedulka.astro a cedulka.ts) a je vždycky malá; tady jsou
+  čtyři barvy vedle sebe: na papíře, zmenšené až na 16 px, ve tmě a jak
+  vykukují zpoza hrany.
+
+  Kliknutí ukáže, jak ji hra „najde“: vyskočí, cinkne (zvuk webu, zlatá
+  zvoní výš) a rozletí se z ní malé jmenovky — tuš, sklo, zlato nebo
+  soumrak — s nimi pár ústřižků šňůrky a fajfky, kterými si nálezce
+  odškrtla.
+*/
+import Cedulka from "../schovka/Cedulka.astro";
+import { NAZVY } from "../schovka/pecinka";
+
+const BARVY = ["cerna", "pruhledna", "zlata", "logo"] as const;
+---
+<div class="ces" data-cedulka-schovka>
+  <p class="ces-stitek">Na papíře</p>
+  <ul class="ces-radek">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="ces-kus" data-barva={b} aria-label={`Cedulka na schovávanou — ${NAZVY[b]}`}>
+          <Cedulka barva={b} size={56} />
+        </button>
+        <span class="ces-nazev">{NAZVY[b]}</span>
+      </li>
+    ))}
+  </ul>
+
+  <p class="ces-stitek">Zmenšená · 32 · 24 · 16 px</p>
+  <ul class="ces-radek ces-male">
+    {BARVY.map((b) => (
+      <li>
+        {[32, 24, 16].map((v) => (
+          <button type="button" class="ces-kus" data-barva={b} aria-label={`${NAZVY[b]}, ${v} px`}>
+            <Cedulka barva={b} size={v} />
+          </button>
+        ))}
+      </li>
+    ))}
+  </ul>
+
+  <p class="ces-stitek">V noci</p>
+  <ul class="ces-radek ces-noc">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="ces-kus" data-barva={b} aria-label={`${NAZVY[b]} v noci`}>
+          <Cedulka barva={b} size={36} />
+        </button>
+      </li>
+    ))}
+  </ul>
+
+  <p class="ces-stitek">Vykukuje zpoza hrany</p>
+  <ul class="ces-radek ces-hrana">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="ces-kus" data-barva={b} aria-label={`${NAZVY[b]} vykukuje`}>
+          <Cedulka barva={b} size={40} poza="vykukuje" />
+        </button>
+        <span class="ces-deska" aria-hidden="true"></span>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  import * as zvuk from "../../../scripts/parta2/zvuk";
+
+  type Barva = "cerna" | "pruhledna" | "zlata" | "logo";
+  /* z čeho je která Cedulka: jmenovky v těch barvách, šňůrka ze dvou barev jako ta její a fajfky */
+  const CEDULE: Record<Barva, { jmenovky: string[]; pocet: number; snurka: [string, string]; fajfky: string[] }> = {
+    cerna: { jmenovky: ["#1E1A18", "#3A302A", "#2B2420"], pocet: 9, snurka: ["#1E1A18", "#6B5D4F"], fajfky: ["#1E1A18"] },
+    pruhledna: { jmenovky: ["#FFFFFF", "#CFE4F4", "#A9CBE2"], pocet: 9, snurka: ["#C4553A", "#FBF7EE"], fajfky: ["#FFFFFF", "#A9CBE2"] },
+    zlata: { jmenovky: ["#F2C95E", "#FFF2BC", "#C9922E", "#FFFFFF"], pocet: 10, snurka: ["#C99A3E", "#FFF2C4"], fajfky: ["#B8862A", "#F2C95E"] },
+    logo: { jmenovky: ["#C4432B", "#C0708A", "#7A5E8E", "#3E3C78"], pocet: 10, snurka: ["#C4432B", "#FBE9B7"], fajfky: ["#C4432B", "#7A5E8E", "#E2B95A"] },
+  };
+  const USTRIZKU = 4;
+  const FAJFEK = 3;
+  /* tři velikosti jmenovky (ces-jmenovka-a až c), ať nejsou všechny stejné */
+  const TVARY = "abc";
+  const klid = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+  /** jedna částice: vyletí ze středu pod úhlem u, otáčí se a spadne; tize je, o kolik víc padá, než letí */
+  function castice(kus: HTMLElement, trida: string, barva: string, u: number, vel: number, tize = 22) {
+    const s = document.createElement("span");
+    s.className = `ces-castice ${trida}`;
+    const d = vel * (0.55 + Math.random() * 0.6);
+    s.style.setProperty("--dx", `${(Math.cos(u) * d).toFixed(1)}px`);
+    s.style.setProperty("--dy", `${(Math.sin(u) * d * 0.8 - vel * 0.3).toFixed(1)}px`);
+    s.style.setProperty("--g", `${tize}px`);
+    s.style.setProperty("--r", `${Math.round(Math.random() * 540 - 270)}deg`);
+    s.style.setProperty("--d", `${(0.7 + Math.random() * 0.4).toFixed(2)}s`);
+    s.style.setProperty("--b", barva);
+    kus.append(s);
+    window.setTimeout(() => s.remove(), 1700);
+    return s;
+  }
+
+  function najdi(kus: HTMLElement) {
+    const barva = kus.dataset.barva as Barva;
+    kus.classList.remove("schovka-nalezena");
+    void kus.offsetWidth;
+    kus.classList.add("schovka-nalezena");
+    window.setTimeout(() => kus.classList.remove("schovka-nalezena"), 700);
+    if (barva === "zlata") zvuk.zlato();
+    else zvuk.nalezeno();
+    if (klid()) return;
+    const c = CEDULE[barva];
+    const vel = kus.getBoundingClientRect().width || 40;
+    /* jmenovky: lehké destičky, rozletí se dokola a snášejí se */
+    for (let i = 0; i < c.pocet; i++) {
+      castice(kus, `ces-jmenovka ces-jmenovka-${TVARY[i % TVARY.length]}`, c.jmenovky[i % c.jmenovky.length], (i / c.pocet) * Math.PI * 2 + Math.random() * 0.5, vel * 0.95, 18);
+    }
+    /* ústřižky šňůrky: vyletí nahoru a točí se; druhá barva pruhů jde zvlášť */
+    for (let i = 0; i < USTRIZKU; i++) {
+      const s = castice(kus, "ces-snurka", c.snurka[0], -Math.PI / 2 + (i - (USTRIZKU - 1) / 2) * 0.75 + Math.random() * 0.4, vel, 12);
+      s.style.setProperty("--b2", c.snurka[1]);
+    }
+    /* fajfky: nálezce je odškrtnutý — stoupají jedna za druhou, skoro se netočí a nepadají */
+    for (let i = 0; i < FAJFEK; i++) {
+      const f = castice(kus, "ces-fajfka", c.fajfky[i % c.fajfky.length], -Math.PI / 2 + (i - 1) * 0.5 + Math.random() * 0.2, vel * 1.1, -6);
+      f.style.setProperty("--r", `${Math.round(Math.random() * 30 - 15)}deg`);
+      f.style.setProperty("--d", `${(1.05 + i * 0.15).toFixed(2)}s`);
+      f.style.animationDelay = `${i * 90}ms`;
+    }
+  }
+
+  /* jeden posluchač na celý dokument: přežije i přechod mezi stránkami */
+  document.addEventListener("click", (e) => {
+    const kus = (e.target as Element | null)?.closest?.<HTMLElement>("[data-cedulka-schovka] .ces-kus");
+    if (kus) najdi(kus);
+  });
+</script>
+
+<style is:global>
+  /* Vzorník Cedulky na schovávanou; jmenovky, ústřižky šňůrky a fajfky vyrábí skript, proto globálně */
+  .ces {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: clamp(14px, 3.2vw, 28px);
+    border-radius: 18px;
+    background: var(--papir-2, #efe5d1);
+    box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.07);
+    text-align: center;
+  }
+  .ces-stitek {
+    margin: 8px 0 4px;
+    font-family: var(--f-display);
+    font-variation-settings: "SOFT" 100;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--inkoust-3, #8a7a69);
+    text-align: left;
+  }
+  .ces-stitek:first-child { margin-top: 0; }
+  .ces-radek {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    align-items: end;
+  }
+  .ces-radek li { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+  .ces-male li { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 4px clamp(3px, 0.8vw, 7px); }
+  .ces-nazev {
+    font-family: var(--f-display);
+    font-variation-settings: "SOFT" 100, "opsz" 24;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--inkoust-2, #5e4f44);
+  }
+  /* noc: tmavý pruh s pár hvězdami, tady se černá schová skoro úplně */
+  .ces-noc {
+    padding: 12px 6px;
+    border-radius: 12px;
+    background:
+      radial-gradient(1px 1px at 12% 28%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 37% 70%, #ede6cf 99%, transparent),
+      radial-gradient(1.2px 1.2px at 63% 22%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 88% 64%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 76% 86%, rgba(237, 230, 207, 0.6) 99%, transparent),
+      linear-gradient(#141734, #262a5c);
+  }
+  /* hrana: deska, za kterou se Cedulka schovává; jednou rukou se jí drží, v druhé má tužku a šňůrka nad ni vlaje první */
+  .ces-hrana li { gap: 0; }
+  .ces-deska {
+    display: block;
+    width: min(76px, 92%);
+    height: 16px;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(var(--papir-3, #e2d4b9), #d5c4a4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 1px 0 rgba(43, 36, 32, 0.06);
+  }
+  .ces-kus {
+    position: relative;
+    display: inline-flex;
+    padding: 2px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    line-height: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ces-hrana .ces-kus { padding: 2px 2px 0; margin-bottom: -1px; }
+  .ces-kus:focus-visible { outline: 2px solid var(--rumelka, #c4432b); outline-offset: 3px; }
+  /* co z ní vyletí: jmenovky v jejích barvách, ústřižky šňůrky a fajfky; mimo animaci nejsou vidět, takže fajfky můžou vyletět se zpožděním */
+  .ces-castice {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 9px;
+    margin: -4.5px 0 0 -3.5px;
+    background: var(--b);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+    animation: ces-let var(--d, 0.8s) cubic-bezier(0.15, 0.7, 0.35, 1);
+  }
+  @keyframes ces-let {
+    0% { transform: translate(0, 0) rotate(0deg) scale(0.6); opacity: 1; }
+    55% { opacity: 1; }
+    100% { transform: translate(var(--dx), calc(var(--dy) + var(--g, 22px))) rotate(var(--r)) scale(0.9); opacity: 0; }
+  }
+  /* jmenovka: domeček se štítem jako ona, ve štítě průhledná dírka; tři velikosti */
+  .ces-jmenovka {
+    background: radial-gradient(circle at 50% 30%, transparent 0 0.9px, var(--b) 1.3px);
+    clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%);
+  }
+  .ces-jmenovka-b { width: 9px; height: 11px; margin: -5.5px 0 0 -4.5px; }
+  .ces-jmenovka-c { width: 5px; height: 7px; margin: -3.5px 0 0 -2.5px; background: var(--b); }
+  /* ústřižek šňůrky: oblý proužek s pruhy ve dvou barvách */
+  .ces-snurka {
+    width: 3px;
+    height: 12px;
+    margin: -6px 0 0 -1.5px;
+    border-radius: 1.5px;
+    background: repeating-linear-gradient(var(--b) 0 2.4px, var(--b2, var(--b)) 2.4px 4.8px);
+  }
+  /* fajfka: zalomený tah vystřižený ze čtverce */
+  .ces-fajfka {
+    width: 11px;
+    height: 10px;
+    margin: -5px 0 0 -5.5px;
+    clip-path: polygon(0 56%, 16% 40%, 38% 62%, 84% 6%, 100% 22%, 40% 96%);
+    animation-timing-function: ease-out;
+  }
+</style>

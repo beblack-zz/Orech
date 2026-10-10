@@ -1,10 +1,11 @@
 /*
- * Pecinka s ohněm ve třech přehnaných podobách — generátory kresby.
+ * Pecinka s ohněm ve čtyřech přehnaných podobách — generátory kresby.
  * Komponenta: components/characters/kami-buh/PecinkaOhen.astro, běh: ./beh.js.
  *
- *   v1  Plamenná svatozář — kaen kóhai jako za Fudóem, zlato a lak, Pecinka na skále iwakura
- *   v2  Raku — v noční tuši vytáhne kleštěmi rozžhavenou misku a zakalí ji v kádi
- *   v3  Prskavka na vějíři — senkó hanabi na malovaném uchiwa, letní noc
+ *   v1       Plamenná svatozář — kaen kóhai jako za Fudóem, zlato a lak, Pecinka na skále iwakura
+ *   v2       Raku — v noční tuši vytáhne kleštěmi rozžhavenou misku a zakalí ji v kádi
+ *   v3       Prskavka na vějíři — senkó hanabi na malovaném uchiwa, letní noc
+ *   lampion  Jde s čóčinem — bez pozadí, z boku, chůze na geta, můry, čóčin-obake (id pcl-)
  *
  * Čisté generátory SVG: dostanou čas, stav simulace a vstup (myš, kliknutí)
  * a vrátí značky. Žádné DOM, takže běží i v Node a jde z nich udělat náhled
@@ -1506,6 +1507,757 @@ const V3 = (() => {
   };
 })();
 
+/* ═══════════════════════════════════════════════════════════════════
+ * LAMPION — Pecinka jde s čóčinem
+ * Stará podoba z Domku 2, kde parta chodí večer po chodníku
+ * s lucerničkami na tyčkách, tady přehnaně. Bez pozadí: Pecinka chodí,
+ * takže cestu jí dělá stránka, kam ji kdo postaví — v průvodu ji po
+ * chodníku posouvá CSS jako na Domku 2, sama jen kráčí na místě.
+ * Je natočená trochu z boku, ke směru chůze: vidíme čelo s tvářičkou
+ * a dvířky a vlevo od něj její pravý bok.
+ *
+ * Chůze na geta: karan… koron. Tělo se s každým krokem zhoupne
+ * a zakolébá, ručka na boku mává a druhá drží bambusovou tyč s papírovou
+ * lucernou čóčin — vpředu štětcem 火, vzadu sakura ze značky v kruhu jako
+ * rodový erb kamon. Lucerna se od kroků houpe jako kyvadlo a pomalu se
+ * točí na háčku, kolem krouží můry a pod geta se práší. Prach zůstává
+ * na cestě, a tak ujíždí dozadu — podle něj je vidět, že jde.
+ *
+ * Myš: Pecinka zvedne lucernu tam, kam ukazuje, a kouká na ni. Kdo s ní
+ * zatřese, svíčka zhasne a Pecinka ji zapálí jiskrou z vlastního komína.
+ * Kliknutí lucernu probudí: stoletá lucerna se podle pověsti stane
+ * čóčin-obake, otevře oko, roztrhne papír do úsměvu a vyplázne jazyk po
+ * nejbližší můře.
+ * ═══════════════════════════════════════════════════════════════════ */
+const VL = (() => {
+  const deg = (r) => (r * 180) / Math.PI;
+
+  /* ——— Natočení o 38° ke směru chůze ———
+     Čelo je čelní kresba zúžená na cos 38° a posunutá doprava (PRED),
+     vlevo od něj je vidět pravý bok. Souřadnice postavy 0–180 jako
+     u ostatních podob, nohy dopadají na y 159. */
+  const COS = 0.788, SIN = 0.616;
+  const PRED = `translate(37.6 0) scale(${COS} 1)`;
+  const TELO = { x: 43.4, y: 53, w: 100.6, h: 85, rx: 19 };
+  const HRANA = 73;
+  const KOMIN = { x: 100, y: 35, w: 20, h: 26, rx: 5.5 };
+  const obdelnikD = ({ x, y, w, h, rx }) =>
+    `M${x + rx} ${y} H${x + w - rx} A${rx} ${rx} 0 0 1 ${x + w} ${y + rx} V${y + h - rx} A${rx} ${rx} 0 0 1 ${x + w - rx} ${y + h} H${x + rx} A${rx} ${rx} 0 0 1 ${x} ${y + h - rx} V${y + rx} A${rx} ${rx} 0 0 1 ${x + rx} ${y} Z`;
+  const TELO_D = obdelnikD(TELO);
+  const KOMIN_D = obdelnikD(KOMIN);
+  const PROVAZ_BOK = "M74 63.4 Q60 66 43 61.8";
+  const RUKA = [157, 99];
+  const RAMENO = [140, 104];
+  const RAMENO_BOK = [57, 100];
+
+  /* ——— Postava v panelu: nohy na zemi v (FIG.x, FIG.y), lucerna vpravo před ní ——— */
+  const FIG = { x: 56, y: 150, s: 0.76 };
+  const FIGT = `translate(${FIG.x} ${FIG.y}) scale(${FIG.s}) translate(-90 -159)`;
+  const vPostave = (s) => `<g transform="${FIGT}">${s}</g>`;
+  const doPostavy = ([x, y]) => [90 + (x - FIG.x) / FIG.s, 159 + (y - FIG.y) / FIG.s];
+  const zPostavy = ([x, y]) => [FIG.x + (x - 90) * FIG.s, FIG.y + (y - 159) * FIG.s];
+
+  /* ——— Chůze ——— */
+  const KROK_T = 1.12;
+  const KROK = 17;
+  const OPORA = 0.56;
+  const NOHY = [{ x: -20, faze: 0, blizko: true }, { x: 20, faze: 0.5, blizko: false }];
+  /** Jak rychle ujíždí cesta pod nohama (v panelu za sekundu) — tak rychle by ji měl posouvat průvod */
+  const RYCHLOST = ((2 * KROK * SIN) / (OPORA * KROK_T)) * FIG.s;
+  const faze = (t) => (((t / KROK_T) % 1) + 1) % 1;
+  /** Tělo jde dvakrát za krok nahoru a kolébá se k noze, na které stojí */
+  const chuze = (fi) => ({ fi, zved: 2.2 * Math.pow(Math.sin(2 * Math.PI * fi), 2), kyv: -2.6 * Math.sin(2 * Math.PI * fi) });
+  /** Bod přilepený k tělu → panel, i s houpáním a kolébáním (stejně jako posun vrstev těla) */
+  const naTelo = ([x, y], ch) => {
+    const u = rad(ch.kyv), dx = (x - 90) * FIG.s, dy = (y - 159) * FIG.s;
+    return [FIG.x + dx * Math.cos(u) - dy * Math.sin(u), FIG.y + dx * Math.sin(u) + dy * Math.cos(u) - ch.zved * FIG.s];
+  };
+  const posunTela = (st) => ({ dx: 0, dy: -st.ch.zved * FIG.s, rot: st.ch.kyv, ox: FIG.x, oy: FIG.y });
+  /** Noha: na zemi jede dozadu (chůze na místě), ve vzduchu se zvedne, přenese dopředu a geta se překlopí z paty na špičku */
+  const noha = (n, fi) => {
+    const u = (((fi - n.faze) % 1) + 1) % 1;
+    let z, zved = 0, nakl = 0;
+    if (u < OPORA) z = lerp(KROK, -KROK, u / OPORA);
+    else {
+      const k = (u - OPORA) / (1 - OPORA);
+      z = lerp(-KROK, KROK, smooth(k));
+      zved = 8 * Math.sin(Math.PI * k);
+      nakl = 13 * Math.sin(2 * Math.PI * k) * (k < 0.5 ? 1 : 0.7);
+    }
+    return { X: 90 + n.x * COS + z * SIN, Y: 159 - zved + (n.blizko ? 1.2 : -1.2), zved, nakl };
+  };
+
+  /* ——— Lucerna v místních souřadnicích: háček v počátku, osa dolů ——— */
+  const LAMP = { hak: 3.4, kruh: [3.4, 7.4], telo: [7.4, 32.6], dno: [32.6, 36], r0: 7.6, r1: 11.8, stred: 20 };
+  const LS = 1.25;
+  const ZAVES = LAMP.stred * LS;
+  const TYC = 50;
+  const UHEL0 = -50;
+  const G = 260;
+  const polomer = (v) => LAMP.r0 + (LAMP.r1 - LAMP.r0) * Math.pow(Math.sin(Math.PI * clamp(v)), 0.7);
+  const vyskaNaV = (y) => (y - LAMP.telo[0]) / (LAMP.telo[1] - LAMP.telo[0]);
+  const TELO_L = (() => {
+    const P = [], Q = [];
+    for (let i = 0; i <= 16; i++) {
+      const v = i / 16, y = lerp(LAMP.telo[0], LAMP.telo[1], v), w = polomer(v);
+      P.push([w, y]);
+      Q.push([-w, y]);
+    }
+    return `${cara([...P, ...Q.reverse()])} Z`;
+  })();
+  /* Bambusová žebra higo: kroužky, které při pohledu shora trochu prohnou dolů */
+  const ZEBRA = (() => {
+    let d = "";
+    for (let i = 1; i < 12; i++) {
+      const v = i / 12, y = lerp(LAMP.telo[0], LAMP.telo[1], v), w = polomer(v), b = w * 0.14;
+      d += `M${f(-w)} ${f(y)} Q0 ${f(y + 2 * b)} ${f(w)} ${f(y)} `;
+    }
+    return d;
+  })();
+  /** Z místních souřadnic lucerny do panelu: háček na špičce T, lucerna vychýlená o th */
+  const svet = (T, th, [x, y]) => [T[0] + (x * Math.cos(th) + y * Math.sin(th)) * LS, T[1] + (-x * Math.sin(th) + y * Math.cos(th)) * LS];
+
+  /* 火 štětcem: dvě čárky nahoře, dlouhý tah doleva a rozmáchnutý doprava */
+  const KANJI = (() => {
+    const tahy = [
+      [[[-5.8, -4.1], [-5.2, -2.7], [-4.4, -1.3], [-3.9, -0.5]], (s) => 0.7 + 1.7 * Math.sin(Math.PI * Math.pow(s, 0.75))],
+      [[[5.7, -4.7], [5.1, -3.1], [4.2, -1.7], [3.4, -0.7]], (s) => 0.35 + 1.55 * (1 - s * 0.7)],
+      [[[0.2, -7.6], [0.35, -5], [0.3, -2.2], [-0.4, 0.6], [-1.8, 3], [-3.8, 5], [-6.7, 6.9]], (s) => 0.25 + 2.1 * Math.pow(1 - s, 0.7)],
+      [[[0.2, 0.6], [1.6, 2.4], [3.4, 4.2], [5.4, 5.6], [7.5, 6.6]], (s) => 0.6 + 2.5 * Math.pow(s, 1.3) * (s < 0.86 ? 1 : 1 - ((s - 0.86) / 0.14) * 0.75)],
+    ];
+    return `<g fill="#1E120C" transform="scale(0.84)">${tahy.map(([B, w]) => `<path d="${pasPoBodech(B, w)}"/>`).join("")}</g>`;
+  })();
+  /* Na zadní straně erb: sakura ze značky v kruhu (maru ni sakura) */
+  const PLATEK = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
+  const KAMON =
+    `<circle r="6.7" fill="none" stroke="#A8301C" stroke-width="1.1"/>` +
+    `<g fill="#B83A22" transform="scale(0.43)">${[0, 72, 144, 216, 288].map((u) => `<path d="${PLATEK}" transform="rotate(${u}) translate(0 -1.7)"/>`).join("")}</g>` +
+    `<circle r="1.1" fill="#F2C86A"/>`;
+  /* Můra zepředu: přední a zadní křídlo, druhá půlka je zrcadlo */
+  const KRIDLO_D = "M0 -0.4 C-1.3 -2.7 -4.3 -2.9 -4.6 -1.1 C-4.8 0.2 -3.2 0.7 -1.2 0.3 C-2.6 1 -3 2.6 -1.6 2.9 C-0.6 3.1 -0.1 1.9 0 1 Z";
+  const kridla = `<path d="${KRIDLO_D}"/><path d="${KRIDLO_D}" transform="scale(-1 1)"/>`;
+
+  /* ——— Cesta: stín, světlo lucerny a prach. Nic víc — pozadí si nese stránka. ——— */
+  const vrstvaZem = (st) => {
+    const S = clamp(st.S, 0, 1.4);
+    const lx = st.L[0];
+    const zem = FIG.y + 0.6;
+    let s = `<ellipse cx="${f(FIG.x + 2 - (lx - FIG.x) * 0.16 * clamp(S))}" cy="${f(zem)}" rx="${f(37 + 6 * clamp(S))}" ry="4.4" fill="url(#pcl-stin)"/>`;
+    s += `<ellipse cx="${FIG.x + 3}" cy="${f(zem - 0.3)}" rx="27" ry="2.6" fill="#2B2420" opacity="0.15"/>`;
+    if (S > 0.02) s += `<ellipse cx="${f(lx)}" cy="${f(zem + 0.4)}" rx="33" ry="5.6" fill="url(#pcl-kaluz)" opacity="${f(clamp(S))}"/>`;
+    /* prach od geta se rozletí do stran */
+    for (const p of st.prach) {
+      const r = rng(p.seed);
+      let g = "";
+      for (let i = 0; i < 5; i++) g += `<circle cx="${f(p.x + (i % 2 ? 1 : -1) * (0.6 + r() * 1.3) * p.r)}" cy="${f(p.y - r() * p.r * 0.7)}" r="${f(p.r * (0.38 + r() * 0.35))}"/>`;
+      s += `<g fill="#A8957A" opacity="${f(p.op)}">${g}</g>`;
+    }
+    return s;
+  };
+
+  /* ——— Nohy na geta, z boku: deska s horní hranou, dva zuby, nožka a páska hanao ——— */
+  const getaSvg = (p, daleko) =>
+    `<g transform="translate(${f(p.X)} ${f(p.Y)}) rotate(${f(p.nakl)}) scale(${daleko ? 0.8 : 0.86} 0.92)">` +
+    `<path d="M-11.4 -7.4 H-6.8 V-0.2 H-11.4 Z M6.8 -7.4 H11.4 V-0.2 H6.8 Z" fill="#8C6444" stroke="#6B5D4F" stroke-width="0.9" stroke-linejoin="round"/>` +
+    `<rect x="-15.5" y="-13.6" width="31" height="6.6" rx="1.5" fill="#C99A68" stroke="#6B5D4F" stroke-width="1.1"/>` +
+    `<path d="M-14 -11.8 H14" stroke="#E2BE8C" stroke-width="0.9" stroke-linecap="round"/>` +
+    `<ellipse cx="0.6" cy="-17.6" rx="10.2" ry="5.2" fill="${daleko ? "#7E2E18" : "#97391F"}"/>` +
+    `<path d="M9.4 -13.8 Q1.6 -23.6 -7.4 -13.8" stroke="${daleko ? "#A8382A" : "#C4432B"}" stroke-width="2.2" stroke-linecap="round" fill="none"/>` +
+    `</g>`;
+  const vrstvaNohy = (st) => {
+    /* nožky schované pod tělem, ať mezi tělem a nohou nikdy není mezera */
+    let s = st.nohy.map((p, i) => `<rect x="${f(p.X - 5.6)}" y="${f(124 - st.ch.zved)}" width="11.2" height="${f(Math.max(4, p.Y - 17.6 - (124 - st.ch.zved)))}" rx="4" fill="${NOHY[i].blizko ? "#97391F" : "#7E2E18"}"/>`).join("");
+    s += getaSvg(st.nohy[1], true) + getaSvg(st.nohy[0], false);
+    return vPostave(s);
+  };
+
+  /* ——— Tělo natočené z boku: kreslí se jednou, chůzi mu dává posun vrstvy ——— */
+  const provaz = (d) =>
+    `<path d="${d}" stroke="#C9B186" stroke-width="6.5" stroke-linecap="round" fill="none"/>` +
+    `<path d="${d}" stroke="#EBDDB8" stroke-width="5" stroke-linecap="round" fill="none"/>` +
+    `<path d="${d}" stroke="#C9B186" stroke-width="5" stroke-dasharray="1.6 4.4" fill="none"/>`;
+  const vrstvaTelo = () =>
+    vPostave(
+      `<g filter="url(#pcl-tah)">` +
+        `<path d="${KOMIN_D}" fill="url(#pcl-komin)" stroke="#7E2F18" stroke-width="1.3"/>` +
+        `<path d="M${KOMIN.x + 0.8} ${KOMIN.y + 4.6} H${KOMIN.x + KOMIN.w - 0.8}" stroke="#7E2F18" stroke-width="0.8" opacity="0.6"/>` +
+        `<path d="${TELO_D}" fill="url(#pcl-telo34)"/>` +
+        `<path d="${TELO_D}" fill="url(#pcl-bok-g)" clip-path="url(#pcl-bok)"/>` +
+        `<rect x="${HRANA - 5}" y="${TELO.y}" width="10" height="${TELO.h}" fill="url(#pcl-hrana)" clip-path="url(#pcl-telo-orez)"/>` +
+        `<path d="${TELO_D}" fill="none" stroke="#7E2F18" stroke-width="1.6"/>` +
+        `<g transform="${PRED}"><rect x="62" y="93" width="56" height="35" rx="8" fill="#3A2E28" fill-opacity="0.42"/></g>` +
+        provaz(PROVAZ_BOK) +
+        `<g transform="${PRED}">${provaz(PEC.provaz)}</g>` +
+        `</g>`,
+    );
+  /* Ve dvířkách hoří vlastní ohýnek. Když lucerna zhasne, rozfouká ho, než pošle jiskru. */
+  const vrstvaDvirka = (st) => {
+    const I = st.vyhen;
+    let s = `<rect x="62" y="93" width="56" height="35" rx="8" fill="url(#pcl-vyhen)" opacity="${f(clamp(0.38 + 0.35 * I))}"/>`;
+    for (const [barva, kk, W] of [["#C4432B", 1, 7.4], ["#F29A3B", 0.68, 5], ["#FBE3A0", 0.4, 3]]) {
+      let g = "";
+      [76, 84, 91, 98, 105].forEach((x, i) => {
+        const L = (7.5 + (i % 2 ? 2.4 : 0) + (i === 2 ? 4 : 0)) * kk * (0.62 + 0.4 * I) * (1 + 0.14 * Math.sin(st.t * (5 + i) + i * 2));
+        g += `<path d="${jazyk({ B: [x, 128.6], th0: -Math.PI / 2, L, W, c: i < 2 ? 1 : i > 2 ? -1 : 1, stoc: 1.6, t: st.t, w: 5 + i * 0.6, fz: i * 1.7, vitr: -0.35, vlna: 0.4 }).d}"/>`;
+      });
+      s += `<g fill="${barva}">${g}</g>`;
+    }
+    return vPostave(`<g transform="${PRED}"><g clip-path="url(#pcl-dvirka)">${s}</g><rect x="62" y="93" width="56" height="35" rx="8" fill="none" stroke="#7E2F18" stroke-width="1.1"/></g>`);
+  };
+  /* Lucerna svítí na čelo, bok zůstává ve stínu */
+  const vrstvaSvit = (st) => {
+    const S = clamp(st.S, 0, 1.4);
+    if (S < 0.02) return "";
+    const [cx, cy] = doPostavy(st.L);
+    return vPostave(
+      `<defs><radialGradient id="pcl-svit-g" gradientUnits="userSpaceOnUse" cx="${f(cx)}" cy="${f(cy + st.ch.zved)}" r="118">` +
+        `<stop offset="0" stop-color="#FFC27A" stop-opacity="${f(clamp(0.7 * S))}"/><stop offset="0.45" stop-color="#F08A44" stop-opacity="${f(clamp(0.28 * S))}"/><stop offset="1" stop-color="#F08A44" stop-opacity="0"/></radialGradient></defs>` +
+        `<g clip-path="url(#pcl-cela)" fill="url(#pcl-svit-g)"><path d="${TELO_D}"/><path d="${KOMIN_D}"/></g>`,
+    );
+  };
+  const vrstvaTvar = (st) =>
+    vPostave(
+      `<g transform="${PRED}">${pecTvar("pcl", {
+        dx: st.pohled[0], dy: st.pohled[1], mrk: st.mrk, oci: st.oci, usta: st.usta, tvare: 0.3 + 0.3 * clamp(st.S),
+        odlesk: st.S > 0.08 ? { barva: "#FFC86A", sila: clamp(0.3 + 0.55 * st.S) } : null,
+      })}</g>`,
+    );
+  /* Papírky shide vlají dozadu, jak jde, a poskakují s každým krokem */
+  const vrstvaShide = (st) =>
+    vPostave(
+      `<g transform="${PRED}">${pecShide([st.shide[0], st.shide[1]])}</g>` +
+        `<path d="${SHIDE_D}" transform="translate(57.5 64.8) scale(${SIN} 1) rotate(${f(st.shide[2])})" fill="#F1EBDF" stroke="#8A7A69" stroke-width="0.7" stroke-linejoin="round"/>`,
+    );
+  /* Ručka na boku mává proti blízké noze */
+  const vrstvaRukaBok = (st) => {
+    const psi = 0.25 - 0.75 * Math.cos(2 * Math.PI * st.ch.fi);
+    const H = [RAMENO_BOK[0] + 17 * Math.sin(psi), RAMENO_BOK[1] + 15 * Math.cos(psi)];
+    return vPostave(rucka(RAMENO_BOK, H, { tloustka: 6, barva: "#B04A2E", obrys: "#7E2F18", ohyb: 0.4 }) + `<circle cx="${f(H[0] - 1.2)}" cy="${f(H[1] - 1.4)}" r="1.4" fill="#E08A62" opacity="0.6"/>`);
+  };
+  const vrstvaKomin = (st) => {
+    const [kx, ky] = naTelo([110, 34], st.ch);
+    let s = "";
+    for (let i = 0; i < 5; i++) {
+      const u = (((st.t * 0.12 + i / 5) % 1) + 1) % 1;
+      /* kouř zůstává ve vzduchu, Pecinka mu odchází: unáší ho dozadu */
+      const x = kx + Math.sin(u * 4.4 + i) * 2 * u - u * RYCHLOST * 3.4, y = ky - 1.5 - u * 40;
+      s += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(2.4 + u * 7.5)}" fill="url(#pcl-kour)" opacity="${f(0.45 * (1 - u) * smooth(u * 5))}"/>`;
+    }
+    if (st.kominPlamen > 0.01) {
+      for (const [barva, kk, W] of [["#9A2716", 1, 6.4], ["#E0582E", 0.74, 4.6], ["#F6C15A", 0.48, 3], ["#FFF3CF", 0.24, 1.7]]) {
+        s += `<path d="${jazyk({ B: [kx, ky + 1.2], th0: -Math.PI / 2, L: 15 * st.kominPlamen * kk, W: W * (0.8 + 0.3 * st.kominPlamen), c: -1, stoc: 1.5, stoupani: 0.9, t: st.t, w: 7, fz: 1.3, vitr: -0.5, vlna: 0.5 }).d}" fill="${barva}"/>`;
+      }
+    }
+    return s;
+  };
+
+  /* ——— Tyč, lucerna a všechno kolem ní (v panelu) ——— */
+  const tycSvg = (st) => {
+    const { H, T } = st;
+    const d = [T[0] - H[0], T[1] - H[1]];
+    const n = Math.hypot(d[0], d[1]) || 1;
+    const u = [d[0] / n, d[1] / n];
+    const B0 = [H[0] - u[0] * 20, H[1] - u[1] * 20];
+    const sag = 1.2 + st.ohyb * 0.5;
+    const M = [H[0] + d[0] * 0.5 - u[1] * sag, H[1] + d[1] * 0.5 + u[0] * sag];
+    const c = `M${pt(B0)} L${pt(H)} Q${pt(M)} ${pt(T)}`;
+    const bod = (q) => [lerp(lerp(H[0], M[0], q), lerp(M[0], T[0], q), q), lerp(lerp(H[1], M[1], q), lerp(M[1], T[1], q), q)];
+    const kolinka = [0.3, 0.62, 0.92]
+      .map((q) => {
+        const p = bod(q);
+        return `<path d="M${pt([p[0] - u[1] * 1.1, p[1] + u[0] * 1.1])} L${pt([p[0] + u[1] * 1.1, p[1] - u[0] * 1.1])}"/>`;
+      })
+      .join("");
+    return (
+      `<path d="${c}" stroke="#4A361E" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>` +
+      `<path d="${c}" stroke="#B08A52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>` +
+      `<path d="${c}" stroke="#E8CE98" stroke-width="0.45" stroke-linecap="round" fill="none" opacity="0.7" transform="translate(${f(u[1] * 0.4)} ${f(-u[0] * 0.4)})"/>` +
+      `<g stroke="#6E5230" stroke-width="0.7" stroke-linecap="round">${kolinka}</g>`
+    );
+  };
+  const znaky = (st) => {
+    let s = "";
+    const inkoust = clamp(0.3 + 0.65 * clamp(st.S)) * (1 - 0.75 * st.obakeTvar);
+    for (const [uhel, kresba] of [[0, KANJI], [Math.PI, KAMON]]) {
+      const a = st.phi + uhel;
+      const c = Math.cos(a);
+      if (c < 0.06) continue;
+      s += `<g transform="translate(${f(Math.sin(a) * 9.6)} 19.6) scale(${f(c)} 1)" opacity="${f(inkoust * clamp(c * 1.8))}">${kresba}</g>`;
+    }
+    return s;
+  };
+  /* Čóčin-obake: oko a roztržená ústa s cáry papíru */
+  const obakeTvar = (st) => {
+    const o = st.obake;
+    if (!o) return "";
+    let s = "";
+    if (o.usta > 0.01) {
+      const y0 = 24.6, w = polomer(vyskaNaV(y0)) - 1.4, h = 6.6 * o.usta;
+      s += `<path d="M${f(-w)} ${y0} Q0 ${f(y0 - 1.6)} ${f(w)} ${y0} Q${f(w * 0.55)} ${f(y0 + h * 1.25)} 0 ${f(y0 + h * 1.3)} Q${f(-w * 0.55)} ${f(y0 + h * 1.25)} ${f(-w)} ${y0} Z" fill="url(#pcl-usta)" stroke="#4A1208" stroke-width="0.5" stroke-linejoin="round"/>`;
+      let zuby = "";
+      for (let i = -3; i <= 3; i++) {
+        const x = (i * w) / 3.8, k = 1 - (x / w) ** 2;
+        const yh = y0 - 0.8 * k, yd = y0 + h * 1.28 * k;
+        zuby += `M${f(x - 1)} ${f(yh)} L${f(x)} ${f(yh + 1.7 * o.usta)} L${f(x + 1)} ${f(yh)} Z `;
+        if (Math.abs(i) < 3) zuby += `M${f(x - 0.9)} ${f(yd)} L${f(x + 0.3)} ${f(yd - 1.5 * o.usta)} L${f(x + 1)} ${f(yd)} Z `;
+      }
+      s += `<path d="${zuby}" fill="#F2A55A" stroke="#4A1208" stroke-width="0.3" stroke-linejoin="round"/>`;
+    }
+    if (o.oko > 0.01) {
+      const E = [-0.4, 15.4], rx = 4.8, ry = 3.4 * o.oko;
+      const r = rng(5);
+      const B = Array.from({ length: 18 }, (_, i) => {
+        const a = (i / 18) * Math.PI * 2, k = 1.22 + (i % 2 ? 0.16 : -0.05) + r() * 0.1;
+        return [E[0] + Math.cos(a) * rx * k, E[1] + Math.sin(a) * ry * k];
+      });
+      s += `<path d="${cara(B)} Z" fill="#4A1208"/>`;
+      s += `<ellipse cx="${E[0]}" cy="${E[1]}" rx="${rx}" ry="${f(ry)}" fill="#FFF6E2"/>`;
+      const [px, py] = o.pohled;
+      s += `<ellipse cx="${f(E[0] + px)}" cy="${f(E[1] + py * o.oko)}" rx="2.2" ry="${f(Math.min(2.2, ry * 0.85))}" fill="#2A160E"/>`;
+      s += `<ellipse cx="${f(E[0] + px)}" cy="${f(E[1] + py * o.oko)}" rx="1.05" ry="${f(Math.min(1.05, ry * 0.5))}" fill="#050302"/>`;
+      if (o.oko > 0.6) s += `<circle cx="${f(E[0] + px - 0.7)}" cy="${f(E[1] + py - 0.8)}" r="0.55" fill="#FFFFFF"/>`;
+    }
+    return s;
+  };
+  const lucerna = (st) => {
+    const sv = clamp(st.S);
+    const bloom = Math.max(0, st.S - 1);
+    const barvy = ["#FFF6D8", "#FFD27A", "#F4963E", "#C85A2A"].map((c) => mix(mix("#5A4A3E", c, sv), "#FFFFFF", bloom * 0.35));
+    let s = `<defs><radialGradient id="pcl-papir" cx="0.5" cy="0.56" r="0.62">${[0, 0.35, 0.75, 1].map((o, i) => `<stop offset="${o}" stop-color="${barvy[i]}"/>`).join("")}</radialGradient></defs>`;
+    s += `<path d="M0 -0.6 V${LAMP.hak}" stroke="#2A2420" stroke-width="0.8"/><circle cx="0" cy="-1.3" r="1" fill="none" stroke="#2A2420" stroke-width="0.6"/>`;
+    s += `<path d="${TELO_L}" fill="url(#pcl-papir)"/>`;
+    s += `<g clip-path="url(#pcl-telo-lamp)">`;
+    /* plamínek svíčky prosvítá papírem; kývá se a při chůzi se kloní dozadu */
+    if (sv > 0.02) {
+      s += `<ellipse cx="${f(st.svicka)}" cy="22.6" rx="${f(3.3 + st.mihot * 0.6)}" ry="${f(5.4 + st.mihot)}" fill="#FFFBEA" opacity="${f(0.45 * sv)}"/>`;
+      s += `<ellipse cx="${f(st.svicka * 1.3)}" cy="21.6" rx="1.3" ry="2.6" fill="#FFFFFF" opacity="${f(0.4 * sv)}"/>`;
+    }
+    s += znaky(st);
+    s += `<path d="${ZEBRA}" fill="none" stroke="${mix("#3A2E26", "#B4602E", sv)}" stroke-width="0.42" opacity="0.7"/>`;
+    s += `<path d="${TELO_L}" fill="url(#pcl-papir-boky)"/><path d="${TELO_L}" fill="url(#pcl-papir-konce)"/>`;
+    s += obakeTvar(st);
+    s += `</g>`;
+    s += `<path d="${TELO_L}" fill="none" stroke="#8A4A26" stroke-width="0.4" opacity="0.6"/>`;
+    /* lakované kroužky */
+    s += `<rect x="${-LAMP.r0 - 0.5}" y="${LAMP.kruh[0]}" width="${2 * LAMP.r0 + 1}" height="${LAMP.kruh[1] - LAMP.kruh[0]}" rx="1.1" fill="#1A1412"/>`;
+    s += `<path d="M${-LAMP.r0} ${LAMP.kruh[0] + 0.6} H${LAMP.r0}" stroke="#55453A" stroke-width="0.5"/><path d="M${-LAMP.r0} ${f(LAMP.kruh[1] - 0.7)} H${LAMP.r0}" stroke="#8E2A1C" stroke-width="0.6"/>`;
+    s += `<rect x="${-LAMP.r0 - 0.5}" y="${LAMP.dno[0]}" width="${2 * LAMP.r0 + 1}" height="${f(LAMP.dno[1] - LAMP.dno[0])}" rx="1.1" fill="#1A1412"/>`;
+    s += `<path d="M${-LAMP.r0} ${f(LAMP.dno[0] + 0.7)} H${LAMP.r0}" stroke="#8E2A1C" stroke-width="0.6"/>`;
+    if (sv > 0.02) s += `<path d="M${-LAMP.r0 + 0.6} ${f(LAMP.kruh[1] - 0.2)} H${LAMP.r0 - 0.6} M${-LAMP.r0 + 0.6} ${f(LAMP.dno[0] + 0.2)} H${LAMP.r0 - 0.6}" stroke="#FFB868" stroke-width="0.35" opacity="${f(0.8 * sv)}"/>`;
+    return s;
+  };
+  const strapecSvg = (st) => {
+    const B = svet(st.T, st.th, [0, LAMP.dno[1]]);
+    return (
+      `<g transform="translate(${f(B[0])} ${f(B[1])}) rotate(${f(-deg(st.strapec))}) scale(${LS})">` +
+      `<path d="M0 0 V2.6" stroke="#8E2A1C" stroke-width="0.6"/><circle cx="0" cy="3.3" r="0.9" fill="#C4432B"/>` +
+      `<path d="M-1.1 3.8 L1.1 3.8 L1.6 10.4 Q0 11.2 -1.6 10.4 Z" fill="#B23A26"/>` +
+      `<path d="M-0.6 4.4 V10.2 M0 4.4 V10.6 M0.6 4.4 V10.2" stroke="#7A2214" stroke-width="0.3"/></g>`
+    );
+  };
+  const jazykSvg = (o) => {
+    const R0 = o.koren, K = o.spicka;
+    const d = [K[0] - R0[0], K[1] - R0[1]];
+    const n = Math.hypot(d[0], d[1]);
+    if (n < 0.8) return "";
+    let perp = [-d[1] / n, d[0] / n];
+    if (perp[1] < 0) perp = [-perp[0], -perp[1]];
+    const sag = Math.min(7, n * 0.2);
+    const C = [(R0[0] + K[0]) / 2 + perp[0] * sag, (R0[1] + K[1]) / 2 + perp[1] * sag];
+    const B = Array.from({ length: 13 }, (_, i) => {
+      const q = i / 12;
+      return [lerp(lerp(R0[0], C[0], q), lerp(C[0], K[0], q), q), lerp(lerp(R0[1], C[1], q), lerp(C[1], K[1], q), q)];
+    });
+    return (
+      `<path d="${pasPoBodech(B, (q) => 3.9 * (1 - 0.5 * q))}" fill="#C9372E" stroke="#5E120E" stroke-width="0.45" stroke-linejoin="round"/>` +
+      `<circle cx="${f(K[0])}" cy="${f(K[1])}" r="1.1" fill="#C9372E"/>` +
+      `<path d="${cara(B.slice(1, -1))}" stroke="#F28A7C" stroke-width="0.5" fill="none" opacity="0.8" stroke-linecap="round"/>`
+    );
+  };
+  const muraSvg = (m, st, chycena = false) => {
+    const sv = clamp(st.S) * m.pritomna;
+    const pred = m.z > 0 && !chycena;
+    const barva = chycena ? "#E2C08E" : pred ? mix("#6A6458", "#2A2018", sv) : mix("#8A7C68", "#E2C08E", sv);
+    const telo = pred ? mix("#4A4458", "#1A120C", sv) : mix("#5A4C3C", "#8A6A48", sv);
+    return (
+      `<g transform="translate(${f(m.x)} ${f(m.y)}) rotate(${f(m.nakl)}) scale(${f(m.sc * 0.95)})" opacity="${f(clamp(m.pritomna * 1.2))}">` +
+      `<g transform="scale(${f(m.sp)} 1)" fill="${barva}" stroke="#5A4632" stroke-width="${pred ? 0 : 0.3}">${kridla}</g>` +
+      `<ellipse cx="0" cy="0.5" rx="0.5" ry="1.5" fill="${telo}"/>` +
+      `<path d="M-0.25 -0.9 L-1 -2.4 M0.25 -0.9 L1 -2.4" stroke="${telo}" stroke-width="0.22"/></g>`
+    );
+  };
+  const vrstvaTyc = (st) => tycSvg(st);
+  const vrstvaLampion = (st) => {
+    /* vzdálená ručka drží tyč: z kraje čela k dlani */
+    let s = vPostave(rucka(doPostavy(naTelo(RAMENO, st.ch)), doPostavy(st.H), { tloustka: 5.2, barva: "#A8432A", obrys: "#7E2F18" }));
+    s += `<g transform="translate(${f(st.T[0])} ${f(st.T[1])}) rotate(${f(-deg(st.th))}) scale(${LS})">${lucerna(st)}</g>`;
+    s += strapecSvg(st);
+    if (st.obake && st.obake.jazyk > 0.02) {
+      s += jazykSvg(st.obake);
+      if (st.obake.mura) s += muraSvg(st.obake.mura, st, true);
+    }
+    return s;
+  };
+  const vrstvaMury = (vpredu) => (st) => st.mury.filter((m) => !m.chycena && (m.z > 0) === vpredu).map((m) => muraSvg(m, st)).join("");
+  const vrstvaZare = (st) => {
+    let s = "";
+    const S = clamp(st.S, 0, 1.6);
+    if (S > 0.01) {
+      const [lx, ly] = st.L;
+      const r = 36 + 8 * S;
+      s +=
+        `<defs><radialGradient id="pcl-zare-g" gradientUnits="userSpaceOnUse" cx="${f(lx)}" cy="${f(ly)}" r="${f(r)}">` +
+        `<stop offset="0" stop-color="#FFD890" stop-opacity="${f(clamp(0.42 * S))}"/><stop offset="0.4" stop-color="#FFA050" stop-opacity="${f(clamp(0.16 * S))}"/><stop offset="1" stop-color="#FFA050" stop-opacity="0"/></radialGradient></defs>` +
+        `<circle cx="${f(lx)}" cy="${f(ly)}" r="${f(r)}" fill="url(#pcl-zare-g)"/>` +
+        /* ze spodního otvoru padá světlo na cestu */
+        `<g transform="translate(${f(st.T[0])} ${f(st.T[1])}) rotate(${f(-deg(st.th))}) scale(${LS})"><path d="M-6.4 36 L6.4 36 L14 ${f((FIG.y + 1 - st.T[1]) / LS)} L-14 ${f((FIG.y + 1 - st.T[1]) / LS)} Z" fill="url(#pcl-kuzel)" opacity="${f(clamp(0.32 * S))}"/></g>`;
+    }
+    if (st.jiskra) {
+      const { p, stopa } = st.jiskra;
+      s += stopa.map(([x, y], i) => `<circle cx="${f(x)}" cy="${f(y)}" r="${f(1.5 - i * 0.22)}" fill="#FF9A3A" opacity="${f(0.8 - i * 0.12)}"/>`).join("");
+      s += `<circle cx="${f(p[0])}" cy="${f(p[1])}" r="6" fill="url(#pcl-jiskra)"/><circle cx="${f(p[0])}" cy="${f(p[1])}" r="0.9" fill="#FFFBEA"/>`;
+    }
+    return s;
+  };
+
+  const defs = () =>
+    pecDefs("pcl") +
+    `<clipPath id="pcl-telo-orez"><path d="${TELO_D}"/></clipPath>` +
+    `<clipPath id="pcl-bok"><rect x="${TELO.x - 2}" y="${TELO.y - 2}" width="${HRANA - TELO.x + 2}" height="${TELO.h + 4}"/></clipPath>` +
+    `<clipPath id="pcl-cela"><rect x="${HRANA}" y="20" width="90" height="130"/></clipPath>` +
+    `<clipPath id="pcl-dvirka"><rect x="62" y="93" width="56" height="35" rx="8"/></clipPath>` +
+    `<clipPath id="pcl-telo-lamp"><path d="${TELO_L}"/></clipPath>` +
+    `<radialGradient id="pcl-telo34" cx="0.6" cy="0.26" r="0.82"><stop offset="0" stop-color="#D2704C"/><stop offset="0.55" stop-color="#B84A2B"/><stop offset="1" stop-color="#97391F"/></radialGradient>` +
+    `<linearGradient id="pcl-bok-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4A1A0C" stop-opacity="0.5"/><stop offset="0.34" stop-color="#5A2210" stop-opacity="0.26"/></linearGradient>` +
+    `<linearGradient id="pcl-hrana" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F2A27A" stop-opacity="0"/><stop offset="0.55" stop-color="#F2A27A" stop-opacity="0.38"/><stop offset="1" stop-color="#F2A27A" stop-opacity="0"/></linearGradient>` +
+    `<linearGradient id="pcl-komin" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7E2E1A"/><stop offset="0.42" stop-color="#8A3420"/><stop offset="0.48" stop-color="#B85438"/><stop offset="1" stop-color="#A8432A"/></linearGradient>` +
+    `<radialGradient id="pcl-stin"><stop offset="0" stop-color="#2B2420" stop-opacity="0.3"/><stop offset="0.6" stop-color="#2B2420" stop-opacity="0.14"/><stop offset="1" stop-color="#2B2420" stop-opacity="0"/></radialGradient>` +
+    `<radialGradient id="pcl-kaluz"><stop offset="0" stop-color="#FFB860" stop-opacity="0.5"/><stop offset="0.55" stop-color="#F59A4E" stop-opacity="0.2"/><stop offset="1" stop-color="#F59A4E" stop-opacity="0"/></radialGradient>` +
+    `<radialGradient id="pcl-kour"><stop offset="0" stop-color="#6B5D4F" stop-opacity="0.6"/><stop offset="1" stop-color="#6B5D4F" stop-opacity="0"/></radialGradient>` +
+    `<radialGradient id="pcl-vyhen" cx="0.5" cy="1.05" r="0.8"><stop offset="0" stop-color="#FFB45A" stop-opacity="0.95"/><stop offset="0.4" stop-color="#E0582E" stop-opacity="0.55"/><stop offset="0.85" stop-color="#9A2E16" stop-opacity="0"/></radialGradient>` +
+    `<radialGradient id="pcl-usta" cx="0.5" cy="0.45" r="0.6"><stop offset="0" stop-color="#FFF4C0"/><stop offset="0.45" stop-color="#F7963E"/><stop offset="1" stop-color="#7A1C0C"/></radialGradient>` +
+    `<linearGradient id="pcl-papir-boky" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3A140A" stop-opacity="0.55"/><stop offset="0.24" stop-color="#3A140A" stop-opacity="0"/><stop offset="0.72" stop-color="#3A140A" stop-opacity="0"/><stop offset="1" stop-color="#3A140A" stop-opacity="0.6"/></linearGradient>` +
+    `<linearGradient id="pcl-papir-konce" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A140A" stop-opacity="0.5"/><stop offset="0.16" stop-color="#3A140A" stop-opacity="0"/><stop offset="0.84" stop-color="#3A140A" stop-opacity="0"/><stop offset="1" stop-color="#3A140A" stop-opacity="0.55"/></linearGradient>` +
+    `<linearGradient id="pcl-kuzel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD890" stop-opacity="0.7"/><stop offset="1" stop-color="#FFD890" stop-opacity="0"/></linearGradient>` +
+    `<radialGradient id="pcl-jiskra"><stop offset="0" stop-color="#FFF4D0"/><stop offset="0.3" stop-color="#FFB050" stop-opacity="0.7"/><stop offset="1" stop-color="#FF7A2A" stop-opacity="0"/></radialGradient>` +
+    `<filter id="pcl-tah" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4" result="vlna"/><feDisplacementMap in="SourceGraphic" in2="vlna" scale="2.2" xChannelSelector="R" yChannelSelector="G"/></filter>`;
+
+  /* ——— Simulace ——— */
+  const novaMura = (R, zdaleka) => ({
+    a: R() * Math.PI * 2, smer: R() < 0.5 ? -1 : 1, va: 2 + R() * 1.8, r0: 17 + R() * 6, r: zdaleka ? 70 + R() * 30 : 17 + R() * 6,
+    h0: -9 + R() * 10, fz: R() * 6.28, w1: 0.7 + R() * 0.8, w2: 1.5 + R() * 1.2, mav: 26 + R() * 12, pritomna: zdaleka ? 0 : 1,
+    chycena: false, nalet: 0, x: 0, y: 0, z: 0,
+  });
+  const novaDynamika = () => {
+    const R = rng(1919);
+    return {
+      nahoda: R, uhel: UHEL0, uhelV: 0, posun: [0, 0], posunV: [0, 0], ohyb: 1.1, ohybV: 0, mys: null, Tp: null, Vp: null, aT: [0, 0],
+      kyv: { th: -0.08, om: 0 }, strapec: { th: -0.08, om: 0 }, toc: { phi: 0.3, om: 0 },
+      S: 1, hori: true, zhasnuto: -10, zapaleno: -10, jiskra: null, obake: null,
+      mury: Array.from({ length: 3 }, () => novaMura(R, false)), prach: [], sust: 0, zvuk: [], pohled: [0, 0],
+      otres: { x: { smer: 0, kraj: null, casy: [] }, y: { smer: 0, kraj: null, casy: [] } },
+    };
+  };
+  const dlan = (d, ch) => {
+    const H0 = naTelo(RUKA, ch);
+    return [H0[0] + d.posun[0], H0[1] + d.posun[1]];
+  };
+  const spicka = (d, H) => {
+    const U = rad(d.uhel);
+    return [H[0] + TYC * Math.cos(U), H[1] + TYC * Math.sin(U) + d.ohyb];
+  };
+  const JISKRA_LET = [0.35, 0.95];
+  /** Jiskra z komína: nejdřív komín vzplane, pak letí obloukem do lucerny */
+  const stavJiskry = (d, t, L, ch) => {
+    if (!d.jiskra) return null;
+    const u = t - d.jiskra.t0;
+    const [a, b] = JISKRA_LET;
+    if (u < a) return { plamen: Math.sin((Math.PI * u) / (a + 0.1)), p: null };
+    const C = naTelo([110, 32], ch);
+    const poloha = (q) => {
+      q = clamp(q);
+      const e = smooth(q);
+      return [lerp(C[0], L[0], e), lerp(C[1], L[1], e) - 24 * Math.sin(Math.PI * q)];
+    };
+    const q = (u - a) / (b - a);
+    return { plamen: Math.max(0, 1 - (u - a) / 0.3), p: poloha(q), stopa: [1, 2, 3, 4].map((i) => poloha(q - i * 0.035)) };
+  };
+  const krok = (dyn, t, dt, vstup) => {
+    if (dt <= 0) return;
+    const R = dyn.nahoda;
+    const klik = vstup.kliky && vstup.kliky.length > 0;
+    if (klik) vstup.kliky.length = 0;
+    if (vstup.mys) {
+      if (!dyn.mys) dyn.mys = [vstup.mys.x, vstup.mys.y];
+      const k = 1 - Math.exp(-dt / 0.045);
+      dyn.mys = [dyn.mys[0] + (vstup.mys.x - dyn.mys[0]) * k, dyn.mys[1] + (vstup.mys.y - dyn.mys[1]) * k];
+    } else dyn.mys = null;
+    const ch = chuze(faze(t));
+    const H0 = naTelo(RUKA, ch);
+    /* myš: Pecinka zvedne lucernu tam, kam ukazuje */
+    let cilUhel = UHEL0 + Math.sin(t * 0.7) * 2.5, cilPosun = [0, 0];
+    if (dyn.mys) {
+      const [mx, my] = dyn.mys;
+      cilUhel = clamp(deg(Math.atan2(my - ZAVES - H0[1], mx - H0[0])), -84, -16);
+      cilPosun = [clamp((mx - H0[0]) * 0.05, -3, 4), clamp((my - H0[1]) * 0.05, -4, 3)];
+    }
+    const KU = 120, DU = 2 * Math.sqrt(KU) * 0.7;
+    dyn.uhelV += (KU * (cilUhel - dyn.uhel) - DU * dyn.uhelV) * dt;
+    dyn.uhel += dyn.uhelV * dt;
+    const KP = 110, DP = 2 * Math.sqrt(KP) * 0.75;
+    for (const i of [0, 1]) {
+      dyn.posunV[i] += (KP * (cilPosun[i] - dyn.posun[i]) - DP * dyn.posunV[i]) * dt;
+      dyn.posun[i] += dyn.posunV[i] * dt;
+    }
+    /* tyč se pod lucernou prohne a pruží */
+    const k = dyn.kyv;
+    const napeti = G * Math.cos(k.th) + ZAVES * k.om * k.om;
+    const KO = 160, DO = 2 * Math.sqrt(KO) * 0.35;
+    dyn.ohybV += (KO * ((1.1 * napeti) / G - dyn.ohyb) - DO * dyn.ohybV) * dt;
+    dyn.ohyb += dyn.ohybV * dt;
+    /* zrychlení špičky tyče (chůze, ruka, tyč) rozhoupe lucernu */
+    const T = spicka(dyn, [H0[0] + dyn.posun[0], H0[1] + dyn.posun[1]]);
+    let a = [0, 0];
+    if (dyn.Tp) {
+      const v = [(T[0] - dyn.Tp[0]) / dt, (T[1] - dyn.Tp[1]) / dt];
+      if (dyn.Vp) a = [(v[0] - dyn.Vp[0]) / dt, (v[1] - dyn.Vp[1]) / dt];
+      dyn.Vp = v;
+    }
+    dyn.Tp = T;
+    const vel = Math.hypot(a[0], a[1]);
+    if (vel > G * 3) a = a.map((q) => (q * G * 3) / vel);
+    dyn.aT = dyn.aT.map((q, i) => q + (a[i] - q) * clamp(dt / 0.03));
+    const aT = dyn.aT;
+    /* jde proti vzduchu, takže lucerna trochu zaostává */
+    const vitr = -0.9 + 0.5 * Math.sin(t * 0.83) + 0.3 * Math.sin(t * 1.9 + 1);
+    const pres = Math.max(0, Math.abs(k.th) - 1.2);
+    const alfa = (-aT[0] * Math.cos(k.th) - (G - aT[1]) * Math.sin(k.th)) / ZAVES - (1.0 + pres * 14) * k.om - Math.sign(k.th) * pres * 90 + vitr;
+    k.om = clamp(k.om + alfa * dt, -7, 7);
+    k.th += k.om * dt;
+    const sp = dyn.strapec;
+    sp.om += (38 * (k.th - sp.th) - 3.2 * sp.om) * dt;
+    sp.th += sp.om * dt;
+    /* lucerna se na háčku pomalu točí: chvíli 火, chvíli sakura; probuzená se otočí čelem k nám */
+    const tc = dyn.toc;
+    let cilPhi = (Math.PI / 2) * (1 - Math.cos((2 * Math.PI * t) / 46)) + 0.35 * Math.sin(t * 0.37);
+    if (dyn.obake) cilPhi = Math.round(tc.phi / (2 * Math.PI)) * 2 * Math.PI;
+    tc.om += ((dyn.obake ? 30 : 2.4) * (cilPhi - tc.phi) - (dyn.obake ? 9 : 1.5) * tc.om + k.om * 0.25) * dt;
+    tc.phi += tc.om * dt;
+    /* třesení: obrat myši aspoň o 7 jednotek se počítá; pět obratů v jedné ose za 1,2 s (třeseme rychleji
+       než dvakrát za vteřinu) svíčku sfoukne, stejně jako když se lucerna rozhoupe skoro do vodorovna */
+    const ot = dyn.otres;
+    if (vstup.mys) {
+      for (const [osa, h] of [["x", vstup.mys.x], ["y", vstup.mys.y]]) {
+        const o = ot[osa];
+        if (o.kraj == null) {
+          o.kraj = h;
+          continue;
+        }
+        const d = h - o.kraj;
+        if (o.smer === 0) {
+          if (Math.abs(d) > 7) [o.smer, o.kraj] = [Math.sign(d), h];
+        } else if (Math.sign(d) === o.smer) o.kraj = h;
+        else if (Math.abs(d) > 7) {
+          o.casy.push(t);
+          [o.smer, o.kraj] = [-o.smer, h];
+        }
+      }
+    } else ot.x.kraj = ot.y.kraj = null;
+    for (const o of [ot.x, ot.y]) o.casy = o.casy.filter((c) => t - c < 1.2);
+    if (dyn.hori && (Math.max(ot.x.casy.length, ot.y.casy.length) >= 5 || Math.abs(k.th) > 1.3)) {
+      ot.x.casy.length = ot.y.casy.length = 0;
+      dyn.hori = false;
+      dyn.zhasnuto = t;
+      dyn.obake = null;
+      dyn.zvuk.push({ druh: "zhasni", sila: 1, pan: 0.4 });
+    }
+    /* … a Pecinka ji zapálí jiskrou z komína */
+    if (!dyn.hori && !dyn.jiskra && (t - dyn.zhasnuto > 1.15 || klik)) {
+      dyn.jiskra = { t0: t };
+      dyn.zvuk.push({ druh: "fuk", sila: 0.6, pan: -0.2 });
+    }
+    if (dyn.jiskra) {
+      const u = t - dyn.jiskra.t0;
+      if (u > JISKRA_LET[0] && u < JISKRA_LET[1] && R() < dt * 14) dyn.zvuk.push({ druh: "jiskra", sila: 0.4 + R() * 0.4, pan: 0.2 });
+      if (u >= JISKRA_LET[1]) {
+        dyn.jiskra = null;
+        dyn.hori = true;
+        dyn.zapaleno = t;
+        dyn.zvuk.push({ druh: "zapal", sila: 1, pan: 0.4 });
+      }
+    }
+    const cilS = dyn.hori ? 1 + 0.6 * Math.exp(-(t - dyn.zapaleno) / 0.35) : 0;
+    dyn.S += (cilS - dyn.S) * (1 - Math.exp(-dt / (dyn.hori ? 0.08 : 0.12)));
+    /* papír zašustí, když se lucerna rozhoupe */
+    dyn.sust -= dt;
+    if (Math.abs(k.om) > 2.6 && dyn.sust <= 0) {
+      dyn.sust = 0.22;
+      dyn.zvuk.push({ druh: "sust", sila: clamp((Math.abs(k.om) - 2.6) / 2.5, 0.2, 1), pan: 0.4 });
+    }
+    /* geta dopadne: karan… koron, a zvedne se obláček prachu */
+    const fiP = faze(t - dt);
+    for (const n of NOHY) {
+      const u = (((ch.fi - n.faze) % 1) + 1) % 1, uP = (((fiP - n.faze) % 1) + 1) % 1;
+      if (u < uP) {
+        dyn.zvuk.push({ druh: n.blizko ? "karan" : "koron", sila: 0.55, pan: -0.25 });
+        const p = noha(n, ch.fi);
+        const P = zPostavy([p.X, 159]);
+        dyn.prach.push({ x: P[0] + 6 * FIG.s, y: P[1] + (n.blizko ? 0.8 : -0.8), t0: t, seed: Math.floor(R() * 1000) });
+      }
+    }
+    dyn.prach = dyn.prach.filter((p) => t - p.t0 < 0.9);
+    /* můry krouží kolem světla, občas narazí do papíru; po tmě odletí */
+    const L = svet(T, k.th, [0, LAMP.stred]);
+    for (const m of dyn.mury) {
+      if (m.chycena) continue;
+      const laka = dyn.S > 0.4;
+      m.pritomna += ((laka ? 1 : 0) - m.pritomna) * (1 - Math.exp(-dt / (laka ? 1.4 : 0.6)));
+      const cilR = laka ? m.r0 + 4 * Math.sin(t * m.w1 + m.fz) : 80;
+      m.r += (cilR - m.r) * (1 - Math.exp(-dt / (laka ? 0.9 : 0.5)));
+      if (laka && m.nalet <= 0 && R() < dt * 0.35) m.nalet = 0.6;
+      if (m.nalet > 0) {
+        m.nalet -= dt;
+        m.r += (11 - m.r) * (1 - Math.exp(-dt / 0.09));
+        if (m.r < 15.6) {
+          m.r = 19;
+          m.nalet = 0;
+          if (R() < 0.5) m.smer *= -1;
+          if (dyn.S > 0.5) dyn.zvuk.push({ druh: "mura", sila: 0.5 + R() * 0.5, pan: 0.4 });
+        }
+      }
+      m.a += m.smer * m.va * dt * (1 + 0.45 * Math.sin(t * m.w2 + m.fz));
+      if (R() < dt * 0.12) m.smer *= -1;
+      const h = m.h0 + 5.5 * Math.sin(t * m.w2 * 0.8 + m.fz) + 2.5 * Math.sin(t * 3.3 + m.fz * 2);
+      m.z = m.r * Math.sin(m.a);
+      m.x = L[0] + m.r * Math.cos(m.a);
+      m.y = L[1] + h - m.z * 0.1 - (1 - m.pritomna) * 30;
+    }
+    /* kliknutí: lucerna procitne jako čóčin-obake */
+    if (klik && dyn.hori && !dyn.obake && t - dyn.zapaleno > 0.4) {
+      const usta = svet(T, k.th, [0, 26]);
+      let cil = null, nej = 1e9;
+      for (const m of dyn.mury) {
+        if (m.pritomna < 0.8 || m.chycena) continue;
+        const dd = Math.hypot(m.x - usta[0], m.y - usta[1]);
+        if (dd < nej) [nej, cil] = [dd, m];
+      }
+      dyn.obake = { t0: t, cil: nej < 50 ? cil : null, chycena: false, bod: null };
+    }
+    if (dyn.obake) {
+      const o = dyn.obake;
+      const u = t - o.t0, uP = u - dt;
+      if (uP < 0.15 && u >= 0.15) dyn.zvuk.push({ druh: "trh", sila: 1, pan: 0.4 });
+      if (uP < 0.45 && u >= 0.45) dyn.zvuk.push({ druh: "bero", sila: 1, pan: 0.4 });
+      if (o.cil && !o.chycena && u >= 0.85) {
+        o.chycena = true;
+        o.bod = [o.cil.x, o.cil.y];
+        o.cil.chycena = true;
+      }
+      if (o.chycena && uP < 1.35 && u >= 1.35) {
+        dyn.zvuk.push({ druh: "polk", sila: 1, pan: 0.4 });
+        Object.assign(o.cil, novaMura(R, true));
+      }
+      if (u > 2.4) dyn.obake = null;
+    }
+    /* pohled: na myš, jinak na lucernu; při zapalování na jiskru */
+    const tvar = naTelo([108, 82], ch);
+    const jis = stavJiskry(dyn, t, L, ch);
+    const kam = jis ? jis.p : dyn.mys && !dyn.obake ? dyn.mys : [L[0], L[1] - (dyn.obake ? 6 : 0)];
+    const cil = kam ? [clamp((kam[0] - tvar[0]) / 30, -1, 1) * 1.9, clamp((kam[1] - tvar[1]) / 30, -1, 1) * 1.5] : [0, 0];
+    dyn.pohled = dyn.pohled.map((q, i) => q + (cil[i] - q) * (1 - Math.exp(-dt / 0.12)));
+  };
+  const stav = (t, vstup = {}, dyn) => {
+    const d = dyn || novaDynamika();
+    const ch = chuze(faze(t));
+    const H = dlan(d, ch);
+    const T = spicka(d, H);
+    const th = d.kyv.th;
+    const L = svet(T, th, [0, LAMP.stred]);
+    const mihot = 0.5 + 0.3 * Math.sin(t * 13.1) + 0.2 * Math.sin(t * 23.7 + 1);
+    /* při třesení plamínek zápasí: světlo poskakuje, než zhasne */
+    const ohrozeni = d.hori ? Math.max(d.otres.x.casy.length, d.otres.y.casy.length) / 5 : 0;
+    const S = d.S * (0.94 + 0.06 * mihot - ohrozeni * 0.4 * (0.5 + 0.5 * Math.sin(t * 31)));
+    const jis = stavJiskry(d, t, L, ch);
+    let ob = null, obakeTvar = 0;
+    if (d.obake) {
+      const o = d.obake;
+      const u = t - o.t0;
+      const oko = smooth(u / 0.22) * (1 - smooth((u - 2.0) / 0.3));
+      const usta = smooth((u - 0.15) / 0.3) * (1 - smooth((u - 1.6) / 0.35));
+      const akanbe = !o.cil;
+      const jaz = akanbe ? smooth((u - 0.45) / 0.3) * (1 - smooth((u - 1.45) / 0.3)) : smooth((u - 0.45) / 0.38) * (1 - smooth((u - 0.92) / 0.43));
+      const koren = svet(T, th, [0, 25.6 + usta * 3.6]);
+      let cil = akanbe ? [koren[0] + 1.5 + 2.4 * Math.sin(t * 9), koren[1] + 14 + 1.5 * Math.sin(t * 6)] : o.bod || [o.cil.x, o.cil.y];
+      const dd = [cil[0] - koren[0], cil[1] - koren[1]];
+      const n = Math.hypot(dd[0], dd[1]);
+      if (n > 50) cil = [koren[0] + (dd[0] / n) * 50, koren[1] + (dd[1] / n) * 50];
+      const K = [lerp(koren[0], cil[0], jaz), lerp(koren[1], cil[1], jaz)];
+      const oko0 = svet(T, th, [-0.4, 15.4]);
+      const smer = [K[0] - oko0[0], K[1] - oko0[1] + (jaz < 0.05 ? 20 : 0)];
+      const sn = Math.hypot(smer[0], smer[1]) || 1;
+      ob = {
+        oko, usta, jazyk: jaz, koren, spicka: K, pohled: [(smer[0] / sn) * 1.6, (smer[1] / sn) * 1.2],
+        mura: o.chycena && u < 1.35 ? { ...o.cil, x: K[0], y: K[1], z: 1, sc: 1, nakl: Math.sin(t * 30) * 25, sp: 0.3 + 0.7 * Math.abs(Math.sin(t * 40)), pritomna: 1 } : null,
+      };
+      obakeTvar = Math.max(oko, usta);
+    }
+    let oci = "kulate", usta = "usmev";
+    if (d.obake) {
+      const u = t - d.obake.t0;
+      if (u > 0.15 && u < 1.45) [oci, usta] = ["siroke", "o"];
+      else if (u >= 1.45) [oci, usta] = ["smich", "ach"];
+    } else if (!d.hori) [oci, usta] = t - d.zhasnuto < 0.9 ? ["siroke", "o"] : ["zavrene", "fuk"];
+    else if (t - d.zapaleno < 1.6) [oci, usta] = ["smich", "usmev"];
+    const vlna = 4 * Math.PI * ch.fi;
+    return {
+      t, ch, nohy: NOHY.map((n) => noha(n, ch.fi)),
+      prach: d.prach.map((p) => {
+        const u = (t - p.t0) / 0.9;
+        return { x: p.x - RYCHLOST * (t - p.t0), y: p.y, r: 1.6 + 5.4 * easeOut(u), op: 0.6 * Math.pow(1 - u, 1.3), seed: p.seed };
+      }),
+      shide: [10 + 7 * Math.sin(vlna + 0.5), 10 + 7 * Math.sin(vlna + 1.7), 12 + 6 * Math.sin(vlna + 2.6)],
+      H, T, th, phi: d.toc.phi, L, S, mihot, strapec: d.strapec.th, ohyb: d.ohyb,
+      svicka: clamp(d.kyv.om * -0.5 - 0.6 + ohrozeni * 2.4 * Math.sin(t * 17), -2.6, 2.6),
+      obake: ob, obakeTvar,
+      mury: d.mury.map((m) => ({ ...m, sc: 1 + m.z * 0.012, nakl: 20 * Math.sin(t * 2 + m.fz), sp: 0.25 + 0.75 * Math.abs(Math.sin(t * m.mav + m.fz)) })),
+      pohled: d.pohled, mrk: mrkani(t, [1.8, 5.2, 5.45, 8.4], 10), oci, usta,
+      jiskra: jis && jis.p ? { p: jis.p, stopa: jis.stopa } : null,
+      kominPlamen: jis ? jis.plamen : 0,
+      vyhen: 0.55 + 0.12 * mihot + (d.hori ? 0 : 0.6 * smooth((t - d.zhasnuto) / 0.6)),
+    };
+  };
+  const snimek = (st) => Math.floor(st.t * 30);
+
+  return {
+    id: "lampion",
+    viewBox: "0 0 180 180",
+    defs,
+    novaDynamika,
+    krok,
+    stav,
+    hukot: () => 0,
+    klidne: { t: 3 },
+    /** Rychlost chůze pro průvod: o kolik procent šířky kresby se má za sekundu posunout */
+    rychlost: RYCHLOST / 180,
+    vrstvy: [
+      { id: "zem", kresli: vrstvaZem, klic: snimek },
+      { id: "nohy", kresli: vrstvaNohy, klic: snimek },
+      { id: "tyc", kresli: vrstvaTyc, klic: snimek },
+      { id: "telo", kresli: vrstvaTelo, tezka: true, posun: posunTela },
+      { id: "dvirka", kresli: vrstvaDvirka, klic: snimek, posun: posunTela },
+      { id: "svit", kresli: vrstvaSvit, klic: snimek, posun: posunTela, styl: "mix-blend-mode:screen" },
+      { id: "tvar", kresli: vrstvaTvar, klic: (st) => `${f(st.pohled[0])},${f(st.pohled[1])},${f(st.mrk)},${st.oci},${st.usta},${f(st.S)}`, posun: posunTela },
+      { id: "shide", kresli: vrstvaShide, klic: (st) => Math.floor(st.t * 24), posun: posunTela },
+      { id: "ruka-bok", kresli: vrstvaRukaBok, klic: snimek, posun: posunTela },
+      { id: "komin", kresli: vrstvaKomin, klic: (st) => (st.kominPlamen > 0 ? snimek(st) : Math.floor(st.t * 20)) },
+      { id: "mury-za", kresli: vrstvaMury(false), klic: snimek },
+      { id: "lampion", kresli: vrstvaLampion, klic: snimek },
+      { id: "mury-pred", kresli: vrstvaMury(true), klic: snimek },
+      { id: "zare", kresli: vrstvaZare, klic: snimek },
+    ],
+  };
+})();
+
 /**
  * Celá kresba jako jedno SVG — pro náhled v Node, nebo jako statický první
  * snímek, který komponenta vloží do stránky (s třídou místo rozměrů).
@@ -1521,7 +2273,10 @@ const celeSvg = (V, t, dyn, vstup = {}, { sirka = 900, pozadi = "#F4EBDD", trida
         let obsah = v.kresli(st);
         if (v.orez) obsah = `<g clip-path="url(#${v.orez})">${obsah}</g>`;
         const op = v.pruhlednost ? ` opacity="${v.pruhlednost(st)}"` : "";
-        return `<g style="${v.styl || ""}"${op}>${obsah}</g>`;
+        /* vrstva, která se celá posouvá (tělo při chůzi), dostane posun jako transformaci */
+        const p = v.posun ? v.posun(st) : null;
+        const tr = p ? ` transform="translate(${f(p.dx)} ${f(p.dy)}) rotate(${f(p.rot)} ${f(p.ox)} ${f(p.oy)})"` : "";
+        return `<g style="${v.styl || ""}"${op}${tr}>${obsah}</g>`;
       })
       .join("") +
     `</svg>`
@@ -1536,5 +2291,5 @@ const pretoc = (V, t, vstup = {}, krokS = 1 / 60) => {
   return dyn;
 };
 
-export const kresby = { v1: V1, v2: V2, v3: V3 };
+export const kresby = { v1: V1, v2: V2, v3: V3, lampion: VL };
 export { celeSvg, pretoc };

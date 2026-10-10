@@ -1,0 +1,213 @@
+---
+/*
+  Bublinka na schovávanou — vzorník pro /marcel (čtvrtá podoba Bublinky),
+  postavený stejně jako PecinkaSchovka.astro vedle. Samotná kresba je
+  v ../schovka (Bublinka.astro a bublinka.ts) a je vždycky malá; tady jsou
+  čtyři barvy vedle sebe: na papíře, zmenšené až na 16 px, ve tmě a jak
+  vykukují zpoza hrany.
+
+  Kliknutí ukáže, jak ji hra „najde“: vyskočí, cinkne (zvuk webu, zlatá
+  zvoní výš) a rozletí se z ní bublinky — tuš, mýdlo, zlato nebo soumrak.
+*/
+import Bublinka from "../schovka/Bublinka.astro";
+import { NAZVY } from "../schovka/pecinka";
+
+const BARVY = ["cerna", "pruhledna", "zlata", "logo"] as const;
+---
+<div class="bss" data-bublinka-schovka>
+  <p class="bss-stitek">Na papíře</p>
+  <ul class="bss-radek">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="bss-kus" data-barva={b} aria-label={`Bublinka na schovávanou — ${NAZVY[b]}`}>
+          <Bublinka barva={b} size={56} />
+        </button>
+        <span class="bss-nazev">{NAZVY[b]}</span>
+      </li>
+    ))}
+  </ul>
+
+  <p class="bss-stitek">Zmenšená · 32 · 24 · 16 px</p>
+  <ul class="bss-radek bss-male">
+    {BARVY.map((b) => (
+      <li>
+        {[32, 24, 16].map((v) => (
+          <button type="button" class="bss-kus" data-barva={b} aria-label={`${NAZVY[b]}, ${v} px`}>
+            <Bublinka barva={b} size={v} />
+          </button>
+        ))}
+      </li>
+    ))}
+  </ul>
+
+  <p class="bss-stitek">V noci</p>
+  <ul class="bss-radek bss-noc">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="bss-kus" data-barva={b} aria-label={`${NAZVY[b]} v noci`}>
+          <Bublinka barva={b} size={36} />
+        </button>
+      </li>
+    ))}
+  </ul>
+
+  <p class="bss-stitek">Vykukuje zpoza hrany</p>
+  <ul class="bss-radek bss-hrana">
+    {BARVY.map((b) => (
+      <li>
+        <button type="button" class="bss-kus" data-barva={b} aria-label={`${NAZVY[b]} vykukuje`}>
+          <Bublinka barva={b} size={40} poza="vykukuje" />
+        </button>
+        <span class="bss-deska" aria-hidden="true"></span>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  import * as zvuk from "../../../scripts/parta2/zvuk";
+
+  type Barva = "cerna" | "pruhledna" | "zlata" | "logo";
+  /* z čeho je která Bublinka; při nalezení se z ní rozletí bublinky v těch barvách */
+  const BUBLINKY: Record<Barva, { barvy: string[]; pocet: number }> = {
+    cerna: { barvy: ["#1E1A18", "#3A302A", "#2B2420"], pocet: 12 },
+    pruhledna: { barvy: ["#FFFFFF", "#F2A9C8", "#A6E3C4", "#9CC6F0"], pocet: 14 },
+    zlata: { barvy: ["#F2C95E", "#FFF2BC", "#C9922E", "#FFFFFF"], pocet: 14 },
+    logo: { barvy: ["#C4432B", "#C0708A", "#7A5E8E", "#FBE9B7"], pocet: 14 },
+  };
+  const klid = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+  function najdi(kus: HTMLElement) {
+    const barva = kus.dataset.barva as Barva;
+    kus.classList.remove("schovka-nalezena");
+    void kus.offsetWidth;
+    kus.classList.add("schovka-nalezena");
+    window.setTimeout(() => kus.classList.remove("schovka-nalezena"), 700);
+    if (barva === "zlata") zvuk.zlato();
+    else zvuk.nalezeno();
+    if (klid()) return;
+    const c = BUBLINKY[barva];
+    const vel = kus.getBoundingClientRect().width || 40;
+    for (let i = 0; i < c.pocet; i++) {
+      const s = document.createElement("span");
+      s.className = "bss-bublinka";
+      const u = (i / c.pocet) * Math.PI * 2 + Math.random() * 0.5;
+      const d = vel * (0.55 + Math.random() * 0.6);
+      const r = 4 + Math.random() * 6;
+      s.style.width = s.style.height = `${r.toFixed(1)}px`;
+      s.style.margin = `${(-r / 2).toFixed(1)}px 0 0 ${(-r / 2).toFixed(1)}px`;
+      s.style.setProperty("--dx", `${(Math.cos(u) * d).toFixed(1)}px`);
+      /* bubliny stoupají: letí víc nahoru než dolů */
+      s.style.setProperty("--dy", `${(Math.sin(u) * d * 0.7 - vel * 0.55).toFixed(1)}px`);
+      s.style.setProperty("--d", `${(0.8 + Math.random() * 0.5).toFixed(2)}s`);
+      s.style.color = c.barvy[i % c.barvy.length];
+      kus.append(s);
+      window.setTimeout(() => s.remove(), 1400);
+    }
+  }
+
+  /* jeden posluchač na celý dokument: přežije i přechod mezi stránkami */
+  document.addEventListener("click", (e) => {
+    const kus = (e.target as Element | null)?.closest?.<HTMLElement>("[data-bublinka-schovka] .bss-kus");
+    if (kus) najdi(kus);
+  });
+</script>
+
+<style is:global>
+  /* Vzorník Bublinky na schovávanou; bublinky vyrábí skript, proto globálně */
+  .bss {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: clamp(14px, 3.2vw, 28px);
+    border-radius: 18px;
+    background: var(--papir-2, #efe5d1);
+    box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.07);
+    text-align: center;
+  }
+  .bss-stitek {
+    margin: 8px 0 4px;
+    font-family: var(--f-display);
+    font-variation-settings: "SOFT" 100;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--inkoust-3, #8a7a69);
+    text-align: left;
+  }
+  .bss-stitek:first-child { margin-top: 0; }
+  .bss-radek {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    align-items: end;
+  }
+  .bss-radek li { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+  .bss-male li { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 4px clamp(3px, 0.8vw, 7px); }
+  .bss-nazev {
+    font-family: var(--f-display);
+    font-variation-settings: "SOFT" 100, "opsz" 24;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--inkoust-2, #5e4f44);
+  }
+  /* noc: tmavý pruh s pár hvězdami, tady se černá schová skoro úplně */
+  .bss-noc {
+    padding: 12px 6px;
+    border-radius: 12px;
+    background:
+      radial-gradient(1px 1px at 12% 28%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 37% 70%, #ede6cf 99%, transparent),
+      radial-gradient(1.2px 1.2px at 63% 22%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 88% 64%, #ede6cf 99%, transparent),
+      radial-gradient(1px 1px at 76% 86%, rgba(237, 230, 207, 0.6) 99%, transparent),
+      linear-gradient(#141734, #262a5c);
+  }
+  /* hrana: deska, za kterou se Bublinka schovává a drží se jí ručkama */
+  .bss-hrana li { gap: 0; }
+  .bss-deska {
+    display: block;
+    width: min(76px, 92%);
+    height: 16px;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(var(--papir-3, #e2d4b9), #d5c4a4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 1px 0 rgba(43, 36, 32, 0.06);
+  }
+  .bss-kus {
+    position: relative;
+    display: inline-flex;
+    padding: 2px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    line-height: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bss-hrana .bss-kus { padding: 2px 2px 0; margin-bottom: -1px; }
+  .bss-kus:focus-visible { outline: 2px solid var(--rumelka, #c4432b); outline-offset: 3px; }
+  /* bublinka, která z ní vyletí: jen obrys, lesk vlevo nahoře, na konci praskne */
+  .bss-bublinka {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    box-sizing: border-box;
+    border: 1.4px solid currentColor;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.85) 0 14%, transparent 22%);
+    pointer-events: none;
+    z-index: 2;
+    animation: bss-let var(--d, 0.9s) cubic-bezier(0.15, 0.7, 0.35, 1) forwards;
+  }
+  @keyframes bss-let {
+    0% { transform: translate(0, 0) scale(0.4); opacity: 1; }
+    82% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(1.5); opacity: 0; }
+  }
+</style>

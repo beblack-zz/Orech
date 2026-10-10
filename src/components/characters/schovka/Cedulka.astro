@@ -1,0 +1,30 @@
+---
+/**
+ * Cedulka na schovávanou — malá zjednodušená kresba pro hry na hledání
+ * po webu, ve čtyřech barvách a dvou pózách, stejně jako Pecinka,
+ * Bublinka, Střípek a Hlínka vedle. Kresbu skládá ./cedulka.ts (jde ji
+ * volat i za běhu ve hře), pohyb je v styles/schovka.css.
+ *
+ *   <Cedulka barva="zlata" size={32} />
+ *   <Cedulka barva="pruhledna" poza="vykukuje" size={40} />
+ *
+ * Pod 22 px se kreslí podle zvláštní šestnáctkové mřížky — bez tužky,
+ * tvářiček a odlesků v očích a s jediným řádkem textu místo dvou, které
+ * by se v tak malé velikosti slily.
+ */
+import "../../../styles/schovka.css";
+import { cedulkaSchovka } from "./cedulka";
+import type { SchovkaBarva, SchovkaPoza } from "./pecinka";
+import { uid } from "../dospele/uid";
+
+interface Props {
+  barva?: SchovkaBarva;
+  /** šířka v pixelech; vykukující je nižší */
+  size?: number;
+  poza?: SchovkaPoza;
+  class?: string;
+}
+const { barva = "logo", size = 32, poza = "stoji", class: cls = "" } = Astro.props;
+const svg = cedulkaSchovka({ barva, velikost: size, poza, id: uid(), trida: cls });
+---
+<Fragment set:html={svg} />

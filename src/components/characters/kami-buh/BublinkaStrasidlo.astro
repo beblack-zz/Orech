@@ -1,0 +1,65 @@
+---
+/*
+  Bublinka jako strašidlo — podle Pecinky s ohněm. Kresby i běh jsou ve
+  scripts/bublinka-strasidlo:
+
+    ohen     01 Kami: svatozář ze studených bludných ohňů kolem kotouče z nočního laku,
+             v něm za ní rohatý duch; pod ní hromádka nepodarků s mechem
+    hrbitov  02 Tušový lem: hřbitov hrnců, vede dušičky se zvonkem
+    lampion  03 Lampion: letí s papírovou lucernou na tyči, bez pozadí a trochu
+             z boku — vznáší se na místě, po cestě ji posouvá stránka jako
+             průvod na Domku 2
+
+  Čtvrtá podoba, Na schovávanou, je BublinkaSchovka.astro.
+
+  Bublinka je yōkai, ne kami: místo provazu shimenawa nosí široký černý
+  slaměný klobouk s roztřepenou krempou, uvázaný pod pusou na mašli.
+  Lítá jako bublina, ručky má svěšené.
+
+  Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
+  sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
+  prázdná, než se načte skript, a bez skriptu zůstane hezký obrázek. Skript
+  ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná (bs1-, bs2-, bsl-),
+  takže každá podoba smí být na stránce jen jednou.
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/bublinka-strasidlo/kresby.js";
+
+interface Props { varianta: "ohen" | "hrbitov" | "lampion"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  ohen: "Bublinka v širokém černém slaměném klobouku se vznáší před tmavým kotoučem, ve kterém za ní stojí rohatý duch se svítícíma očima a zubatým úsměvem; kolem kotouče hoří studené modré plameny, pod ní hromádka prasklých mis obrostlých mechem",
+  hrbitov: "Noc nad haldou prasklých hrnců: Bublinka v černém slaměném klobouku pluje pod měsícem se zvonkem a za ní jde řada malých bledých dušiček",
+  lampion: "Bublinka v černém slaměném klobouku letí a nese na bambusové tyči papírovou lucernu se třemi bublinami, ve které svítí bludička; za ní zůstávají bublinky",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "bs-staticky" });
+---
+<div class={`bublinka-strasidlo ${cls}`} data-bublinka-strasidlo={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/bublinka-strasidlo/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .bublinka-strasidlo {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .bublinka-strasidlo:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .bs-staticky, .bs-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .bs-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

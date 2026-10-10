@@ -186,6 +186,31 @@ const Zvuk = (() => {
         ton(tt + 0.05, out, { f: f0 * 0.96, f2: f0 * 0.9, vrchol: g * 0.7, nabeh: 0.006, utlum: 0.07 });
       }
     },
+    /* ——— lampion ——— */
+    /* roh desky došlápne na cestu: krátké dřevěné ťuknutí s tupým dozvukem, pokaždé trochu jinak vysoko */
+    roh: (t, out, s) => {
+      const f0 = 420 + Math.random() * 140;
+      ton(t, out, { typ: "triangle", f: f0, f2: f0 * 0.7, vrchol: 0.2 * s, nabeh: 0.001, utlum: 0.06 });
+      ton(t, out, { f: f0 * 2.6, vrchol: 0.05 * s, nabeh: 0.001, utlum: 0.022 });
+      sumik(t, out, { typ: "lowpass", f: 650, q: 0.8, vrchol: 0.12 * s, nabeh: 0.002, utlum: 0.045, buf: "hnedy" });
+    },
+    /* lucerna zaplane: plamen se nadechne a k tomu teplý tón, který vyskočí o kvintu */
+    zaplan: (t, out, s) => {
+      sumik(t, out, { f: 650, posun: 2800, q: 0.9, vrchol: 0.16 * s, nabeh: 0.07, utlum: 0.36 });
+      ton(t, out, { typ: "triangle", f: PENTA[0] / 4, f2: PENTA[3] / 4, vrchol: 0.08 * s, nabeh: 0.04, utlum: 0.55 });
+      ton(t + 0.06, out, { f: PENTA[3] / 2, vrchol: 0.035 * s, nabeh: 0.02, utlum: 0.8 });
+    },
+    /* tužka po dřevě: krátké suché škrtnutí */
+    tuzka: (t, out, s) => {
+      sumik(t, out, { f: 1700 + Math.random() * 900, q: 1.5, vrchol: 0.11 * s, nabeh: 0.008, utlum: 0.05 + Math.random() * 0.04 });
+      sumik(t, out, { typ: "highpass", f: 5200, q: 0.7, vrchol: 0.025 * s, nabeh: 0.004, utlum: 0.03 });
+    },
+    /* zívnutí: hlas vyjede nahoru a dlouze spadne, k tomu výdech */
+    zev: (t, out, s) => {
+      ton(t, out, { f: 290, f2: 470, vrchol: 0.07 * s, nabeh: 0.22, utlum: 0.3 });
+      ton(t + 0.48, out, { f: 460, f2: 210, vrchol: 0.08 * s, nabeh: 0.08, utlum: 0.8 });
+      sumik(t + 0.45, out, { f: 800, posun: 420, q: 1.2, vrchol: 0.05 * s, nabeh: 0.15, utlum: 0.7, buf: "hnedy" });
+    },
   };
   return {
     /** odemknout v gestu (Safari jinak nedovolí) — hrát se pak bude, jen když je zvuk webu zapnutý */
@@ -247,8 +272,14 @@ const scena = (el, V) => {
       /* houpání na šňůrce: celá vrstva se otočí kolem háčku, obsah zůstane */
       if (v.pohyb) {
         const p = v.pohyb(st);
-        L.svg.style.transformOrigin = `${(p.cx / VB) * 100}% ${(p.cy / VB) * 100}%`;
-        L.svg.style.transform = `rotate(${Math.round(p.uhel * 100) / 100}deg)`;
+        if (p.uhel !== undefined) {
+          L.svg.style.transformOrigin = `${(p.cx / VB) * 100}% ${(p.cy / VB) * 100}%`;
+          L.svg.style.transform = `rotate(${Math.round(p.uhel * 100) / 100}deg)`;
+        } else {
+          /* lampion: vrstva se posune, natočí a zmáčkne kolem (ox, oy) — stejná čísla jako u Hlínky */
+          L.svg.style.transformOrigin = `${((p.ox / VB) * 100).toFixed(2)}% ${((p.oy / VB) * 100).toFixed(2)}%`;
+          L.svg.style.transform = `translate(${(((p.x || 0) / VB) * 100).toFixed(2)}%, ${(((p.y || 0) / VB) * 100).toFixed(2)}%) rotate(${(p.r || 0).toFixed(2)}deg) scale(${(p.sx ?? 1).toFixed(4)}, ${(p.sy ?? 1).toFixed(4)})`;
+        }
       }
     }
     const slysi = znejici === el;

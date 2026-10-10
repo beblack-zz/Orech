@@ -2,9 +2,11 @@
  * Marcel — pracovní stránka postaviček jako kami, v novém vzhledu
  * (styles/parta2.css). Každá postavička leží na vlastním papíře, obloha
  * za nimi jde od rána do noci. Kapka má vedle původní kresby tři
- * přehnané podoby (KapkaBubny.astro), Pecinka s ohněm dvě (PecinkaOhen.astro)
- * a Cedulka jako ema tři (CedulkaEma.astro), Kachlík taky tři (KachlikRovina.astro),
- * Hlínka, kami země, dvě (HlinkaZeme.astro) a Šamotka nese tři (SamotkaNese.astro).
+ * přehnané podoby (KapkaBubny.astro), Střípek a zlato čtyři (StripekZlato.astro, StripekSchovka.astro),
+ * Pecinka s ohněm taky čtyři (PecinkaOhen.astro, PecinkaSchovka.astro)
+ * a stejně tak Hlínka, kami země (HlinkaZeme.astro), a Cedulka jako ema
+ * (CedulkaEma.astro); Kachlík má tři (KachlikRovina.astro) a Šamotka nese
+ * taky tři (SamotkaNese.astro).
  */
 
 .mc-sekce { position: relative; z-index: 2; padding: 28px 20px; }
@@ -39,34 +41,21 @@
 }
 .mc-rada > * { display: block; width: 100%; height: auto; }
 
-/* Pecinka s ohněm: dvě podoby vedle sebe, bez textů, na mobilu pod sebou */
+/* Pecinka s ohněm (a stejně Střípek, Bublinka, Hlínka a Cedulka): čtyři podoby ve dvou řadách, pod každou číslo a jméno, na mobilu pod sebou */
 .mc .papir.mc-siroky:has(.mc-rada-ohen) { width: min(1000px, 100%); }
-.mc-rada-ohen { margin: 0; }
+.mc-rada-ohen { margin: 0; align-items: start; row-gap: clamp(24px, 3.6vw, 46px); }
+.mc-podoba { margin: 0; }
+.mc-podoba figcaption { margin-top: 12px; }
 @media (max-width: 760px) {
   .mc-rada-ohen { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
 }
 
-/* Cedulka jako ema: nahoře podoba bez pozadí, pod ní dvě scény vedle sebe, na mobilu pod sebou */
-.mc .papir.mc-siroky.mc-cedulka { width: min(1000px, 100%); }
-.mc-cedulka-hlavni { display: block; width: min(560px, 100%); margin: 0 auto clamp(16px, 3vw, 40px); }
-.mc-rada-cedulka { margin: 0; }
-@media (max-width: 760px) {
-  .mc-rada-cedulka { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
-}
-
-/* Kachlík a rovina: stejně jako Cedulka, nahoře bez pozadí, pod ní dvě scény */
+/* Kachlík a rovina: nahoře podoba bez pozadí, pod ní dvě scény vedle sebe, na mobilu pod sebou */
 .mc .papir.mc-siroky.mc-kachlik { width: min(1000px, 100%); }
 .mc-kachlik-hlavni { display: block; width: min(560px, 100%); margin: 0 auto clamp(16px, 3vw, 40px); }
 .mc-rada-kachlik { margin: 0; }
 @media (max-width: 760px) {
   .mc-rada-kachlik { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
-}
-
-/* Hlínka, kami země: jako Pecinka dvě podoby vedle sebe, sakura bez pozadí a suikinkutsu (drak nad Fudži na stránce není) */
-.mc .papir.mc-siroky.mc-hlinka { width: min(1000px, 100%); }
-.mc-rada-hlinka { margin: 0; }
-@media (max-width: 760px) {
-  .mc-rada-hlinka { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
 }
 
 /* Šamotka nese: stejně, nahoře bez pozadí jako kamidana, pod ní výpal a sníh */

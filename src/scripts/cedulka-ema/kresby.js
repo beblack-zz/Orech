@@ -4,10 +4,14 @@
  *
  *   v1  Kůň na rubu — visí na kōhaku šňůře, za zády lakovaný kotouč a kolem
  *       osm malých em s celou partou; po kliknutí se otočí a na rubu cválá kůň
- *   v2  Rydlo — odpolední dílna: Cedulka seřízne misce nožku a rydlem jí
- *       vyryje jméno do dna, pak ji postaví na polici. Ví, čí je která.
+ *   v2  Rydlo — noční dílna v rozpité tuši (02 Tušový lem): Cedulka při
+ *       měsíci seřízne misce nožku a rydlem jí vyryje jméno do dna, pak ji
+ *       postaví na polici. Ví, čí je která, a jména svítí.
  *   v3  Inari — tunel bran torii za soumraku a lišácké destičky, na které
  *       si lidi kreslí obličeje; Cedulka mezi nimi visí a skoro nejde poznat
+ *       (na stránce Marcel už není)
+ *   lampion  Jde s lucernou — bez pozadí, v dřevěných botičkách z rohu na
+ *       roh jako stěhovaná skříň, na lucerně JIRO (./lampion.js, id cel-)
  *
  * Ema (絵馬) znamená doslova „obrázek koně“. Do svatyní se kdysi darovali
  * živí koně, aby na nich kami jezdili, potom dřevění a nakonec jen koně
@@ -27,6 +31,7 @@
  * snímek posune přes krok(). Zvuky, které má běh zahrát, krok přidá do
  * dyn.zvuk.
  */
+import { lampion } from "./lampion.js";
 
 /* ——— Pomocníci ——— */
 const f = (n) => Math.round(n * 100) / 100;
@@ -750,9 +755,14 @@ const V1 = (() => {
 })();
 
 /* ═══════════════════════════════════════════════════════════════════
- * 2 — RYDLO
- * Odpoledne v dílně. Za oknem ořech, přes stůl padají paprsky a v nich
- * prach. Na točně stojí miska dnem vzhůru, ještě kožovitá. Cedulka visí
+ * 2 — RYDLO (Tušový lem)
+ * Noc v dílně, celá v rozpité tuši. Za oknem ořech a měsíc, přes stůl
+ * padá jeho světlo a v něm prach. Svítí tu jen to světlo a jména: co
+ * Cedulka vyryje nebo si zapamatuje, září stejnou bledou žlutou jako
+ * srpek měsíce v hlavičce webu. Tma je modrá vrstva, která se násobí
+ * s dílnou pod sebou; kde oknem dopadá měsíc, je řidší.
+ *
+ * Na točně stojí miska dnem vzhůru, ještě kožovitá. Cedulka visí
  * pod policí, roztočí točnu a očkem seřízne nožku — odřezky se kroutí
  * a padají na stůl. Pak vezme rydlo a vyryje do dna jméno, protože tužka
  * by v peci shořela. Drobky sfoukne, jméno si zapamatuje (na chvíli ho
@@ -762,7 +772,8 @@ const V1 = (() => {
  * Cedulka ti řekne, čí je — jméno se jí objeví na břiše. Jedna miska je
  * křivá a Cedulku to pokaždé rozesměje. Jedna přijde podepsaná tužkou
  * a Cedulka se zamračí. Kliknutí přinese další misku, sama si ji vezme
- * taky, když se nic neděje.
+ * taky, když se nic neděje. Tužka (špatný nástroj) a dřevěné žebro leží
+ * dole na papíře, napůl venku z tuše.
  * ═══════════════════════════════════════════════════════════════════ */
 const V2 = (() => {
   /* Stůl je vidět šikmo shora: kruhy se zploští na K, svislé výšky na V */
@@ -804,6 +815,15 @@ const V2 = (() => {
   ];
   const kus = (k) => KUSY[((k % KUSY.length) + KUSY.length) % KUSY.length];
   const TEXT = { velikost: 9.4, sirkaZnaku: 0.43 };
+  /* čím svítí měsíc a jména: bledě zlatá ze srpku v hlavičce (.hlava-tema-mesic), jako spáry u Střípka */
+  const ZLUTA = { jadro: "#FFF6DA", svetla: "#FFE7A3", zaklad: "#FBE3A0" };
+  const NOC = { stin: "#2E3272", lem: "#2C2F58", okraj: "#1A1C3E", silueta: "#0E1030" };
+  /* Cedulka je nad tmou, a tak má noční barvy rovnou: dřevo tak tmavé, aby na něm jméno svítilo */
+  const DREVO_N = { svetle: "#8E88B0", tmave: "#6C6692", obrys: "#2A2650", letokruh: "#4E4878", hrana: "#57507E" };
+  const RUCKA_N = { barva: "#8A84AE", obrys: "#2A2650" };
+  const OKO_N = "#15122E";
+  /* dva pruhy světla, mezi nimi stín okenního kříže */
+  const PAPRSKY = ["M114 60 L133.4 60 L92 178 L44 178 Z", "M134.6 60 L154 60 L132 178 L95 178 Z"];
   const sirkaTextu = (s) => s.length * TEXT.velikost * TEXT.sirkaZnaku;
 
   /* Časy jednoho kusu (sekundy od začátku) */
@@ -890,21 +910,23 @@ const V2 = (() => {
     const skvrny = Array.from({ length: 16 }, () => `<ellipse cx="${f(10 + r() * 160)}" cy="${f(6 + r() * 80)}" rx="${f(4 + r() * 10)}" ry="${f(2 + r() * 5)}" fill="#FFF3D8" opacity="${f(0.1 + r() * 0.12)}"/>`).join("");
     const desky = [98, 109, 122, 137, 155, 176];
     return (
-      `<path d="${TVAR}" fill="#C9A06A" opacity="0.5" filter="url(#ce2-lem)"/>` +
+      `<path d="${TVAR}" fill="${NOC.lem}" opacity="0.6" filter="url(#ce2-lem)"/>` +
       `<g clip-path="url(#ce2-scena)">` +
       `<rect x="0" y="0" width="180" height="92" fill="url(#ce2-zed)"/>` +
       skvrny +
-      /* okno: zlaté odpoledne, za ním ořech */
+      /* okno: noc, za ním ořech proti měsíci (tma se přes okno nenásobí, barvy jsou rovnou noční) */
       `<rect x="114" y="14" width="40" height="46" rx="1.6" fill="url(#ce2-nebe)"/>` +
-      `<g fill="#9AA375">${[[140, 18, 12], [151, 30, 10], [128, 22, 8], [146, 44, 9], [134, 34, 6]].map(([x, y, rr]) => `<path d="${hrouda(x, y, rr, rr * 0.8, x + y, { bodu: 10, kolisani: 0.22 })}"/>`).join("")}</g>` +
-      `<g fill="#7E8A52" opacity="0.8">${[[146, 24, 7], [154, 38, 6], [131, 28, 4]].map(([x, y, rr]) => `<path d="${hrouda(x, y, rr, rr * 0.8, x * y, { bodu: 9, kolisani: 0.25 })}"/>`).join("")}</g>` +
-      `<path d="M154 58 Q146 46 141 36 Q138 28 132 22" stroke="#5E4A34" stroke-width="1.4" fill="none"/>` +
-      `<circle cx="125" cy="26" r="9" fill="url(#ce2-slunce)"/>` +
-      `<g fill="none" stroke="#7A5A3E" stroke-width="2.2"><rect x="114" y="14" width="40" height="46" rx="1.6"/><path d="M134 14 V60 M114 37 H154"/></g>` +
+      `<g fill="#DCE3FF">${[[118.6, 19, 0.5], [130, 44, 0.4], [121, 50, 0.5], [138, 54, 0.35], [117, 34, 0.4], [142, 17.6, 0.45]].map(([x, y, rr]) => `<circle cx="${x}" cy="${y}" r="${rr}"/>`).join("")}</g>` +
+      `<circle cx="125" cy="26" r="11" fill="url(#ce2-slunce)"/><circle cx="125" cy="26" r="4.6" fill="${ZLUTA.zaklad}"/>` +
+      `<g fill="#1A1D48">${[[140, 18, 12], [151, 30, 10], [128, 22, 8], [146, 44, 9], [134, 34, 6]].map(([x, y, rr]) => `<path d="${hrouda(x, y, rr, rr * 0.8, x + y, { bodu: 10, kolisani: 0.22 })}"/>`).join("")}</g>` +
+      `<g fill="${NOC.silueta}" opacity="0.8">${[[146, 24, 7], [154, 38, 6], [131, 28, 4]].map(([x, y, rr]) => `<path d="${hrouda(x, y, rr, rr * 0.8, x * y, { bodu: 9, kolisani: 0.25 })}"/>`).join("")}</g>` +
+      `<path d="M154 58 Q146 46 141 36 Q138 28 132 22" stroke="${NOC.silueta}" stroke-width="1.4" fill="none"/>` +
+      `<g fill="none" stroke="#221F44" stroke-width="2.2"><rect x="114" y="14" width="40" height="46" rx="1.6"/><path d="M134 14 V60 M114 37 H154"/></g>` +
+      `<path d="M115.3 59 V15.3 H152.7" stroke="#4A4F9A" stroke-width="0.4" fill="none" opacity="0.8"/>` +
       `<path d="M110 61 H158 V64.6 H110 Z" fill="#B88E62" stroke="#7A5A3E" stroke-width="0.6"/>` +
       /* kytka v misce na parapetu */
-      `<path d="M146 61 L147 56 Q151 55 155 56 L156 61 Z" fill="#C4432B" stroke="#7E2F18" stroke-width="0.5"/>` +
-      `<path d="M151 56 Q148 50 145 49 M151 56 Q152 49 155 47 M151 56 Q154 52 158 52" stroke="#6E7A4E" stroke-width="1.1" fill="none" stroke-linecap="round"/>` +
+      `<path d="M146 61 L147 56 Q151 55 155 56 L156 61 Z" fill="#4A1E38" stroke="#22102A" stroke-width="0.5"/>` +
+      `<path d="M151 56 Q148 50 145 49 M151 56 Q152 49 155 47 M151 56 Q154 52 158 52" stroke="#1C2440" stroke-width="1.1" fill="none" stroke-linecap="round"/>` +
       /* kalendář: za dva týdny je kroužek */
       `<g transform="rotate(2 130 78)"><rect x="120" y="68" width="20" height="21" rx="0.8" fill="#FBF7EE" stroke="#A89A88" stroke-width="0.5"/><rect x="120" y="68" width="20" height="4.4" fill="#C4432B"/>` +
       `<g fill="#8A7A69">${Array.from({ length: 20 }, (_, i) => `<rect x="${f(121.8 + (i % 5) * 3.6)}" y="${f(74.4 + Math.floor(i / 5) * 3.4)}" width="1.6" height="1.2"/>`).join("")}</g>` +
@@ -923,20 +945,34 @@ const V2 = (() => {
       `<rect x="0" y="90" width="180" height="3" fill="#6E5038" opacity="0.5"/>` +
       `<g stroke="#8A6A48" stroke-width="0.6" opacity="0.55">${desky.map((y) => `<path d="M0 ${y} Q90 ${y + 0.6} 180 ${y - 0.4}"/>`).join("")}</g>` +
       `<g fill="#9E8A72" opacity="0.4">${Array.from({ length: 14 }, () => `<ellipse cx="${f(8 + r() * 164)}" cy="${f(100 + r() * 76)}" rx="${f(1.4 + r() * 4)}" ry="${f(0.7 + r() * 1.6)}"/>`).join("")}</g>` +
-      /* žluté tužka (špatný nástroj) a dřevěné žebro, houbička */
-      `<g transform="rotate(-14 34 162)"><rect x="18" y="160" width="28" height="3.4" fill="#E9B839" stroke="#8A6A1E" stroke-width="0.5"/><path d="M46 160 L52 161.7 L46 163.4 Z" fill="#E9CFA2" stroke="#8A6A1E" stroke-width="0.4"/><path d="M50.4 161.2 L52 161.7 L50.4 162.2 Z" fill="#3A3A40"/><rect x="15" y="160" width="3" height="3.4" fill="#C9B79A" stroke="#8A6A1E" stroke-width="0.4"/></g>` +
-      `<path d="M148 160 Q158 152 168 160 Q170 166 160 168 Q150 168 148 160 Z" fill="#C49A6C" stroke="#7A5A3E" stroke-width="0.6"/>` +
+      /* houbička (tužka a žebro leží až nahoře na papíře, viz vrstvaVpredu) */
       `<path d="${hrouda(158, 120, 8.6, 5.4, 41, { bodu: 14, kolisani: 0.16 })}" fill="#E8C46A" stroke="#B8923A" stroke-width="0.6"/>` +
       `<g fill="#B8923A" opacity="0.6">${[[155, 118], [160, 121], [157, 123], [162, 118]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="0.8"/>`).join("")}</g>` +
       `</g>`
     );
   };
-  /* Paprsky z okna přes stůl (přes „screen“) */
+  /* Měsíční světlo z okna ve vzduchu nad stolem (přes „screen“) */
   const vrstvaPaprsky = () =>
     `<g clip-path="url(#ce2-scena)">` +
-    `<path d="M114 60 L134 60 L92 178 L44 178 Z" fill="url(#ce2-paprsek)" opacity="0.5"/>` +
-    `<path d="M134 60 L154 60 L132 178 L96 178 Z" fill="url(#ce2-paprsek)" opacity="0.42"/>` +
+    `<path d="${PAPRSKY[0]}" fill="url(#ce2-paprsek)" opacity="0.26"/>` +
+    `<path d="${PAPRSKY[1]}" fill="url(#ce2-paprsek)" opacity="0.2"/>` +
     `</g>`;
+  /*
+   * Noc: modrá tuš přes celou dílnu, násobí se s tím, co je pod ní. Okno má
+   * v tuši díru (je namalované rovnou nočně) a kde dopadá měsíc, je tuš
+   * řidší — tam je vidět hlína, točna i prkna stolu.
+   */
+  const vrstvaNoc = () =>
+    `<g clip-path="url(#ce2-scena)">` +
+    `<path d="M-4 -4 H184 V184 H-4 Z M115.2 15.2 V58.8 H152.8 V15.2 Z" fill-rule="evenodd" fill="${NOC.stin}"/>` +
+    PAPRSKY.map((d) => `<path d="${d}" fill="url(#ce2-mesicni)"/>`).join("") +
+    `</g>`;
+  /* Tužka (špatný nástroj) a dřevěné žebro: leží dole na papíře, napůl venku z tuše */
+  const vrstvaVpredu = () =>
+    `<ellipse cx="34" cy="176.6" rx="18" ry="1.2" fill="#221A22" opacity="0.22"/>` +
+    `<g transform="rotate(-9 34 172)"><rect x="18" y="170.6" width="28" height="3.4" fill="#E9B839" stroke="#8A6A1E" stroke-width="0.5"/><path d="M46 170.6 L52 172.3 L46 174 Z" fill="#E9CFA2" stroke="#8A6A1E" stroke-width="0.4"/><path d="M50.4 171.8 L52 172.3 L50.4 172.8 Z" fill="#3A3A40"/><rect x="15" y="170.6" width="3" height="3.4" fill="#C9B79A" stroke="#8A6A1E" stroke-width="0.4"/><path d="M19 171.4 H45" stroke="#F6D77A" stroke-width="0.6" opacity="0.8"/></g>` +
+    `<ellipse cx="160" cy="174.6" rx="12" ry="1.2" fill="#221A22" opacity="0.22"/>` +
+    `<path d="M150 166 Q160 158 170 166 Q172 172 162 174 Q152 174 150 166 Z" fill="#C49A6C" stroke="#7A5A3E" stroke-width="0.6"/><circle cx="160" cy="166.6" r="1.2" fill="#F1EAD8" stroke="#7A5A3E" stroke-width="0.4"/>`;
   const vrstvaTocna = (st) => {
     const { x, y, rx, tl } = TOCNA;
     const ry = rx * K;
@@ -976,9 +1012,9 @@ const V2 = (() => {
     const A = [tip[0] + d[0] * delka, tip[1] + d[1] * delka];
     const B = [A[0] + d[0] * 11, A[1] + d[1] * 11];
     let s = "";
-    if (druh === "ocko") s += `<path d="M${pt(tip)} L${pt(A)}" stroke="#6E6E70" stroke-width="0.9"/><path d="M${pt([tip[0] - d[1] * 1.6, tip[1] + d[0] * 1.6])} Q${pt([tip[0] - d[0] * 2, tip[1] - d[1] * 2])} ${pt([tip[0] + d[1] * 1.6, tip[1] - d[0] * 1.6])}" stroke="#8C8C8E" stroke-width="0.9" fill="none"/>`;
-    else s += `<path d="M${pt(tip)} L${pt(A)}" stroke="#9A9A9C" stroke-width="0.7" stroke-linecap="round"/>`;
-    s += `<path d="M${pt(A)} L${pt(B)}" stroke="#7A5A3E" stroke-width="2.8" stroke-linecap="round"/><path d="M${pt(A)} L${pt(B)}" stroke="#C49A6C" stroke-width="1.8" stroke-linecap="round"/>`;
+    if (druh === "ocko") s += `<path d="M${pt(tip)} L${pt(A)}" stroke="#A9ADD0" stroke-width="0.9"/><path d="M${pt([tip[0] - d[1] * 1.6, tip[1] + d[0] * 1.6])} Q${pt([tip[0] - d[0] * 2, tip[1] - d[1] * 2])} ${pt([tip[0] + d[1] * 1.6, tip[1] - d[0] * 1.6])}" stroke="#C4C8E6" stroke-width="0.9" fill="none"/>`;
+    else s += `<path d="M${pt(tip)} L${pt(A)}" stroke="#C4C8E6" stroke-width="0.7" stroke-linecap="round"/>`;
+    s += `<path d="M${pt(A)} L${pt(B)}" stroke="${RUCKA_N.obrys}" stroke-width="2.8" stroke-linecap="round"/><path d="M${pt(A)} L${pt(B)}" stroke="#6A648E" stroke-width="1.8" stroke-linecap="round"/>`;
     return { s, ruka: [A[0] + d[0] * 5, A[1] + d[1] * 5] };
   };
   /** Miska na točně (nebo na cestě na polici) a vše, co se na ní děje. */
@@ -1016,15 +1052,38 @@ const V2 = (() => {
     }
     /* drobky na dně */
     for (const d of st.drobky) s += `<circle cx="${f(d.x)}" cy="${f(d.y)}" r="${f(d.r)}" fill="${mix(ks.hlina, "#FFF4E0", 0.2)}" stroke="${mix(ks.hlina, "#2A1E14", 0.4)}" stroke-width="0.2" opacity="${f(d.op)}"/>`;
-    /* lesk zapamatování */
-    if (p.lesk > 0) s += `<path d="${jiskraD(4.6 * p.lesk)}" transform="translate(${f(xb + 9)} ${f(yb - 6)}) rotate(${f(p.lesk * 45)})" fill="#FFF8E6" opacity="${f(p.lesk)}"/>`;
+    return s;
+  };
+  /*
+   * Co svítí: vyryté jméno (rozsvěcí se zleva, jak ho rydlo píše, a zhasne,
+   * až miska dojde na polici), špička rydla, jiskra zapamatování a kus na
+   * polici, na který se právě ukazuje.
+   */
+  const vrstvaSvit = (st) => {
+    let s = "";
+    if (st.ukaz) s += `<ellipse cx="${f(st.ukaz.kde[0])}" cy="${f(st.ukaz.kde[1])}" rx="13" ry="11" fill="url(#ce2-svit)" opacity="${f(st.ukaz.sila)}"/>`;
+    const p = st.prace;
+    if (!p) return s;
+    const ks = kus(p.k);
+    const h = MISKA.h * p.meritko;
+    const yb = p.O[1] - h * p.v_, xb = p.O[0] + (ks.kriva ? 2.4 * p.meritko : 0);
+    if (p.pise > 0 && p.svit > 0.01) {
+      const w = sirkaTextu(ks.jmeno);
+      const T = `translate(${f(xb)} ${f(yb + 0.6)}) scale(${f(p.meritko)} ${f(p.meritko * p.k_ * 1.08)})`;
+      s += `<clipPath id="ce2-psani-s"><rect x="${f(-w / 2 - 2)}" y="-12" width="${f((w + 4) * p.pise)}" height="24"/></clipPath>`;
+      s += `<g transform="${T}" opacity="${f(p.svit)}"><ellipse cx="${f(-w / 2 + (w * p.pise) / 2)}" cy="0" rx="${f((w * p.pise) / 2 + 5)}" ry="8.4" fill="url(#ce2-svit)"/>` +
+        `<g clip-path="url(#ce2-psani-s)"><text x="0" y="2.8" text-anchor="middle" font-family="Caveat, cursive" font-weight="600" font-size="${TEXT.velikost}" fill="${ZLUTA.zaklad}">${esc(ks.jmeno)}</text></g></g>`;
+    }
+    if (p.nastroj && p.nastroj.druh === "rydlo") s += `<circle cx="${f(p.nastroj.tip[0])}" cy="${f(p.nastroj.tip[1])}" r="3.6" fill="url(#ce2-svit)"/><circle cx="${f(p.nastroj.tip[0])}" cy="${f(p.nastroj.tip[1])}" r="0.7" fill="${ZLUTA.jadro}"/>`;
+    /* jiskra zapamatování */
+    if (p.lesk > 0) s += `<path d="${jiskraD(4.6 * p.lesk)}" transform="translate(${f(xb + 9)} ${f(yb - 6)}) rotate(${f(p.lesk * 45)})" fill="${ZLUTA.jadro}" opacity="${f(p.lesk)}"/>`;
     return s;
   };
   /* Ruce a nástroj nad miskou */
   const vrstvaRuce = (st) => {
     const p = st.prace;
     let s = "";
-    const kresliRuku = (S0, H, o = {}) => rucka(S0, H, { tloustka: 3.4, barva: "#E9D3AE", obrys: "#8A6A48", ...o });
+    const kresliRuku = (S0, H, o = {}) => rucka(S0, H, { tloustka: 3.4, ...RUCKA_N, ...o });
     let H_P = [RAMENO_P[0] + 4, RAMENO_P[1] + 14], H_L = [RAMENO_L[0] - 3, RAMENO_L[1] + 14];
     let nastr = "";
     if (p && p.nastroj) {
@@ -1042,48 +1101,49 @@ const V2 = (() => {
   };
   /* Deska s ruční linkou se nakreslí jednou; tvář a jméno na břiše mají vlastní vrstvu */
   const vrstvaCedulka = () => {
-    const lic = () => cedDeska("ce2", { d: { ...DREVO, svetle: "#F7E6C6", tmave: "#E6C99A" } });
+    const lic = () => cedDeska("ce2", { d: DREVO_N });
     return (
-      `<path d="${CED.tvar}" transform="translate(${DIRA[0] - 3} ${DIRA[1] + 2}) scale(${S}) translate(-90 -62)" fill="#5A3E26" opacity="0.14"/>` +
+      `<path d="${CED.tvar}" transform="translate(${DIRA[0] - 3} ${DIRA[1] + 2}) scale(${S}) translate(-90 -62)" fill="#06071A" opacity="0.3"/>` +
       snurka(`M${HAK[0]} ${HAK[1]} L${DIRA[0]} ${DIRA[1] - 1}`, { sirka: 1.6, obrys: "#5E160B" }) +
-      `<g transform="${CEDT}"><g filter="url(#ce2-tah)">${otocena(0, lic, lic)}</g></g>`
+      `<g transform="${CEDT}"><g filter="url(#ce2-tah)">${otocena(0, lic, lic, { obrys: DREVO_N.obrys, hrana: DREVO_N.hrana })}</g></g>`
     );
   };
   const vrstvaTvar = (st) =>
     `<g transform="${CEDT}">` +
-    /* čárky „textu“ se prolnou se jménem */
-    `<g clip-path="url(#ce2-orez)">${(st.napis ? st.napisSila : 0) < 0.99 ? cedRadky({ sila: 1 - (st.napis ? st.napisSila : 0) }) : ""}${st.napis ? cedRadky({ text: st.napis, sila: st.napisSila }) : ""}</g>` +
-    cedTvar("ce2", { dx: st.pohled[0], dy: st.pohled[1], mrk: st.mrk, oci: st.oci, usta: st.usta, tvare: 0.45 }) +
+    /* čárky „textu“ se prolnou se jménem; jméno, které si pamatuje, svítí */
+    `<g clip-path="url(#ce2-orez)">${(st.napis ? st.napisSila : 0) < 0.99 ? cedRadky({ barva: OKO_N, sila: 1 - (st.napis ? st.napisSila : 0) }) : ""}` +
+    `${st.napis ? `<ellipse cx="90" cy="122" rx="34" ry="13" fill="url(#ce2-svit)" opacity="${f(st.napisSila)}"/>` + cedRadky({ text: st.napis, barva: ZLUTA.zaklad, sila: st.napisSila }) : ""}</g>` +
+    cedTvar("ce2", { dx: st.pohled[0], dy: st.pohled[1], mrk: st.mrk, oci: st.oci, usta: st.usta, tvare: 0.4, oko: OKO_N, odlesk: ZLUTA.jadro }) +
     `</g>`;
   const vrstvaPrach = (st) =>
     st.prach
       .map(([x, y, op]) => `<circle cx="${f(x)}" cy="${f(y)}" r="0.55" fill="#FFF6DA" opacity="${f(op)}"/>`)
       .join("");
-  /* Za oknem: z ořechu padá listí (je říjen) a občas přeletí pták */
+  /* Za oknem: z ořechu padá listí (je říjen) a občas přeletí netopýr */
   const LISTI = Array.from({ length: 4 }, (_, i) => {
     const r = rng(60 + i * 7);
-    return { x: 118 + r() * 32, perioda: 6 + r() * 4, fz: r() * 10, barva: ["#C9A24A", "#9AA375", "#B8802E", "#D9B25E"][i] };
+    return { x: 118 + r() * 32, perioda: 6 + r() * 4, fz: r() * 10, barva: ["#3A3F7C", "#2A2E62", "#4A4F94", "#343872"][i] };
   });
   const vrstvaOkno = (st) => {
     let s = "";
     for (const l of LISTI) {
       const u = (((st.t + l.fz) / l.perioda) % 1 + 1) % 1;
       const x = l.x + Math.sin(u * 9 + l.fz) * 4, y = 12 + u * 50, rot = Math.sin(u * 7 + l.fz) * 70;
-      s += `<path d="M0 -2.2 Q1.6 0 0 2.2 Q-1.6 0 0 -2.2 Z" transform="translate(${f(x)} ${f(y)}) rotate(${f(rot)})" fill="${l.barva}" stroke="#6E5A2E" stroke-width="0.3"/>`;
+      s += `<path d="M0 -2.2 Q1.6 0 0 2.2 Q-1.6 0 0 -2.2 Z" transform="translate(${f(x)} ${f(y)}) rotate(${f(rot)})" fill="${l.barva}"/>`;
     }
     if (st.ptak) {
       const [x, y, kridla] = st.ptak;
       const k = Math.sin(kridla) * 2.6;
-      s += `<path d="M${f(x - 3.4)} ${f(y - k)} Q${f(x - 1.4)} ${f(y - 1)} ${f(x)} ${f(y)} Q${f(x + 1.4)} ${f(y - 1)} ${f(x + 3.4)} ${f(y - k)}" stroke="#4A3A2C" stroke-width="0.9" fill="none" stroke-linecap="round"/>`;
+      s += `<path d="M${f(x - 3.4)} ${f(y - k)} Q${f(x - 1.4)} ${f(y - 1)} ${f(x)} ${f(y)} Q${f(x + 1.4)} ${f(y - 1)} ${f(x + 3.4)} ${f(y - k)}" stroke="${NOC.silueta}" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
     }
     return `<g clip-path="url(#ce2-okno)">${s}</g>`;
   };
   const vrstvaLem = () =>
-    `<path d="${TVAR}" fill="none" stroke="#B98E5A" stroke-width="2.6" opacity="0.5" filter="url(#ce2-lem-tah)"/>`;
+    `<path d="${TVAR}" fill="none" stroke="${NOC.okraj}" stroke-width="2.6" opacity="0.6" filter="url(#ce2-lem-tah)"/>`;
 
   const defs = () =>
-    cedDefs("ce2", { ...DREVO, svetle: "#F7E6C6", tmave: "#E6C99A" }) +
-        `<clipPath id="ce2-scena"><path d="${TVAR}"/></clipPath>` +
+    cedDefs("ce2", DREVO_N) +
+    `<clipPath id="ce2-scena"><path d="${TVAR}"/></clipPath>` +
     `<clipPath id="ce2-okno"><rect x="114" y="14" width="40" height="46"/></clipPath>` +
     `<filter id="ce2-lem" x="-15%" y="-15%" width="130%" height="130%"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="21" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="12" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="2.2"/></filter>` +
     `<filter id="ce2-lem-tah" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="3" seed="5" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="0.6"/></filter>` +
@@ -1096,9 +1156,12 @@ const V2 = (() => {
     `<feMerge><feMergeNode in="tah"/><feMergeNode in="zrnoVTvaru"/></feMerge></filter>` +
     `<linearGradient id="ce2-zed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EDD5AA"/><stop offset="1" stop-color="#DCB988"/></linearGradient>` +
     `<linearGradient id="ce2-stul" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B98E62"/><stop offset="1" stop-color="#D2AE80"/></linearGradient>` +
-    `<linearGradient id="ce2-nebe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBE6B4"/><stop offset="1" stop-color="#F3BE76"/></linearGradient>` +
-    `<radialGradient id="ce2-slunce"><stop offset="0" stop-color="#FFF8E0"/><stop offset="0.4" stop-color="#FFE9B0" stop-opacity="0.8"/><stop offset="1" stop-color="#FFE9B0" stop-opacity="0"/></radialGradient>` +
-    `<linearGradient id="ce2-paprsek" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF2CC" stop-opacity="0.9"/><stop offset="1" stop-color="#FFE2A0" stop-opacity="0"/></linearGradient>` +
+    `<linearGradient id="ce2-nebe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B1E50"/><stop offset="1" stop-color="#3A3E88"/></linearGradient>` +
+    `<radialGradient id="ce2-slunce"><stop offset="0.3" stop-color="${ZLUTA.svetla}" stop-opacity="0.6"/><stop offset="1" stop-color="${ZLUTA.zaklad}" stop-opacity="0"/></radialGradient>` +
+    `<linearGradient id="ce2-paprsek" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ZLUTA.svetla}" stop-opacity="0.9"/><stop offset="1" stop-color="${ZLUTA.zaklad}" stop-opacity="0"/></linearGradient>` +
+    /* kde svítí měsíc, je tuš řidší: nahoře u okna skoro žádná, ke kraji houstne */
+    `<linearGradient id="ce2-mesicni" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C2BDBA"/><stop offset="0.55" stop-color="#A29FB6"/><stop offset="1" stop-color="#66669C"/></linearGradient>` +
+    `<radialGradient id="ce2-svit"><stop offset="0" stop-color="${ZLUTA.svetla}" stop-opacity="0.55"/><stop offset="0.5" stop-color="${ZLUTA.zaklad}" stop-opacity="0.18"/><stop offset="1" stop-color="${ZLUTA.zaklad}" stop-opacity="0"/></radialGradient>` +
     `<linearGradient id="ce2-hlinik" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9CAC6"/><stop offset="0.6" stop-color="#A9AAA6"/><stop offset="1" stop-color="#8E8F8B"/></linearGradient>`;
 
   /* ——— Simulace ——— */
@@ -1260,7 +1323,6 @@ const V2 = (() => {
     /* pták za oknem */
     if (!dyn.ptak && t > dyn.ptakDalsi) {
       dyn.ptak = { od: t, y: 26 + R() * 18, smer: R() < 0.5 ? 1 : -1 };
-      dyn.zvuk.push({ druh: "ptak", sila: 0.5, pan: 0.7 });
     }
     if (dyn.ptak && t - dyn.ptak.od > 2.2) {
       dyn.ptak = null;
@@ -1281,7 +1343,7 @@ const V2 = (() => {
     if (!p) return null;
     const u = t - p.start;
     const ks = kus(p.k);
-    const out = { k: p.k, u, O: [TOCNA.x, TOCNA.y], meritko: 1, k_: K, v_: V, naTocne: true, noha: seriznuto(u), tuzka: 1 - seriznuto(u), pise: 0, toci: tocnaRychlost(u), lesk: 0, nastroj: null, nese: false, drzi: false };
+    const out = { k: p.k, u, O: [TOCNA.x, TOCNA.y], meritko: 1, k_: K, v_: V, naTocne: true, noha: seriznuto(u), tuzka: 1 - seriznuto(u), pise: 0, toci: tocnaRychlost(u), lesk: 0, svit: 1, nastroj: null, nese: false, drzi: false };
     if (u < 0.25) out.O = [TOCNA.x, TOCNA.y - (1 - easeOut(u / 0.25)) * 22];
     if (u > FAZE.toci + 0.2 && u < FAZE.rydlo - 0.15) {
       out.nastroj = { tip: [DNO[0] + 7.4, DNO[1] - 1.4 + Math.sin(t * 30) * 0.2], uhel: -42, druh: "ocko" };
@@ -1307,6 +1369,7 @@ const V2 = (() => {
       out.naTocne = false;
       out.nese = u < FAZE.polozi;
       out.pise = 1;
+      out.svit = 1 - k;
       if (u > FAZE.polozi) return null;
     }
     return out;
@@ -1353,8 +1416,9 @@ const V2 = (() => {
       const q = (t - d.ptak.od) / 2.2;
       ptak = [d.ptak.smer > 0 ? lerp(108, 162, q) : lerp(162, 108, q), d.ptak.y + Math.sin(q * 9) * 1.6, t * 22];
     }
+    const ukaz = d.ukazuje && t - d.ukazujeOd < 1.6 ? { kde: d.ukazuje.kde, sila: clamp((1.6 - (t - d.ukazujeOd)) / 0.4) } : null;
     return {
-      t, prace: p, otoceni: d.otoceni, odrezky: d.odrezky, drobky: d.drobky, rada: d.rada, poskok, prach, ptak,
+      t, prace: p, ukaz, otoceni: d.otoceni, odrezky: d.odrezky, drobky: d.drobky, rada: d.rada, poskok, prach, ptak,
       kyv: d.kyv.a, pohled: d.pohled, mrk: mrkani(t, [1.2, 4.4, 4.65, 7.9], 9), oci, usta, napis, napisSila,
     };
   };
@@ -1376,6 +1440,7 @@ const V2 = (() => {
       { id: "tocna", kresli: vrstvaTocna, klic: (st) => f(st.otoceni) },
       { id: "odrezky", kresli: vrstvaOdrezky, klic: snimek },
       { id: "prace", kresli: vrstvaPrace, klic: snimek },
+      { id: "noc", kresli: vrstvaNoc, styl: "mix-blend-mode:multiply" },
       { id: "cedulka", kresli: vrstvaCedulka, pohyb: (st) => ({ uhel: (st.kyv * 180) / Math.PI, cx: HAK[0], cy: HAK[1] }) },
       {
         id: "tvar",
@@ -1386,7 +1451,9 @@ const V2 = (() => {
       { id: "ruce", kresli: vrstvaRuce, klic: snimek },
       { id: "paprsky", kresli: vrstvaPaprsky, styl: "mix-blend-mode:screen" },
       { id: "prach", kresli: vrstvaPrach, klic: snimek, styl: "mix-blend-mode:screen" },
+      { id: "svit", kresli: vrstvaSvit, klic: (st) => (st.prace || st.ukaz ? snimek(st) : -1) },
       { id: "lem", kresli: vrstvaLem },
+      { id: "vpredu", kresli: vrstvaVpredu },
     ],
   };
 })();
@@ -2007,7 +2074,12 @@ const celeSvg = (V, t, dyn, vstup = {}, { sirka = 900, pozadi = "#F4EBDD", trida
         const obsah = v.kresli(st);
         const op = v.pruhlednost ? ` opacity="${v.pruhlednost(st)}"` : "";
         const p = v.pohyb ? v.pohyb(st) : null;
-        const tr = p ? ` transform="rotate(${f(p.uhel)} ${p.cx} ${p.cy})"` : "";
+        /* pohyb je buď houpání kolem háčku {uhel, cx, cy}, nebo posun s natočením {x, y, r, sx, sy, ox, oy} */
+        const tr = !p
+          ? ""
+          : p.uhel !== undefined
+            ? ` transform="rotate(${f(p.uhel)} ${p.cx} ${p.cy})"`
+            : ` transform="translate(${f(p.ox + (p.x || 0))} ${f(p.oy + (p.y || 0))}) rotate(${f(p.r || 0)}) scale(${f(p.sx ?? 1)} ${f(p.sy ?? 1)}) translate(${f(-p.ox)} ${f(-p.oy)})"`;
         return `<g style="${v.styl || ""}"${op}${tr}>${obsah}</g>`;
       })
       .join("") +
@@ -2023,5 +2095,5 @@ const pretoc = (V, t, vstup = {}, krokS = 1 / 60) => {
   return dyn;
 };
 
-export const kresby = { v1: V1, v2: V2, v3: V3 };
+export const kresby = { v1: V1, v2: V2, v3: V3, lampion };
 export { celeSvg, pretoc };

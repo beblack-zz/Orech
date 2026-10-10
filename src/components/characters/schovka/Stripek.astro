@@ -1,0 +1,30 @@
+---
+/**
+ * Střípek na schovávanou — malá zjednodušená kresba pro hry na hledání
+ * po webu, ve čtyřech barvách a dvou pózách, stejně jako Pecinka a
+ * Bublinka vedle. Kresbu skládá ./stripek.ts (jde ji volat i za běhu ve
+ * hře), pohyb je v styles/schovka.css.
+ *
+ *   <Stripek barva="zlata" size={32} />
+ *   <Stripek barva="pruhledna" poza="vykukuje" size={40} />
+ *
+ * Pod 22 px se kreslí podle zvláštní šestnáctkové mřížky — s jedinou
+ * spárou, bez úst a bez poletujícího střípku, které by se v tak malé
+ * velikosti slily.
+ */
+import "../../../styles/schovka.css";
+import { stripekSchovka } from "./stripek";
+import type { SchovkaBarva, SchovkaPoza } from "./pecinka";
+import { uid } from "../dospele/uid";
+
+interface Props {
+  barva?: SchovkaBarva;
+  /** šířka v pixelech; vykukující je nižší */
+  size?: number;
+  poza?: SchovkaPoza;
+  class?: string;
+}
+const { barva = "logo", size = 32, poza = "stoji", class: cls = "" } = Astro.props;
+const svg = stripekSchovka({ barva, velikost: size, poza, id: uid(), trida: cls });
+---
+<Fragment set:html={svg} />

@@ -23,7 +23,21 @@
  * na stránce jen jednou. Mají vlastní předponu hz1-, hz2-, hz3-: na
  * stránce Marcel stojí i Pecinka a další, a ty mají v1-telo, v1-tah…
  * Dvě stejná id by si prohlížeč spletl a Hlínka by dostala cizí barvy.
+ *
+ * Podle Pecinky, Bublinky a Střípka přibyly podoby, které mají každá svůj
+ * soubor a společné kusy v ./spolecne.js:
+ *
+ *   sakura   01 Kami — pod sakurou: nová, čistá kresba ve stylu lampionu (id hzk-)
+ *   ruce     02 Tušový lem — mokré ruce: spí na kruhu a ruce z noci ji vytáčejí do tvarů (id hzr-)
+ *   lampion  03 Lampion — bez pozadí, jde ze spaní a lampion jí vyrostl z výhonku (id hzl-)
+ *
+ * Původní sakura (v1) tím ze stránky odešla, 04 Na schovávanou bydlí
+ * v components/characters/schovka.
+ * Vrstva s `orez` se ořízne tušovou skvrnou, vrstva s `pruhlednost` se prolíná.
  */
+import { kamiSakura } from "./kami-sakura.js";
+import { lemRuce } from "./lem-ruce.js";
+import { lampion } from "./lampion.js";
 
 /* ——— Pomocníci (stejní jako u Pecinky) ——— */
 const f = (n) => Math.round(n * 100) / 100;
@@ -2205,6 +2219,12 @@ const V3 = (() => {
   };
 })();
 
+/** Obsah vrstvy i s ořezem tušovou skvrnou — stejně ho skládá běh i statický snímek. */
+const obsahVrstvy = (v, st) => {
+  const obsah = v.kresli(st);
+  return v.orez && obsah ? `<g clip-path="url(#${v.orez})">${obsah}</g>` : obsah;
+};
+
 /**
  * Celá kresba jako jedno SVG — pro náhled v Node, nebo jako statický první
  * snímek, který komponenta vloží do stránky (s třídou místo rozměrů).
@@ -2217,8 +2237,7 @@ const celeSvg = (V, t, dyn, vstup = {}, { sirka = 900, pozadi = "#F7F1E3", trida
     (pozadi ? `<rect x="-50" y="-50" width="400" height="400" fill="${pozadi}"/>` : "") +
     V.vrstvy
       .map((v) => {
-        let obsah = v.kresli(st);
-        if (v.orez) obsah = `<g clip-path="url(#${v.orez})">${obsah}</g>`;
+        const obsah = obsahVrstvy(v, st);
         const p = v.pohyb ? v.pohyb(st) : null;
         const tr = p ? ` transform="translate(${f(p.ox + (p.x || 0))} ${f(p.oy + (p.y || 0))}) rotate(${f(p.r || 0)}) scale(${f(p.sx ?? 1)} ${f(p.sy ?? 1)}) translate(${f(-p.ox)} ${f(-p.oy)})"` : "";
         const op = v.pruhlednost ? ` opacity="${v.pruhlednost(st)}"` : "";
@@ -2237,5 +2256,5 @@ const pretoc = (V, t, vstup = {}, krokS = 1 / 60) => {
   return dyn;
 };
 
-export const kresby = { v1: V1, v2: V2, v3: V3 };
-export { celeSvg, pretoc };
+export const kresby = { v1: V1, v2: V2, v3: V3, sakura: kamiSakura, ruce: lemRuce, lampion };
+export { celeSvg, pretoc, obsahVrstvy };

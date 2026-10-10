@@ -8,21 +8,44 @@
  * stuha a lakované bubny ze Zlatého listu, bubnuje paličkami). Je to jen
  * obrázek — bez popisku, ovládá se myší a zvuk jde přes vypínač v hlavičce.
  *
- * Pecinka s ohněm (PecinkaOhen.astro) má dvě přehnané podoby vedle sebe,
- * taky jen obrázky: plamenná svatozář a raku. Třetí, prskavka na vějíři,
- * v komponentě zůstává, ale na stránce už není.
+ * Střípek a zlato (StripekZlato.astro) má čtyři podoby jako Pecinka
+ * a Bublinka pod ním: Kami (medituje na obláčku, za zády svatozář z okraje
+ * rozbitého talíře slepeného zlatem), Tušový lem (prasklá noc: tma praská
+ * a on trhliny zalévá štětcem svítivou žlutou, až se rozední), Lampion — letí na
+ * obláčku s lucernou slepenou zlatem — a Na schovávanou
+ * (StripekSchovka.astro). Původní kresba (StripekKintsugi.astro) zůstává
+ * jako komponenta, ale na stránce už není.
  *
- * Cedulka jako ema (CedulkaEma.astro) má tři: nahoře bez pozadí kůň na
- * rubu, pod ní dvě celé scény — dílna, kde ryje jména do den misek,
- * a svatyně Inari s lišáckými destičkami. Taky jen obrázky.
+ * Pecinka s ohněm (PecinkaOhen.astro) má čtyři podoby ve dvou řadách a pod
+ * každou jméno: Kami (plamenná svatozář) a Tušový lem (raku v noční tuši),
+ * pod nimi Lampion — bez pozadí jde s čóčinem jako průvod na Domku 2 —
+ * a Na schovávanou: malá Pecinka pro hry na hledání ve čtyřech barvách
+ * (PecinkaSchovka.astro). Prskavka na vějíři v komponentě zůstává, ale na
+ * stránce není.
+ *
+ * Bublinka jako strašidlo (BublinkaStrasidlo.astro) má stejné čtyři podoby
+ * jako Pecinka: Kami (studený oheň kolem kotouče z nočního laku, v něm za
+ * ní rohatý duch), Tušový lem (hřbitov hrnců, vede dušičky se zvonkem),
+ * Lampion — letí s lucernou, ve které svítí bludička — a Na schovávanou
+ * (BublinkaSchovka.astro). Nosí černý slaměný klobouk.
+ *
+ * Cedulka jako ema (CedulkaEma.astro) má stejné čtyři podoby: Kami (visí
+ * před lakovaným kotoučem, na rubu má koně), Tušový lem (noční dílna,
+ * kde při měsíci ryje jména do den misek a ta jména svítí), Lampion —
+ * jde v dřevěných botičkách z rohu na roh a nese lucernu s nápisem JIRO —
+ * a Na schovávanou (CedulkaSchovka.astro). Svatyně Inari s lišáckými
+ * destičkami v komponentě zůstává, ale na stránce už není.
  *
  * Kachlík a rovina (KachlikRovina.astro) stejně: nahoře bez pozadí
  * šestiruký se čtvercovou svatozáří, pod ním zen zahrada a kachlová kamna.
  *
- * Hlínka, kami země (HlinkaZeme.astro), má dvě vedle sebe jako Pecinka:
- * bez pozadí spí u kořenů posvátné sakury, vedle je zakopaný džbán
- * suikinkutsu, ve kterém zvoní kapky. Třetí, drak z hlíny nad Fudži,
- * v komponentě zůstává, ale na stránce už není.
+ * Hlínka, kami země (HlinkaZeme.astro), má stejné podoby jako Pecinka,
+ * Bublinka a Střípek: Kami (spí pod posvátnou sakurou, koruna je
+ * svatozář; kreslená čistě jako ta s lampionem), Tušový lem (mokré ruce: spí na hrnčířském kruhu a ruce
+ * z noci ji vytáčejí do tvarů), Lampion — jde ze spaní a lampion jí vyrostl
+ * z výhonku — a Na schovávanou (HlinkaSchovka.astro). Původní sakura,
+ * drak nad Fudži a suikinkutsu v komponentě zůstávají, ale na stránce
+ * už nejsou.
  *
  * Šamotka nese (SamotkaNese.astro) taky: nahoře bez pozadí jako kamidana,
  * polička pro kami se svatyní a zvoncem, pod ní řez pecí s celým výpalem
@@ -38,6 +61,8 @@ import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/marcel.css";
+/* písmo značky: Cedulka má na lucerně JIRO */
+import "../styles/znacka.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
@@ -45,11 +70,17 @@ import Paticka from "../components/parta2/Paticka.astro";
 import VazickaEnso from "../components/characters/kami-buh/VazickaEnso.astro";
 import KapkaRaijin from "../components/characters/kami-buh/KapkaRaijin.astro";
 import KapkaBubny from "../components/characters/kami-buh/KapkaBubny.astro";
-import StripekKintsugi from "../components/characters/kami-buh/StripekKintsugi.astro";
+import StripekZlato from "../components/characters/kami-buh/StripekZlato.astro";
+import StripekSchovka from "../components/characters/kami-buh/StripekSchovka.astro";
 import PecinkaOhen from "../components/characters/kami-buh/PecinkaOhen.astro";
+import PecinkaSchovka from "../components/characters/kami-buh/PecinkaSchovka.astro";
+import BublinkaStrasidlo from "../components/characters/kami-buh/BublinkaStrasidlo.astro";
+import BublinkaSchovka from "../components/characters/kami-buh/BublinkaSchovka.astro";
 import CedulkaEma from "../components/characters/kami-buh/CedulkaEma.astro";
+import CedulkaSchovka from "../components/characters/kami-buh/CedulkaSchovka.astro";
 import KachlikRovina from "../components/characters/kami-buh/KachlikRovina.astro";
 import HlinkaZeme from "../components/characters/kami-buh/HlinkaZeme.astro";
+import HlinkaSchovka from "../components/characters/kami-buh/HlinkaSchovka.astro";
 import SamotkaNese from "../components/characters/kami-buh/SamotkaNese.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
 import { parta } from "../data/parta";
@@ -96,7 +127,7 @@ const styly: Record<PostavaId, string> = {
 };
 
 /* Štětcové písmo jen se znaky ze štítků, z brány v Inari (CedulkaEma v3) a z nádržky u Hlínky (HlinkaZeme v3) */
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("円相雷神金継顔筆奉納稲荷五隹止矢")}`;
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("円相雷神顔筆奉納稲荷五隹止矢")}`;
 ---
 <!doctype html>
 <html lang="cs">
@@ -148,37 +179,122 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
         </div>
       </section>
 
-      {/* Střípek: bílý střep na obláčku, slepený zlatem a kusy s lidovým vzorem */}
-      <section class="mc-sekce" data-hodina="14" aria-labelledby="mc-stripek">
-        <div class="papir">
-          <StripekKintsugi size={320} class="mc-kresba" />
-          <p class="stitek">Střípek · kami · <span lang="ja">金継</span></p>
-          <h2 id="mc-stripek" class="nadpis-2">Střípek na obláčku</h2>
-          <p class="mc-perex">
-            Velký bílý střep sedí na obláčku jako božstvo a kolem něj se vznášejí menší střípky.
-            Slepený je zlatem a dva kusy jsou z cizího nádobí: japonské vlnky seigaiha a český modrotisk.
-          </p>
-          <p class="mc-replika">„Spadl jsem ze stolu. Teď mám víc zlata než celá dílna.“</p>
-        </div>
-      </section>
-
-      {/* Pecinka s ohněm: dvě přehnané podoby, jen obrázky bez textů */}
-      <section class="mc-sekce" data-hodina="15.3" aria-label="Pecinka s ohněm">
+      {/* Střípek a zlato: čtyři podoby ve dvou řadách jako u Pecinky, pod každou číslo a jméno */}
+      <section class="mc-sekce" data-hodina="14" aria-label="Střípek a zlato">
         <div class="papir mc-siroky">
           <div class="mc-rada mc-rada-ohen">
-            <PecinkaOhen varianta="v1" />
-            <PecinkaOhen varianta="v2" />
+            <figure class="mc-podoba">
+              <StripekZlato varianta="prstenec" />
+              <figcaption><span class="mc-cislo">01</span><span class="mc-nazev">Kami</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <StripekZlato varianta="noc" />
+              <figcaption><span class="mc-cislo">02</span><span class="mc-nazev">Tušový lem</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <StripekZlato varianta="lampion" />
+              <figcaption><span class="mc-cislo">03</span><span class="mc-nazev">Lampion</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <StripekSchovka />
+              <figcaption><span class="mc-cislo">04</span><span class="mc-nazev">Na schovávanou</span></figcaption>
+            </figure>
           </div>
         </div>
       </section>
 
-      {/* Cedulka jako ema: nahoře bez pozadí, pod ní dvě scény, jen obrázky bez textů */}
+      {/* Pecinka s ohněm: čtyři podoby ve dvou řadách, pod každou číslo a jméno */}
+      <section class="mc-sekce" data-hodina="15.3" aria-label="Pecinka s ohněm">
+        <div class="papir mc-siroky">
+          <div class="mc-rada mc-rada-ohen">
+            <figure class="mc-podoba">
+              <PecinkaOhen varianta="v1" />
+              <figcaption><span class="mc-cislo">01</span><span class="mc-nazev">Kami</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <PecinkaOhen varianta="v2" />
+              <figcaption><span class="mc-cislo">02</span><span class="mc-nazev">Tušový lem</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <PecinkaOhen varianta="lampion" />
+              <figcaption><span class="mc-cislo">03</span><span class="mc-nazev">Lampion</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <PecinkaSchovka />
+              <figcaption><span class="mc-cislo">04</span><span class="mc-nazev">Na schovávanou</span></figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      {/* Bublinka jako strašidlo: čtyři podoby ve dvou řadách jako u Pecinky, pod každou číslo a jméno */}
+      <section class="mc-sekce" data-hodina="15.6" aria-label="Bublinka jako strašidlo">
+        <div class="papir mc-siroky">
+          <div class="mc-rada mc-rada-ohen">
+            <figure class="mc-podoba">
+              <BublinkaStrasidlo varianta="ohen" />
+              <figcaption><span class="mc-cislo">01</span><span class="mc-nazev">Kami</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <BublinkaStrasidlo varianta="hrbitov" />
+              <figcaption><span class="mc-cislo">02</span><span class="mc-nazev">Tušový lem</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <BublinkaStrasidlo varianta="lampion" />
+              <figcaption><span class="mc-cislo">03</span><span class="mc-nazev">Lampion</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <BublinkaSchovka />
+              <figcaption><span class="mc-cislo">04</span><span class="mc-nazev">Na schovávanou</span></figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      {/* Hlínka, kami země: čtyři podoby ve dvou řadách jako u Pecinky, pod každou číslo a jméno */}
+      <section class="mc-sekce" data-hodina="15.75" aria-label="Hlínka, kami země">
+        <div class="papir mc-siroky">
+          <div class="mc-rada mc-rada-ohen">
+            <figure class="mc-podoba">
+              <HlinkaZeme varianta="sakura" />
+              <figcaption><span class="mc-cislo">01</span><span class="mc-nazev">Kami</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <HlinkaZeme varianta="ruce" />
+              <figcaption><span class="mc-cislo">02</span><span class="mc-nazev">Tušový lem</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <HlinkaZeme varianta="lampion" />
+              <figcaption><span class="mc-cislo">03</span><span class="mc-nazev">Lampion</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <HlinkaSchovka />
+              <figcaption><span class="mc-cislo">04</span><span class="mc-nazev">Na schovávanou</span></figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      {/* Cedulka jako ema: čtyři podoby ve dvou řadách jako u Pecinky, pod každou číslo a jméno */}
       <section class="mc-sekce" data-hodina="15.9" aria-label="Cedulka jako ema">
-        <div class="papir mc-siroky mc-cedulka">
-          <CedulkaEma varianta="v1" class="mc-cedulka-hlavni" />
-          <div class="mc-rada mc-rada-cedulka">
-            <CedulkaEma varianta="v2" />
-            <CedulkaEma varianta="v3" />
+        <div class="papir mc-siroky">
+          <div class="mc-rada mc-rada-ohen">
+            <figure class="mc-podoba">
+              <CedulkaEma varianta="v1" />
+              <figcaption><span class="mc-cislo">01</span><span class="mc-nazev">Kami</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <CedulkaEma varianta="v2" />
+              <figcaption><span class="mc-cislo">02</span><span class="mc-nazev">Tušový lem</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <CedulkaEma varianta="lampion" />
+              <figcaption><span class="mc-cislo">03</span><span class="mc-nazev">Lampion</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <CedulkaSchovka />
+              <figcaption><span class="mc-cislo">04</span><span class="mc-nazev">Na schovávanou</span></figcaption>
+            </figure>
           </div>
         </div>
       </section>
@@ -190,16 +306,6 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
           <div class="mc-rada mc-rada-kachlik">
             <KachlikRovina varianta="v2" />
             <KachlikRovina varianta="v3" />
-          </div>
-        </div>
-      </section>
-
-      {/* Hlínka, kami země: sakura bez pozadí a suikinkutsu vedle sebe jako u Pecinky, jen obrázky bez textů */}
-      <section class="mc-sekce" data-hodina="16.42" aria-label="Hlínka, kami země">
-        <div class="papir mc-siroky mc-hlinka">
-          <div class="mc-rada mc-rada-hlinka">
-            <HlinkaZeme varianta="v1" />
-            <HlinkaZeme varianta="v3" />
           </div>
         </div>
       </section>

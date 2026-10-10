@@ -1,11 +1,13 @@
 ---
 /*
-  Pecinka s ohněm ve třech přehnaných podobách — kresby i běh jsou ve
+  Pecinka s ohněm ve čtyřech přehnaných podobách — kresby i běh jsou ve
   scripts/pecinka-ohen:
 
-    v1  Plamenná svatozář: kaen kóhai z laku a zlata, Pecinka na skále iwakura
-    v2  Raku: v noční tuši vytáhne rozžhavenou misku a zakalí ji v kádi
-    v3  Prskavka na vějíři: senkó hanabi na malovaném uchiwa
+    v1       Plamenná svatozář: kaen kóhai z laku a zlata, Pecinka na skále iwakura
+    v2       Raku: v noční tuši vytáhne rozžhavenou misku a zakalí ji v kádi
+    v3       Prskavka na vějíři: senkó hanabi na malovaném uchiwa
+    lampion  Jde s čóčinem na tyči, bez pozadí a trochu z boku — chodí na místě,
+             po cestě ji posouvá stránka jako průvod na Domku 2
 
   Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
   sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
@@ -15,12 +17,13 @@
 */
 import { kresby, celeSvg, pretoc } from "../../../scripts/pecinka-ohen/kresby.js";
 
-interface Props { varianta: "v1" | "v2" | "v3"; class?: string; }
+interface Props { varianta: "v1" | "v2" | "v3" | "lampion"; class?: string; }
 const { varianta, class: cls = "" } = Astro.props;
 const popisy = {
   v1: "Pecinka na skále, za zády svatozář z plamenů se zlatými linkami",
   v2: "Pecinka v noci vytahuje kleštěmi rozžhavenou misku a kalí ji v kádi s vodou",
   v3: "Pecinka na malovaném vějíři drží japonskou prskavku, kolem letní noc",
+  lampion: "Pecinka jde na dřevěných geta a nese na bambusové tyči papírovou lucernu se znakem ohně",
 };
 const V = kresby[varianta];
 const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "po-staticky" });
