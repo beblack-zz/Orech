@@ -258,6 +258,8 @@ const scena = (el, V) => {
   let dyn = V.novaDynamika();
   let t = 0, posledniCas = null, viditelna = false, zastaveno = false, aktivniDo = 0, mysPred = null;
 
+  /* divadlo na /parta-3 umí scénu podržet na prvním snímku, než se rozhrne opona (el.__scena.stuj) */
+  let stoji = false;
   const vykresli = () => {
     const st = V.stav(t, vstup, dyn);
     for (const L of vrstvy) {
@@ -294,7 +296,7 @@ const scena = (el, V) => {
     }
     const dt = posledniCas == null ? 0 : Math.min(0.05, (ted - posledniCas) / 1000);
     posledniCas = ted;
-    if (!klidne || t < aktivniDo) {
+    if (!stoji && (!klidne || t < aktivniDo)) {
       t += dt;
       vstup.rychlost *= Math.exp(-dt / 0.15);
       V.krok(dyn, t, dt, vstup);
@@ -359,6 +361,26 @@ const scena = (el, V) => {
     dyn = pretoc(V, t);
   }
   vykresli();
+
+  /* Divadlo na /parta-3 (scripts/parta3/reziser.ts): vystoupení začíná od čisté scény a režisér si čte její stav */
+  el.__scena = {
+    V,
+    stav: () => ({ t, dyn, vstup }),
+    stuj: (ano) => {
+      stoji = !!ano;
+    },
+    znovu: (bdi = 0) => {
+      t = V.zacatek || 0;
+      dyn = t > 0 ? pretoc(V, t) : V.novaDynamika();
+      vstup.mys = null;
+      vstup.rychlost = 0;
+      vstup.kliky.length = 0;
+      mysPred = null;
+      aktivniDo = t + bdi;
+      vykresli();
+      return t;
+    },
+  };
 
   return () => {
     zastaveno = true;

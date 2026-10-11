@@ -1,0 +1,95 @@
+---
+/**
+ * Průvod s lampiony — sedm podob Lampion z /marcel pohromadě, tak jak byly
+ * kreslené: bez pozadí, šlapou na místě, trochu z boku. Jdou po papírovém
+ * svitku emaki (vodorovný obraz, který se čte odvíjením): postavičky stojí,
+ * a za nimi ujíždí mlha a lucerny podél cesty, takže průvod jde.
+ *
+ * Každá postavička je živá scéna a reaguje na klepnutí po svém. Na úzkém
+ * okně se svitek posouvá do stran prstem.
+ *
+ * Kachlík a Šamotka lampion nemají — v průvodu nejdou a text pod svitkem
+ * říká proč.
+ */
+import VazickaGejsa from "../characters/kami-buh/VazickaGejsa.astro";
+import KapkaHrom from "../characters/kami-buh/KapkaHrom.astro";
+import StripekZlato from "../characters/kami-buh/StripekZlato.astro";
+import PecinkaOhen from "../characters/kami-buh/PecinkaOhen.astro";
+import BublinkaStrasidlo from "../characters/kami-buh/BublinkaStrasidlo.astro";
+import HlinkaZeme from "../characters/kami-buh/HlinkaZeme.astro";
+import CedulkaEma from "../characters/kami-buh/CedulkaEma.astro";
+import { pruvod } from "../../data/parta3";
+import { parta } from "../../data/parta";
+import { nahoda } from "../parta2/tvary";
+import type { PostavaId } from "../../data/parta";
+
+const Lampion = {
+  hlinka: HlinkaZeme, bublinka: BublinkaStrasidlo, stripek: StripekZlato, kapka: KapkaHrom,
+  vazicka: VazickaGejsa, pecinka: PecinkaOhen, cedulka: CedulkaEma,
+} as Record<PostavaId, any>;
+const jmeno = (id: PostavaId) => parta.find((p) => p.id === id)!.name;
+
+/*
+ * Pozadí svitku: pruhy mlhy suyari-gasumi (dlouhé oblé pásy, jak se malují
+ * na starých svitcích), bledé kopce a kamenné lucerny podél cesty. Kreslí se
+ * dvakrát za sebou a posouvá o polovinu šířky, takže běží dokola beze švu.
+ */
+const S = 1600, V = 300;
+const r = nahoda(41);
+const mlha: string[] = [];
+for (let i = 0; i < 9; i++) {
+  const x = r() * S, y = 30 + r() * 150, w = 160 + r() * 260, h = 16 + r() * 14;
+  mlha.push(`<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" rx="${(h / 2).toFixed(0)}"/>`);
+  if (r() < 0.6) mlha.push(`<rect x="${(x + w * 0.3).toFixed(0)}" y="${(y + h * 0.8).toFixed(0)}" width="${(w * 0.6).toFixed(0)}" height="${(h * 0.8).toFixed(0)}" rx="${(h * 0.4).toFixed(0)}"/>`);
+}
+const kopce = `M0 214 C120 170 220 180 330 150 C420 126 500 170 620 160 C760 148 840 110 960 132 C1080 154 1160 176 1290 150 C1400 128 1500 180 1600 214 V300 H0 Z`;
+const lucerny = [140, 540, 940, 1340].map(
+  (x) =>
+    `<g transform="translate(${x} 236)"><circle cx="0" cy="-34" r="26" fill="#F3D27A" opacity="0.28"/><path d="M-9 0 H9 L7 -6 H-7 Z M-3 -24 H3 V-6 H-3 Z M-8 -28 H8 V-24 H-8 Z M-6 -40 H6 V-28 H-6 Z M-11 -40 Q0 -45 11 -40 L6 -48 Q0 -51 -6 -48 Z" fill="#B9A98C"/><rect x="-3.6" y="-38" width="7.2" height="8" fill="#F3D27A"/></g>`,
+);
+const torii = [760].map(
+  (x) =>
+    `<g transform="translate(${x} 236)" fill="#D8A68F" opacity="0.7"><rect x="-34" y="-78" width="7" height="78"/><rect x="27" y="-78" width="7" height="78"/><rect x="-44" y="-62" width="88" height="6"/><path d="M-52 -84 Q0 -76 52 -84 L54 -92 Q0 -84 -54 -92 Z"/></g>`,
+);
+const pas = `<path d="${kopce}" fill="#E4D6B8" opacity="0.55"/><g fill="#E9D9B2" opacity="0.75">${mlha.join("")}</g>${torii.join("")}${lucerny.join("")}`;
+---
+<section class="pruvod3" id="pruvod" data-hodina="20.8" aria-labelledby="pruvod-nadpis">
+  <div class="pruvod3-hlava">
+    <p class="stitek stitek-svetly">Průvod · <span lang="ja">提灯行列</span></p>
+    <h2 id="pruvod-nadpis" class="nadpis-2 pruvod3-nadpis">Nahoru se chodí se světlem.</h2>
+    <p class="pruvod3-perex">
+      Schodů je hodně a po setmění nejsou vidět. Každý si proto nese lampion — a každý jiný.
+      Klepni na kohokoli z nich, něco předvede i cestou.
+    </p>
+  </div>
+
+  <div class="svitek">
+    <span class="svitek-valec svitek-valec-l" aria-hidden="true"></span>
+    <div class="svitek-papir" data-svitek>
+      <svg class="svitek-pozadi" viewBox={`0 0 ${S} ${V}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <g class="svitek-ujizdi">
+          <g set:html={pas} />
+          <g transform={`translate(${S} 0)`} set:html={pas} />
+        </g>
+      </svg>
+      <ol class="svitek-rada">
+        {pruvod.map((p, i) => {
+          const L = Lampion[p.id];
+          return (
+            <li class="svitek-clen" style={`--i:${i}`}>
+              <div class="svitek-postava"><L varianta="lampion" /></div>
+              <p class="svitek-jmeno">{jmeno(p.id)}</p>
+              <p class="svitek-nese">{p.nese}</p>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+    <span class="svitek-valec svitek-valec-p" aria-hidden="true"></span>
+  </div>
+
+  <p class="pruvod3-dovetek">
+    Kachlík a Šamotka v průvodu nejdou. Kachlík hlídá, jestli brána stojí rovně,
+    a Šamotka drží jeviště — uvidíš je až na něm.
+  </p>
+</section>

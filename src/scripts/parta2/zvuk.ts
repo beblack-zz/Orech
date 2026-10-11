@@ -537,3 +537,34 @@ export const cvak = () => {
   sumik(0.02, 4000, 3, 0.25);
   ton(1800, 1200, 0.03, "square", 0.04);
 };
+
+/* Parta 3: divadlo — dřívka hyōšigi, potlesk a ohineri na prknech */
+
+/** Dřívka hyōšigi: dvě dubová prkénka o sebe. Suché, vysoké, bez dozvuku — tak se v kabuki ohlašuje opona. */
+export const ki = (sila = 1) => {
+  sumik(0.035, 2500, 5, 0.5 * sila);
+  ton(1750, 1320, 0.05, "triangle", 0.2 * sila);
+  ton(880, 700, 0.07, "sine", 0.1 * sila);
+};
+
+/** Potlesk malého hlediště: jednotlivá tlesknutí, zhoustnou a zase prořídnou. */
+export function potlesk(sekundy = 2.6, sila = 1) {
+  if (!muze()) return;
+  const pocet = Math.round(sekundy * 26);
+  for (let i = 0; i < pocet; i++) {
+    const k = i / pocet;
+    /* hustota: rychle naběhne, v půlce je nejhustší, ke konci jen pár opozdilců */
+    const cas = sekundy * 1000 * Math.pow(k, 0.8) + Math.random() * 60;
+    const hlas = (0.05 + Math.random() * 0.09) * sila * Math.sin(Math.PI * Math.min(1, 0.12 + k * 0.88));
+    window.setTimeout(() => sumik(0.03 + Math.random() * 0.02, 1100 + Math.random() * 1500, 1.4, hlas), cas);
+  }
+}
+
+/** Ohineri dopadne na prkna: papírek zašustí a mince v něm cinkne o dřevo. */
+export const ohineri = () => {
+  sumik(0.08, 3200, 0.8, 0.09);
+  window.setTimeout(() => {
+    ton(2900 + Math.random() * 500, 2500, 0.1, "triangle", 0.05);
+    ton(360, 240, 0.06, "triangle", 0.1);
+  }, 60);
+};

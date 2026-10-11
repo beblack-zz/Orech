@@ -1,0 +1,40 @@
+---
+/**
+ * Úvod /parta-3: soumrak nad oblaky. Vpravo ostrov s chrámem, ke kterému
+ * z oblak stoupají schody; po nich jde sedm světýlek — průvod, který je
+ * o kus níž vidět zblízka. Vrstvy jsou samostatné (dálky, zadní oblaka,
+ * chrám, přední oblaka), aby každá mohla stát jinak: na mobilu se chrám
+ * posune doprostřed a text zůstane nad ním.
+ *
+ * Kresby jsou v ./chram.ts, barvy oblak a hor jdou s oblohou stránky.
+ */
+import { chram, dalky, more } from "./chram";
+---
+<section class="p3-uvod" data-hodina="19.6" aria-labelledby="p3-nadpis">
+  <div class="p3-krajina" aria-hidden="true">
+    <div class="p3-dalky" set:html={dalky()} />
+    <div class="p3-more p3-more-zadni" set:html={more("mo-zadni", 9)} />
+    <div class="p3-chram" set:html={chram()} />
+    <div class="p3-more p3-more-predni" set:html={more("mo-predni", 5)} />
+  </div>
+
+  <div class="uvod-text p3-text">
+    <p class="stitek stitek-svetly">Parta 3 · nebeský chrám</p>
+    <h1 id="p3-nadpis" class="uvod-nadpis">
+      Když dílna zhasne,
+      <em>parta jde nahoru.</em>
+    </h1>
+    <p class="uvod-perex">
+      Kus nad Ořechem, tam, kde končí schody a začínají oblaka, stojí chrám.
+      Přes den je prázdný. V noci do něj vystoupá devět kami z dílny — dole
+      hlídají hlínu, vodu a oheň, tady nahoře hrají divadlo.
+    </p>
+    <p class="uvod-pokyn">Dnes večer hraje všech devět. Lístky se neprodávají, stačí dojít.</p>
+    <a class="uvod-dolu" href="#pruvod">
+      <span>Přidej se k průvodu</span>
+      <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </a>
+  </div>
+
+  <p class="uvod-tategaki p3-tategaki" lang="ja" aria-hidden="true">高天原</p>
+</section>
