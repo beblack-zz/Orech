@@ -51,7 +51,9 @@ const spary = [
   "M9 14 L12 19 L10 23", "M15 14 L16 18", "M21 14 L20 19 L23 24", "M27 14 L26 17 L29 21",
   "M33 15 L31 20", "M12 27 L16 29", "M20 24 L22 30", "M27 26 L25 31", "M30 23 L33 26",
 ];
-const tady = Astro.url.pathname.replace(/\/$/, "") || "/";
+const cesta = Astro.url.pathname.replace(/\/$/, "") || "/";
+/** Na adrese / je Úvod 2 (pages/index.astro) — v menu se zvýrazní stejně jako na /uvod-2 */
+const tady = cesta === "/" ? "/uvod-2" : cesta;
 /** Aktuální stránka v menu je namalovaná tahem štětce (kresba v tah-kresba.ts) */
 const zv = zvyrazneni();
 const zvId = noveId("hlava-stranka");

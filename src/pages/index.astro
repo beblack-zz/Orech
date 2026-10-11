@@ -1,23 +1,9 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import Hero from "../components/Hero.astro";
-import Nabidka from "../components/Nabidka.astro";
-import Terminy from "../components/Terminy.astro";
-import Atelier from "../components/Atelier.astro";
-import Obchod from "../components/Obchod.astro";
-import Delic from "../components/Delic.astro";
+/**
+ * Úvod webu. Na adrese / je Úvod 2 — stránka sama žije v uvod-2.astro
+ * (a dál je vidět i na /uvod-2), tady se jen vykreslí. Starý úvod leží
+ * s ostatními stránkami starého vzhledu v _stare/, kde je Astro nestaví.
+ */
+import Uvod2 from "./uvod-2.astro";
 ---
-
-<Layout>
-  <Hero />
-  <Delic />
-  <Nabidka />
-  <Delic />
-  <Terminy />
-  <div class="bg-white">
-    <Delic />
-  </div>
-  <Atelier />
-  <Delic class="pt-10" />
-  <Obchod />
-</Layout>
+<Uvod2 />
