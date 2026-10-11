@@ -4,9 +4,23 @@
  * v novém vzhledu (obloha, hlavička a papír z Party 2, styles/marcel.css).
  * Každá postavička leží na vlastním papíře, obloha za nimi jde od rána do noci.
  *
- * Kapka s bubny hromu má vedle původní kresby novou podobu (KapkaBubny.astro:
- * stuha a lakované bubny ze Zlatého listu, bubnuje paličkami). Je to jen
- * obrázek — bez popisku, ovládá se myší a zvuk jde přes vypínač v hlavičce.
+ * Vázička jako gejša (VazickaGejsa.astro) má stejné podoby jako Střípek,
+ * Pecinka a Bublinka pod ní: Kami (stojí před kruhem ze značky a má ve
+ * vlasech i ve váze květy měsíce; kliknutí ji zatočí a vymění jí je za
+ * další), Tušový lem — zatím ve dvou návrzích, než se vybere: 02a dokud hoří
+ * tyčinka (tančí s vějířem a kouř se skládá do tvarů) a 02b hadí oko (v dešti
+ * na můstku pod deštníkem janome, zezadu) —, Lampion a Na schovávanou
+ * (VazickaSchovka.astro). Původní kresba s kruhem (VazickaEnso.astro) zůstává
+ * dole u návrhů tváří.
+ *
+ * Kapka a hrom (KapkaHrom.astro) má stejné čtyři podoby jako Střípek,
+ * Pecinka a Bublinka pod ní: Kami (na bouřkovém mráčku, za zády kruh sedmi
+ * bubnů hromu; do dolních bije paličkami, do ostatních stuhou a z mráčku
+ * po každé ráně víc prší), Tušový lem (buben je měsíc: zády k nám bije na
+ * lešení do velkého bubnu, jehož kůže je úplněk), Lampion — jde na geta
+ * s kulatou lucernou — a Na schovávanou (KapkaSchovka.astro). Původní
+ * kresba (KapkaRaijin.astro) a podoba se stuhou (KapkaBubny.astro)
+ * zůstávají jako komponenty, ale na stránce už nejsou.
  *
  * Střípek a zlato (StripekZlato.astro) má čtyři podoby jako Pecinka
  * a Bublinka pod ním: Kami (medituje na obláčku, za zády svatozář z okraje
@@ -38,6 +52,8 @@
  *
  * Kachlík a rovina (KachlikRovina.astro) stejně: nahoře bez pozadí
  * šestiruký se čtvercovou svatozáří, pod ním zen zahrada a kachlová kamna.
+ * Pod nimi je Na schovávanou (KachlikSchovka.astro): malý Kachlík pro hry
+ * na hledání ve čtyřech barvách, s vodováhou na hlavě.
  *
  * Hlínka, kami země (HlinkaZeme.astro), má stejné podoby jako Pecinka,
  * Bublinka a Střípek: Kami (spí pod posvátnou sakurou, koruna je
@@ -50,6 +66,8 @@
  * Šamotka nese (SamotkaNese.astro) taky: nahoře bez pozadí jako kamidana,
  * polička pro kami se svatyní a zvoncem, pod ní řez pecí s celým výpalem
  * a zimní noc v kulatém okně, kde se na ni slétají vrabci a přijde kočka.
+ * Pod nimi je Na schovávanou (SamotkaSchovka.astro): malá Šamotka
+ * s cizí miskou na zádech a žárem pod sebou.
  */
 import "@fontsource-variable/fraunces/full.css";
 import { ClientRouter } from "astro:transitions";
@@ -68,8 +86,10 @@ import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
 import VazickaEnso from "../components/characters/kami-buh/VazickaEnso.astro";
-import KapkaRaijin from "../components/characters/kami-buh/KapkaRaijin.astro";
-import KapkaBubny from "../components/characters/kami-buh/KapkaBubny.astro";
+import VazickaGejsa from "../components/characters/kami-buh/VazickaGejsa.astro";
+import VazickaSchovka from "../components/characters/kami-buh/VazickaSchovka.astro";
+import KapkaHrom from "../components/characters/kami-buh/KapkaHrom.astro";
+import KapkaSchovka from "../components/characters/kami-buh/KapkaSchovka.astro";
 import StripekZlato from "../components/characters/kami-buh/StripekZlato.astro";
 import StripekSchovka from "../components/characters/kami-buh/StripekSchovka.astro";
 import PecinkaOhen from "../components/characters/kami-buh/PecinkaOhen.astro";
@@ -79,9 +99,11 @@ import BublinkaSchovka from "../components/characters/kami-buh/BublinkaSchovka.a
 import CedulkaEma from "../components/characters/kami-buh/CedulkaEma.astro";
 import CedulkaSchovka from "../components/characters/kami-buh/CedulkaSchovka.astro";
 import KachlikRovina from "../components/characters/kami-buh/KachlikRovina.astro";
+import KachlikSchovka from "../components/characters/kami-buh/KachlikSchovka.astro";
 import HlinkaZeme from "../components/characters/kami-buh/HlinkaZeme.astro";
 import HlinkaSchovka from "../components/characters/kami-buh/HlinkaSchovka.astro";
 import SamotkaNese from "../components/characters/kami-buh/SamotkaNese.astro";
+import SamotkaSchovka from "../components/characters/kami-buh/SamotkaSchovka.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
 import { parta } from "../data/parta";
 import type { PostavaId } from "../data/parta";
@@ -127,7 +149,7 @@ const styly: Record<PostavaId, string> = {
 };
 
 /* Štětcové písmo jen se znaky ze štítků, z brány v Inari (CedulkaEma v3) a z nádržky u Hlínky (HlinkaZeme v3) */
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("円相雷神顔筆奉納稲荷五隹止矢")}`;
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("円相顔筆奉納稲荷五隹止矢")}`;
 ---
 <!doctype html>
 <html lang="cs">
@@ -149,33 +171,56 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <Hlavicka sber="zadny" />
 
     <main>
+      {/* Vázička jako gejša: podoby ve dvou řadách jako u Střípka, pod každou číslo a jméno; tušový lem je zatím ve dvou návrzích (02a, 02b) */}
       <section class="mc-sekce" data-hodina="8" aria-labelledby="mc-marcel">
-        <div class="papir">
-          <VazickaEnso size={320} masle geta class="mc-kresba" />
-          <p class="stitek">Vázička · kami · <span lang="ja">円相</span></p>
-          <h1 id="mc-marcel" class="nadpis-2 mc-nadpis-1">Marcel</h1>
-          <p class="mc-perex">
-            Nejstarší kus v dílně, povýšený na kami. Za ní stojí kruh ensó ze značky,
-            v pase má obi s velkou mašlí v barvách loga a chodí na dřevěných geta.
-          </p>
-          <p class="mc-replika">„Ten kruh za mnou? To není svatozář. To je logo. Ale ráda ho nosím.“</p>
+        <div class="papir mc-siroky">
+          <h1 id="mc-marcel" class="mc-jen-ctecky">Marcel</h1>
+          <div class="mc-rada mc-rada-ohen">
+            <figure class="mc-podoba">
+              <VazickaGejsa varianta="kvety" />
+              <figcaption><span class="mc-cislo">01</span><span class="mc-nazev">Kami</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <VazickaGejsa varianta="tycinka" />
+              <figcaption><span class="mc-cislo">02a</span><span class="mc-nazev">Tušový lem · Tyčinka</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <VazickaGejsa varianta="destnik" />
+              <figcaption><span class="mc-cislo">02b</span><span class="mc-nazev">Tušový lem · Hadí oko</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <VazickaGejsa varianta="lampion" />
+              <figcaption><span class="mc-cislo">03</span><span class="mc-nazev">Lampion</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <VazickaSchovka />
+              <figcaption><span class="mc-cislo">04</span><span class="mc-nazev">Na schovávanou</span></figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 
-      {/* Kapka s bubny Raidžina: původní kresba a vedle přehnané podoby (ostatní návrhy jsou v navrhy/kapka-bubny-hromu.html) */}
-      <section class="mc-sekce" data-hodina="11" aria-labelledby="mc-kapka">
+      {/* Kapka a hrom: čtyři podoby ve dvou řadách jako u Střípka, pod každou číslo a jméno (starší návrhy jsou v navrhy/kapka-bubny-hromu.html) */}
+      <section class="mc-sekce" data-hodina="11" aria-label="Kapka a hrom">
         <div class="papir mc-siroky">
-          <div class="mc-rada">
-            <KapkaRaijin size={320} />
-            <KapkaBubny varianta="v4" />
+          <div class="mc-rada mc-rada-ohen">
+            <figure class="mc-podoba">
+              <KapkaHrom varianta="kruh" />
+              <figcaption><span class="mc-cislo">01</span><span class="mc-nazev">Kami</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <KapkaHrom varianta="buben" />
+              <figcaption><span class="mc-cislo">02</span><span class="mc-nazev">Tušový lem</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <KapkaHrom varianta="lampion" />
+              <figcaption><span class="mc-cislo">03</span><span class="mc-nazev">Lampion</span></figcaption>
+            </figure>
+            <figure class="mc-podoba">
+              <KapkaSchovka />
+              <figcaption><span class="mc-cislo">04</span><span class="mc-nazev">Na schovávanou</span></figcaption>
+            </figure>
           </div>
-          <p class="stitek">Kapka · kami · <span lang="ja">雷神</span></p>
-          <h2 id="mc-kapka" class="nadpis-2">Kapka s bubny hromu</h2>
-          <p class="mc-perex">
-            Za zády nese kruh bubnů jako bůh hromu Raidžin. Na každém bubnu se točí
-            mitsudomoe. Kde hřmí, tam prší, a déšť je její parketa.
-          </p>
-          <p class="mc-replika">„Bubnuju já. Prší potom samo.“</p>
         </div>
       </section>
 
@@ -299,7 +344,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
         </div>
       </section>
 
-      {/* Kachlík a rovina: nahoře bez pozadí, pod ní dvě scény, jen obrázky bez textů */}
+      {/* Kachlík a rovina: nahoře bez pozadí, pod ní dvě scény, jen obrázky bez textů; pod nimi Na schovávanou se jménem jako u ostatních */}
       <section class="mc-sekce" data-hodina="16.2" aria-label="Kachlík a rovina">
         <div class="papir mc-siroky mc-kachlik">
           <KachlikRovina varianta="v1" class="mc-kachlik-hlavni" />
@@ -307,10 +352,14 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
             <KachlikRovina varianta="v2" />
             <KachlikRovina varianta="v3" />
           </div>
+          <figure class="mc-podoba mc-podoba-sama">
+            <KachlikSchovka />
+            <figcaption><span class="mc-nazev">Na schovávanou</span></figcaption>
+          </figure>
         </div>
       </section>
 
-      {/* Šamotka nese: nahoře bez pozadí kamidana, pod ní výpal a sníh, jen obrázky bez textů */}
+      {/* Šamotka nese: nahoře bez pozadí kamidana, pod ní výpal a sníh, jen obrázky bez textů; pod nimi Na schovávanou se jménem jako u ostatních */}
       <section class="mc-sekce" data-hodina="16.46" aria-label="Šamotka nese">
         <div class="papir mc-siroky mc-samotka">
           <SamotkaNese varianta="v1" class="mc-samotka-hlavni" />
@@ -318,6 +367,10 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
             <SamotkaNese varianta="v2" />
             <SamotkaNese varianta="v3" />
           </div>
+          <figure class="mc-podoba mc-podoba-sama">
+            <SamotkaSchovka />
+            <figcaption><span class="mc-nazev">Na schovávanou</span></figcaption>
+          </figure>
         </div>
       </section>
 

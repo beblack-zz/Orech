@@ -10,7 +10,7 @@
              měsíc. Cedulka ryje jména do den misek a ví, čí je která
              (najetím na misku na polici); jména svítí.
     lampion  03 Lampion: bez pozadí, jde v dřevěných botičkách geta z rohu
-             na roh a nese dřevěnou lucernu s nápisem JIRO — chodí na
+             na roh a nese dřevěnou lucernu se značkou dílny — chodí na
              místě, po cestě ji posouvá stránka jako průvod na Domku 2
     v3       Inari: tunel rumělkových bran, lišácké emy s domalovanými
              obličeji a Cedulka mezi nimi; na stránce Marcel už není
@@ -20,9 +20,9 @@
   skript ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná, takže
   každá podoba smí být na stránce jen jednou.
 
-  Jména se píšou písmem Caveat, znaky na bráně písmem Yuji Syuku a JIRO na
-  lucerně písmem značky Zodiak (styles/znacka.css) — všechno musí načíst
-  stránka (Marcel to dělá).
+  Jména se píšou písmem Caveat a znaky na bráně písmem Yuji Syuku — obojí
+  musí načíst stránka (Marcel to dělá). Značka na lucerně je kresba, písmo
+  nepotřebuje.
 */
 import { kresby, celeSvg, pretoc } from "../../../scripts/cedulka-ema/kresby.js";
 
@@ -32,7 +32,7 @@ const popisy = {
   v1: "Cedulka visí na červenobílé šňůře před rumělkovým kotoučem, kolem ní malé destičky s celou partou; na rubu má namalovaného koně",
   v2: "Noční dílna v rozpité tuši: oknem svítí měsíc a Cedulka v jeho světle ryje do dna misky jméno, které svítí; hotové misky staví na polici",
   v3: "Cedulka visí mezi lišáckými destičkami ve svatyni Inari, za nimi vede tunel rumělkových bran",
-  lampion: "Cedulka jde v dřevěných botičkách z rohu na roh a nese na tyčce dřevěnou lucernu s nápisem JIRO; v jejím světle vedle ní ťape miska, které svítí na cestu domů",
+  lampion: "Cedulka jde v dřevěných botičkách z rohu na roh a nese na tyčce dřevěnou lucernu se značkou JIRO saku, ve které svítí květ; v jejím světle vedle ní ťape miska, které svítí na cestu domů",
 };
 const V = kresby[varianta];
 const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "ce-staticky" });

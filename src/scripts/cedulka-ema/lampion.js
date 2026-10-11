@@ -3,8 +3,9 @@
  *
  * Jako Pecinka s čóčinem a Hlínka s hózuki z průvodu na Domku 2. Cedulka
  * nese na tyčce hranatou lucernu andon: je ze stejného dřeva jako ona
- * a má stejnou stříšku. Na papíře je natrvalo JIRO písmem značky, jako
- * mají lucerny před krámem jméno domu. Svítí na cestu domů kusu, který je
+ * a má stejnou stříšku. Na papíře je natrvalo značka dílny, ensō ze záhlaví
+ * webu, jako mají lucerny před krámem znak domu; květ v ní svítí jako měsíc
+ * a tepe se svíčkou. Svítí na cestu domů kusu, který je
  * zrovna na řadě, a ten ťape v kaluži světla pod ní.
  *
  * Bez pozadí: Cedulka chodí, takže cestu jí dělá stránka, kam ji kdo
@@ -39,10 +40,11 @@
  * a posun bližší a vzdálenější stěny proti sobě — totéž, co dělá
  * `otocena` ve společných kusech, jen rozložené do vrstev, aby se deska
  * nemusela při každém kroku kreslit znovu. Rozsvícený papír leží přes
- * nesvítící a prolíná se do něj průhledností. Filtry tu nejsou žádné.
+ * nesvítící a prolíná se do něj průhledností, stejně jako svítící květ
+ * značky přes zhasnutý. Filtry tu nejsou žádné.
  */
 import {
-  f, rng, clamp, lerp, smooth, easeOut, rad, pt, esc, mix, hladka, mrkani, jiskraD, pruzina,
+  f, rng, clamp, lerp, smooth, easeOut, rad, pt, esc, mix, hladka, pasPoBodech, mrkani, jiskraD, pruzina,
   CED, DREVO, cedDefs, cedDeska, cedTvar, cedRadky, snurka, rucka,
 } from "./spolecne.js";
 
@@ -87,8 +89,62 @@ const KUSY = [
   { jmeno: "Honza", tvar: "hrnek", glazura: "#B4552F", lem: "#7A3018" },
   { jmeno: "Anička", tvar: "vaza", glazura: "#9DB59A", lem: "#6E8A6A" },
 ];
-/* co je na lucerně: jméno dílny písmem značky (Zodiak z styles/znacka.css, načítá ho stránka) a jak je na papíře široké */
-const NAPIS = { text: "JIRO", velikost: 9.6, sirka: 21.6 };
+/*
+ * Co je na lucerně: značka dílny ze záhlaví webu, ensō v soumraku. Kresba je
+ * v components/navrhy-loga/Enso.astro a tady jsou stejná čísla v malém (bez
+ * roztřepené hrany a suchého štětce, které by v téhle velikosti nebyly vidět):
+ * tah štětce jde z rumělky do noci, uvnitř je rýha hlavy kruhu a v mezeře
+ * mezi konci tahu květ. Souřadnice značky jsou 0–200, střed kruhu ve 100, 100.
+ */
+const ZNACKA = (() => {
+  const R = 68, W = 19, ZACATEK = -26, ROZSAH = 308;
+  const naKruhu = (u, r) => [100 + r * Math.cos(rad(u)), 100 + r * Math.sin(rad(u))];
+  /* ruka nevede kruh dokonale: poloměr mírně dýchá a konec se stáčí ven */
+  const stred = (t) => {
+    const u = ZACATEK + ROZSAH * t;
+    return naKruhu(u, R * (1 + 0.022 * Math.sin(rad(u) * 2 + 0.6) + 0.01 * Math.sin(rad(u) * 5 + 1.3)) + 3.5 * Math.pow(Math.max(0, t - 0.8) / 0.2, 2));
+  };
+  const sirka = (t) => (t < 0.05 ? W * (0.62 + 0.38 * (t / 0.05)) : t < 0.5 ? W * (1 - 0.1 * ((t - 0.05) / 0.45)) : W * 0.9 * (1 - 0.86 * Math.pow((t - 0.5) / 0.5, 1.5)));
+  const body = (fn, n) => Array.from({ length: n + 1 }, (_, i) => fn(i / n));
+  /* kapka, kde štětec dosedl */
+  const A = stred(0), B = stred(0.01), smer = Math.atan2(B[1] - A[1], B[0] - A[0]);
+  const kapka = [A[0] - Math.cos(smer) * 1.6, A[1] - Math.sin(smer) * 1.6];
+  /* rýha hlavy kruhu: vlevo dole, naproti mezeře s květem */
+  const ryha = (t) => {
+    const u = 62 + 150 * t;
+    return naKruhu(u, 35 * (1 + 0.03 * Math.sin(rad(u) * 3)));
+  };
+  /* soumrak: barvy oblohy webu mezi půl sedmou a devátou, po výsečích kolem středu */
+  const SOUMRAK = [[0, "#C4432B"], [0.28, "#C0708A"], [0.55, "#7A5E8E"], [0.8, "#4E4A84"], [1, "#2A2C5E"]];
+  const barva = (t) => {
+    let i = 0;
+    while (i < SOUMRAK.length - 2 && SOUMRAK[i + 1][0] <= t) i++;
+    return mix(SOUMRAK[i][1], SOUMRAK[i + 1][1], (t - SOUMRAK[i][0]) / (SOUMRAK[i + 1][0] - SOUMRAK[i][0]));
+  };
+  const N = 72;
+  let vysece = "";
+  for (let i = 0; i < N; i++) {
+    const a0 = (i / N) * 360, a1 = ((i + 1.15) / N) * 360, t = cyk(((a0 + a1) / 2 - ZACATEK) / 360) * (360 / ROZSAH);
+    vysece += `<path d="M100 100 L${pt(naKruhu(a0, 130))} A130 130 0 0 1 ${pt(naKruhu(a1, 130))} Z" fill="${barva(t > 1 ? (t < 1.08 ? 1 : 0) : t)}"/>`;
+  }
+  const uKvetu = ZACATEK - (360 - ROZSAH) / 2;
+  return {
+    /* tvar tahu a rýhy ořezává výseče; kapka je celá v rumělce, a tak se kreslí zvlášť a nemusí se s tahem v ořezu sčítat */
+    tvar: `<path d="${pasPoBodech(body(stred, 90), sirka)}"/><path d="${pasPoBodech(body(ryha, 36), (t) => 0.6 + 4.4 * Math.pow(Math.sin(Math.PI * t), 0.6) * (1 - 0.35 * t))}"/>`,
+    kapka: `<ellipse cx="${f(kapka[0])}" cy="${f(kapka[1])}" rx="${f(W * 0.6)}" ry="${f(W * 0.53)}" transform="rotate(${f(deg(smer))} ${pt(kapka)})" fill="${SOUMRAK[0][1]}"/>`,
+    vysece,
+    /* květ sedí v mezeře mezi koncem a začátkem tahu, jeden plátek už spadl dovnitř kruhu */
+    kvet: naKruhu(uKvetu, R + 3),
+    volny: naKruhu(uKvetu, 40),
+  };
+})();
+/* plátek sakury ze značky: pata v počátku, špička nahoře */
+const PLATEK = `M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z`;
+/** Květ a spadlý plátek v souřadnicích značky; `styl` jsou atributy výplně a lemu plátku. */
+const znackaKvet = (styl) =>
+  `<g ${styl} stroke-linejoin="round">` +
+  `<path d="${PLATEK}" transform="translate(${pt(ZNACKA.volny)}) rotate(205) scale(1.05) translate(0 6.3)"/>` +
+  `<g transform="translate(${pt(ZNACKA.kvet)}) rotate(14) scale(1.3)">${[0, 72, 144, 216, 288].map((u) => `<path d="${PLATEK}" transform="rotate(${u}) translate(0 -1.7)"/>`).join("")}</g></g>`;
 
 /* ——— Chůze po rozích ———
    Dvojkrok trvá KROK_T. Roh je OPORA z něj na zemi a jede s cestou dozadu,
@@ -182,11 +238,15 @@ const dlan = (fig) => {
 };
 const spicka = (H, uhel) => [H[0] + TYC * Math.cos(rad(uhel)), H[1] + TYC * Math.sin(rad(uhel))];
 /* lucerna v místních souřadnicích: špička tyčky v počátku, osa dolů. Je natočená jako Cedulka: vpředu čelo s papírem, vlevo úzký bok. */
-const LAMP = { xB: -18.2, xL: -11.8, xR: 18.2, y0: 19, y1: 47, lista: 2.4, sloupek: 1.8, nozky: 49.2, pricka: 26 };
+const LAMP = { xB: -18.2, xL: -11.8, xR: 18.2, y0: 19, y1: 47, lista: 2.4, sloupek: 1.8, nozky: 49.2 };
 const PAPIR = { x0: LAMP.xL + LAMP.sloupek, x1: LAMP.xR - LAMP.sloupek, y0: LAMP.y0 + LAMP.lista, y1: LAMP.y1 - LAMP.lista };
 const BOK = { x0: LAMP.xB + 1.5, x1: LAMP.xL };
-/* svíčka stojí uprostřed bedýnky, nápis je uprostřed pole pod příčkou */
-const STRED_L = [1.4, 33], STRED_T = [(PAPIR.x0 + PAPIR.x1) / 2, (LAMP.pricka + 0.5 + PAPIR.y1) / 2];
+/* svíčka stojí uprostřed bedýnky, značka je uprostřed papíru a zabírá ho skoro na výšku */
+const STRED_L = [1.4, 33], STRED_T = [(PAPIR.x0 + PAPIR.x1) / 2, (PAPIR.y0 + PAPIR.y1) / 2];
+const ZNACKA_K = 0.128;
+const vZnacce = (s) => `<g transform="translate(${pt(STRED_T)}) scale(${ZNACKA_K}) translate(-100 -100)">${s}</g>`;
+/* kde je květ na lucerně: kolem něj je záře */
+const KVET_L = [STRED_T[0] + (ZNACKA.kvet[0] - 100) * ZNACKA_K, STRED_T[1] + (ZNACKA.kvet[1] - 100) * ZNACKA_K];
 const ZAVES = 31, G = 170, MEZE_TH = [-0.1, 0.5], KRAJ = 168, ZARE_R = 42;
 /** Bod lucerny (v souřadnicích špičky tyčky) v panelu: houpe se o úhel th kolem špičky T. */
 const naLucernu = (T, th, [x, y]) => [T[0] + x * Math.cos(th) + y * Math.sin(th), T[1] - x * Math.sin(th) + y * Math.cos(th)];
@@ -419,11 +479,14 @@ const vrstvaLucernaSvit = () =>
       `<rect ${obd(PAPIR.x0, PAPIR.y0, PAPIR.x1, PAPIR.y1)} fill="url(#${ID}-papir-svit)"/>` +
       `<g clip-path="url(#${ID}-papir-orez)"><ellipse cx="${STRED_L[0]}" cy="${STRED_L[1] + 5}" rx="8" ry="10.5" fill="url(#${ID}-jas)"/></g>`,
   );
-/* nápis na papíře: JIRO písmem značky, natrvalo. textLength drží šířku, i kdyby se písmo nenačetlo. */
-const vrstvaJmeno = () =>
-  vLucerne(
-    `<text x="${f(STRED_T[0])}" y="${f(STRED_T[1] + NAPIS.velikost * 0.35)}" text-anchor="middle" textLength="${NAPIS.sirka}" lengthAdjust="spacingAndGlyphs" font-family="Zodiak, Georgia, serif" font-weight="700" font-size="${NAPIS.velikost}" fill="#3A2418">${esc(NAPIS.text)}</text>`,
-  );
+/* značka na papíře, natrvalo: tah tuší a květ tak, jak vypadá, když lucerna nesvítí */
+const vrstvaZnacka = () =>
+  vLucerne(vZnacce(ZNACKA.kapka + `<g clip-path="url(#${ID}-enso)">${ZNACKA.vysece}</g>` + znackaKvet(`fill="#F4E8C8" stroke="#C39A52" stroke-width="0.8"`)));
+/* květ svítí jako měsíc ve značce: záře na papíře pod tuší a rozžhavené plátky přes ty zhasnuté. Obojí tepe se svíčkou. */
+const vrstvaZnackaZare = () => vLucerne(`<g clip-path="url(#${ID}-papir-orez)"><circle cx="${f(KVET_L[0])}" cy="${f(KVET_L[1])}" r="7.6" fill="url(#${ID}-mesic)"/></g>`);
+const vrstvaZnackaSvit = () => vLucerne(vZnacce(znackaKvet(`fill="url(#${ID}-platek)" stroke="#E39A30" stroke-width="0.75"`)));
+/* měsíc ve značce pomalu dýchá, jako v záhlaví; když lucernu někdo sfoukne, pohasne s ní */
+const svitKvetu = (st) => f(clamp(0.1 + st.S) * (0.88 + 0.12 * Math.sin(st.t * 1.26)));
 /* dřevo lucerny: sloupky, lišty, příčky a stříška. Leží přes papír i přes nápis. */
 const vrstvaLucernaRam = () => {
   const tm = `fill="url(#${ID}-ram-bok)" stroke="${DREVO.obrys}" stroke-width="0.45" stroke-linejoin="round"`;
@@ -432,9 +495,8 @@ const vrstvaLucernaRam = () => {
     /* bok ve stínu: zadní sloupek, lišty a dvě příčky */
     `<g ${tm}><rect ${obd(LAMP.xB, LAMP.y0, LAMP.xB + 1.5, LAMP.nozky)}/><rect ${obd(LAMP.xB, LAMP.y0, LAMP.xL, LAMP.y0 + LAMP.lista)}/><rect ${obd(LAMP.xB, LAMP.y1 - LAMP.lista, LAMP.xL, LAMP.y1)}/>` +
       `<rect ${obd(BOK.x0, 28.6, BOK.x1, 29.5)} stroke-width="0.3"/><rect ${obd(BOK.x0, 36.6, BOK.x1, 37.5)} stroke-width="0.3"/></g>` +
-      /* čelo: jedna příčka nahoře jako u šódži, pod ní pole se jménem */
-      `<g ${sv}><rect ${obd(PAPIR.x0, LAMP.pricka - 0.5, PAPIR.x1, LAMP.pricka + 0.5)} stroke-width="0.3"/>` +
-      `<rect ${obd(LAMP.xL, LAMP.y0, LAMP.xR, LAMP.y0 + LAMP.lista)}/><rect ${obd(LAMP.xL, LAMP.y1 - LAMP.lista, LAMP.xR, LAMP.y1)}/>` +
+      /* čelo: jedno pole papíru bez příček, celé pro značku */
+      `<g ${sv}><rect ${obd(LAMP.xL, LAMP.y0, LAMP.xR, LAMP.y0 + LAMP.lista)}/><rect ${obd(LAMP.xL, LAMP.y1 - LAMP.lista, LAMP.xR, LAMP.y1)}/>` +
       `<rect ${obd(LAMP.xL, LAMP.y0, LAMP.xL + LAMP.sloupek, LAMP.nozky)}/><rect ${obd(LAMP.xR - LAMP.sloupek, LAMP.y0, LAMP.xR, LAMP.nozky)}/></g>` +
       /* zevnitř na dřevo svítí svíčka */
       `<path d="M${PAPIR.x0 + 0.2} ${PAPIR.y0 + 0.4} V${PAPIR.y1 - 0.4} M${PAPIR.x1 - 0.2} ${PAPIR.y0 + 0.4} V${PAPIR.y1 - 0.4} M${PAPIR.x0 + 0.4} ${PAPIR.y1 - 0.2} H${PAPIR.x1 - 0.4}" stroke="#FFC878" stroke-width="0.45" opacity="0.7" fill="none"/>` +
@@ -488,6 +550,10 @@ const vrstvaJiskry = (st) => {
 const defs = () =>
   cedDefs(ID) +
   `<clipPath id="${ID}-papir-orez"><rect ${obd(PAPIR.x0, PAPIR.y0, PAPIR.x1, PAPIR.y1)}/></clipPath>` +
+  /* značka: tvar tahu štětce (ořezává výseče soumraku), rozsvícený plátek a záře kolem květu */
+  `<clipPath id="${ID}-enso">${ZNACKA.tvar}</clipPath>` +
+  `<linearGradient id="${ID}-platek" gradientUnits="userSpaceOnUse" x1="0" y1="0.5" x2="0" y2="-12.6"><stop offset="0" stop-color="#FFE596"/><stop offset="0.45" stop-color="#FFF6CE"/><stop offset="1" stop-color="#FFFEF4"/></linearGradient>` +
+  `<radialGradient id="${ID}-mesic"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.36" stop-color="#FFF8D6" stop-opacity="0.72"/><stop offset="1" stop-color="#FFEFB4" stop-opacity="0"/></radialGradient>` +
   `<radialGradient id="${ID}-stin"><stop offset="0" stop-color="#2B2420" stop-opacity="0.28"/><stop offset="0.6" stop-color="#2B2420" stop-opacity="0.13"/><stop offset="1" stop-color="#2B2420" stop-opacity="0"/></radialGradient>` +
   `<radialGradient id="${ID}-kaluz"><stop offset="0" stop-color="#FFC268" stop-opacity="0.62"/><stop offset="0.55" stop-color="#F59A4E" stop-opacity="0.24"/><stop offset="1" stop-color="#F59A4E" stop-opacity="0"/></radialGradient>` +
   `<radialGradient id="${ID}-zare"><stop offset="0" stop-color="#FFE0A0" stop-opacity="0.6"/><stop offset="0.38" stop-color="#FFA858" stop-opacity="0.24"/><stop offset="1" stop-color="#FF9A4A" stop-opacity="0"/></radialGradient>` +
@@ -1125,7 +1191,9 @@ export const lampion = {
     { id: "ruka-pred", kresli: vrstvaRukaPred, klic: snimek },
     { id: "lucerna", kresli: vrstvaLucerna, pohyb: pohybLucerny },
     { id: "lucerna-svit", kresli: vrstvaLucernaSvit, pohyb: pohybLucerny, pruhlednost: (st) => f(clamp(0.06 + 0.9 * st.S)) },
-    { id: "jmeno", kresli: vrstvaJmeno, pohyb: pohybLucerny },
+    { id: "znacka-zare", kresli: vrstvaZnackaZare, pohyb: pohybLucerny, pruhlednost: svitKvetu },
+    { id: "znacka", kresli: vrstvaZnacka, pohyb: pohybLucerny },
+    { id: "znacka-svit", kresli: vrstvaZnackaSvit, pohyb: pohybLucerny, pruhlednost: svitKvetu },
     { id: "lucerna-ram", kresli: vrstvaLucernaRam, tezka: true, pohyb: pohybLucerny },
     { id: "kus", kresli: vrstvaKus(false), klic: klicKusu(false) },
     { id: "visacky-pred", kresli: vrstvaVisacky(true), klic: snimek },

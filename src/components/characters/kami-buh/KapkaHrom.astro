@@ -1,0 +1,69 @@
+---
+/*
+  Kapka a hrom — podle Střípka a zlata, Pecinky s ohněm a Bublinky jako
+  strašidla. Kresby i běh jsou ve scripts/kapka-hrom:
+
+    kruh      01 Kami: stojí na bouřkovém mráčku, za zády kruh sedmi bubnů
+              hromu; do dvou dolních bije paličkami, do ostatních stuhou,
+              a z mráčku pod ní po každé ráně víc prší
+    buben     02 Tušový lem: buben je měsíc — zády k nám bije na lešení do
+              velkého bubnu, jehož kůže je úplněk; rány z nebe setřásají
+              déšť, pod lešením roste louže a nakonec se otočí a ukloní
+    lampion   03 Lampion: jde na geta s papírovou lucernou, bez pozadí
+              a trochu z boku — šlape na místě, po cestě ji posouvá stránka
+              jako průvod na Domku 2
+
+  Čtvrtá podoba, Na schovávanou, je KapkaSchovka.astro.
+
+  Kapka je bůh hromu Raidžin v malém: vypadá jako na původní kresbě
+  (KapkaRaijin.astro) — kapka s očima magatama na dřevěných geta, stín
+  v barvách loga —, bubny z rumělkového laku a stuhu má z podoby se stuhou
+  (KapkaBubny.astro, v4). Ta na stránce už není, komponenta zůstala.
+
+  Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
+  sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
+  prázdná, než se načte skript, a bez skriptu zůstane hezký obrázek. Skript
+  ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná (kh1-, kh2-,
+  khl-), takže každá podoba smí být na stránce jen jednou.
+*/
+import { kresby, celeSvg, pretoc } from "../../../scripts/kapka-hrom/kresby.js";
+
+interface Props { varianta: "kruh" | "buben" | "lampion"; class?: string; }
+const { varianta, class: cls = "" } = Astro.props;
+const popisy = {
+  kruh: "Kapka na dřevěných geta stojí na bouřkovém mráčku, za zády má jako svatozář kruh sedmi bubnů hromu; bije do nich paličkami a konci dlouhé stuhy a z mráčku pod ní prší",
+  buben: "Noc v rozpité tuši: Kapka stojí zády k nám na dřevěném lešení a bije dlouhými paličkami do obrovského bubnu, jehož kůže je úplněk; padá déšť a pod lešením se rozlévá louže",
+  lampion: "Kapka jde na dřevěných geta a nese na bambusové tyči kulatou papírovou lucernu; za zády má kruh bubnů a za ní vlaje stuha",
+};
+const V = kresby[varianta];
+const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: null, trida: "kh-staticky" });
+---
+<div class={`kapka-hrom ${cls}`} data-kapka-hrom={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../../scripts/kapka-hrom/beh.js";
+</script>
+
+<style is:global>
+  /* Vrstvy vyrábí skript, proto globálně */
+  .kapka-hrom {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .kapka-hrom:focus-visible { outline: 2px solid #C4432B; outline-offset: 8px; border-radius: 12px; }
+  .kh-staticky, .kh-vrstva {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .kh-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+</style>

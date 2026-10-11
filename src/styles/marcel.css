@@ -1,12 +1,13 @@
 /*
  * Marcel — pracovní stránka postaviček jako kami, v novém vzhledu
  * (styles/parta2.css). Každá postavička leží na vlastním papíře, obloha
- * za nimi jde od rána do noci. Kapka má vedle původní kresby tři
- * přehnané podoby (KapkaBubny.astro), Střípek a zlato čtyři (StripekZlato.astro, StripekSchovka.astro),
+ * za nimi jde od rána do noci. Kapka a hrom má čtyři podoby
+ * (KapkaHrom.astro, KapkaSchovka.astro), Střípek a zlato taky čtyři (StripekZlato.astro, StripekSchovka.astro),
  * Pecinka s ohněm taky čtyři (PecinkaOhen.astro, PecinkaSchovka.astro)
  * a stejně tak Hlínka, kami země (HlinkaZeme.astro), a Cedulka jako ema
  * (CedulkaEma.astro); Kachlík má tři (KachlikRovina.astro) a Šamotka nese
- * taky tři (SamotkaNese.astro).
+ * taky tři (SamotkaNese.astro), oba k nim Na schovávanou
+ * (KachlikSchovka.astro, SamotkaSchovka.astro).
  */
 
 .mc-sekce { position: relative; z-index: 2; padding: 28px 20px; }
@@ -17,21 +18,11 @@
 .mc .papir.mc-siroky { width: min(1240px, 100%); }
 .mc .papir.mc-siroky:has(.mc-rada) { width: min(860px, 100%); }
 
-.mc-kresba { display: block; width: min(320px, 72%); height: auto; margin: 0 auto 20px; }
-
-.mc-nadpis-1 { font-size: clamp(40px, 6vw, 72px); line-height: 0.98; margin: 12px 0 18px; }
+/* nadpis stránky: první sekce (Vázička jako gejša) je jen obrázek, nadpis zůstává pro čtečky */
+.mc-jen-ctecky { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .mc .nadpis-2 { margin-left: auto; margin-right: auto; }
 .mc-perex { max-width: 54ch; margin: 0 auto 12px; color: var(--inkoust-2); }
-.mc-replika {
-  max-width: 36ch;
-  margin: 8px auto 0;
-  font-family: var(--f-ruka);
-  font-size: 25px;
-  line-height: 1.2;
-  color: var(--rumelka);
-}
-
-/* Kapka: původní kresba a vedle nová podoba — jen obrázky, bez popisků */
+/* Podoby vedle sebe ve dvou sloupcích — jen obrázky */
 .mc-rada {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -64,6 +55,12 @@
 .mc-rada-samotka { margin: 0; }
 @media (max-width: 760px) {
   .mc-rada-samotka { grid-template-columns: minmax(0, 1fr); max-width: 440px; margin: 0 auto; }
+}
+
+/* Na schovávanou u Kachlíka a Šamotky: sama pod dvěma scénami, široká jako jedna z nich, na mobilu jako ony */
+.mc-podoba-sama { width: calc((100% - clamp(14px, 2.2vw, 32px)) / 2); margin: clamp(24px, 3.6vw, 46px) auto 0; }
+@media (max-width: 760px) {
+  .mc-podoba-sama { width: 100%; max-width: 440px; }
 }
 
 /* Tvářičky: mřížka s číslem, názvem a popisem */

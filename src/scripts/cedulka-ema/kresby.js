@@ -11,7 +11,8 @@
  *       si lidi kreslí obličeje; Cedulka mezi nimi visí a skoro nejde poznat
  *       (na stránce Marcel už není)
  *   lampion  Jde s lucernou — bez pozadí, v dřevěných botičkách z rohu na
- *       roh jako stěhovaná skříň, na lucerně JIRO (./lampion.js, id cel-)
+ *       roh jako stěhovaná skříň, na lucerně značka dílny se svítícím
+ *       květem (./lampion.js, id cel-)
  *
  * Ema (絵馬) znamená doslova „obrázek koně“. Do svatyní se kdysi darovali
  * živí koně, aby na nich kami jezdili, potom dřevění a nakonec jen koně

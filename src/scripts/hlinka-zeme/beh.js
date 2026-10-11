@@ -190,6 +190,22 @@ const Zvuk = (() => {
     chichot: (t, out, s) => {
       for (let i = 0; i < 4; i++) ton(t + i * 0.11, out, { f: 760 + i * 60, f2: 1180 + i * 60, vrchol: 0.07 * s, nabeh: 0.008, utlum: 0.07 });
     },
+    /* mejiro: tři krátká vysoká pípnutí */
+    civ: (t, out, s) => {
+      for (let i = 0; i < 3; i++) hvizd(t + i * 0.09, out, [[0, 3700 + i * 180], [0.035, 4500 + i * 180], [0.06, 4000]], { vrchol: 0.035 * s, nabeh: 0.006, utlum: 0.025 });
+    },
+    /* sýček v dutině: dvě měkká dutá houknutí */
+    hou: (t, out, s) => {
+      for (let i = 0; i < 2; i++) {
+        hvizd(t + i * 0.42, out, [[0, 470], [0.06, 520], [0.26, 495]], { vrchol: 0.09 * s, nabeh: 0.04, utlum: 0.12 });
+        hvizd(t + i * 0.42, out, [[0, 940], [0.06, 1040], [0.26, 990]], { vrchol: 0.018 * s, nabeh: 0.04, utlum: 0.1 });
+      }
+    },
+    /* poupě na výhonku se otevřelo */
+    pup: (t, out, s) => {
+      ton(t, out, { f: 620, f2: 1240, vrchol: 0.06 * s, nabeh: 0.004, utlum: 0.09 });
+      ton(t + 0.07, out, { f: KOTO[8] * 2, vrchol: 0.03 * s, nabeh: 0.003, utlum: 0.5 });
+    },
     /* ——— drak ——— */
     zev: (t, out, s) => {
       hvizd(t, out, [[0, 420], [0.5, 620], [0.9, 360]], { vrchol: 0.05 * s, nabeh: 0.15, utlum: 0.2 });
@@ -317,7 +333,7 @@ const Zvuk = (() => {
     },
   };
   /* kapky a zvonky jdou i do dozvuku, ostatní nasucho */
-  const MOKRE = { suikin: 0.9, kon: 0.35, rin: 0.5, cvrcek: 0.3, zaplan: 0.4, rozprsk: 0.5, kero: 0.2 };
+  const MOKRE = { suikin: 0.9, kon: 0.35, rin: 0.5, cvrcek: 0.3, zaplan: 0.4, rozprsk: 0.5, kero: 0.2, hou: 0.4, pup: 0.3 };
   return {
     /** odemknout v gestu (Safari jinak nedovolí) — hrát se pak bude, jen když je zvuk webu zapnutý */
     odemkni: () => {
