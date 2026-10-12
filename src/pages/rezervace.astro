@@ -2,13 +2,15 @@
 /**
  * Rezervace v novém vzhledu: hodina v dílně se kupuje jako jízdenka na
  * vlak po vodě. Celá stránka stojí na moři pod oblohou (More.astro);
- * na obzoru je stanice 胡桃 Ořech a vlak, který ráno přijede, odjede,
+ * na obzoru je stanice Ořech a vlak, který ráno přijede, odjede,
  * když člověk sjede k výběru, a v noci se vrátí rozsvícený.
  *
  *   za svítání  nádraží: o co jde, kdy a za kolik, příští volný odjezd
  *   dopoledne   pokladna: kolik vás pojede a den (lepenkové jízdenky)
  *               a vedle klapková tabule s odjezdy toho dne — obloha
- *               ukazuje světlo hodiny, na kterou člověk ukazuje
+ *               ukazuje světlo hodiny, na kterou člověk ukazuje; pod
+ *               tabulí je jízdní řád: cedule s celým měsícem naráz
+ *               a pod ní vysvětlivky
  *   večer       jízdenka: z vybraných hodin se složí vláček, napíšeš
  *               jméno a průvodčí jízdenku označí — odejde mailem
  *   v noci      vlak se vrací, poslední odeslaná jízdenka, kontakt
@@ -18,6 +20,23 @@
  * a zamlouvá se celá — sám nebo skupina do čtyř lidí. Stránka sama nic
  * neukládá na server: odeslání otevře e-mail s vyplněnými údaji.
  * Obsazenost je zatím simulovaná (scripts/rezervace/simulace.ts).
+ *
+ * Vedle hodin se tu kupují dvě věci, u kterých se počítají místa:
+ *
+ *   kurz         zabere celý den — hodinové spoje mají výluku a jede
+ *                jeden zvláštní vlak: parní lokomotiva se
+ *                salonem, v pokladně tmavá jízdenka, na tabuli cedule
+ *                s místy a řádky jako zastávky programu, na jízdence
+ *                mapa trasy
+ *   permanentka  na tři měsíce a jeden den v týdnu (ten, který
+ *                je vybraný): první nebo poslední spoj dne, na každém
+ *                pár míst; v pokladně má vlastní přepážku a jízdenka
+ *                z ní udělá průkazku se všemi jízdami
+ *
+ * Termíny kurzů i prodané permanentky jsou taky zatím jen ukázkové.
+ *
+ * Japonské znaky jsou na stránce jen jednou: svislý nápis 胡桃行き
+ * („směr Ořech“) na první obrazovce. Všechno ostatní je česky.
  *
  * Předchozí varianta s destičkami ema je odložená na /rezervace-ema.
  */
@@ -40,24 +59,17 @@ import VlakKresby from "../components/rezervace/VlakKresby.astro";
 import Nadrazi from "../components/rezervace/Nadrazi.astro";
 import Pokladna from "../components/rezervace/Pokladna.astro";
 import Odjezdy from "../components/rezervace/Odjezdy.astro";
+import Rad from "../components/rezervace/Rad.astro";
 import Jizdenka from "../components/rezervace/Jizdenka.astro";
 import Noc from "../components/rezervace/Noc.astro";
 
 import { rezervace } from "../data/rezervace";
 import { kontakt } from "../data/uvod2";
-import { sekki, DNY_ZNAK } from "../data/koyomi";
 
 const cena = rezervace.cena.toLocaleString("cs-CZ");
 
-/* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
-const znaky = new Set<string>();
-const pridej = (s: string) => {
-  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
-};
-sekki.forEach((s) => pridej(s.znak));
-DNY_ZNAK.forEach(pridej);
-pridej("切符売場発車次時刻座席備考乗車券運賃氏名日付人数胡桃行き予約済次は終電改札工房満席");
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+/* Štětcové písmo jen pro svislý nápis na první obrazovce (Nadrazi.astro) — jiné japonské znaky tu nejsou */
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("胡桃行き")}`;
 ---
 <!doctype html>
 <html lang="cs">
@@ -90,7 +102,10 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
         </noscript>
         <div class="rz-hala-mriz">
           <Pokladna />
-          <Odjezdy />
+          <div class="rz-hala-pravo">
+            <Odjezdy />
+            <Rad />
+          </div>
         </div>
       </section>
 
@@ -101,13 +116,13 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     {/* Displej nad dveřmi: co bude dál a co máš vybrané */}
     <div class="rz-displej" hidden>
       <p class="rz-displej-text">
-        <span class="rz-displej-pristi"><span lang="ja">次は</span> příští zastávka <b>jízdenka</b></span>
+        <span class="rz-displej-pristi">příští zastávka <b>jízdenka</b></span>
         <span class="rz-displej-souhrn"></span>
       </p>
       <a class="rz-displej-tlacitko" href="#rz-jizdenka">Pokračovat <span aria-hidden="true">→</span></a>
     </div>
 
-    <Paticka poznamka="Rezervace je návrh v novém vzhledu webu. Obsazenost odjezdů je zatím jen simulovaná." />
+    <Paticka poznamka="Rezervace je návrh v novém vzhledu webu. Obsazenost odjezdů, termíny kurzů i prodané permanentky jsou zatím jen simulované." />
 
     <script>
       import "../scripts/rezervace/hlavni.ts";

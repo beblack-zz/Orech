@@ -1,6 +1,6 @@
 ---
 /**
- * Odjezdová tabule (発車標) s hodinami vybraného dne — klapky pata-pata
+ * Odjezdová tabule s hodinami vybraného dne — klapky pata-pata
  * jako na Úvodu 2, jen tady se podle nich opravdu nastupuje. Každý řádek
  * je jedna hodina v dílně: odjezd a příjezd, okénko s oblohou té hodiny,
  * kupé se čtyřmi sedačkami a poznámka — volno, obsazeno, odjel, nebo
@@ -8,17 +8,29 @@
  * čtyř lidí), proto je kupé buď celé volné, nebo celé zabrané; u tvé
  * hodiny se rozsvítí tolik sedaček, kolik vás jede.
  *
- * Řádky s časy jsou tady, protože hodiny jsou pořád stejné; obsazenost
- * a den dopisuje skript (scripts/rezervace/odjezdy.ts) a při změně dne
- * tabule překlapne. Okénko s oblohou má barvy z palety oblohy pro půlku
- * té hodiny a slunce tam, kde v tu dobu stojí.
+ * Dvě věci jsou na tabuli jinak, protože se u nich počítají místa:
+ *
+ *   permanentka  první a poslední spoj dne (data/rezervace.ts) má místo
+ *                kupé pár míst pro držitele permanentky na tři měsíce;
+ *                klik na řádek je koupě permanentky, ne hodiny — na ten
+ *                den v týdnu, který je na tabuli
+ *   kurz         v den kurzu je výluka: nad řádky vyjede cedule zvláštního
+ *                vlaku s místy a nástupem a z řádků se stane jeho
+ *                trať — co hodina, to zastávka programu se svým pořadím
+ *
+ * Řádky s časy jsou tady, protože hodiny jsou pořád stejné; obsazenost,
+ * den, kurz i permanentky dopisuje skript (scripts/rezervace/odjezdy.ts)
+ * a při změně dne tabule překlapne. Okénko s oblohou má barvy z palety
+ * oblohy pro půlku té hodiny a slunce tam, kde v tu dobu stojí.
  */
 import Flap from "../uvod2/Flap.astro";
 import { paleta } from "../../scripts/parta2/paleta";
-import { rezervace } from "../../data/rezervace";
+import { rezervace, kurzy, permanentka } from "../../data/rezervace";
+import { DELKA_ZVLASTNIHO, VYSKA_ZVLASTNIHO } from "./vlak";
 
 const dvoj = (n: number) => String(n).padStart(2, "0");
-const sedacky = Array.from({ length: rezervace.maxOsob }, (_, i) => i);
+const sedacky = Array.from({ length: Math.max(rezervace.maxOsob, permanentka.mist) }, (_, i) => i);
+const mistaKurzu = Array.from({ length: Math.max(1, ...kurzy.map((k) => k.mist)) }, (_, i) => i);
 const hodiny = Array.from({ length: rezervace.do - rezervace.od }, (_, i) => rezervace.od + i);
 
 /** Kde stojí slunce v danou hodinu — stejný vzorec jako obloha (nebe.ts) */
@@ -39,7 +51,7 @@ const radky = hodiny.map((h) => {
     <div class="rz-tabule-hlava">
       <h2 class="rz-tabule-titul" id="rz-odjezdy-nadpis">
         <span class="rz-stanice rz-stanice-svetla" aria-hidden="true"><small>OŘ</small>03</span>
-        <span lang="ja">発車</span> Odjezdy
+        Odjezdy
       </h2>
       <p class="rz-tabule-den" aria-hidden="true">
         <Flap text="—" class="rz-tabule-den-nazev" />
@@ -52,10 +64,45 @@ const radky = hodiny.map((h) => {
     </div>
     <p class="rz-tabule-sekki" aria-live="polite">Nejdřív vyber den.</p>
 
+    {/* Zvláštní vlak: cedule nad řádky, jen v den kurzu. Texty, znak a vláček dopisuje skript. */}
+    <div class="rz-zvl" hidden>
+      <p class="rz-zvl-led" aria-hidden="true">
+        <span class="rz-zvl-led-druh">zvláštní vlak</span>
+        <span class="rz-zvl-led-vyluka">výluka — hodinové spoje dnes nejedou</span>
+      </p>
+      <div class="rz-zvl-telo">
+        <svg class="rz-zvl-znak" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="29" fill="#F3E6C8" stroke="#C4432B" stroke-width="5" />
+          <circle cx="32" cy="32" r="22.5" fill="none" stroke="#E0B04A" stroke-width="1.4" />
+          <text x="32" y="33" class="rz-zvl-znak-text"></text>
+        </svg>
+        <div class="rz-zvl-popisy">
+          <h3 class="rz-zvl-nazev"></h3>
+          <p class="rz-zvl-jmeno"></p>
+          <p class="rz-zvl-udaje"></p>
+        </div>
+        <svg class="rz-zvl-vlacek" viewBox={`-40 ${-VYSKA_ZVLASTNIHO - 8} ${DELKA_ZVLASTNIHO + 80} ${VYSKA_ZVLASTNIHO + 20}`} aria-hidden="true">
+          <g class="rz-zvl-vlak"></g>
+          <path d={`M-40 1.5 H${DELKA_ZVLASTNIHO + 40}`} stroke="rgba(237, 230, 214, 0.35)" stroke-width="3" />
+        </svg>
+      </div>
+      <p class="rz-zvl-popis"></p>
+      <div class="rz-zvl-nastup">
+        <span class="rz-zvl-mista" aria-hidden="true">
+          {mistaKurzu.map(() => <svg class="rz-sedacka" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg>)}
+        </span>
+        <span class="rz-zvl-volno" aria-live="polite"></span>
+        <button type="button" class="rz-zvl-volba" aria-pressed="false">
+          <span class="rz-zvl-volba-text">Nastoupit</span>
+          <span class="rz-o-lampa" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+
     <div class="rz-tabule-sloupce" aria-hidden="true">
-      <span><span lang="ja">時刻</span> odjezd</span>
-      <span><span lang="ja">座席</span> kupé</span>
-      <span><span lang="ja">備考</span> poznámka</span>
+      <span>odjezd</span>
+      <span><span class="jen-hodiny">kupé</span><span class="jen-kurz">zastávka</span></span>
+      <span><span class="jen-hodiny">poznámka</span><span class="jen-kurz">program</span></span>
     </div>
 
     <ol class="rz-tabule-radky" aria-label="Odjezdy vybraného dne — vyber jednu nebo víc hodin">
@@ -76,7 +123,9 @@ const radky = hodiny.map((h) => {
             <span class="rz-o-mista" aria-hidden="true">
               {sedacky.map(() => <svg class="rz-sedacka" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg>)}
             </span>
-            <span class="rz-o-stav" aria-hidden="true"><Flap text="" /></span>
+            {/* V den kurzu místo kupé: zastávka na trati zvláštního vlaku */}
+            <span class="rz-o-trasa" aria-hidden="true"><i class="rz-o-bod"></i><span class="rz-o-poradi"></span></span>
+            <span class="rz-o-stav" aria-hidden="true"><Flap text="" /><small class="rz-o-co"></small></span>
             <span class="rz-o-lampa" aria-hidden="true"></span>
             <span class="sr-only rz-o-popis">{r.h}:00 až {r.h + 1}:00</span>
           </button>
@@ -86,15 +135,17 @@ const radky = hodiny.map((h) => {
 
     <div class="rz-tabule-pata">
       <ul class="rz-legenda" aria-hidden="true">
-        <li><svg class="rz-sedacka" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> volné kupé</li>
+        <li><svg class="rz-sedacka" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> volné</li>
         <li><svg class="rz-sedacka obs" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> obsazené</li>
         <li><svg class="rz-sedacka moje" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> vy</li>
+        <li class="jen-hodiny"><svg class="rz-sedacka pas" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> místo na permanentku</li>
       </ul>
       <p class="rz-tabule-rada">
         Klikni na volný odjezd — klidně na víc. Hodina je celá vaše, ať jedeš sám, nebo až ve čtyřech.
         Obloha nad mořem ukáže, jaké v tu hodinu bude v dílně světlo.
       </p>
+      <p class="rz-hlaseni" role="status" aria-live="polite"></p>
     </div>
   </div>
-  <p class="rz-simulace">Obsazenost je zatím jen ukázková — skutečný kalendář přijde později.</p>
+  <p class="rz-simulace">Obsazenost i termíny kurzů jsou zatím jen ukázkové — skutečný kalendář přijde později.</p>
 </div>

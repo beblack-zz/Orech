@@ -2,15 +2,20 @@
 /**
  * První obrazovka Rezervace: nádraží na moři za svítání. Karta vlevo
  * říká to podstatné — kdy, za kolik a jak; vlak na pozadí mezitím
- * přijede a zastaví u cedule 胡桃 Ořech (More.astro).
+ * přijede a zastaví u cedule Ořech (More.astro). Vpravo nahoře visí
+ * svislý nápis 胡桃行き („směr Ořech“) — jediné japonské znaky na stránce.
  *
  * V kartě visí malá klapková cedulka s příštím volným odjezdem. Je to
  * tlačítko: vybere ten den a hodinu a sjede k tabuli. Datum dopisuje
  * skript (stránka je statická, datum z buildu by zestárlo); bez skriptu
  * je cedulka schovaná a zůstane obecná věta o otevírací době.
+ *
+ * Pod ní je věta o kurzech a permanentce a druhá, menší cedulka: příští
+ * zvláštní vlak (kurz), na který je ještě místo. Otevře jeho den a sjede
+ * k tabuli — nastoupit už člověk musí sám.
  */
 import Flap from "../uvod2/Flap.astro";
-import { rezervace } from "../../data/rezervace";
+import { rezervace, permanentka } from "../../data/rezervace";
 
 const cena = rezervace.cena.toLocaleString("cs-CZ");
 ---
@@ -18,7 +23,7 @@ const cena = rezervace.cena.toLocaleString("cs-CZ");
   <p class="rz-tategaki" lang="ja" aria-hidden="true">胡桃行き</p>
 
   <div class="rz-nadrazi-karta papir">
-    <p class="stitek"><span lang="ja">切符</span> · jízdenka do dílny</p>
+    <p class="stitek">jízdenka do dílny</p>
     <h1 id="rz-nadpis" class="rz-nadpis">Vyber si hodinu. <em>Nastup.</em></h1>
     <p class="rz-perex">
       Hodina v dílně se tu kupuje jako jízdenka na vlak: vybereš den a odjezd — a celá hodina je vaše,
@@ -27,7 +32,7 @@ const cena = rezervace.cena.toLocaleString("cs-CZ");
     </p>
 
     <button type="button" class="rz-pristi" data-rz-nejblizsi hidden>
-      <span class="rz-pristi-hlava"><span lang="ja">次発</span> příští volný odjezd</span>
+      <span class="rz-pristi-hlava">příští volný odjezd</span>
       <span class="rz-pristi-klapky" aria-hidden="true">
         <Flap text="—" class="rz-pristi-den" />
         <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i><Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i>
@@ -39,12 +44,21 @@ const cena = rezervace.cena.toLocaleString("cs-CZ");
     </button>
 
     <p class="rz-dnes" aria-live="polite">Otevřeno je každé úterý a pátek, {rezervace.od}–{rezervace.do} hodin.</p>
+    <p class="rz-jinak">
+      Občas místo hodinových spojů vyjede <b>zvláštní vlak</b> — kurz na celý den, kde se místa plní po jednom.
+      A kdo jezdí pravidelně, vezme si <b>permanentku</b> na {permanentka.mesicu} měsíce: jeden den v týdnu, první nebo poslední spoj.
+    </p>
+    <button type="button" class="rz-kurz-pristi" data-rz-kurz-pristi hidden>
+      <span class="rz-kurz-pristi-hlava">příští zvláštní vlak</span>
+      <span class="rz-kurz-pristi-text"></span>
+      <span class="rz-kurz-pristi-akce" aria-hidden="true">→</span>
+    </button>
     <div class="rz-cta">
       <a class="tlacitko" href="#rz-pokladna">Vybrat odjezd</a>
     </div>
     <p class="rz-pokyn">
-      V japonštině je úterý den ohně <span lang="ja">火</span> a pátek den zlata <span lang="ja">金</span>.
-      Stanice se jmenuje <span lang="ja">胡桃</span> — tak se japonsky řekne ořech.
+      V japonštině je úterý den ohně a pátek den zlata.
+      Svislý nápis vpravo říká „směr Ořech“ — kurumi je japonsky ořech.
     </p>
   </div>
 

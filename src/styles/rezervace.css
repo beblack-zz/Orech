@@ -9,6 +9,10 @@
  *   pokladna  kolik vás pojede a den — dny jsou lepenkové jízdenky
  *   odjezdy   klapková tabule s hodinami vybraného dne (pata-pata)
  *   jízdenka  velká jízdenka s vláčkem z vybraných hodin; označení = cvaknutí
+ *   kurz      zvláštní vlak na celý den: tmavá jízdenka, cedule nad tabulí,
+ *             řádky jako zastávky, zlatá jízdenka s mapou trasy
+ *   pas       permanentka: přepážka v pokladně, spoje na tabuli, průkazka
+ *   řád       jízdní řád: cedule pod tabulí s celým měsícem naráz, pod ní vysvětlivky
  *   noc       vlak se vrací rozsvícený, poslední jízdenka, kontakt
  *
  * Obzor je na celé stránce ve stejné výšce okna (--rz-obzor), proto má
@@ -206,11 +210,19 @@
 .rz-lampa-svit { opacity: var(--vl-noc); }
 
 .rz-cedule-noha { fill: var(--vl-kov); }
-.rz-cedule-deska { fill: #FBFAF6; stroke: #B8B2B6; stroke-width: 1.5; }
-.rz-cedule-kanji { font-family: "Yu Gothic", "YuGothic", "Hiragino Sans", "Noto Sans JP", var(--f-kanji); font-weight: 700; font-size: 25px; fill: #2B2420; }
-.rz-cedule-jmeno { font-family: var(--f-display); font-weight: 600; font-size: 10.5px; letter-spacing: 0.24em; fill: #2B2420; }
+.rz-cedule-deska { fill: #FBFAF6; stroke: #2E2A36; stroke-width: 2.5; }
+.rz-cedule-striska { fill: color-mix(in srgb, #2E2A36, var(--vl-kov) 30%); }
+.rz-cedule-pricka { fill: none; stroke: var(--vl-kov); stroke-width: 3; }
+.rz-cedule-ram { fill: none; stroke: #2B2420; stroke-width: 1; opacity: 0.55; }
+/* Nápisy cedule jsou obrysy písma (cedule-napisy.ts), barví se výplní */
+.rz-cedule-jmeno { fill: #2B2420; }
+.rz-cedule-pod { fill: #5C5047; }
+.rz-cedule-tady { fill: #8E2E1E; }
+.rz-cedule-sipka { fill: #8A7C70; }
+.rz-cedule-sipka-dal { fill: var(--rumelka); }
 .rz-cedule-pas { fill: var(--rumelka); }
-.rz-cedule-smer { font-family: var(--f-text); font-size: 7.5px; fill: #5C5047; }
+.rz-cedule-smer { fill: #5C5047; }
+.rz-cedule-smer-dal { fill: #2B2420; }
 /* V noci cedule svítí zevnitř, jen trochu tepleji */
 .rz-cedule-svit { fill: #FFE9B8; opacity: calc(var(--vl-noc) * 0.22); }
 
@@ -298,7 +310,6 @@
 .rz-dnes { margin: 12px 0 16px; font-size: 15px; line-height: 1.5; color: var(--inkoust-2); }
 .rz-cta { display: flex; flex-wrap: wrap; gap: 10px; }
 .rz-pokyn { margin: 18px 0 0; font-family: var(--f-ruka); font-size: 22px; line-height: 1.15; color: var(--inkoust-2); transform: rotate(-1.2deg); }
-.rz-pokyn [lang="ja"] { font-family: var(--f-kanji); font-size: 0.95em; color: var(--rumelka); }
 .rz-dolu {
   position: absolute;
   left: 50%;
@@ -333,7 +344,6 @@
 }
 .rz-pristi:hover { transform: translateY(-2px); box-shadow: 0 0 0 3px var(--jantar), 0 18px 30px -16px rgba(8, 10, 30, 0.8); }
 .rz-pristi-hlava { grid-column: 1 / -1; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(237, 230, 214, 0.62); }
-.rz-pristi-hlava [lang="ja"] { margin-right: 4px; font-family: var(--f-kanji); font-size: 14px; letter-spacing: 0.04em; color: var(--jantar); }
 .rz-pristi-klapky { display: flex; align-items: center; gap: 3px; min-width: 0; }
 .rz-pristi-klapky i { font-style: normal; color: var(--jantar); padding: 0 1px; }
 .rz-pristi-mezera { width: 10px; }
@@ -468,7 +478,7 @@
 .rz-osoba input:checked + .rz-osoba-karta svg { transform: translateY(-3px) scale(1.06); }
 .rz-osoba input:focus-visible + .rz-osoba-karta { outline: 2px solid var(--rumelka); outline-offset: 3px; }
 
-/* Dny: lepenkové jízdenky (硬券) s ochranným podtiskem */
+/* Dny: lepenkové jízdenky s ochranným podtiskem */
 .rz-dny { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .rz-mesic {
   grid-column: 1 / -1;
@@ -515,13 +525,10 @@
   text-transform: uppercase;
   font-weight: 600;
 }
-.rz-den-pas [lang="ja"] { margin-right: 3px; font-family: var(--f-kanji); font-size: 14px; letter-spacing: 0; }
 .rz-den-cislo { grid-area: cislo; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 144; font-weight: 600; font-size: 38px; line-height: 0.95; }
 .rz-den-mesic { grid-area: mesic; font-size: 14px; line-height: 1.1; color: var(--inkoust-2); }
 .rz-den-sekki { grid-area: sekki; font-size: 11.5px; line-height: 1.2; color: var(--inkoust-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rz-den-sekki [lang="ja"] { font-family: var(--f-kanji); font-size: 13px; color: var(--inkoust-2); }
 .rz-den-volno { grid-area: volno; margin-top: 7px; padding-top: 6px; border-top: 1px dashed rgba(43, 36, 32, 0.22); font-size: 12.5px; color: var(--inkoust-2); }
-.rz-den-volno [lang="ja"] { font-family: var(--f-kanji); }
 /* Dírka po kleštích ve tvaru ořechu — vyřízne se, když je den vybraný */
 .rz-den-dirka {
   position: absolute;
@@ -587,7 +594,6 @@
   letter-spacing: -0.015em;
   color: #FFF7E6;
 }
-.rz-tabule-titul > [lang="ja"] { margin-right: 10px; font-family: var(--f-kanji); font-weight: 400; color: var(--jantar); }
 .rz-tabule-titul .rz-stanice { font-size: 13px; margin-right: 12px; }
 .rz-tabule-den { display: flex; align-items: center; gap: 3px; margin: 0; }
 .rz-tabule-den i,
@@ -601,7 +607,6 @@
 .rz-tabule-sekki { margin: 10px 0 12px; font-size: 15px; color: rgba(237, 230, 214, 0.8); }
 .rz-tabule-sekki b { color: #FFF7E6; font-weight: 600; }
 .rz-tabule-obdobi { margin-left: 6px; font-size: 13.5px; color: rgba(237, 230, 214, 0.55); }
-.rz-tabule-obdobi [lang="ja"] { font-family: var(--f-kanji); font-size: 15px; color: rgba(255, 180, 90, 0.85); }
 
 /* Sloupce řádku: odjezd, příjezd, okénko s oblohou, kupé, poznámka, kontrolka */
 .rz-tabule-deska { --sloupce: 126px 52px 64px 86px minmax(150px, 1fr) 12px; }
@@ -615,7 +620,6 @@
   text-transform: uppercase;
   color: rgba(237, 230, 214, 0.5);
 }
-.rz-tabule-sloupce [lang="ja"] { font-family: var(--f-kanji); letter-spacing: 0.04em; font-size: 12.5px; color: rgba(255, 180, 90, 0.75); margin-right: 3px; }
 .rz-tabule-sloupce > span:nth-child(1) { grid-column: 1 / 4; }
 .rz-tabule-sloupce > span:nth-child(2) { grid-column: 4; }
 .rz-tabule-sloupce > span:nth-child(3) { grid-column: 5 / 7; }
@@ -713,17 +717,17 @@
 .rz-nastup-karta { width: min(1140px, 100%); margin: 0 auto; }
 .rz-nastup-mriz { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(250px, 0.8fr); gap: clamp(20px, 3vw, 40px); align-items: start; margin-top: 8px; }
 
-/* Tištěné japonské znaky — jízdenka je z tiskárny, ne psaná štětcem */
-.rz-listek { --f-tisk: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Noto Serif JP", var(--f-kanji); }
 
 .rz-listek {
   --listek: #EEF1E4;
+  --tisk: #3E6E68;
+  --tisk-2: #2B5A55;
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 84px;
   grid-template-rows: auto auto;
   border-radius: 18px;
-  background: var(--jimon), var(--listek);
+  background: var(--jimon-akt, var(--jimon)), var(--listek);
   box-shadow: 0 1px 0 rgba(43, 36, 32, 0.1), 0 26px 50px -30px rgba(22, 16, 40, 0.65), inset 0 0 0 1px rgba(43, 36, 32, 0.08);
   transform: rotate(-0.5deg);
 }
@@ -748,22 +752,18 @@
   transform: translate(-50%, -50%) rotate(-1.5deg);
 }
 .rz-listek-telo { position: relative; grid-column: 1; grid-row: 2; padding: 16px 24px 18px; }
-.rz-listek-hlava { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 6px; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #3E6E68; }
-.rz-listek-hlava [lang="ja"] { margin-right: 4px; font-family: var(--f-tisk); font-size: 14px; letter-spacing: 0.08em; color: #2B5A55; font-weight: 600; }
+.rz-listek-hlava { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 6px; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tisk); }
 .rz-listek-cislo { font-variant-numeric: tabular-nums; letter-spacing: 0.06em; white-space: nowrap; }
 .rz-listek-cislo b { color: var(--rumelka); font-weight: 700; }
 .rz-listek-trasa { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: clamp(24px, 2.4vw, 32px); line-height: 1.05; }
-.rz-listek-stanice [lang="ja"] { display: block; font-family: var(--f-tisk); font-size: 0.42em; font-weight: 600; letter-spacing: 0.3em; color: #3E6E68; }
 .rz-listek-sipka { position: relative; flex: 1; min-width: 40px; height: 12px; background: linear-gradient(var(--inkoust), var(--inkoust)) 0 50% / calc(100% - 10px) 2.5px no-repeat; }
 .rz-listek-sipka::after { content: ""; position: absolute; right: 0; top: 0; border-left: 12px solid var(--inkoust); border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
 .rz-listek-udaje { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; margin: 0 0 12px; }
-.rz-listek-udaje dt { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #3E6E68; font-weight: 600; }
-.rz-listek-udaje dt [lang="ja"] { margin-right: 4px; font-family: var(--f-tisk); font-size: 12.5px; letter-spacing: 0.04em; }
+.rz-listek-udaje dt { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--tisk); font-weight: 600; }
 .rz-listek-udaje dd { margin: 1px 0 0; font-size: 15.5px; line-height: 1.35; }
 .rz-listek-udaje dd::first-letter { text-transform: uppercase; }
 .rz-listek-jmeno { display: flex; align-items: baseline; gap: 12px; padding-top: 10px; border-top: 1px dashed rgba(43, 36, 32, 0.24); }
-.rz-listek-jmeno-popis { flex: none; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #3E6E68; font-weight: 600; }
-.rz-listek-jmeno-popis [lang="ja"] { margin-right: 4px; font-family: var(--f-tisk); font-size: 12.5px; letter-spacing: 0.04em; }
+.rz-listek-jmeno-popis { flex: none; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--tisk); font-weight: 600; }
 .rz-listek-jmeno input {
   flex: 1;
   min-width: 0;
@@ -796,7 +796,7 @@
   align-content: center;
   gap: 8px;
   border-left: 2px dashed rgba(43, 36, 32, 0.24);
-  color: #3E6E68;
+  color: var(--tisk);
 }
 .rz-listek-utrzek::before,
 .rz-listek-utrzek::after {
@@ -810,7 +810,6 @@
 }
 .rz-listek-utrzek::before { top: -11px; }
 .rz-listek-utrzek::after { bottom: -11px; }
-.rz-listek-utrzek-znak { writing-mode: vertical-rl; font-family: var(--f-tisk); font-size: 20px; letter-spacing: 0.3em; font-weight: 600; }
 .rz-listek-utrzek-text { writing-mode: vertical-rl; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; }
 /* Kleště průvodčího vystřihnou ořech — dírka zůstane, ústřižek spadne */
 .rz-listek-dirka,
@@ -825,7 +824,7 @@
   opacity: 0;
 }
 .rz-listek-dirka { background: var(--papir); box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.35); }
-.rz-listek-ustrizek { background: var(--jimon), var(--listek); }
+.rz-listek-ustrizek { background: var(--jimon-akt, var(--jimon)), var(--listek); }
 .rz-listek.oznacena .rz-listek-dirka { animation: rz-cvak 0.22s cubic-bezier(0.3, 1.6, 0.5, 1) forwards; }
 .rz-listek.oznacena .rz-listek-ustrizek { animation: rz-ustrizek 1.4s cubic-bezier(0.5, 0, 0.7, 1) 0.05s forwards; }
 @keyframes rz-cvak { from { opacity: 1; transform: scale(0.2); } to { opacity: 1; transform: scale(1); } }
@@ -848,7 +847,7 @@
   pointer-events: none;
   mix-blend-mode: multiply;
 }
-.rz-listek-razitko [lang="ja"] { font-family: var(--f-kanji); font-size: 24px; line-height: 1; }
+.rz-listek-razitko b { font-family: var(--f-display); font-size: 17px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.15; }
 .rz-listek-razitko small { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; }
 .rz-listek.oznacena .rz-listek-razitko { animation: rz-razitko 0.42s cubic-bezier(0.3, 1.6, 0.5, 1) 0.26s forwards; }
 @keyframes rz-razitko { to { opacity: 0.88; transform: rotate(-9deg) scale(1); } }
@@ -880,6 +879,757 @@
 .rz-chybi { margin: 0; font-family: var(--f-ruka); font-size: 21px; line-height: 1.15; color: var(--rumelka); }
 .rz-chybi:empty { display: none; }
 
+/* ——— Zvláštní vlak (kurz) a permanentka ———
+ *
+ * Dvě věci, u kterých se počítají místa. Kurz má svou barvu — noční modrou
+ * se zlatou linkou, jako salon zvláštního vlaku: tmavá jízdenka v pokladně,
+ * cedule nad řádky tabule, zlatý podtisk jízdenky. Permanentka má modrou
+ * z průkazek a zelenomodré sedačky, ať se na tabuli nepletou s kupé.
+ */
+
+.rz {
+  --zvl: #262B5A;
+  --zvl-2: #191C3E;
+  --zvl-zlato: #E0B04A;
+  --prukaz: #3D4F8A;
+  --pas-svit: #8FE3D4;
+}
+
+.rz-sedacka.skryta { display: none; }
+/* Volné místo na permanentku: čárkovaná sedačka */
+.rz-sedacka.pas { stroke: var(--pas-svit); stroke-dasharray: 2.4 1.5; }
+.rz-tabule .jen-kurz,
+.rz-tabule.je-kurz .jen-hodiny { display: none; }
+.rz-tabule.je-kurz .jen-kurz { display: inline; }
+
+/* Druhá cedulka v úvodu: příští zvláštní vlak */
+.rz-jinak { margin: 0 0 12px; max-width: 48ch; font-size: 14.5px; line-height: 1.5; color: var(--inkoust-2); }
+.rz-jinak b { font-weight: 600; color: var(--inkoust); }
+.rz .rz-kurz-pristi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 12px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 9px 14px 10px 16px;
+  border-radius: 12px;
+  background: linear-gradient(var(--zvl), var(--zvl-2));
+  color: #FFF7E6;
+  text-align: left;
+  box-shadow: inset 0 0 0 1.5px var(--zvl-zlato), 0 12px 22px -16px rgba(8, 10, 30, 0.8);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.rz .rz-kurz-pristi:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px var(--jantar-2), 0 16px 26px -16px rgba(8, 10, 30, 0.8); }
+.rz-kurz-pristi-hlava { grid-column: 1; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--led); }
+.rz-kurz-pristi-text { grid-column: 1; font-family: var(--f-display); font-weight: 600; font-size: 15.5px; line-height: 1.25; }
+.rz-kurz-pristi-text::first-letter { text-transform: uppercase; }
+.rz-kurz-pristi-akce { grid-column: 2; grid-row: 1 / 3; font-size: 20px; color: var(--zvl-zlato); }
+
+/* Den kurzu v pokladně: tmavá jízdenka se zlatým pruhem */
+.rz .rz-den.kurz {
+  --karton: var(--zvl);
+  --pas: var(--zvl-zlato);
+  color: #FFF7E6;
+  background:
+    repeating-linear-gradient(115deg, rgba(224, 176, 74, 0.1) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(65deg, rgba(224, 176, 74, 0.07) 0 1px, transparent 1px 5px),
+    var(--karton) !important;
+  box-shadow: 0 1px 0 rgba(43, 36, 32, 0.12), 0 8px 16px -12px rgba(28, 20, 44, 0.7), inset 0 0 0 1px rgba(224, 176, 74, 0.55);
+}
+.rz-den.kurz .rz-den-pas { color: var(--zvl-2); }
+.rz-den.kurz .rz-den-mesic { color: rgba(255, 247, 230, 0.78); }
+.rz-den.kurz .rz-den-sekki { font-size: 12.5px; font-weight: 600; color: var(--zvl-zlato); }
+.rz-den.kurz .rz-den-volno { border-top-color: rgba(224, 176, 74, 0.4); color: rgba(255, 247, 230, 0.86); }
+.rz-den.kurz[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--zvl-zlato), 0 16px 26px -14px rgba(28, 20, 44, 0.7); }
+.rz-den.kurz[aria-pressed="true"] .rz-den-volno { color: #FFF7E6; }
+.rz-den.kurz.malo .rz-den-volno { color: var(--jantar-2); }
+.rz-den.kurz.plno .rz-den-volno { color: #FF9A84; }
+
+/* Přepážka s permanentkami: dvě průkazky, ranní a večerní spoj */
+.rz-krok.rz-pas { margin-top: 24px; padding-top: 20px; border-top: 1px dashed rgba(43, 36, 32, 0.22); }
+.rz-pas-znak {
+  padding: 2px 7px 3px;
+  border-radius: 5px;
+  background: var(--prukaz);
+  color: #FFF8EE;
+  font-family: var(--f-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* Na který den v týdnu permanentka je — podle vybraného dne */
+.rz-pas-den { color: var(--rumelka); }
+.rz-pasy { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rz .rz-pas-volba {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "hlava doba"
+    "cas doba"
+    "mista mista"
+    "volno volno";
+  align-items: center;
+  gap: 1px 8px;
+  padding: 9px 12px 10px;
+  border-radius: 9px;
+  text-align: left;
+  color: var(--inkoust);
+  background:
+    repeating-linear-gradient(0deg, rgba(74, 95, 168, 0.08) 0 1px, transparent 1px 6px),
+    #E9EEF6;
+  box-shadow: 0 1px 0 rgba(43, 36, 32, 0.12), 0 8px 16px -12px rgba(28, 20, 44, 0.55), inset 0 0 0 1.5px rgba(61, 79, 138, 0.35);
+  transition: transform 0.25s cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 0.25s;
+}
+.rz-pas-hlava { grid-area: hlava; font-size: 11.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--prukaz); }
+.rz-pas-cas { grid-area: cas; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 21px; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Kulaté razítko s dobou platnosti: 3 měs. */
+.rz-pas-doba {
+  grid-area: doba;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--rumelka);
+  border-radius: 50%;
+  color: var(--rumelka);
+  line-height: 0.92;
+  transform: rotate(-8deg);
+}
+.rz-pas-doba b { font-family: var(--f-display); font-size: 17px; font-weight: 700; }
+.rz-pas-doba span { font-size: 9.5px; letter-spacing: 0.02em; }
+.rz-pas-mista { grid-area: mista; display: flex; gap: 5px; margin-top: 7px; padding-top: 8px; border-top: 1px dashed rgba(43, 36, 32, 0.22); }
+.rz-pas-volno { grid-area: volno; margin-top: 2px; font-size: 12.5px; color: var(--inkoust-2); }
+/* Sedačky jsou tady na světlém papíře, ne na tabuli */
+.rz-pas-volba .rz-sedacka { stroke: var(--prukaz); transform: none; filter: none; }
+.rz-pas-volba .rz-sedacka.obs { fill: #A3A9B8; stroke: #A3A9B8; }
+.rz-pas-volba .rz-sedacka.moje { fill: var(--rumelka); stroke: var(--rumelka); }
+.rz .rz-pas-volba:not(:disabled):hover { transform: translateY(-3px) rotate(-0.6deg); }
+.rz .rz-pas-volba[aria-pressed="true"] { transform: translateY(-4px) rotate(-1deg); box-shadow: 0 0 0 2.5px var(--inkoust), 0 16px 26px -14px rgba(28, 20, 44, 0.6); }
+.rz .rz-pas-volba[aria-pressed="true"] .rz-pas-volno { color: var(--inkoust); font-weight: 600; }
+.rz .rz-pas-volba:disabled { cursor: not-allowed; opacity: 0.55; filter: saturate(0.35); }
+.rz-pas-pozn { margin: 10px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--inkoust-3); }
+.rz-pas-stav { display: block; color: var(--inkoust-2); }
+
+/* Tabule: spoj permanentky — zelenomodrá poznámka a proužek po straně */
+.rz-o.pas:not(.vybrana) { box-shadow: inset 3px 0 0 rgba(143, 227, 212, 0.4); }
+.rz-o.pas .rz-o-stav .flap-t { color: var(--pas-svit); }
+.rz-o.pas.plno .rz-o-stav .flap-t,
+.rz-o.pas.malo .rz-o-stav .flap-t { color: #FF8A6A; }
+.rz-o.pas.pryc .rz-o-stav .flap-t { color: rgba(237, 230, 214, 0.42); }
+.rz-o.pas.vybrana .rz-o-stav .flap-t { color: #8EF0A8; }
+.rz-o.malo .rz-o-cas,
+.rz-o.malo .rz-o-okno { opacity: 0.6; }
+.rz-o.pas.pryc .rz-sedacka { stroke-dasharray: none; }
+
+/* Tabule: cedule zvláštního vlaku nad řádky */
+.rz-zvl {
+  position: relative;
+  margin: 0 0 14px;
+  padding-bottom: 14px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(var(--zvl), var(--zvl-2));
+  box-shadow: inset 0 0 0 1.5px var(--zvl-zlato), inset 0 0 0 4.5px var(--zvl-2), inset 0 0 0 5.5px rgba(224, 176, 74, 0.45);
+  color: #EDE6D6;
+  transition: box-shadow 0.3s;
+}
+.rz-zvl.vybrana { box-shadow: inset 0 0 0 1.5px #8EF0A8, inset 0 0 0 4.5px var(--zvl-2), inset 0 0 0 5.5px rgba(142, 240, 168, 0.4); }
+/* Svítící pruh jako LED řádek na nádraží: druh vlaku a výluka */
+.rz-zvl-led {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 18px;
+  margin: 0;
+  padding: 10px 18px 8px;
+  background: #0E1024;
+  border-bottom: 1px solid rgba(224, 176, 74, 0.4);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--led);
+  text-shadow: 0 0 8px rgba(255, 154, 60, 0.55);
+}
+.rz-zvl-led-druh { font-weight: 700; animation: rz-led 2.4s steps(2, jump-none) infinite; }
+.rz-zvl-led-vyluka { margin-left: auto; color: rgba(255, 154, 60, 0.78); }
+@keyframes rz-led { 50% { opacity: 0.55; } }
+.rz-zvl-telo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 290px);
+  align-items: center;
+  gap: 10px 16px;
+  padding: 14px 18px 2px;
+}
+.rz-zvl-znak { width: 58px; height: 58px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)); }
+.rz-zvl-znak-text { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 700; font-size: 31px; fill: #2B2420; text-anchor: middle; dominant-baseline: central; }
+.rz-zvl-nazev {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 96;
+  font-weight: 500;
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.02;
+  letter-spacing: -0.012em;
+  color: #FFF7E6;
+}
+.rz-zvl-jmeno { margin: 5px 0 0; font-size: 13.5px; color: rgba(237, 230, 214, 0.7); }
+.rz-zvl-udaje { margin: 3px 0 0; font-size: 14.5px; color: var(--jantar-2); font-variant-numeric: tabular-nums; }
+.rz-zvl-vlacek { display: block; width: 100%; height: auto; overflow: visible; }
+.rz-zvl-popis { margin: 8px 18px 0; max-width: 66ch; font-size: 14.5px; line-height: 1.45; color: rgba(237, 230, 214, 0.84); }
+.rz-zvl-nastup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 12px 18px 0;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(224, 176, 74, 0.35);
+}
+.rz-zvl-mista { display: flex; gap: 6px; }
+.rz-zvl-mista .rz-sedacka { width: 20px; height: 22px; }
+.rz-zvl-volno { flex: 1; min-width: 14ch; font-size: 14.5px; color: #FFF7E6; }
+.rz-zvl.plno .rz-zvl-volno { color: #FF8A6A; }
+.rz .rz-zvl-volba {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px 11px 20px;
+  border-radius: 12px;
+  background: var(--jantar);
+  color: #1A1D22;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 16px;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.rz .rz-zvl-volba:hover:not(:disabled) { transform: translateY(-2px); background: #FFC97E; }
+.rz .rz-zvl-volba:disabled { opacity: 0.45; cursor: not-allowed; }
+.rz .rz-zvl-volba[aria-pressed="true"] { background: #8EF0A8; box-shadow: 0 0 18px rgba(142, 240, 168, 0.45); }
+.rz-zvl-volba .rz-o-lampa { background: rgba(26, 29, 34, 0.3); box-shadow: none; }
+.rz-zvl-volba[aria-pressed="true"] .rz-o-lampa { background: #1A1D22; }
+
+/* Tabule v den kurzu: řádky jsou zastávky na trati — tečka na lince, znak, jméno na klapce a co se tam děje */
+.rz-o-trasa { display: none; position: relative; align-self: stretch; align-items: center; gap: 9px; }
+.rz-o-co { display: none; }
+.rz-tabule.je-kurz .rz-o-mista { display: none; }
+.rz-tabule.je-kurz .rz-o-trasa { display: flex; }
+.rz-o-trasa::before {
+  content: "";
+  position: absolute;
+  left: 14.5px;
+  top: -9px;
+  bottom: -9px;
+  width: 3px;
+  background: var(--jantar);
+  opacity: 0.5;
+  transition: background 0.3s, opacity 0.3s;
+}
+.rz-o:first-child .rz-o-trasa::before { top: 50%; }
+.rz-o:last-child .rz-o-trasa::before { bottom: 50%; }
+.rz-o-bod {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-left: 9px;
+  border: 3px solid var(--jantar);
+  border-radius: 50%;
+  background: var(--tabule);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.rz-o-poradi { font-family: var(--f-display); font-size: 14px; font-weight: 700; line-height: 1; color: rgba(255, 247, 230, 0.78); font-variant-numeric: tabular-nums; }
+.rz-o.bez-zastavky .rz-o-bod { visibility: hidden; }
+.rz-o.kurz .rz-o-volba:disabled { cursor: default; }
+.rz-o.kurz .rz-o-stav { display: grid; grid-template-columns: 7.4em minmax(0, 1fr); align-items: center; gap: 12px; }
+.rz-o.kurz .rz-o-co {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 13px;
+  line-height: 1.22;
+  color: rgba(237, 230, 214, 0.64);
+}
+.rz-o.kurz .rz-o-stav .flap-t { color: var(--jantar-2); }
+.rz-o.kurz.pryc .rz-o-stav .flap-t { color: rgba(237, 230, 214, 0.42); }
+.rz-o.kurz.vybrana .rz-o-stav .flap-t { color: #8EF0A8; }
+.rz-o.kurz.vybrana .rz-o-bod { border-color: #8EF0A8; background: #8EF0A8; box-shadow: 0 0 8px rgba(142, 240, 168, 0.7); }
+.rz-o.kurz.vybrana .rz-o-trasa::before { background: #8EF0A8; opacity: 0.75; }
+.rz-o.kurz.vybrana .rz-o-co { color: rgba(237, 230, 214, 0.86); }
+.rz-o.kurz.pryc .rz-o-trasa,
+.rz-o.kurz.pryc .rz-o-co { opacity: 0.4; }
+
+/* Hlášení pod tabulí — když se na jízdence něco změnilo samo */
+.rz-hlaseni {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 8px 12px 9px;
+  border-radius: 8px;
+  background: #0E1024;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--led);
+  text-shadow: 0 0 8px rgba(255, 154, 60, 0.45);
+}
+.rz-hlaseni:empty { display: none; }
+
+/* ——— Jízdenka na kurz a permanentka ——— */
+
+/* Zvláštní jízdenka: zlatý podtisk a dvojitá linka jako na pamětních jízdenkách */
+.rz-listek.kurz {
+  --jimon-akt: var(--jimon-kurz);
+  --listek: #F6ECD2;
+  --tisk: #8A5A16;
+  --tisk-2: #6E4510;
+  box-shadow: 0 0 0 2px #C99A2E, 0 1px 0 rgba(43, 36, 32, 0.1), 0 26px 50px -30px rgba(22, 16, 40, 0.65);
+}
+.rz-listek.kurz .rz-listek-telo { border-top: 4px double #C99A2E; }
+/* Permanentka: modrý podtisk průkazky */
+.rz-listek.pas {
+  --jimon-akt: var(--jimon-pas);
+  --listek: #E9EEF6;
+  --tisk: #3D4F8A;
+  --tisk-2: #2C3B6E;
+}
+/* Tam i zpět: šipka má hrot na obou koncích */
+.rz-listek.pas .rz-listek-sipka { background-position: 50% 50%; background-size: calc(100% - 20px) 2.5px; }
+.rz-listek.pas .rz-listek-sipka::before { content: ""; position: absolute; left: 0; top: 0; border-right: 12px solid var(--inkoust); border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+.rz-listek-vlak { margin: -6px 0 12px; font-size: 13.5px; line-height: 1.4; color: var(--tisk-2); }
+
+/* Mapa trasy: program kurzu jako zastávky na lince — čas, tečka a jméno */
+.rz-listek-program {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--zastavek, 10), minmax(0, 1fr));
+  margin: 0 0 14px;
+  padding: 10px 0 0;
+  list-style: none;
+  border-top: 1px dashed rgba(43, 36, 32, 0.24);
+}
+.rz-listek-program li { position: relative; display: grid; justify-items: center; align-content: start; gap: 3px; min-width: 0; }
+/* Linka mezi zastávkami: od tečky k tečce, na krajích končí */
+.rz-listek-program li::before { content: ""; position: absolute; left: 0; right: 0; top: 21.3px; height: 4px; background: var(--rumelka); }
+.rz-listek-program li:first-child::before { left: 50%; border-radius: 2px 0 0 2px; }
+.rz-listek-program li:last-child::before { right: 50%; border-radius: 0 2px 2px 0; }
+.rz-lp-cas { font-family: var(--f-display); font-size: 11.5px; font-weight: 700; line-height: 1.2; color: var(--tisk); font-variant-numeric: tabular-nums; }
+.rz-listek-program i {
+  position: relative;
+  z-index: 1;
+  width: 13px;
+  height: 13px;
+  border: 3px solid var(--rumelka);
+  border-radius: 50%;
+  background: #FFFDF6;
+}
+.rz-lp-cil i { background: var(--rumelka); box-shadow: 0 0 0 2px #FFFDF6, 0 0 0 3.5px var(--rumelka); }
+.rz-lp-nazev { max-width: 100%; font-size: 11px; line-height: 1.15; letter-spacing: -0.01em; text-align: center; color: var(--inkoust-2); overflow-wrap: anywhere; }
+
+/* Jízdy permanentky: měsíc a za ním dny jako políčka pro kleště */
+.rz-listek-jizdy { margin: 0 0 14px; padding-top: 10px; border-top: 1px dashed rgba(43, 36, 32, 0.24); }
+.rz-lj-popis { margin: 0 0 6px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--tisk); }
+.rz-lj-mesice { display: grid; gap: 5px; }
+.rz-lj-mesic { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; }
+.rz-lj-mesic b { flex: none; width: 5.2em; font-size: 12.5px; font-weight: 400; color: var(--inkoust-2); }
+.rz-lj-den {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 1.5px solid var(--rumelka);
+  border-radius: 50%;
+  background: rgba(255, 253, 246, 0.7);
+  font-family: var(--f-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.rz-lj-den.den-5 { border-color: #B5862A; }
+/* Výluka: ten den jede kurz, políčko je přeškrtnuté */
+.rz-lj-den.vyluka {
+  border-style: dashed;
+  border-color: rgba(43, 36, 32, 0.35);
+  color: var(--inkoust-3);
+  background: linear-gradient(to top right, transparent calc(50% - 0.8px), rgba(43, 36, 32, 0.45) calc(50% - 0.8px), rgba(43, 36, 32, 0.45) calc(50% + 0.8px), transparent calc(50% + 0.8px));
+}
+
+/* ——— Jízdní řád: dvě cedule pod tabulí ———
+ *
+ * Orámované jako cedule stanice na obzoru: tmavý okraj plechu, tenká linka
+ * uvnitř a nahoře stříška. Horní cedule je řád, spodní vysvětlivky — ta
+ * visí pod řádem na dvou táhlech, stejných, jako má odjezdová tabule.
+ *
+ * Řád se má číst na jeden pohled, takže mřížka je skoro prázdná a mluví
+ * jen tečky: tečka je místo, které se dá koupit. Plná zelená je volná
+ * hodina, prázdný kroužek obsazená. Řádky permanentky jsou podbarvené modře
+ * a mají tři malé tečky (tři místa), den kurzu je tmavý pruh s tečkou za
+ * každé místo ve vlaku. Co je na jízdence, je červené a obtažené propiskou.
+ */
+
+.rz-hala-pravo { display: grid; gap: clamp(22px, 3vw, 38px); min-width: 0; }
+
+.rz-rad {
+  --rad-modra: #2E4A8C;
+  --rad-papir: #FBFAF4;
+  --rad-ram: #2E2A36;
+  --rad-linka: rgba(43, 36, 32, 0.11);
+  --rad-volno: #2F8D76;
+  --rad-obs: #C9C4B7;
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 780px);
+  margin: 12px auto 0;
+  color: var(--inkoust);
+}
+.rz-rad-cedule {
+  position: relative;
+  padding: clamp(16px, 2vw, 24px) clamp(14px, 2vw, 24px) 16px;
+  border: 3px solid var(--rad-ram);
+  border-radius: 9px;
+  background: var(--rad-papir);
+  box-shadow: 0 26px 48px -30px rgba(16, 14, 40, 0.8);
+}
+/* Tenká linka uvnitř okraje */
+.rz-rad-cedule::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(43, 36, 32, 0.45);
+  border-radius: 4px;
+  pointer-events: none;
+}
+/* Stříška: sedí na horní hraně a na obě strany kousek přesahuje */
+.rz-rad-hlavni::after {
+  content: "";
+  position: absolute;
+  left: -15px;
+  right: -15px;
+  top: -10px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(#57525F, var(--rad-ram));
+}
+/* Táhla mezi cedulemi — jdou za ně, takže z nich je vidět jen kus v mezeře */
+.rz-rad-zaves { position: relative; z-index: -1; height: clamp(18px, 2.4vw, 26px); }
+.rz-rad-zaves i {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 9px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #5E666C, #CDD3D7 45%, #5E666C);
+}
+.rz-rad-zaves i:first-child { left: 14%; }
+.rz-rad-zaves i:last-child { right: 14%; }
+
+.rz-rad-hlava {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 18px;
+  padding: 10px 16px 11px;
+  border-radius: 2px;
+  background: var(--rad-modra);
+  color: #FFFFFF;
+}
+.rz-rad-hlava h2 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 0, "opsz" 72;
+  font-weight: 700;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.rz-rad-smer { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 16px; line-height: 1.1; }
+.rz-rad-smer i { position: relative; width: 34px; height: 10px; background: linear-gradient(#FFFFFF, #FFFFFF) 0 50% / calc(100% - 8px) 2px no-repeat; }
+.rz-rad-smer i::after { content: ""; position: absolute; right: 0; top: 0; border-left: 9px solid #FFFFFF; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+.rz-rad-uvod { margin: 10px 2px 14px; font-size: 13.5px; line-height: 1.45; color: var(--inkoust-2); }
+
+.rz-rad-posuv { overflow-x: auto; padding-bottom: 2px; }
+.rz-rad-tab { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-variant-numeric: tabular-nums; }
+.rz-rad-col-h { width: 92px; }
+.rz-rad-tab th,
+.rz-rad-tab td { padding: 0; text-align: center; }
+.rz-rad-tab tbody th,
+.rz-rad-tab tbody td { border-bottom: 1px solid var(--rad-linka); }
+.rz-rad-tab tbody tr:last-child > * { border-bottom: 0; }
+/* Mezi měsíci je v mřížce svislá čára, jinak žádné */
+.rz-rad-tab .novy-mesic { border-left: 2px solid rgba(43, 36, 32, 0.3); }
+
+/* Hlavička: měsíce a dny. Vybraný den je modrá záložka, den kurzu tmavá */
+.rz-rad-mesice th { padding: 0 9px 5px; text-align: left; font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--inkoust-3); }
+.rz-rad-tab .rz-rad-roh { padding: 0 12px 7px 0; vertical-align: bottom; text-align: right; font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--inkoust-3); border-bottom: 2px solid var(--rad-modra); }
+.rz-rad-dny th { padding: 6px 0 7px; border-bottom: 2px solid var(--rad-modra); border-radius: 7px 7px 0 0; font-weight: 400; line-height: 1.05; transition: background 0.15s, color 0.15s; }
+.rz-rad-znak { display: block; margin-bottom: 1px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+.rz-rad-dny b { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 48; font-size: 18px; font-weight: 700; }
+.rz-rad-dny .den-2 .rz-rad-znak { color: var(--rumelka); }
+.rz-rad-dny .den-5 .rz-rad-znak { color: #9A6A10; }
+.rz-rad-dny th.ukaz { background: rgba(46, 74, 140, 0.1); }
+.rz-rad-dny th.kurz { background: var(--zvl); border-bottom-color: var(--zvl); color: #FFF7E6; }
+.rz-rad-dny th.kurz .rz-rad-znak { color: var(--zvl-zlato); }
+.rz-rad-dny th.vybrany { background: var(--rad-modra); color: #FFFFFF; }
+.rz-rad-dny th.vybrany .rz-rad-znak { color: rgba(255, 255, 255, 0.85); }
+.rz-rad-dny th.kurz.vybrany { background: var(--zvl); box-shadow: inset 0 0 0 2px var(--zvl-zlato); }
+
+/* Hodiny vlevo; u spojů permanentky je to rovnou napsané */
+.rz-rad-tab .rz-rad-h { padding: 0 12px 0 2px; text-align: right; white-space: nowrap; line-height: 1.1; }
+.rz-rad-h b { display: block; font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-size: 15.5px; font-weight: 700; transition: color 0.15s; }
+.rz-rad-h small { display: block; font-size: 9px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--prukaz); }
+.rz-rad-tab tbody tr:hover .rz-rad-h b { color: var(--rad-modra); }
+.rz-rad-tab tr.pas > .rz-rad-h,
+.rz-rad-tab tr.pas > td:not(.rz-rad-td-zvl) { background: rgba(61, 79, 138, 0.08); }
+/* Vybraný den: podbarvený sloupec */
+.rz-rad-tab td.vybrany:not(.rz-rad-td-zvl) { background: rgba(240, 196, 60, 0.22); }
+.rz-rad-tab tr.pas > td.vybrany:not(.rz-rad-td-zvl) { background: linear-gradient(rgba(240, 196, 60, 0.22), rgba(240, 196, 60, 0.22)), rgba(61, 79, 138, 0.08); }
+
+/* Buňka je celá tlačítko, uvnitř jen tečka */
+.rz-rad .rz-rad-b { position: relative; display: grid; place-items: center; width: 100%; height: 33px; transition: background 0.15s, opacity 0.25s; }
+.rz-rad .rz-rad-b:not(:disabled):hover { background: rgba(46, 74, 140, 0.13); }
+.rz-rad .rz-rad-b:disabled { cursor: default; }
+/* Tečka: plná = volno, prázdný kroužek = obsazeno, čárka = odjel, červená = na jízdence */
+.rz-rad-t { display: block; width: 14px; height: 14px; border: 0 solid var(--rad-obs); border-radius: 50%; background: var(--rad-volno); transition: transform 0.15s, background 0.15s; }
+.rz-rad-b:not(:disabled):hover .rz-rad-t { transform: scale(1.3); }
+.plno > .rz-rad-t,
+.rz-rad-t.obs { width: 10px; height: 10px; border-width: 1.6px; background: none; }
+.pryc > .rz-rad-t,
+.rz-rad-t.pryc { width: 9px; height: 2px; border-radius: 1px; background: var(--rad-obs); }
+.mam > .rz-rad-t,
+.rz-rad-t.moje { background: var(--rumelka); }
+/* Permanentka: tři místa vedle sebe */
+.rz-rad-mista { display: flex; gap: 3px; }
+.rz-rad-mista i { display: block; width: 9px; height: 9px; border: 0 solid #AEB3C7; border-radius: 50%; background: var(--prukaz); transition: transform 0.15s; }
+.rz-rad-mista i.obs { border-width: 1.5px; background: none; }
+.rz-rad-mista i.moje { background: var(--rumelka); }
+.rz-rad-b:not(:disabled):hover .rz-rad-mista i:not(.obs) { transform: scale(1.2); }
+.rz-rad-b.pryc .rz-rad-mista,
+.rz-rad-b.malo .rz-rad-mista { opacity: 0.45; }
+/* Kroužek propiskou kolem toho, co je na jízdence — obtáhne se, když se objeví */
+.rz-rad-krouzek { position: absolute; left: 50%; top: -3px; display: none; width: auto; height: calc(100% + 6px); aspect-ratio: 48 / 32; overflow: visible; pointer-events: none; transform: translateX(-50%); }
+.rz-rad-krouzek path,
+.rz-rad-vz-moje path { fill: none; stroke: var(--rumelka); stroke-width: 2.2; stroke-linecap: round; }
+.rz-rad-krouzek path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.mam > .rz-rad-krouzek { display: block; }
+.mam > .rz-rad-krouzek path { animation: rz-krouzek 0.45s ease-out forwards; }
+@keyframes rz-krouzek { to { stroke-dashoffset: 0; } }
+/* Permanentka platí i v dalších týdnech — ty mají fajfku */
+.rz-rad-b.kryta::after { content: "✓"; position: absolute; right: 12%; top: 1px; font-family: var(--f-ruka); font-size: 17px; line-height: 1; color: var(--rumelka); }
+
+/* Den kurzu: tmavý pruh přes celý sloupec — jméno svisle a tečka za každé místo */
+.rz-rad-tab tbody .rz-rad-td-zvl { border-bottom: 0; border-radius: 0 0 7px 7px; background: linear-gradient(var(--zvl), var(--zvl-2)); vertical-align: top; }
+.rz-rad .rz-rad-zvl {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: calc(var(--radku, 9) * 34px - 3px);
+  padding: 9px 0 9px;
+  overflow: hidden;
+  border-radius: 0 0 7px 7px;
+  color: #FFF7E6;
+  transition: box-shadow 0.2s, opacity 0.25s;
+}
+.rz-rad .rz-rad-zvl:not(:disabled):hover { box-shadow: inset 0 0 0 2px var(--jantar-2); }
+.rz-rad .rz-rad-zvl:disabled { cursor: default; }
+.rz-rad-zvl-stitek { font-size: 9.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--zvl-zlato); }
+.rz-rad-zvl > b { flex: 1; min-height: 0; writing-mode: vertical-rl; text-align: center; font-family: var(--f-display); font-size: 15.5px; font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; }
+.rz-rad-zvl-mista { display: grid; grid-template-columns: repeat(2, 9px); gap: 4px; }
+.rz-rad-zvl-mista i { display: block; width: 9px; height: 9px; border: 0 solid rgba(255, 247, 230, 0.42); border-radius: 50%; background: var(--zvl-zlato); }
+.rz-rad-zvl-mista i.obs { border-width: 1.5px; background: none; }
+.rz-rad-zvl-mista i.moje { background: #8EF0A8; box-shadow: 0 0 6px rgba(142, 240, 168, 0.75); }
+.rz-rad-zvl-volno { padding: 0 3px; font-size: 9.5px; line-height: 1.15; letter-spacing: 0.02em; text-align: center; color: rgba(255, 247, 230, 0.86); }
+.rz-rad-zvl-volno strong { display: block; margin-bottom: 1px; font-family: var(--f-display); font-size: 20px; font-weight: 700; line-height: 1; letter-spacing: 0; color: var(--zvl-zlato); }
+.rz-rad-zvl.plno .rz-rad-zvl-volno { color: #FF9A84; }
+.rz-rad .rz-rad-zvl.mam { box-shadow: inset 0 0 0 2px #8EF0A8; }
+.rz-rad-zvl.mam .rz-rad-zvl-volno { color: #8EF0A8; }
+.rz-rad-zvl.pryc { opacity: 0.55; }
+
+/* Klíč ke značkám — stejné tečky jako v mřížce, jen jména; víc je ve vysvětlivkách */
+.rz-rad-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 14px 2px 0;
+  padding: 11px 0 0;
+  list-style: none;
+  border-top: 2px solid var(--rad-modra);
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--inkoust-2);
+}
+.rz-rad-legenda li { display: flex; align-items: center; gap: 7px; }
+.rz-rad-vz { position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 16px; height: 18px; }
+.rz-rad-vz-kurz { display: flex; align-items: center; justify-content: center; gap: 3px; width: 30px; height: 17px; border-radius: 3px; background: var(--zvl); }
+.rz-rad-vz-kurz i { width: 7px; height: 7px; border-radius: 50%; background: var(--zvl-zlato); }
+.rz-rad-vz-kurz i + i { background: none; border: 1.4px solid rgba(255, 247, 230, 0.5); }
+.rz-rad-vz-moje { width: 42px; }
+.rz-rad-vz-moje svg { position: absolute; left: 50%; top: -5px; height: 28px; overflow: visible; transform: translateX(-50%); }
+
+.rz-rad-pata { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; margin: 12px 2px 0; font-size: 11.5px; letter-spacing: 0.04em; color: var(--inkoust-3); }
+.rz-rad-podpis { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-ruka); font-size: 20px; letter-spacing: 0; line-height: 1; color: var(--inkoust-2); }
+.rz-rad-podpis svg { width: 30px; height: 30px; color: var(--rumelka); opacity: 0.85; mix-blend-mode: multiply; transform: rotate(-7deg); }
+
+/* ——— Vysvětlivky: hodina proti kurzu, pod nimi permanentka ———
+ *
+ * Hodina a kurz stojí vedle sebe a mají stejné řádky (co děláš, lektor,
+ * s kým…). Oba sloupce sdílejí jednu mřížku (subgrid), takže řádek stojí
+ * proti řádku, i když je text v jednom delší. Permanentka je pod nimi:
+ * kresba pod hodinou, text pod kurzem.
+ *
+ * Kresby jsou vlaky ze stránky (skládá je Rad.astro přes vlak.ts) a pod
+ * hladinou mají tečky tak, jak jsou v řádu: pod vozem jedna, pod okny
+ * s místy po jedné.
+ */
+.rz-rad-vysv-hlava {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3px 16px;
+  padding: 0 2px 9px;
+  border-bottom: 2px solid var(--rad-modra);
+}
+.rz-rad-vysv-hlava h3 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 0, "opsz" 72;
+  font-weight: 700;
+  font-size: clamp(19px, 1.9vw, 24px);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--rad-modra);
+}
+.rz-rad-vysv-hlava p { margin: 0; font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--inkoust-3); }
+
+.rz-rad-vysv { --rad-odstup: clamp(10px, 1.6vw, 18px); }
+.rz-rad-druh { font-size: 12.5px; line-height: 1.42; color: var(--inkoust-2); transition: background 0.2s; }
+
+.rz-rad-srovnani { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rz-rad-srovnani > .rz-rad-druh { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: subgrid; padding: 14px 0 16px; }
+.rz-rad-srovnani > .rz-rad-druh:first-child { padding-right: var(--rad-odstup); }
+.rz-rad-srovnani > .rz-rad-druh + .rz-rad-druh { padding-left: var(--rad-odstup); border-left: 1px solid var(--rad-linka); }
+.rz-rad-srovnani .rz-rad-fakta { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: subgrid; }
+.rz-rad-srovnani .rz-rad-kresba { margin-bottom: 10px; }
+
+.rz-rad-druh-pas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  padding: 16px 0 2px;
+  border-top: 2px solid var(--rad-modra);
+}
+.rz-rad-druh-pas > .rz-rad-kresba { padding-right: var(--rad-odstup); }
+.rz-rad-druh-text { min-width: 0; padding-left: var(--rad-odstup); border-left: 1px solid var(--rad-linka); }
+
+/* Kresba: vlak za dne, ať je jakákoli hodina; kouř je na světlé ceduli šedý */
+.rz-rad-kresba { display: block; width: 100%; height: auto; overflow: visible; --vl-noc: 0; --vl-sklo: #D3E2EE; --vl-sedadla: #7C6874; }
+.rz-rad-kresba .vl-para { fill: #C9C5D2; }
+.rz-rad-k-hladina { fill: none; stroke: var(--rad-modra); stroke-width: 3; opacity: 0.28; }
+.rz-rad-k-spoj { fill: none; stroke: var(--inkoust); stroke-width: 2.4; opacity: 0.32; }
+.rz-rad-k-cas { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-size: 40px; font-weight: 700; font-variant-numeric: tabular-nums; fill: var(--inkoust); dominant-baseline: central; }
+.rz-rad-k-co { font-family: var(--f-text); font-size: 29px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; fill: var(--inkoust-3); dominant-baseline: central; }
+.rz-rad-k-hod { font-family: var(--f-display); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; fill: var(--inkoust-2); dominant-baseline: central; }
+.rz-rad-k-volno { fill: var(--rad-volno); }
+.rz-rad-k-moje { fill: var(--rumelka); }
+.rz-rad-k-pero { fill: none; stroke: var(--rumelka); stroke-width: 2.4; stroke-linecap: round; }
+.rz-rad-k-pas-pruh { fill: rgba(61, 79, 138, 0.1); }
+.rz-rad-k-pas { fill: var(--prukaz); }
+.rz-rad-k-pas-obs { fill: none; stroke: #AEB3C7; stroke-width: 5; }
+.rz-rad-k-tyden { fill: #FFFFFF; stroke: rgba(61, 79, 138, 0.55); stroke-width: 2.4; }
+.rz-rad-k-tyden.vyluka { fill: none; stroke: rgba(43, 36, 32, 0.4); stroke-dasharray: 7 5; }
+.rz-rad-k-skrt { fill: none; stroke: rgba(43, 36, 32, 0.4); stroke-width: 2.4; stroke-linecap: round; }
+.rz-rad-k-fajfka { fill: none; stroke: var(--rumelka); stroke-width: 5.5; stroke-linecap: round; stroke-linejoin: round; }
+.rz-rad-k-zvl-pruh { fill: var(--zvl); }
+.rz-rad-k-zvl { fill: var(--zvl-zlato); }
+.rz-rad-k-zvl-obs { fill: none; stroke: rgba(255, 247, 230, 0.5); stroke-width: 4.5; }
+.rz-rad-k-trat { fill: none; stroke: var(--zvl); stroke-width: 6; stroke-linecap: round; }
+.rz-rad-k-zastavka { fill: var(--zvl-zlato); stroke: var(--zvl); stroke-width: 4.5; }
+.rz-rad-k-konecna { fill: var(--zvl); }
+
+.rz-rad-druh h4 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 5px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 0, "opsz" 48;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.1;
+  color: var(--inkoust);
+}
+/* Vedle jména malým, jak se tomu říká na nádraží */
+.rz-rad-druh h4 small { margin-left: 3px; font-family: var(--f-text); font-size: 9.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--inkoust-3); }
+.rz-rad-heslo {
+  margin: 0 0 10px;
+  font-family: var(--f-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 36;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--inkoust);
+}
+.rz-rad-druh b { font-weight: 600; color: var(--inkoust); }
+/* Značka druhu vlaku, jako Os a R v opravdovém řádu — barvou sedí na tečky v mřížce */
+.rz-rad-znacka {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  min-width: 27px;
+  height: 21px;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: var(--inkoust);
+  color: #FFFFFF;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 0, "opsz" 24;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.rz-rad-druh-hodina .rz-rad-znacka { background: var(--rad-volno); }
+.rz-rad-druh-pas .rz-rad-znacka { background: var(--prukaz); }
+.rz-rad-druh-kurz .rz-rad-znacka { background: var(--zvl); color: var(--zvl-zlato); }
+
+/* Řádek: vlevo, o co jde, vpravo, jak to je. Linky nad řádky jdou přes oba sloupce jako v tabulce */
+.rz-rad-fakta { margin: 0; }
+.rz-rad-fakta > div { display: grid; grid-template-columns: 60px minmax(0, 1fr); align-items: baseline; gap: 0 10px; padding: 5px 0 6px; border-top: 1px solid var(--rad-linka); }
+.rz-rad-fakta dt { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; color: var(--inkoust-3); }
+.rz-rad-fakta dd { margin: 0; }
+.rz-rad-jizdne {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 7px;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(43, 36, 32, 0.3);
+}
+.rz-rad-jizdne span { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--inkoust-3); }
+.rz-rad-jizdne b { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-size: 18px; font-weight: 700; }
+
+/* Kdo ve vysvětlivkách ukáže na druh vlaku, tomu v řádu zůstane svítit jen on */
+@media (hover: hover) {
+  .rz-rad-druh-hodina:hover { background: rgba(47, 141, 118, 0.07); }
+  .rz-rad-druh-pas:hover { background: rgba(61, 79, 138, 0.08); }
+  .rz-rad-druh-kurz:hover { background: rgba(38, 43, 90, 0.07); }
+  .rz-rad:has(.rz-rad-druh-hodina:hover, .rz-rad-druh-pas:hover, .rz-rad-druh-kurz:hover) :is(.rz-rad-b, .rz-rad-zvl) { opacity: 0.2; }
+  .rz-rad:has(.rz-rad-druh-hodina:hover) .rz-rad-b:not(.pas),
+  .rz-rad:has(.rz-rad-druh-pas:hover) .rz-rad-b.pas,
+  .rz-rad:has(.rz-rad-druh-kurz:hover) .rz-rad-zvl { opacity: 1; }
+}
+
 /* ——— Displej nad dveřmi: co bude dál ——— */
 
 .rz-displej {
@@ -901,7 +1651,6 @@
 }
 .rz-displej-text { display: grid; gap: 1px; margin: 0; min-width: 0; }
 .rz-displej-pristi { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(243, 235, 220, 0.6); }
-.rz-displej-pristi [lang="ja"] { display: inline-block; margin-right: 6px; padding: 0 5px; border: 1px solid var(--led); border-radius: 3px; font-family: var(--f-kanji); letter-spacing: 0.04em; color: var(--led); text-transform: none; }
 .rz-displej-pristi b { color: var(--led); font-weight: 600; }
 .rz-displej-souhrn {
   font-family: var(--f-display);
@@ -969,6 +1718,12 @@
   .rz-perex { font-size: 15.5px; margin-bottom: 14px; }
   .rz-pokyn { display: none; }
   .rz-dnes { margin: 10px 0 12px; font-size: 14px; }
+  .rz-jinak { font-size: 14px; margin-bottom: 10px; }
+}
+
+/* Nízké okno: úvodní karta se musí vejít i se druhou cedulkou */
+@media (max-height: 860px) and (min-width: 900px) {
+  .rz-pokyn { display: none; }
 }
 
 @media (max-width: 760px) {
@@ -992,6 +1747,53 @@
   .rz .rz-o-cas .flap-cislice { font-size: 15px; }
   .rz .rz-o-stav .flap { font-size: 14px; }
 
+  /* Cedule zvláštního vlaku: vláček pod jméno, výluka pod druh */
+  .rz-zvl-led { padding: 9px 12px 7px; font-size: 11px; }
+  .rz-zvl-led-vyluka { margin-left: 0; }
+  .rz-zvl-telo { grid-template-columns: auto minmax(0, 1fr); padding: 12px 12px 2px; }
+  .rz-zvl-znak { width: 46px; height: 46px; }
+  .rz-zvl-vlacek { grid-column: 1 / -1; max-width: 320px; margin: 2px auto 0; }
+  .rz-zvl-popis { margin: 8px 12px 0; font-size: 14px; }
+  .rz-zvl-nastup { margin: 12px 12px 0; }
+  .rz .rz-zvl-volba { flex: 1 1 100%; justify-content: center; }
+  .rz-o-poradi { font-size: 12.5px; }
+  .rz-o-bod { margin-left: 4px; }
+  .rz-o-trasa::before { left: 9.5px; top: -11px; bottom: -11px; }
+  .rz-o-trasa { gap: 6px; }
+  .rz-o.kurz .rz-o-stav { grid-template-columns: minmax(0, 1fr); }
+  .rz-o.kurz .rz-o-co { display: none; }
+
+  /* Jízdní řád: užší sloupce, menší tečky; ve vysvětlivkách kresba nad textem */
+  .rz-rad-cedule { padding: 14px 10px 12px; }
+  .rz-rad-hlavni::after { left: -9px; right: -9px; }
+  .rz-rad-srovnani { display: block; }
+  .rz-rad-srovnani > .rz-rad-druh:first-child { display: block; padding: 14px 0 16px; }
+  .rz-rad-srovnani > .rz-rad-druh + .rz-rad-druh { display: block; padding: 14px 0 16px; border-left: 0; border-top: 2px solid var(--rad-modra); }
+  .rz-rad-srovnani .rz-rad-fakta { display: block; }
+  .rz-rad-druh-pas { grid-template-columns: minmax(0, 1fr); padding: 14px 0 2px; }
+  .rz-rad-druh-pas > .rz-rad-kresba { margin-bottom: 10px; padding: 0; }
+  .rz-rad-druh-text { padding-left: 0; border-left: 0; }
+  .rz-rad-col-h { width: 62px; }
+  .rz-rad-tab .rz-rad-h { padding-right: 6px; }
+  .rz-rad-h b { font-size: 13.5px; }
+  .rz-rad-h small { font-size: 7px; letter-spacing: 0.02em; }
+  .rz-rad-tab .rz-rad-roh { padding-right: 6px; font-size: 9px; letter-spacing: 0.06em; }
+  .rz-rad-dny b { font-size: 14px; }
+  .rz-rad-znak { font-size: 9px; letter-spacing: 0.06em; }
+  .rz-rad-t { width: 11px; height: 11px; }
+  .plno > .rz-rad-t, .rz-rad-t.obs { width: 8px; height: 8px; }
+  .rz-rad-mista { gap: 2px; }
+  .rz-rad-mista i { width: 6px; height: 6px; }
+  .rz-rad-mista i.obs { border-width: 1.2px; }
+  /* Úzká buňka: kroužek se vejde do ní, ne přes sousedy */
+  .rz-rad-b > .rz-rad-krouzek { top: -2px; width: calc(100% + 10px); height: calc(100% + 4px); }
+  .rz-rad-b.kryta::after { right: 0; font-size: 13px; }
+  .rz-rad-zvl > b { font-size: 13px; }
+  .rz-rad-zvl-stitek { font-size: 7.5px; letter-spacing: 0.06em; }
+  .rz-rad-zvl-mista { grid-template-columns: repeat(2, 7px); gap: 3px; }
+  .rz-rad-zvl-mista i { width: 7px; height: 7px; }
+  .rz-rad-zvl-volno { display: none; }
+
   .rz-pokladna { padding: 20px 18px 22px; }
   .rz-dny {
     display: flex;
@@ -1010,11 +1812,13 @@
   .rz-listek-obraz { aspect-ratio: 1.9; }
   .rz-listek-telo { padding: 14px 16px 16px; }
   .rz-listek-udaje { grid-template-columns: minmax(0, 1fr); gap: 6px; }
-  .rz-listek-utrzek-znak { font-size: 16px; }
   .rz-listek-razitko { right: 12px; top: 10px; }
   .rz-listek-jmeno { flex-wrap: wrap; }
   .rz-listek-jmeno input { flex-basis: 100%; font-size: 28px; }
   .rz-listek-trasa { font-size: 22px; gap: 8px; }
+  /* Na úzké jízdence jsou jména zastávek svisle, jako na mapě linky nade dveřmi vagonu */
+  .rz-lp-nazev { writing-mode: vertical-rl; text-align: left; font-size: 11.5px; line-height: 1; overflow-wrap: normal; white-space: nowrap; }
+  .rz-lj-mesic b { width: 100%; }
   .rz-listek-hlava { flex-wrap: wrap; }
 
   .rz-displej { left: 12px; right: 12px; transform: none; border-radius: 14px; animation: none; }
@@ -1035,7 +1839,9 @@
   .rz-dolu svg,
   .rz-displej,
   .rz-listek-jmeno.chybi { animation: none !important; }
-  .rz-den, .rz-osoba-karta, .rz-pristi, .rz-den-dirka, .rz-vypravka { transition: none; }
+  .rz-den, .rz-osoba-karta, .rz-pristi, .rz-den-dirka, .rz-vypravka, .rz-pas-volba, .rz-kurz-pristi, .rz-zvl-volba { transition: none; }
+  .rz-zvl-led-druh { animation: none; }
+  .mam > .rz-rad-krouzek path { animation: none; stroke-dashoffset: 0; }
   .rz-listek.oznacena .rz-listek-dirka { animation: none; opacity: 1; }
   .rz-listek.oznacena .rz-listek-ustrizek { animation: none; }
   .rz-listek.oznacena .rz-listek-razitko { animation: none; opacity: 0.88; transform: rotate(-9deg); }

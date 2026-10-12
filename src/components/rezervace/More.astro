@@ -6,8 +6,8 @@
  * pod sluncem a měsícem se třpytí cesta.
  *
  * Na obzoru vede trať po vodě: sloupy trolejí, nízké nástupiště se
- * zábradlím, cedule stanice 胡桃 (kurumi — vlašský ořech, japonsky prostě
- * Ořech) a dvouvozový vlak. Ráno přijede, když člověk sjede k výběru,
+ * zábradlím, cedule stanice Ořech (pod ní výpravčí Kachlík)
+ * a dvouvozový vlak. Ráno přijede, když člověk sjede k výběru,
  * odjede, a v noci se vrátí s rozsvícenými okny (more.ts). Všechno je
  * jedna scéna; odraz pod hladinou je tatáž scéna přes <use>, převrácená
  * a rozmazaná vlnkami, takže vlak a jeho odraz jedou vždycky spolu.
@@ -17,6 +17,7 @@
  * široké okno.
  */
 import { vlak, delka } from "./vlak";
+import { NAPISY } from "./cedule-napisy";
 import { nahoda } from "../parta2/tvary";
 
 const L = delka(2);
@@ -29,6 +30,16 @@ const NASTUPISTE = { od: -60, do: 1720 };
 const sloupky: number[] = [];
 for (let x = NASTUPISTE.od + 6; x <= NASTUPISTE.do - 4; x += 26) sloupky.push(x);
 const lampy = [80, 660, 1240, 1690];
+
+/**
+ * Nápis na ceduli: obrys písma (cedule-napisy.ts) posazený na účaří `y`.
+ * `vyska` je výška verzálek; `x` je střed, levý nebo pravý okraj nápisu.
+ */
+const napis = (n: { sirka: number }, vyska: number, x: number, y: number, kde: "stred" | "vlevo" | "vpravo" = "stred") => {
+  const sirka = n.sirka * vyska;
+  const x0 = kde === "stred" ? x - sirka / 2 : kde === "vpravo" ? x - sirka : x;
+  return `translate(${x0.toFixed(2)} ${y}) scale(${vyska})`;
+};
 
 /* Ve vlaku sedí stíny — jako ve filmu, tiší a průsvitní */
 const mista = (i: number) => Array.from({ length: 6 }, (_, k) => (r() < 0.45 + (i + k) * 0.02 ? { kdo: "stin" as const } : null));
@@ -131,17 +142,27 @@ const vlnky: { y: number; w: number; d: string; o: number; svetla: boolean; t: n
         ))}
       </g>
 
-      {/* Cedule stanice — 駅名標. Znaky jsou tištěné, ne štětcem: cedule je z dílny dráhy */}
-      <g class="rz-cedule" transform="translate(1410 0)">
-        <rect x="10" y="-112" width="5" height="92" class="rz-cedule-noha" />
-        <rect x="135" y="-112" width="5" height="92" class="rz-cedule-noha" />
-        <rect x="0" y="-170" width="150" height="64" rx="3" class="rz-cedule-deska" />
-        <text x="75" y="-138" text-anchor="middle" class="rz-cedule-kanji" lang="ja">胡 桃</text>
-        <text x="75" y="-124" text-anchor="middle" class="rz-cedule-jmeno">OŘECH</text>
-        <rect x="0" y="-120" width="150" height="5" class="rz-cedule-pas" />
-        <text x="6" y="-109" class="rz-cedule-smer">← Praha</text>
-        <text x="144" y="-109" text-anchor="end" class="rz-cedule-smer">Dílna →</text>
-        <rect x="0" y="-170" width="150" height="64" rx="3" class="rz-cedule-svit" />
+      {/* Cedule stanice: smaltovaná deska pod stříškou. Nahoře jméno a co tu je, pod tím pruh linky
+          s ořechem uprostřed (tahle stanice) a šipkou ve směru jízdy, dole odkud a kam.
+          Nápisy jsou obrysy písma (cedule-napisy.ts), ne text — žádné písmo se kvůli nim nestahuje. */}
+      <g class="rz-cedule" transform="translate(1390 0)">
+        <rect x="14" y="-104" width="6" height="84" class="rz-cedule-noha" />
+        <rect x="170" y="-104" width="6" height="84" class="rz-cedule-noha" />
+        <path d="M8 -100 H182" class="rz-cedule-pricka" />
+        <rect x="-7" y="-196" width="204" height="8" rx="3" class="rz-cedule-striska" />
+        <rect x="0" y="-190" width="190" height="90" rx="5" class="rz-cedule-deska" />
+        <rect x="4.5" y="-185.5" width="181" height="81" rx="3" class="rz-cedule-ram" />
+        <path transform={napis(NAPISY.jmeno, 25, 95, -151)} d={NAPISY.jmeno.d} class="rz-cedule-jmeno" />
+        <path transform={napis(NAPISY.pod, 5.4, 95, -139.2)} d={NAPISY.pod.d} class="rz-cedule-pod" />
+        <rect x="0" y="-132" width="190" height="9" class="rz-cedule-pas" />
+        <rect x="85" y="-135.5" width="20" height="16" rx="2.5" class="rz-cedule-tady" />
+        <path transform="translate(89.4 -133.9) scale(0.75)" d="M7.5 0.6 C9.2 1.9 10.2 2.6 11.6 3.2 C13.6 4.1 14.6 6.4 14.4 9 C14.1 13.2 11.2 16.4 7.5 16.4 C3.8 16.4 0.9 13.2 0.6 9 C0.4 6.4 1.4 4.1 3.4 3.2 C4.8 2.6 5.8 1.9 7.5 0.6 Z" fill="#FBFAF6" />
+        <path d="M181 -127.5 L172 -131.2 V-123.8 Z" fill="#FBFAF6" />
+        <path d="M17 -115.6 L10 -112.2 L17 -108.8 Z" class="rz-cedule-sipka" />
+        <path transform={napis(NAPISY.odkud, 8.6, 21, -107.8, "vlevo")} d={NAPISY.odkud.d} class="rz-cedule-smer" />
+        <path d="M173 -115.6 L180 -112.2 L173 -108.8 Z" class="rz-cedule-sipka rz-cedule-sipka-dal" />
+        <path transform={napis(NAPISY.kam, 8.6, 169, -107.8, "vpravo")} d={NAPISY.kam.d} class="rz-cedule-smer rz-cedule-smer-dal" />
+        <rect x="0" y="-190" width="190" height="90" rx="5" class="rz-cedule-svit" />
       </g>
 
       {/* Výpravčí: Kachlík pod cedulí stanice (je to ten, kdo chce, ať vlaky jezdí načas).

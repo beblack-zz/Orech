@@ -3,7 +3,9 @@
  * Kresby pro Rezervaci — jednou jako <defs>, všude jinde jen <use>:
  * vůz vlaku po vodě, sběrač, stín cestujícího (sedí ve vlaku na pozadí,
  * jako ve filmu), tvoje postavička — na jízdence sedí ve vláčku tvoje
- * skupina — a sedačka kupé na tabuli odjezdů.
+ * skupina — a sedačka kupé na tabuli odjezdů. Zvláštní vlak na kurz
+ * (parní lokomotiva, tendr, salon) se kreslí celý ve vlak.ts, odsud bere
+ * jen přechody, stín a postavičku.
  *
  * Vůz má kabinu vlevo; druhý vůz se otočí zrcadlově. Souřadnice jsou
  * „jednotky vlaku“: vůz je 520 dlouhý, y = 0 je hladina, nahoru záporně.
@@ -36,6 +38,16 @@ const SEDADLA = 0.37;
     <linearGradient id="vl-plech-dole" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#AA4A3D" />
       <stop offset="1" stop-color="#8E3B31" />
+    </linearGradient>
+    {/* Zvláštní vlak na kurz (skládá ho zvlastniVlak ve vlak.ts): černý kotel a noční modrý salon */}
+    <linearGradient id="vl-kotel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3D3852" />
+      <stop offset="0.55" stop-color="#2A2638" />
+      <stop offset="1" stop-color="#1D1A28" />
+    </linearGradient>
+    <linearGradient id="vl-salon-plech" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A4088" />
+      <stop offset="1" stop-color="#2B2F66" />
     </linearGradient>
     <radialGradient id="vl-zare" cx="0.5" cy="0.5" r="0.5">
       <stop offset="0" stop-color="#FFF6D8" stop-opacity="0.95" />
@@ -144,4 +156,17 @@ const SEDADLA = 0.37;
   .vl-zavoj { opacity: calc(var(--vl-noc) * 0.62); }
   .vl-svit { fill: #FFDC92; opacity: var(--vl-noc); }
   .vl-svit-dole { fill: #B97A44; }
+
+  /* Zvláštní vlak: znak na usměrňovači kouře, cedule na voze, žár z topeniště a kouř */
+  .vl-emblem { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 700; font-size: 23px; fill: #2B2420; text-anchor: middle; dominant-baseline: central; }
+  .vl-cedule-zvl { font-family: var(--f-display); font-weight: 700; font-size: 11.5px; letter-spacing: 0.08em; fill: #2B2F66; text-anchor: middle; dominant-baseline: central; }
+  .vl-zar { opacity: calc(0.4 + var(--vl-noc) * 0.6); }
+  .vl-para circle { transform-box: fill-box; transform-origin: 50% 50%; animation: vl-para 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -0.5s); }
+  @keyframes vl-para {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-7px, -6px) scale(1.14); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vl-para circle { animation: none; }
+  }
 </style>

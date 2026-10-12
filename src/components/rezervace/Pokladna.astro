@@ -1,23 +1,33 @@
 ---
 /**
- * Pokladna (切符売場 kippu uriba): kolik vás pojede a který den.
+ * Pokladna: kolik vás pojede a který den.
  *
  * Dny kreslí skript (scripts/rezervace/hlavni.ts), protože záleží na
  * dnešku — každý den je lepenková jízdenka jako ze staré pokladny
- * (硬券 kōken): úterky rumělkové, pátky zlaté, s ochranným podtiskem.
- * Vybraný den průvodčí cvakne — do jízdenky se vystřihne ořech.
+ * (japonsky kōken): úterky rumělkové, pátky zlaté, s ochranným podtiskem.
+ * Vybraný den průvodčí cvakne — do jízdenky se vystřihne ořech. Den, kdy
+ * jede kurz, má jízdenku tmavou se zlatým pruhem: zvláštní vlak.
+ *
+ * Pod dny je přepážka s permanentkami (teikiken — v Japonsku se
+ * kupují přesně takhle, na měsíc, tři nebo šest): ranní a večerní spoj,
+ * na každém pár míst. Permanentka je na jeden den v týdnu, a to na ten,
+ * který je vybraný o krok výš — vybrané úterý znamená každé úterý; skript
+ * to dopisuje do nadpisu. Tatáž místa jsou vidět na tabuli v prvním
+ * a posledním řádku; kde se klikne, je jedno.
  *
  * Kroky mají čísla jako japonské stanice (OŘ 01, OŘ 02…): značka
  * linky a pořadí zastávky v rámečku její barvy.
  */
-import { rezervace } from "../../data/rezervace";
+import { rezervace, permanentka } from "../../data/rezervace";
 
 /** Postavičky do volby „kolik vás pojede“ — každá další je o kousek menší */
 const lide = Array.from({ length: rezervace.maxOsob }, (_, i) => i + 1);
 const barvy = ["#9C7860", "#D79A94", "#93B39B", "#E8B440"];
+const mistaPermanentky = Array.from({ length: permanentka.mist }, (_, i) => i);
+const cenaPermanentky = permanentka.cena.toLocaleString("cs-CZ");
 ---
 <div class="rz-pokladna papir">
-  <p class="stitek"><span lang="ja">切符売場</span> · pokladna</p>
+  <p class="stitek">pokladna</p>
   <h2 id="rz-pokladna-nadpis" class="nadpis-2">Kolik vás pojede a kdy</h2>
 
   <div class="rz-krok">
@@ -48,7 +58,31 @@ const barvy = ["#9C7860", "#D79A94", "#93B39B", "#E8B440"];
   </div>
 
   <div class="rz-krok">
-    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>02</span> Den <small>úterky a pátky na měsíc dopředu</small></h3>
+    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>02</span> Den <small>úterky a pátky na měsíc dopředu — tmavá jízdenka je kurz na celý den</small></h3>
     <div class="rz-dny" role="group" aria-label="Dny, na které se dá rezervovat"></div>
+  </div>
+
+  <div class="rz-krok rz-pas">
+    <h3 class="rz-otazka">
+      <span class="rz-pas-znak" aria-hidden="true">{permanentka.mesicu} měsíce</span> Permanentka <span class="rz-pas-den" aria-live="polite"></span>
+      <small>na {permanentka.mesicu} měsíce a na jeden den v týdnu — na ten, který máš vybraný. Pokaždé stejný spoj, první nebo poslední toho dne; na každém jsou {permanentka.mist} místa.</small>
+    </h3>
+    <div class="rz-pasy" role="group" aria-label="Permanentka — na který spoj">
+      {permanentka.spoje.map((s) => (
+        <button type="button" class="rz-pas-volba" data-pas={s.h} aria-pressed="false" disabled>
+          <span class="rz-pas-hlava">{s.nazev} spoj</span>
+          <b class="rz-pas-cas">{s.h}:00–{s.h + 1}:00</b>
+          <span class="rz-pas-mista" aria-hidden="true">
+            {mistaPermanentky.map(() => <svg class="rz-sedacka pas" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg>)}
+          </span>
+          <span class="rz-pas-volno"></span>
+          <span class="rz-pas-doba" aria-hidden="true"><b>{permanentka.mesicu}</b><span>měs.</span></span>
+        </button>
+      ))}
+    </div>
+    <p class="rz-pas-pozn">
+      {cenaPermanentky}&nbsp;Kč za člověka, jeden den v týdnu a jeden spoj. V den kurzu je výluka a nejede se.
+      <span class="rz-pas-stav" aria-live="polite"></span>
+    </p>
   </div>
 </div>

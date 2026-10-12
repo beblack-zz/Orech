@@ -1,58 +1,99 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import Postavicka from "../components/characters/Postavicka.astro";
+/**
+ * Stránka nenalezena — v novém vzhledu (obloha, hlavička, papír a patička
+ * z Party 2, styles/nenalezeno.css). Patří Střípkovi, odborníkovi na rozbité
+ * věci.
+ *
+ * Nahoře se na obloze vznáší číslo chyby z porcelánu slepeného zlatem
+ * (components/nenalezeno/Scena.astro): dvě čtyřky a mezi nimi okraj talíře,
+ * Střípkova svatozář. Chvíli po příchodu se to rozbije před očima, střepy
+ * spadnou na papír s textem, setmí se, a Střípek číslo kus po kusu slepí —
+ * s posledním kusem se rozední. Kliknutí ho rozbije znovu.
+ *
+ * Text je na papíře pod tím: co se stalo, adresa, která se nenašla, tip, kam
+ * člověk asi chtěl (scripts/nenalezeno/kam.ts), a odkazy dál. Bez skriptu
+ * zůstane číslo jako obrázek a text s odkazy.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/nenalezeno.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Scena from "../components/nenalezeno/Scena.astro";
 
 const kam = [
   { href: "/kurzy-2", label: "Kurzy a termíny" },
   { href: "/dilna", label: "Dílna" },
+  { href: "/rezervace", label: "Rezervace" },
   { href: "/obchod-2", label: "Obchod" },
   { href: "/parta-2", label: "Parta" },
   { href: "/o-nas-2", label: "O nás" },
 ];
 ---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tahle stránka se rozbila — JIRO saku</title>
+    <meta name="description" content="Stránka, kterou hledáš, tady není. Střípek ji aspoň slepí zlatem — a ukáže, kudy dál." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#4F5E9C" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <ClientRouter />
+  </head>
+  <body class="p2 nn" data-stranka="nenalezeno">
+    <a class="preskocit" href="#nn-text">Přeskočit na text a odkazy</a>
+    <Nebe />
+    <Hlavicka sber="zadny" />
 
-<Layout
-  title="Tahle stránka se rozbila — JIRO saku"
-  description="Stránka, kterou hledáš, tady není. Zkus některou z ostatních."
->
-  <section class="py-20 md:py-28 fade-up">
-    <div class="container-x">
-      <div class="max-w-[640px] mx-auto text-center">
-        <Postavicka id="stripek" size={200} class="w-[150px] sm:w-[200px] h-auto mx-auto mb-6" />
+    <main>
+      {/* Svítání: v té hodině má obloha stejné mraky jako Střípek obláček. Hodinu pak přepisuje scéna. */}
+      <section class="nn-sekce" data-hodina="5.6" aria-labelledby="nn-nadpis">
+        <div class="nn-jeviste">
+          <Scena />
 
-        <span class="mono-meta block mb-4">Chyba 404</span>
+          <div class="papir nn-papir" id="nn-text">
+            <p class="stitek">Chyba 404 · stránka nenalezena</p>
+            <h1 id="nn-nadpis" class="nadpis-2 nn-nadpis">Tahle stránka se <em>rozbila.</em></h1>
+            <p class="nn-perex">
+              Nic hrozného — u nás se rozbíjí často a skoro vždycky z toho nakonec něco je.
+              Adresa, kterou hledáš, tady ale opravdu není.
+            </p>
+            {/* Doplní skript: adresa z řádku prohlížeče a stránka, která je jí nejpodobnější */}
+            <p class="nn-adresa" hidden>Hledáno: <code></code></p>
+            <p class="nn-tip" hidden>Nehledáš náhodou <a href="/"></a>?</p>
 
-        <h1 class="hero-title text-espresso text-[38px] md:text-[50px] mb-5">
-          Tahle stránka se <span class="serif-italic-sakura">rozbila.</span>
-        </h1>
+            <p class="nn-replika">— Střípek, odborník na rozbité věci</p>
 
-        <p class="text-stone text-[17px] leading-[1.7] mb-3">
-          Nic hrozného — u nás se rozbíjí často a skoro vždycky z toho nakonec něco je.
-          Adresa, na kterou jsi klikl, ale tady opravdu není.
-        </p>
+            <nav class="nn-kam" aria-label="Kam dál">
+              {kam.map((k) => <a class="tlacitko tlacitko-obrys tlacitko-maly" href={k.href}>{k.label}</a>)}
+            </nav>
+            <a class="tlacitko nn-domu" href="/">Zpátky na úvod <span aria-hidden="true">→</span></a>
 
-        <p class="font-hand text-[24px] text-sakura mb-9">
-          — Střípek, odborník na rozbité věci
-        </p>
+            <p class="nn-pokyn">
+              Klepni do čísla a rozbij ho znovu — Střípek ho slepí.
+              <span class="nn-pocet" aria-live="polite" hidden></span>
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
 
-        <nav aria-label="Kam dál" class="flex flex-wrap justify-center gap-2.5 mb-9">
-          {kam.map((k) => (
-            <a
-              href={k.href}
-              class="inline-flex items-center bg-white border border-espresso/15 px-5 py-2.5 rounded-full text-[15px] hover:border-espresso hover:text-sakura transition-colors"
-            >
-              {k.label}
-            </a>
-          ))}
-        </nav>
+    <Paticka poznamka="Číslo z porcelánu se kreslí, rozbíjí a lepí přímo v prohlížeči — žádné obrázky, žádné nahrávky." />
 
-        <a
-          href="/"
-          class="inline-flex items-center gap-2 bg-stone text-cream px-6 py-3.5 rounded-full text-[15px] font-medium hover:bg-espresso transition-colors"
-        >
-          Zpátky na úvod <span aria-hidden="true">→</span>
-        </a>
-      </div>
-    </div>
-  </section>
-</Layout>
+    <script>
+      import "../scripts/nenalezeno/hlavni.ts";
+    </script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 ---
 /**
- * Jízdenka (乗車券) — souhrn rezervace a podpis. Nahoře na jízdence je
+ * Jízdenka — souhrn rezervace a podpis. Nahoře na jízdence je
  * obrázek jako na pamětních jízdenkách: vláček na moři, který má tolik
  * vozů, kolik hodin si člověk vybral, na cedulce každého vozu hodinu
  * a v oknech tvoje postavičky vedle stínů ostatních cestujících. Obloha
@@ -8,25 +8,37 @@
  *
  * Údaje se vyplňují samy, jméno se píše rovnou na jízdenku. Tlačítko
  * Označit a poslat: průvodčí cvakne kleštěmi (do jízdenky se vystřihne
- * ořech), dopadne razítko 予約済 a vláček odjede — pak se otevře e-mail.
+ * ořech), dopadne razítko Odesláno a vláček odjede — pak se otevře e-mail.
  * Telefon a poznámka jsou vedle, jízdenka by s nimi byla přeplněná.
+ *
+ * Jízdenka má tři podoby a skript mezi nimi přepíná třídou na .rz-listek:
+ *
+ *   (bez třídy)  hodinová jízdenka, zelený podtisk
+ *   .kurz        zvláštní jízdenka na kurz: zlatý podtisk, na obrázku
+ *                parní vlak se salonem a pod údaji mapa trasy — program
+ *                kurzu jako zastávky na lince
+ *   .pas         permanentka: modrý podtisk, trasa tam i zpět, místo
+ *                dne platnost a pod údaji všechny jízdy, na které platí
+ *                (dny kurzů jsou přeškrtnuté — výluka)
  */
 import { rezervace } from "../../data/rezervace";
 
 const cena = rezervace.cena.toLocaleString("cs-CZ");
 
-/* Ochranný podtisk (地紋 jimon) z drobných vlnek — jako na jízdenkách JR */
-const jimon = `url("data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns='http://www.w3.org/2000/svg' width='22' height='9'><path d='M0 4.5 Q5.5 0.5 11 4.5 T22 4.5' fill='none' stroke='#3E8C84' stroke-width='0.55' opacity='0.28'/></svg>`,
-)}")`;
+/* Ochranný podtisk (japonsky jimon) z drobných vlnek — jako na jízdenkách JR */
+const jimon = (barva: string) =>
+  `url("data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='22' height='9'><path d='M0 4.5 Q5.5 0.5 11 4.5 T22 4.5' fill='none' stroke='${barva}' stroke-width='0.55' opacity='0.28'/></svg>`,
+  )}")`;
+const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};--jimon-pas:${jimon("#4A5FA8")}`;
 ---
 <section class="rz-sekce rz-nastup" id="rz-jizdenka" data-hodina="17.6" aria-labelledby="rz-jizdenka-nadpis">
   <div class="rz-nastup-karta papir">
-    <p class="stitek"><span lang="ja">乗車券</span> · jízdenka</p>
+    <p class="stitek">jízdenka</p>
     <h2 id="rz-jizdenka-nadpis" class="nadpis-2"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>04</span> Napiš se na jízdenku</h2>
 
     <div class="rz-nastup-mriz">
-      <div class="rz-listek" style={`--jimon:${jimon}`}>
+      <div class="rz-listek" style={podtisky}>
         <div class="rz-listek-obraz" aria-hidden="true">
           <svg class="rz-listek-scena" viewBox="-290 -282 1100 440" preserveAspectRatio="xMidYMid meet">
             <defs>
@@ -71,30 +83,37 @@ const jimon = `url("data:image/svg+xml,${encodeURIComponent(
 
         <div class="rz-listek-telo">
           <p class="rz-listek-hlava">
-            <span><span lang="ja">乗車券</span> Jízdenka do dílny</span>
+            <span class="rz-listek-druh rz-listek-druh-text">Jízdenka do dílny</span>
             <span class="rz-listek-cislo">№ <b>—</b></span>
           </p>
           <p class="rz-listek-trasa">
-            <span class="rz-listek-stanice"><span lang="ja">胡桃</span> Ořech</span>
+            <span class="rz-listek-stanice">Ořech</span>
             <span class="rz-listek-sipka" aria-hidden="true"></span>
-            <span class="rz-listek-stanice"><span lang="ja">工房</span> Dílna</span>
+            <span class="rz-listek-stanice rz-listek-cil rz-listek-cil-text">Dílna</span>
           </p>
+          <p class="rz-listek-vlak" hidden></p>
           <dl class="rz-listek-udaje" aria-live="polite">
-            <div><dt><span lang="ja" aria-hidden="true">日付</span> Den</dt><dd class="rz-l-den">ještě nevybraný</dd></div>
-            <div><dt><span lang="ja" aria-hidden="true">時刻</span> Odjezd</dt><dd class="rz-l-hodiny">ještě nevybraný</dd></div>
-            <div><dt><span lang="ja" aria-hidden="true">人数</span> Cestující</dt><dd class="rz-l-lide">1 člověk</dd></div>
-            <div><dt><span lang="ja" aria-hidden="true">運賃</span> Jízdné</dt><dd class="rz-l-cena">{cena} Kč za člověka a hodinu</dd></div>
+            <div><dt class="rz-l-den-popis">Den</dt><dd class="rz-l-den">ještě nevybraný</dd></div>
+            <div><dt class="rz-l-hodiny-popis">Odjezd</dt><dd class="rz-l-hodiny">ještě nevybraný</dd></div>
+            <div><dt>Cestující</dt><dd class="rz-l-lide">1 člověk</dd></div>
+            <div><dt>Jízdné</dt><dd class="rz-l-cena">{cena} Kč za člověka a hodinu</dd></div>
           </dl>
+          {/* Mapa trasy zvláštního vlaku: program kurzu jako zastávky — kreslí skript */}
+          <ol class="rz-listek-program" aria-label="Trať zvláštního vlaku — program kurzu" hidden></ol>
+          {/* Jízdy permanentky: každý den, kdy platí, jako políčko pro kleště — kreslí skript */}
+          <div class="rz-listek-jizdy" hidden>
+            <p class="rz-lj-popis"></p>
+            <div class="rz-lj-mesice"></div>
+          </div>
           <label class="rz-listek-jmeno">
-            <span class="rz-listek-jmeno-popis"><span lang="ja" aria-hidden="true">氏名</span> Jméno</span>
+            <span class="rz-listek-jmeno-popis">Jméno</span>
             <input type="text" name="jmeno" maxlength="40" autocomplete="name" spellcheck="false" placeholder="Tvoje jméno" />
           </label>
           <p class="rz-listek-platnost">Platí pro uvedený den a odjezd, až ji potvrdíme.</p>
-          <span class="rz-listek-razitko" aria-hidden="true"><span lang="ja">予約済</span><small>odesláno</small></span>
+          <span class="rz-listek-razitko" aria-hidden="true"><b>Odesláno</b><small>čeká na potvrzení</small></span>
         </div>
 
         <div class="rz-listek-utrzek" aria-hidden="true">
-          <span class="rz-listek-utrzek-znak" lang="ja">改札</span>
           <span class="rz-listek-utrzek-text">kontrola</span>
           <span class="rz-listek-dirka"></span>
           <span class="rz-listek-ustrizek"></span>

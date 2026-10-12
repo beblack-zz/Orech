@@ -1,0 +1,27 @@
+---
+/*
+  Scéna stránky 404: číslo z porcelánu slepené zlatem. Dvě čtyřky a mezi nimi
+  okraj talíře — Střípkova svatozář z podoby Kami —, před ní Střípek medituje
+  na obláčku. Chvíli po příchodu se to rozbije, střepy spadnou na papír pod
+  scénou, setmí se, a Střípek číslo kus po kusu slepí, až se rozední.
+  Kresby i běh jsou ve scripts/nenalezeno (kresby.js, beh.js).
+
+  Kresba je čistý generátor bez DOM, takže první snímek se vykreslí už při
+  sestavení stránky a vloží se sem jako obyčejné SVG — plocha tak není
+  prázdná, než se načte skript, a bez skriptu zůstane hezký obrázek. Skript
+  ho pak nahradí živými vrstvami. Id ve filtrech jsou pevná (nn4-), scéna
+  smí být na stránce jen jednou.
+*/
+import { scena, celeSvg } from "../../scripts/nenalezeno/kresby.js";
+
+interface Props { class?: string; }
+const { class: cls = "" } = Astro.props;
+const prvniSnimek = celeSvg(scena, scena.klidne.t, scena.novaDynamika(), { klid: true }, { pozadi: null, trida: "nn-staticky" });
+const popis =
+  "Číslo 404 z bílého porcelánu s kobaltovou linkou, rozbité a slepené zlatem. Nula je okraj talíře a v ní na růžovém obláčku medituje Střípek, bílý střep slepený zlatem. Kliknutím se číslo rozbije a Střípek ho znovu slepí.";
+---
+<div class={`nn-scena ${cls}`} data-nenalezeno tabindex="0" role="img" aria-label={popis} set:html={prvniSnimek}></div>
+
+<script>
+  import "../../scripts/nenalezeno/beh.js";
+</script>

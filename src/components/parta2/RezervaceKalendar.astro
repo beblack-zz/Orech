@@ -96,15 +96,19 @@ const PERFORACE = Array.from({ length: 15 }, (_, i) => 18 + i * 6);
 
 <script>
   import { rezervace as R } from "../../data/rezervace";
+  import { kurzDne } from "../../scripts/rezervace/simulace";
 
-  const KDY = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
+  const KDY =["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
   const DNY_KRATCE = ["ne", "po", "út", "st", "čt", "pá", "so"];
 
-  /** Nejbližší den s otevřenou dílnou. Dnešek se počítá, dokud nezačala poslední hodina. */
+  /**
+   * Nejbližší den s otevřenou dílnou. Dnešek se počítá, dokud nezačala poslední hodina.
+   * Den, kdy jede kurz, se přeskakuje — hodinové spoje mají výluku.
+   */
   function nejblizsi(ted: Date): Date | null {
     for (let i = 0; i < 60; i++) {
       const d = new Date(ted.getFullYear(), ted.getMonth(), ted.getDate() + i);
-      if (!R.dny.includes(d.getDay())) continue;
+      if (!R.dny.includes(d.getDay()) || kurzDne(d)) continue;
       if (i === 0 && ted.getHours() >= R.do - 1) continue;
       return d;
     }
