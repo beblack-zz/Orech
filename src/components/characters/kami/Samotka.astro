@@ -5,20 +5,41 @@ import { uid } from "../dospele/uid";
 interface Props { class?: string; size?: number; }
 const { class: cls = "", size = 64 } = Astro.props;
 const u = uid();
+
+/*
+ * Zrno šamotu jako na podobě Kami (scripts/samotka-nese): rezavé, hnědé
+ * a šedé tečky, kolem tvářičky řidší. Rozsypané pravidelně-nepravidelně
+ * (posloupnost se zlatým řezem), takže vyjdou pokaždé stejně.
+ */
+const BARVY = ["#A0805E", "#8A6A52", "#B5764E", "#7E7468", "#C9A27E"];
+const ZRNO = Array.from({ length: 40 }, (_, i) => {
+  const x = 27 + ((i * 0.618034 + 0.31) % 1) * 126;
+  const y = 85 + ((i * 0.754878 + 0.17) % 1) * 34;
+  return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, r: 0.45 + ((i * 7) % 5) * 0.12, barva: BARVY[i % 5], op: 0.4 + ((i * 3) % 4) * 0.1 };
+}).filter((z, i) => !(z.x > 68 && z.x < 112 && z.y > 86 && z.y < 110 && i % 6));
 ---
 {/*
   TSUKUMOGAMI — police z pece. Pořád leží a nestěžuje si, jen teď nese
   na zádech cizí misku (tenmoku s tekoucí glazurou) a ze žáru pod ní
   stoupají jiskry. Oči zavřené: klid je její charakter.
+  Jako na podobě Kami má v těle vidět zrno — každé zrnko šamotu kdysi
+  bývalo hrnkem — a nahoře tenký bílý nátěr, který ji chrání před
+  stékající glazurou.
   Zvětšení na šířku je stejné jako u hravé verze, viz ../Samotka.astro.
 */}
 <svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
   <defs>
     <Kresba id={u} posun={2} />
-    <linearGradient id={`${u}-deska`} x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F0E4CE" />
-      <stop offset="1" stop-color="#DDCBAE" />
+    <linearGradient id={`${u}-deska`} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F5EBD6" />
+      <stop offset="0.55" stop-color="#E6D5B8" />
+      <stop offset="1" stop-color="#D0BC9A" />
     </linearGradient>
+    <linearGradient id={`${u}-spodek`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C9B79C" />
+      <stop offset="1" stop-color="#B3A083" />
+    </linearGradient>
+    <clipPath id={`${u}-orez`}><path d="M29 82 H151 A5 5 0 0 1 156 87 V118 A4 4 0 0 1 152 122 H28 A4 4 0 0 1 24 118 V87 A5 5 0 0 1 29 82 Z" /></clipPath>
   </defs>
   <g transform="translate(90 102) scale(1.34) translate(-90 -102)">
     <ellipse cx="90" cy="150" rx="54" ry="6" fill="#3A2E28" opacity="0.14" />
@@ -39,14 +60,20 @@ const u = uid();
       <path d="M50 70 L74 70" stroke="#5A4535" stroke-width="1" stroke-linecap="round" />
 
       <rect x="24" y="82" width="132" height="34" rx="5" fill={`url(#${u}-deska)`} stroke="#6B5D4F" stroke-width="1.6" />
-      <rect x="24" y="110" width="132" height="12" rx="4" fill="#C3B197" />
-      <ellipse cx="50" cy="94" rx="13" ry="6" fill="#6B5D4F" opacity="0.22" />
-      <ellipse cx="134" cy="100" rx="10" ry="5" fill="#6B5D4F" opacity="0.18" />
+      <rect x="24" y="110" width="132" height="12" rx="4" fill={`url(#${u}-spodek)`} />
+      <g clip-path={`url(#${u}-orez)`}>
+        {ZRNO.map((z) => <circle cx={z.x} cy={z.y} r={z.r} fill={z.barva} opacity={z.op} />)}
+        <ellipse cx="50" cy="94" rx="13" ry="6" fill="#6B5D4F" opacity="0.2" />
+        <ellipse cx="134" cy="100" rx="10" ry="5" fill="#6B5D4F" opacity="0.16" />
+        <path d="M27 83.4 H153" stroke="#FBF7EE" stroke-width="2.2" stroke-linecap="round" opacity="0.7" />
+        <path d="M30 85.4 H150" stroke="#FBF7EE" stroke-width="0.6" opacity="0.4" stroke-dasharray="7 3 2 4" />
+      </g>
+      <path d="M26 110.6 H154" stroke="#6B5D4F" stroke-width="0.6" opacity="0.35" />
     </g>
     <g class="tvar">
-      <g filter={`url(#${u}-mlha)`} fill="#C87E4E" opacity="0.35">
-        <ellipse cx="72" cy="101" rx="5" ry="3" />
-        <ellipse cx="108" cy="101" rx="5" ry="3" />
+      <g filter={`url(#${u}-mlha)`} fill="#E9846A" opacity="0.35">
+        <ellipse cx="71.5" cy="101.4" rx="5.4" ry="3.2" />
+        <ellipse cx="108.5" cy="101.4" rx="5.4" ry="3.2" />
       </g>
       <path d="M76 94 Q80 89 84 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none" />
       <path d="M96 94 Q100 89 104 94" stroke="#3A2E28" stroke-width="2.5" stroke-linecap="round" fill="none" />

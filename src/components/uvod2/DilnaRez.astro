@@ -14,8 +14,7 @@
  *               Měsíce přepíná scripts/uvod2/rok.ts.
  *   dilna     — dílna jako v prohlídce, k tomu kbelíky s glazurou pod
  *               nástěnkou, místo pro kus, který si člověk udělal na
- *               stránce Dílna (dopisuje scripts/dilna/uvod.ts), a zkouška
- *               glazury schovaná na parapetu výlohy. Klikací místa jsou
+ *               stránce Dílna (dopisuje scripts/dilna/uvod.ts). Klikací místa jsou
  *               jiná — vedou k tomu, co se v dílně dělá.
  *
  * Souřadnice jsou ve viewBoxu 1600 × 1000 a HTML vrstvy nad kresbou
@@ -30,7 +29,6 @@ import { kurzy } from "../../data/kurzy";
 import { denOtevrenychDveri } from "../../data/uvod2";
 import type { PostavaId } from "../../data/parta";
 import { syrova } from "../../data/dilna";
-import Zkouska from "../dilna/Zkouska.astro";
 
 interface Props {
   rezim: "prohlidka" | "rok" | "dilna";
@@ -722,7 +720,6 @@ const denNazev = [denSlova.slice(0, -1).join(" "), denSlova[denSlova.length - 1]
       <button type="button" class="rez-misto" data-akce="kbeliky" data-cinnost="glazovat" style={misto(1188, 736, 1290, 804)} aria-label="Zamíchat glazuru v kbelících"></button>
       <button type="button" class="rez-misto" data-akce="pec" data-cinnost="pec" style={misto(950, 672, 1084, 862)} aria-label="Nakouknout do pece"></button>
       <button type="button" class="rez-misto" data-akce="kafe" data-cinnost="kafe" style={misto(1292, 640, 1334, 694)} aria-label="Postavit na kafe"></button>
-      <Zkouska id="celadon" class="rez-zkouska" style={misto(557, 716, 579, 752)} />
     </div>
   )}
 

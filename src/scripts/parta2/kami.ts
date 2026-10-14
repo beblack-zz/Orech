@@ -8,6 +8,7 @@ import { parta } from "../../data/parta";
 import type { PostavaId } from "../../data/parta";
 import { omez } from "./stav";
 import * as zvuk from "./zvuk";
+import { pozdravMistra } from "./mistr";
 
 const jmena = Object.fromEntries(parta.map((p) => [p.id, p.name])) as Record<PostavaId, string>;
 export const jmeno = (id: PostavaId) => jmena[id] ?? id;
@@ -64,15 +65,17 @@ export function initKami() {
     const id = k.dataset.kami as PostavaId;
     const info = kamiInfo[id];
     if (!info) return;
+    /* Mistra (/zkouska) kami poprvé za návštěvu pozdraví — replika se tím nespotřebuje */
+    const pozdrav = pozdravMistra(id);
     const i = poradi[id] ?? 0;
-    poradi[id] = (i + 1) % info.repliky.length;
+    if (!pozdrav) poradi[id] = (i + 1) % info.repliky.length;
 
     k.classList.remove("reaguje");
     void k.offsetWidth;
     k.classList.add("reaguje");
     window.setTimeout(() => k.classList.remove("reaguje"), 1000);
 
-    rekni(k, id, info.repliky[i]);
+    rekni(k, id, pozdrav ?? info.repliky[i]);
     zvuk.reakce(id);
     document.dispatchEvent(new CustomEvent("kami:klik", { detail: { id, el: k } }));
   });

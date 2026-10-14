@@ -1,31 +1,78 @@
 ---
 /**
  * Omamori — amulet, do kterého se ukládají nalezení kami. Kdo ještě
- * nenalezený je, svítí jen jako stín a má pod sebou nápovědu.
+ * nenalezený je, je v černém omamori jen stín (Střípek a Bublinka bílý) a má pod sebou nápovědu. Kami stojí ve
+ * třech řadách podle toho, jak těžké je je najít, a na konci každé řady je
+ * komnata, která se otevře za další tři nálezy. Je pod hlavičkou na každé
+ * stránce (Hlavicka.astro) a otevírá se břevnem závěsu (scripts/parta2/
+ * zaves.ts hledá data-zaves-dialog, obsluha je v omamori.ts).
  */
 import Postavicka from "../characters/Postavicka.astro";
 import { parta } from "../../data/parta";
-import { kamiInfo } from "../../data/kami";
+import type { PostavaId } from "../../data/parta";
+import { kamiInfo, komnaty } from "../../data/kami";
+
+/** Pořadí v omamori — řadu určuje náročnost (data/kami.ts), tohle jen pořadí v ní */
+const PORADI: PostavaId[] = ["pecinka", "kapka", "vazicka", "hlinka", "samotka", "kachlik", "stripek", "bublinka", "cedulka"];
+const poradi = (id: PostavaId) => PORADI.indexOf(id);
+
+const rady = [
+  { nazev: "Snadní", popis: "Najdeš je skoro hned." },
+  { nazev: "Schovanější", popis: "Chce to bystré oko." },
+  { nazev: "Výzva", popis: "Tihle se schovávat opravdu umějí." },
+].map((r, i) => ({
+  ...r,
+  kami: parta.filter((p) => kamiInfo[p.id].narocnost === i + 1).sort((a, b) => poradi(a.id) - poradi(b.id)),
+  komnata: komnaty[i],
+}));
 ---
-<dialog class="omamori-dialog" aria-labelledby="omamori-nadpis">
+<dialog class="omamori-dialog" data-zaves-dialog aria-labelledby="omamori-nadpis">
   <div class="omamori-obsah">
     <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
     <p class="stitek"><span lang="ja">お守り</span> · omamori</p>
     <h2 id="omamori-nadpis" class="nadpis-2">Schovaní kami</h2>
+    {/* Páska mistra — jen pro toho, kdo převzal mistrovský list (scripts/parta2/mistr.ts) */}
+    <a class="omamori-mistr" href="/zkouska#sin">
+      <span class="omamori-mistr-pecet" lang="ja" aria-hidden="true">名人</span>
+      <span class="omamori-mistr-text">Mistr z Ořechu</span>
+      <span class="omamori-mistr-odkaz">mistrovský list →</span>
+    </a>
     <p class="omamori-perex">
-      Devět kami se schovává po stránce — malí, napůl za něčím. Koho najdeš,
-      ten se uloží sem a zůstane tu, i když stránku zavřeš.
+      Devět kami se schovává po celém webu jako malé stíny, napůl za něčím.
+      Hledej černé siluety (a možná taky ne). Za každé tři nalezené se otevře
+      jedna komnata a kdo najde všech devět, dostane poklad. Nálezy se
+      ukládají sem a zůstanou tu, i když web zavřeš.
     </p>
-    <ul class="omamori-seznam">
-      {parta.map((p) => (
-        <li class="omamori-polozka" data-omamori={p.id}>
-          <span class="omamori-obr"><Postavicka id={p.id} size={72} varianta="kami" /></span>
-          <span class="omamori-jmeno">{p.name}</span>
-          <span class="omamori-napoveda">{kamiInfo[p.id].skrys}</span>
-          <span class="omamori-nalezen">nalezeno</span>
+    <ol class="omamori-rady">
+      {rady.map((r) => (
+        <li class="omamori-rada">
+          <p class="omamori-rada-hlava">
+            <b class="omamori-rada-nazev">{r.nazev}</b>
+            <span class="omamori-rada-popis">{r.popis}</span>
+          </p>
+          <div class="omamori-rada-telo">
+            <ul class="omamori-seznam">
+              {r.kami.map((p) => (
+                <li class="omamori-polozka" data-omamori={p.id}>
+                  <span class="omamori-obr"><Postavicka id={p.id} size={72} varianta="kami" /></span>
+                  <span class="omamori-jmeno">{p.name}</span>
+                  <span class="omamori-napoveda">{kamiInfo[p.id].skrys}</span>
+                  <span class="omamori-nalezen">nalezeno</span>
+                </li>
+              ))}
+            </ul>
+            {/* komnata, která už stojí, je odkaz — href dostane, až se otevře (omamori.ts) */}
+            <a class={`omamori-komnata${r.komnata.prah === 9 ? " omamori-poklad" : ""}`} data-prah={r.komnata.prah} data-kam={r.komnata.kam}>
+              <span class="omamori-listek" lang="ja" aria-hidden="true">{r.komnata.cislo}</span>
+              <span class="omamori-komnata-prah">{r.komnata.prah === 9 ? "za všech 9" : `za ${r.komnata.prah} kami`}</span>
+              <b class="omamori-komnata-nazev">{r.komnata.nazev}</b>
+              <span class="omamori-komnata-popis">{r.komnata.popis}</span>
+              <span class="omamori-komnata-stav">chybí {r.komnata.prah}</span>
+            </a>
+          </div>
         </li>
       ))}
-    </ul>
+    </ol>
     <div class="omamori-pata">
       <p class="omamori-stav">Nalezeno <b>0</b> z 9.</p>
       <button type="button" class="tlacitko tlacitko-obrys omamori-reset">Schovat je znovu</button>

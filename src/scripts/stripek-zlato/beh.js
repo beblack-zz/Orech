@@ -404,7 +404,9 @@ const scena = (el, V) => {
 const bezici = [];
 /* zvuk webu se rozezní prvním gestem kdekoli — Střípek se odemkne s ním */
 for (const g of ["pointerup", "keydown", "touchend"]) document.addEventListener(g, () => document.querySelector("[data-stripek-zlato]") && Zvuk.odemkni(), true);
-const spustVse = () => {
+/* tušový flek (scripts/flek/flek.ts) staví scénu až po kliknutí — spouští ji a odemyká jí zvuk sám */
+export const odemkni = () => Zvuk.odemkni();
+export const spustVse = () => {
   for (const el of document.querySelectorAll("[data-stripek-zlato]")) {
     if (el.dataset.bezi) continue;
     const V = kresby[el.dataset.stripekZlato];

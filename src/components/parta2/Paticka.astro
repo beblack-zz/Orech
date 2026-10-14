@@ -5,23 +5,37 @@
  * každé kopnutí odkryje starší vrstvu s nálezem, od ořechu, který tu loni
  * zahrabala veverka, až po trilobita (data/paticka.ts, kresby podzemi.ts).
  *
+ * Za kamenem s trilobitem se schovává černá Hlínka a vykukuje zpoza jeho
+ * horní hrany — patří do hry na hledání kami (scripts/parta2/sber.ts),
+ * a protože je patička všude, dá se najít na kterékoli stránce.
+ *
  * Bez skriptu zůstane jen kontakt — tlačítko Kopej se ukáže až s ním.
  * Poznámku dole si stránka může poslat vlastní.
+ *
+ * S patičkou jde na každou stránku i tušový flek (components/flek): kaňka
+ * leží vedle patičky, ne v ní, protože se pozicuje vůči celé stránce.
+ * `flekMimo` jsou místa stránky, kam flek nesmí (k těm, kterým se vyhýbá
+ * sám); spouští ho hlavička (scripts/parta2/hlavicka.ts).
  */
 import Enso from "../navrhy-loga/Enso.astro";
 import ZnackaStetec from "../znacka/ZnackaStetec.astro";
 import { kontakt, mapa } from "../../data/uvod2";
 import { oteviraciDoba, vrstvy } from "../../data/paticka";
-import { koreny, puda, vrstva, nalez, lopatka } from "./podzemi";
+import { koreny, puda, vrstva, nalez, lopatka, SCHOVANA } from "./podzemi";
+import Hlinka from "../characters/schovka/Hlinka.astro";
+import Flek from "../flek/Flek.astro";
 
 interface Props {
   poznamka?: string;
+  flekMimo?: string;
 }
 const {
+  flekMimo = "",
   poznamka = "Parta 2 je návrh nového vzhledu webu. Obloha, krajina i zvuky se kreslí a skládají přímo v prohlížeči — žádné fotky, žádné nahrávky.",
 } = Astro.props;
 const rok = new Date().getFullYear();
 ---
+<Flek mimo={flekMimo} />
 <footer class="pata">
   <div class="pata-hlina">
     <div class="pata-pozadi" aria-hidden="true">
@@ -68,7 +82,22 @@ const rok = new Date().getFullYear();
           <div class="vrstva-obal">
             <div class="vrstva-plocha">
               <div class="vrstva-pozadi" set:html={vrstva(i)} />
-              <div class="vrstva-nalez" set:html={nalez(v.id)} />
+              <div class="vrstva-nalez">
+                <div class="vrstva-nalez-obal">
+                  <Fragment set:html={nalez(v.id)} />
+                  {v.id === SCHOVANA.vrstva && (
+                    <button
+                      type="button"
+                      class="skryty pata-hlinka"
+                      data-skryty="hlinka"
+                      aria-label="Někdo se tu schovává"
+                      style={`left:${SCHOVANA.x}%;top:${SCHOVANA.y}%;width:${SCHOVANA.w}%;--u:${SCHOVANA.u}deg`}
+                    >
+                      <Hlinka barva="cerna" poza="vykukuje" size={48} />
+                    </button>
+                  )}
+                </div>
+              </div>
               <div class="vrstva-text">
                 <p class="vrstva-hloubka">{v.hloubka} · {v.doba}</p>
                 <h3>{v.nazev}</h3>

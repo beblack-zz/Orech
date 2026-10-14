@@ -6,29 +6,38 @@
  * svislý nápis 胡桃行き („směr Ořech“) — jediné japonské znaky na stránce.
  *
  * V kartě visí malá klapková cedulka s příštím volným odjezdem. Je to
- * tlačítko: vybere ten den a hodinu a sjede k tabuli. Datum dopisuje
+ * tlačítko: vybere ten den a odjezd a sjede k tabuli. Datum dopisuje
  * skript (stránka je statická, datum z buildu by zestárlo); bez skriptu
  * je cedulka schovaná a zůstane obecná věta o otevírací době.
  *
- * Pod ní je věta o kurzech a permanentce a druhá, menší cedulka: příští
+ * Pod ní je věta o kurzech (jezdí v sobotu) a permanentce a druhá, menší cedulka: příští
  * zvláštní vlak (kurz), na který je ještě místo. Otevře jeho den a sjede
  * k tabuli — nastoupit už člověk musí sám.
+ *
+ * Druhé tlačítko vede k dárkovým jízdenkám za soumraku (Darky.astro).
+ *
+ * Nad poslední klapkou cedulky vykukuje černý Kachlík — hra na
+ * hledání kami (schovej v scripts/parta2/sber.ts). Klik na něj cedulku
+ * nespustí.
  */
 import Flap from "../uvod2/Flap.astro";
-import { rezervace, permanentka } from "../../data/rezervace";
+import Kachlik from "../characters/schovka/Kachlik.astro";
+import { rezervace, permanentka, cenaOdjezdu } from "../../data/rezervace";
 
-const cena = rezervace.cena.toLocaleString("cs-CZ");
+const cena = cenaOdjezdu.toLocaleString("cs-CZ");
+/** Kdy jezdí zvláštní vlak — začátek věty o kurzech */
+const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve čtvrtek", "V pátek", "V sobotu"][rezervace.denKurzu];
 ---
 <section class="rz-nadrazi" id="rz-nadrazi" data-hodina="6.6" aria-labelledby="rz-nadpis">
   <p class="rz-tategaki" lang="ja" aria-hidden="true">胡桃行き</p>
 
   <div class="rz-nadrazi-karta papir">
     <p class="stitek">jízdenka do dílny</p>
-    <h1 id="rz-nadpis" class="rz-nadpis">Vyber si hodinu. <em>Nastup.</em></h1>
+    <h1 id="rz-nadpis" class="rz-nadpis">Vyber si odjezd. <em>Nastup.</em></h1>
     <p class="rz-perex">
-      Hodina v dílně se tu kupuje jako jízdenka na vlak: vybereš den a odjezd — a celá hodina je vaše,
-      ať jedeš sám, nebo až ve čtyřech. Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin,
-      {cena}&nbsp;Kč za člověka a hodinu. Jízdenka odejde mailem a platí, až ji potvrdíme.
+      Čas v dílně se tu kupuje jako jízdenka na vlak: vybereš den a odjezd — hodinu a půl, která je celá vaše,
+      ať jedeš sám, nebo až ve čtyřech. Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin, {cena}&nbsp;Kč
+      za člověka a odjezd. Jízdenka odejde mailem a platí, až ji potvrdíme.
     </p>
 
     <button type="button" class="rz-pristi" data-rz-nejblizsi hidden>
@@ -37,7 +46,7 @@ const cena = rezervace.cena.toLocaleString("cs-CZ");
         <Flap text="—" class="rz-pristi-den" />
         <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i><Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i>
         <b class="rz-pristi-mezera"></b>
-        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>:</i><Flap druh="cislice" text="0" /><Flap druh="cislice" text="0" />
+        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>:</i><Flap druh="cislice" text="0" /><span class="rz-kachlik-misto"><Flap druh="cislice" text="0" /><span class="rz-kachlik" data-skryty="kachlik"><Kachlik barva="cerna" poza="vykukuje" size={32} /></span></span>
       </span>
       <span class="rz-pristi-akce">Nastoupit <span aria-hidden="true">→</span></span>
       <span class="sr-only rz-pristi-popis"></span>
@@ -45,7 +54,7 @@ const cena = rezervace.cena.toLocaleString("cs-CZ");
 
     <p class="rz-dnes" aria-live="polite">Otevřeno je každé úterý a pátek, {rezervace.od}–{rezervace.do} hodin.</p>
     <p class="rz-jinak">
-      Občas místo hodinových spojů vyjede <b>zvláštní vlak</b> — kurz na celý den, kde se místa plní po jednom.
+      {V_DEN_KURZU} jezdí <b>zvláštní vlak</b> — kurz na celý den, kde se místa plní po jednom.
       A kdo jezdí pravidelně, vezme si <b>permanentku</b> na {permanentka.mesicu} měsíce: jeden den v týdnu, první nebo poslední spoj.
     </p>
     <button type="button" class="rz-kurz-pristi" data-rz-kurz-pristi hidden>
@@ -55,9 +64,10 @@ const cena = rezervace.cena.toLocaleString("cs-CZ");
     </button>
     <div class="rz-cta">
       <a class="tlacitko" href="#rz-pokladna">Vybrat odjezd</a>
+      <a class="tlacitko tlacitko-obrys" href="#rz-darky">Darovat jízdenku</a>
     </div>
     <p class="rz-pokyn">
-      V japonštině je úterý den ohně a pátek den zlata.
+      V japonštině je úterý den ohně, pátek den zlata a sobota den země — tedy i hlíny.
       Svislý nápis vpravo říká „směr Ořech“ — kurumi je japonsky ořech.
     </p>
   </div>

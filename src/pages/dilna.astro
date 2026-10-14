@@ -17,7 +17,6 @@
  *
  * Co si člověk vyrobí, je „tvůj kus“ (components/dilna/kus.ts): jde s ním
  * po stránce dál — glazuje se, pálí, stojí na polici v dílně i v noci.
- * Po stránce je schovaných šest zkoušek glazur (sbírka v hlavičce).
  *
  * Kdy a za kolik je z data/rezervace.ts, zbytek z data/dilna.ts.
  */
@@ -45,7 +44,6 @@ import Cesta from "../components/dilna/Cesta.astro";
 import Cena from "../components/dilna/Cena.astro";
 import Otazky from "../components/dilna/Otazky.astro";
 import Noc from "../components/dilna/Noc.astro";
-import ZkouskyDialog from "../components/dilna/ZkouskyDialog.astro";
 
 import { cinnosti, kdy } from "../data/dilna";
 import { sezonaMesice } from "../data/uvod2";
@@ -83,7 +81,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
   <body class="p2 d2" data-stranka="dilna">
     <a class="preskocit" href="#placat">Přeskočit na to, co se v dílně dělá</a>
     <Nebe />
-    <Hlavicka sber="zkousky" />
+    <Hlavicka sber="zadny" />
 
     <main>
       <Uvod sezona={sezona} />
@@ -98,7 +96,6 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     </main>
 
     <Paticka poznamka="Dílna je návrh v novém vzhledu webu. Dílna v řezu, stůl, kruh i pec se kreslí přímo v prohlížeči — skutečné jsou jen fotky lektorů." />
-    <ZkouskyDialog />
     <div class="oznameni" role="status" aria-live="polite"></div>
 
     <script>

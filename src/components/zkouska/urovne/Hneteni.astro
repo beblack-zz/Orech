@@ -1,0 +1,31 @@
+---
+/**
+ * Úroveň 二 Kiku-neri — hnětení do rytmu jako taiko. Nahoře dráha s notami
+ * (tlač, otoč, válec), pod ní hnětací stůl s velkou hroudou, na které
+ * roste květ záhybů, a v důlku v hroudě Bublinka. Dole dvě plochy na hraní.
+ *
+ * Kresba je čistý generátor v hneteni-kresba.ts (testuje se bez Astra),
+ * tady se jen skládá a vkládá skutečná kresba postavičky. Logika:
+ * scripts/zkouska/urovne/hneteni.ts, píseň: hneteni-noty.ts tamtéž.
+ */
+import "../../../styles/zkouska-urovne/hneteni.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { POPIS, bublinkaPred, bublinkaStyl, bublinkaZa, draha, kresba, ovladani } from "./hneteni-kresba";
+---
+<div class="mu-scena mu-hneteni" data-uroven-scena="hneteni" hidden>
+  <div class="mu-okno" role="img" aria-label={POPIS}>
+    <Fragment set:html={kresba()} />
+    <Fragment set:html={draha()} />
+    <div class="mn2-bublinka" style={bublinkaStyl.obal}>
+      <Fragment set:html={bublinkaZa()} />
+      <div class="mn2-bublinka-okenko">
+        <div class="mn2-bublinka-telo" style={bublinkaStyl.telo}>
+          <Postavicka id="bublinka" size={120} varianta="kami" />
+        </div>
+      </div>
+      <Fragment set:html={bublinkaPred()} />
+    </div>
+    <span class="mn2-kotva" aria-hidden="true"></span>
+  </div>
+  <Fragment set:html={ovladani()} />
+</div>

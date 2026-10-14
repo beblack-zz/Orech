@@ -1,0 +1,21 @@
+---
+/**
+ * Úroveň 八 Oheň — Pálicí křivka. Hlídá ji Pecinka, která sedí na
+ * elektrické peci. Celá kresba (dílna od rána do rána, pec s lupou
+ * špehýrky, okno, zapisovač s křivkou) je v ./ohen-kresba.ts; tady se
+ * jen skládá dohromady s Pecinkou. Dvířka pece jsou HTML vrstva nad
+ * kresbou, aby se dala otevřít ve 3D. Hraje scripts/zkouska/urovne/ohen.ts.
+ */
+import "../../../styles/zkouska-urovne/ohen.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { kresba, dvirka, nad, ovladani, pecinkaStyl } from "./ohen-kresba";
+---
+<div class="mu-scena mu-ohen" data-uroven-scena="ohen" hidden>
+  <div class="mu-okno mu-ohen-okno" role="img" aria-label="Elektrická pec s Pecinkou, lupa se žároměrkami a zapisovač pálicí křivky">
+    <Fragment set:html={kresba()} />
+    <Fragment set:html={dvirka()} />
+    <div class="mu-ohen-pecinka" style={pecinkaStyl()}><Postavicka id="pecinka" size={122} varianta="kami" /></div>
+    <Fragment set:html={nad()} />
+  </div>
+  <Fragment set:html={ovladani()} />
+</div>

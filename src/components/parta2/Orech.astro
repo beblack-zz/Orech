@@ -12,8 +12,12 @@
 import { chomac, nahoda } from "./tvary";
 import Shide from "../characters/kami/Shide.astro";
 
-interface Props { class?: string; }
-const { class: cls = "" } = Astro.props;
+interface Props {
+  class?: string;
+  /** Předpona id přechodů — víc ořechů na jedné stránce (Domek 2: krajina a Kudy k nám) */
+  id?: string;
+}
+const { class: cls = "", id = "orech" } = Astro.props;
 
 type Chomac = [number, number, number, number, number];
 
@@ -84,26 +88,26 @@ const vetve: [string, number][] = [
 
   <svg class="orech-vrstva orech-kmen" viewBox="0 0 1000 1100" aria-hidden="true">
     <defs>
-      <linearGradient id="orech-kura" x1="330" y1="0" x2="676" y2="0" gradientUnits="userSpaceOnUse">
+      <linearGradient id={`${id}-kura`} x1="330" y1="0" x2="676" y2="0" gradientUnits="userSpaceOnUse">
         <stop offset="0" stop-color="#4E4238" />
         <stop offset="0.28" stop-color="#8F7F6F" />
         <stop offset="0.5" stop-color="#7A6A5B" />
         <stop offset="0.78" stop-color="#5A4C41" />
         <stop offset="1" stop-color="#40352D" />
       </linearGradient>
-      <radialGradient id="orech-stin" cx="0.5" cy="0.5" r="0.5">
+      <radialGradient id={`${id}-stin`} cx="0.5" cy="0.5" r="0.5">
         <stop offset="0" stop-color="#22301C" stop-opacity="0.55" />
         <stop offset="1" stop-color="#22301C" stop-opacity="0" />
       </radialGradient>
     </defs>
 
-    <ellipse cx="500" cy="1092" rx="360" ry="34" fill="url(#orech-stin)" />
+    <ellipse cx="500" cy="1092" rx="360" ry="34" fill={`url(#${id}-stin)`} />
 
     {vetve.map(([d, w]) => <path d={d} stroke="#43382F" stroke-width={w + 7} stroke-linecap="round" fill="none" />)}
     {vetve.map(([d, w]) => <path d={d} stroke="#7A6A5B" stroke-width={w} stroke-linecap="round" fill="none" />)}
     {vetve.map(([d, w]) => <path d={d} stroke="#9C8C7A" stroke-width={Math.max(2, w * 0.22)} stroke-linecap="round" fill="none" opacity="0.55" transform="translate(-4 -2)" />)}
 
-    <path d={kmen} fill="url(#orech-kura)" />
+    <path d={kmen} fill={`url(#${id}-kura)`} />
     {/* Kořeny, které se zakusují do louky */}
     <path d="M332 1100 C300 1092 270 1094 236 1100 Z" fill="#4E4238" />
     <path d="M676 1100 C716 1090 748 1092 790 1100 Z" fill="#40352D" />

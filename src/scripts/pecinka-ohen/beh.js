@@ -369,7 +369,9 @@ const scena = (el, V) => {
 const bezici = [];
 /* zvuk webu se rozezní prvním gestem kdekoli — oheň se odemkne s ním */
 for (const g of ["pointerup", "keydown", "touchend"]) document.addEventListener(g, () => document.querySelector("[data-pecinka-ohen]") && Zvuk.odemkni(), true);
-const spustVse = () => {
+/* tušový flek (scripts/flek/flek.ts) staví scénu až po kliknutí — spouští ji a odemyká jí zvuk sám */
+export const odemkni = () => Zvuk.odemkni();
+export const spustVse = () => {
   for (const el of document.querySelectorAll("[data-pecinka-ohen]")) {
     if (el.dataset.bezi) continue;
     const V = kresby[el.dataset.pecinkaOhen];

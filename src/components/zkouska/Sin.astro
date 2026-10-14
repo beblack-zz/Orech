@@ -1,0 +1,157 @@
+---
+/**
+ * Síň mistra (名人の間) — konec cesty a cíl desky (上がり). Ve výklenku
+ * tokonoma visí svitek: dokud v sešitě chybí razítka, je zavřený v krabici
+ * z paulovnie; kdo má všech devět, napíše na list jméno, vybere si, jak ho
+ * má parta oslovovat, a svitek se rozvine — mistrovský list 免許皆伝.
+ *
+ * List je HTML (tiskne se z něj), obrázek ke stažení kreslí scripts/zkouska/
+ * list-obrazek.ts na plátno podle stejných dat. Obsluha: scripts/zkouska/sin.ts.
+ * Po převzetí listu oslovuje parta mistra po celém webu (scripts/parta2/mistr.ts).
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import { urovne, list, osloveni } from "../../data/mistr";
+import { parta } from "../../data/parta";
+
+/** Pečeť dílny: 胡桃工房, ořechová dílna — čte se zprava shora, jako na skutečné pečeti */
+const pecetDilny = [
+  { z: "胡", x: 72, y: 45 },
+  { z: "桃", x: 72, y: 87 },
+  { z: "工", x: 28, y: 45 },
+  { z: "房", x: 28, y: 87 },
+];
+---
+<section class="msn" id="sin" data-hodina="21.6" aria-labelledby="msn-nadpis">
+  <div class="msn-mriz">
+    <div class="msn-karta papir">
+      <p class="stitek"><span lang="ja">名人の間</span> · síň mistra</p>
+      <h2 id="msn-nadpis" class="nadpis-2">Síň mistra</h2>
+
+      <div class="msn-stav msn-zamceno">
+        <p class="msn-perex">
+          Na konci cesty visí ve výklenku svitek, zavřený v krabici. Rozvine se
+          tomu, kdo má v sešitě všech devět razítek.
+        </p>
+        <p class="msn-chybi">Chybí ještě <b>9</b>.</p>
+        <a class="tlacitko tlacitko-obrys" href="#deska">Zpátky na desku</a>
+      </div>
+
+      <form class="msn-stav msn-obrad" hidden>
+        <p class="msn-perex">
+          Devět razítek, devět kami. Parta ti předá mistrovský list — napiš na
+          něj jméno a vyber, jak tě má parta oslovovat. Pak už tě tak bude
+          zdravit všude na webu.
+        </p>
+        <label class="msn-pole">
+          <span>Jméno na list</span>
+          <input type="text" name="jmeno" maxlength="40" autocomplete="name" spellcheck="false" placeholder="Tvoje jméno" required />
+        </label>
+        <fieldset class="msn-osloveni">
+          <legend>Jak tě má parta oslovovat</legend>
+          {Object.entries(osloveni).map(([id, o], i) => (
+            <label>
+              <input type="radio" name="osloveni" value={id} checked={i === 0} />
+              <span><b>{o.volani}!</b> <small>{o.z}</small></span>
+            </label>
+          ))}
+        </fieldset>
+        <p class="msn-pecet-radek"><span class="msn-pecet-nahled" aria-hidden="true"></span><span class="msn-pecet-popis"></span></p>
+        <button type="submit" class="tlacitko msn-prevzit">Převzít mistrovský list</button>
+      </form>
+
+      <div class="msn-stav msn-mistr" hidden>
+        <p class="msn-perex">
+          Parta tě teď po celém webu oslovuje <b class="msn-volani">„Mistře!“</b> a v hlavičce máš pečeť
+          <span lang="ja">名人</span>. List je tvůj — stáhni si ho, nebo vytiskni.
+        </p>
+        <div class="msn-akce">
+          <button type="button" class="tlacitko msn-stahnout">Stáhnout jako obrázek</button>
+          <button type="button" class="tlacitko tlacitko-obrys msn-tisk">Vytisknout</button>
+          <button type="button" class="odkaz-tlacitko msn-upravit">Změnit jméno nebo oslovení</button>
+        </div>
+        <p class="msn-stahuje" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    {/* Výklenek tokonoma: krabice se svitkem, nebo svitek na stěně */}
+    <div class="msn-vyklenek">
+      <span class="msn-svetlo" aria-hidden="true"></span>
+      <span class="msn-hacek" aria-hidden="true"></span>
+
+      <div class="msn-krabice" aria-hidden="true">
+        <svg viewBox="0 0 300 150">
+          <defs>
+            <linearGradient id="msn-kiri" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#EBD9B6" />
+              <stop offset="1" stop-color="#CDB086" />
+            </linearGradient>
+          </defs>
+          <ellipse cx="150" cy="138" rx="140" ry="9" fill="#1A1430" opacity="0.4" />
+          <rect x="20" y="58" width="260" height="76" rx="4" fill="url(#msn-kiri)" stroke="#8A6A48" stroke-width="1.6" />
+          <rect x="12" y="40" width="276" height="26" rx="4" fill="#F3E4C6" stroke="#8A6A48" stroke-width="1.6" />
+          <g class="msn-snura" stroke="#6B3E8C" stroke-width="5" fill="none" stroke-linecap="round">
+            <path d="M150 40 V134" />
+            <path d="M150 52 C130 34 116 46 132 56 C142 62 150 54 150 52 C150 54 158 62 168 56 C184 46 170 34 150 52 Z" />
+            <path d="M144 58 C140 74 132 86 128 96 M156 58 C160 74 168 86 172 96" />
+          </g>
+          <rect x="196" y="72" width="48" height="50" rx="2" fill="#FBF6EA" stroke="#C9B48A" stroke-width="1" />
+          <text x="220" y="94" text-anchor="middle" font-size="15" fill="#2B2420" font-family="Yuji Syuku, Yu Mincho, serif">免許</text>
+          <text x="220" y="114" text-anchor="middle" font-size="15" fill="#2B2420" font-family="Yuji Syuku, Yu Mincho, serif">皆伝</text>
+        </svg>
+      </div>
+
+      <div class="msn-svitek">
+        <span class="msn-tyc msn-tyc-horni" aria-hidden="true"></span>
+        <div class="msn-papir">
+          <article class="mls" aria-labelledby="mls-nazev">
+            <p class="mls-hlava">JIRO saku · keramická dílna v Ořechu</p>
+            <p class="mls-znak" lang="ja" aria-hidden="true">{list.znak}</p>
+            <h3 class="mls-nazev" id="mls-nazev">{list.nazev}</h3>
+            <p class="mls-cteni"><i lang="ja-Latn">{list.cteni}</i> · {list.doslova}</p>
+
+            <p class="mls-pro">pro</p>
+            <p class="mls-jmeno"><span class="mls-jmeno-text">Tvoje jméno</span><span class="mls-pecet" aria-hidden="true"></span></p>
+            <p class="mls-titul"><span lang="ja">名人</span> <span class="mls-titul-text">Mistr z Ořechu</span></p>
+            <p class="mls-text">{list.text}</p>
+
+            <ol class="mls-razitka">
+              {urovne.map((u, i) => (
+                <li class={`inkoust-${Math.floor(i / 3)}`} data-list-razitko={u.id} style={`--i:${i}`}>
+                  <span class="mls-razitko"><svg viewBox="0 0 100 100" aria-hidden="true"><g filter="url(#mrz-inkoust)"><use href={`#mrz-${u.id}`} /></g></svg></span>
+                  <span class="mls-znamka"><svg viewBox="0 0 40 40" aria-hidden="true"><use href="#mrz-znamka-ka" /></svg></span>
+                  <span class="mls-razitko-nazev">{u.stanice}<span class="mls-razitko-znamka"></span></span>
+                </li>
+              ))}
+            </ol>
+
+            <div class="mls-dole">
+              <figure class="mls-kus">
+                <div class="mls-kus-obr"></div>
+                <figcaption>Kus podle předlohy</figcaption>
+              </figure>
+              <div class="mls-podpisy">
+                <p class="mls-datum"><span class="mls-datum-cz"></span><span class="mls-datum-ja" lang="ja"></span></p>
+                <p class="mls-podpis">{list.podpis}</p>
+                <ul class="mls-parta" aria-label="Podepsaná parta">
+                  {parta.map((p) => (
+                    <li title={p.name}><Postavicka id={p.id} size={46} varianta="kami" /></li>
+                  ))}
+                </ul>
+              </div>
+              <span class="mls-pecet-dilny" aria-label="Pečeť dílny: 胡桃工房, ořechová dílna" role="img">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <rect x="5" y="5" width="90" height="90" rx="5" fill="#C4432B" />
+                  <rect x="11" y="11" width="78" height="78" rx="3" fill="none" stroke="#F7F1E3" stroke-width="1.6" />
+                  {pecetDilny.map((p) => (
+                    <text x={p.x} y={p.y} text-anchor="middle" font-size="36" fill="#F7F1E3" font-family="Yuji Syuku, Yu Mincho, serif">{p.z}</text>
+                  ))}
+                </svg>
+              </span>
+            </div>
+          </article>
+        </div>
+        <span class="msn-tyc msn-tyc-dolni" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+</section>

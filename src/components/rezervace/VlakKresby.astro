@@ -17,17 +17,15 @@
  *   --vl-sedadla  opěradla v dolní části okna
  *   --vl-noc      0 ve dne, 1 v noci: ztmaví plech a rozsvítí okna
  */
-import { OKNA, DVERE, KABINA, ZADNI } from "./vlak";
+import { OKNA, DVERE, KABINA, ZADNI, SKLO_Y, SKLO_H, OPERADLA } from "./vlak";
 
 const skla = [
   { x: KABINA + 3, w: 20 },
   ...OKNA.map((x) => ({ x: x + 3, w: 22 })),
   { x: ZADNI + 3, w: 20 },
 ];
-const SKLO_Y = -103;
-const SKLO_H = 36;
 /** Opěradla sedadel — dolní třetina okna je tmavší */
-const SEDADLA = 0.37;
+const SEDADLA = OPERADLA;
 ---
 <svg class="vl-sprite" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>

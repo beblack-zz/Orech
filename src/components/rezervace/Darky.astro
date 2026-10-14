@@ -1,0 +1,334 @@
+---
+/**
+ * Daruj jízdenku — dárkové jízdenky za soumraku, mezi jízdenkou a nocí.
+ * Tři svislé nabídky vedle sebe, každá sama za sebe: nahoře jízdenka, pod
+ * ní obyčejnými slovy, co obdarovaný dostane, cena a vlastní tlačítko.
+ * Dárková jízdenka je vždycky pro jednoho.
+ *
+ * Všechny tři jsou tentýž luxusní lístek na výletní vlak (kresby skládá
+ * darky.ts): zlatá jízdenka zasunutá do lakované desky, liší se lakem
+ * a ústřižkem —
+ *
+ *   tři hodiny     zelená   dva kupony po hodině a půl
+ *   permanentka    červená  políčko na každý týden, ranní a večerní spoj
+ *   zvláštní vlak  modrá    znak a program kurzu; kurz se vybírá pod ní
+ *
+ * Jméno, vzkaz a podpis se píšou rovnou na jízdenku: jsou to pole nad
+ * kresbou, rozmístěná podle PERO z darky.ts. Co se napíše na jednu, objeví
+ * se i na ostatních (scripts/rezervace/darky.ts), ať jde porovnat, jak by
+ * vypadaly. Každá se dá otočit — na rubu je zlatem, jak ji uplatnit.
+ *
+ * Zabalit a darovat: na jízdenku dopadne razítko Dárek, ovine ji páska
+ * s mašlí a otevře se e-mail s objednávkou. Stránka sama nic neodesílá,
+ * platba se domluví mailem.
+ *
+ * Fakta jsou z dat: ceny a pravidla z rezervace.ts, co se v dílně dělá
+ * z dilna.ts, platnost dárku ze staré stránky Kurzy (darky v rezervace.ts).
+ * Na jízdenkách cena není — dárek ukazuje, co obdarovaný dostane.
+ */
+import { rezervace, permanentka, kurzy, hhmm, cenaOdjezdu, darky, odjezduDarku, odjezdy } from "../../data/rezervace";
+import { cinnosti } from "../../data/dilna";
+import { kontakt } from "../../data/uvod2";
+import { sklonuj } from "../../data/pocty";
+import { SPRITE, VIEWBOX, SIRKA, VYSKA, PERO, LAKY, ZNAK_KTERYKOLI, lic, rub, obal, vlakHodiny, vlakPas, vlakKurz, delkaHodin, DELKA_PASU, DELKA_ZVLASTNIHO } from "./darky";
+import type { Druh } from "./darky";
+import VazickaSchovka from "../characters/schovka/Vazicka.astro";
+
+const kc = (n: number) => n.toLocaleString("cs-CZ");
+const V_DEN = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
+const DNY = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
+const HODIN = ["", "Hodina", "Dvě hodiny", "Tři hodiny", "Čtyři hodiny", "Pět hodin", "Šest hodin"];
+const ODJEZDU = ["", "jeden odjezd", "dva odjezdy", "tři odjezdy", "čtyři odjezdy"];
+const KRAT = ["", "Jednou", "Dvakrát", "Třikrát", "Čtyřikrát"];
+const spolu = (a: string[], spojka = "a") => (a.length > 1 ? `${a.slice(0, -1).join(", ")} ${spojka} ${a[a.length - 1]}` : (a[0] ?? ""));
+const velke = (s: string) => s.toLocaleUpperCase("cs-CZ");
+
+const n = odjezduDarku;
+const blok = String(rezervace.blok).replace(".", ",");
+const hodin = HODIN[darky.hodin] ?? `${darky.hodin} hodin`;
+const odjezduText = ODJEZDU[n] ?? `${n} odjezdů`;
+const mesice = sklonuj(permanentka.mesicu, "měsíc", "měsíce", "měsíců");
+const platnost = sklonuj(darky.platnostMesicu, "měsíc", "měsíce", "měsíců");
+const tydnu = Math.round((permanentka.mesicu * 52) / 12);
+const volby = cinnosti.map((c) => c.nazev.toLowerCase());
+const program = (k: (typeof kurzy)[number]) => k.program.map((z) => z.h);
+const denOd = Math.min(...kurzy.flatMap(program));
+const denDo = Math.max(...kurzy.flatMap(program)) + rezervace.blok;
+const mistKurzu = Math.max(...kurzy.map((k) => k.mist));
+/** Na kterýkoli kurz stojí jízdenka jako ten nejdražší, ať pokryje každý (stejně počítá skript) */
+const cenaKurzu = Math.max(...kurzy.map((k) => k.cena));
+const lektori = [...new Set(kurzy.map((k) => k.lektor))];
+const spoje = permanentka.spoje.map((s) => ({ h: s.h + rezervace.blok / 2, nazev: s.nazev, cas: hhmm(s.h) }));
+const kontaktem = `${kontakt.email} · ${kontakt.telefon}`;
+
+/**
+ * Výhled z okna salonu: kolik jednotek vlaku je okno široké. Všechny tři
+ * vlaky jsou tak stejně velké a okolo kratšího je víc moře.
+ */
+const VYHLED = 1480;
+
+interface Nabidka {
+  id: Druh;
+  nazev: string;
+  /** Malý štítek nad jménem — jak se tomu říká na nádraží */
+  vlak: string;
+  heslo: string;
+  fakta: { co: string; html: string }[];
+  cena: string;
+  lic: string;
+  rub: string;
+}
+
+const nabidky: Nabidka[] = [
+  {
+    id: "hodiny",
+    nazev: `${hodin} v dílně`,
+    vlak: odjezduText,
+    heslo: `${KRAT[n] ?? `${n}×`} hodina a půl v dílně. Dělá si, co chce.`,
+    fakta: [
+      { co: "co dělá", html: `<b>cokoli</b> — ${volby.join(", ")}; lektor ukáže a poradí, když o něj stojí` },
+      { co: "kdy", html: `${spolu(rezervace.dny.map((d) => V_DEN[d]), "nebo")} ${rezervace.od}–${rezervace.do}; odjezdy si vybere sám — po sobě, nebo každý jindy` },
+      { co: "s kým", html: "sám — odjezd se zamlouvá celý, takže je jen jeho" },
+    ],
+    cena: kc(n * cenaOdjezdu),
+    lic: lic({
+      druh: "hodiny",
+      titul: velke(hodin),
+      cislo: "№ —",
+      hodina: 18.4,
+      vlak: { obsah: vlakHodiny(n), delka: delkaHodin(n), okraj: VYHLED - delkaHodin(n) },
+      nominal: { cislo: String(darky.hodin), jednotka: "h", vedle: true },
+      radek: `${velke(hodin)} · ${velke(odjezduText)}`,
+      udaje: [
+        { co: "ODJEZDY", hodnota: `${n} × ${blok} h` },
+        { co: "CESTUJÍCÍ", hodnota: "1" },
+        { co: "PLATÍ", hodnota: `${darky.platnostMesicu} měs.` },
+      ],
+      ustrizek: { druh: "kupony", kuponu: n, delka: `${blok} h` },
+    }),
+    rub: rub({
+      druh: "hodiny",
+      cislo: "—",
+      vlak: delkaHodin(n),
+      kroky: [`Vyber si ${odjezduText} v rezervaci na webu — po sobě, nebo každý jindy.`, "Do poznámky napiš číslo jízdenky.", "Na místě ji ukaž, průvodčí cvakne kupon."],
+      panel: {
+        druh: "odjezdy",
+        titul: `ODJEZDY · ${velke(spolu(rezervace.dny.map((d) => DNY[d])))}`,
+        casy: odjezdy.map(hhmm),
+        pozn: `každý odjezd je hodina a půl, ${rezervace.od}–${rezervace.do}`,
+      },
+      pata: [`Platí ${platnost} od vystavení.`, kontaktem],
+    }),
+  },
+  {
+    id: "pas",
+    nazev: "Permanentka",
+    vlak: "stálé místo",
+    heslo: `Hodina a půl každý týden, ${mesice}.`,
+    fakta: [
+      { co: "co dělá", html: `<b>totéž co na hodině</b> — tvoří po svém, jen pravidelně` },
+      {
+        co: "kdy",
+        html: `jeden den v týdnu (${spolu(rezervace.dny.map((d) => DNY[d]), "nebo")}), pokaždé stejný spoj — ${spolu(permanentka.spoje.map((s) => `${s.nazev} ${hhmm(s.h)}`), "nebo")}; platí ${mesice} od první jízdy`,
+      },
+      { co: "s kým", html: `má své místo; na spoji jsou ${sklonuj(permanentka.mist, "místo", "místa", "míst")} a den i spoj si vybere tam, kde je volno` },
+    ],
+    cena: kc(permanentka.cena),
+    lic: lic({
+      druh: "pas",
+      titul: "PERMANENTKA",
+      cislo: "№ —",
+      hodina: 11.5,
+      vlak: { obsah: vlakPas(), delka: DELKA_PASU, okraj: VYHLED - DELKA_PASU, posun: -40 },
+      nominal: { cislo: String(permanentka.mesicu), jednotka: "MĚS." },
+      obeStrany: true,
+      radek: "JEDEN DEN V TÝDNU · STEJNÝ SPOJ",
+      udaje: [
+        { co: "TÝDNŮ", hodnota: String(tydnu) },
+        { co: "CESTUJÍCÍ", hodnota: "1" },
+        { co: "PLATÍ", hodnota: `${permanentka.mesicu} měs.` },
+      ],
+      ustrizek: { druh: "tydny", tydnu, spoje },
+    }),
+    rub: rub({
+      druh: "pas",
+      cislo: "—",
+      vlak: DELKA_PASU,
+      kroky: ["Den a spoj si vyber v rezervaci — tam, kde je volno.", "Do poznámky napiš číslo průkazky.", `Uplatni do ${platnost}; pak platí ${mesice}.`],
+      panel: {
+        druh: "spoje",
+        titul: `SPOJE · ${velke(spolu(rezervace.dny.map((d) => DNY[d]), "nebo"))}`,
+        spoje,
+        tydnu,
+        pozn: `${tydnu} týdnů od první jízdy, každý týden jedna`,
+      },
+      pata: [`Platí ${platnost} od vystavení.`, kontaktem],
+    }),
+  },
+  {
+    id: "kurz",
+    nazev: "Zvláštní vlak",
+    vlak: "kurz na celý den",
+    heslo: "Kurz na celý den s lektorem a programem.",
+    fakta: [
+      { co: "co dělá", html: `<b>celý den podle programu</b> — lektor je u toho od rána do večera` },
+      { co: "kdy", html: `${V_DEN[rezervace.denKurzu]} ${hhmm(denOd)}–${hhmm(denDo)}; termín si vybere z vypsaných` },
+      { co: "s kým", html: `se skupinou — vlak má ${sklonuj(mistKurzu, "místo", "místa", "míst")}` },
+      { co: "pro koho", html: kurzy.map((k) => `<b>${k.nazev}</b> ${k.proKoho}`).join("; ") },
+    ],
+    cena: kc(cenaKurzu),
+    lic: lic({
+      druh: "kurz",
+      titul: "ZVLÁŠTNÍ VLAK",
+      cislo: "№ —",
+      hodina: 20.3,
+      vlak: { obsah: vlakKurz(null, mistKurzu), delka: DELKA_ZVLASTNIHO, okraj: VYHLED - DELKA_ZVLASTNIHO, posun: 60 },
+      nominal: { cislo: "1", jednotka: "DEN" },
+      radek: `CELÝ DEN ${hhmm(denOd)}–${hhmm(denDo)} · S LEKTOREM`,
+      udaje: [
+        { co: "DEN", hodnota: DNY[rezervace.denKurzu] },
+        { co: "CESTUJÍCÍ", hodnota: "1" },
+        { co: "LEKTOR", hodnota: lektori.length === 1 ? lektori[0] : "—", rzd: "lektor" },
+      ],
+      ustrizek: {
+        druh: "program",
+        emblem: ZNAK_KTERYKOLI,
+        kurz: "kterýkoli kurz",
+        zastavek: Math.max(...kurzy.map((k) => k.program.length)),
+        od: hhmm(denOd),
+        do: hhmm(denDo),
+      },
+    }),
+    rub: rub({
+      druh: "kurz",
+      cislo: "—",
+      vlak: DELKA_ZVLASTNIHO,
+      kroky: ["Termín si vyber z vypsaných zvláštních vlaků v rezervaci na webu.", "Do poznámky napiš číslo jízdenky."],
+      panel: {
+        druh: "program",
+        titul: "PROGRAM DNE",
+        kurzy: kurzy.map((k) => {
+          const zastavky = [...k.program].sort((a, b) => a.h - b.h);
+          return {
+            id: k.id,
+            nazev: k.nazev,
+            emblem: k.emblem,
+            zastavky: [...zastavky.map((z) => ({ cas: hhmm(z.h), nazev: z.nazev })), { cas: hhmm(Math.max(...zastavky.map((z) => z.h)) + rezervace.blok), nazev: "Cíl" }],
+          };
+        }),
+      },
+      pata: [`Platí ${platnost} od vystavení.`, kontaktem],
+    }),
+  },
+];
+
+/** Pole na psaní v procentech desky — sedí na linku a na místo pro věnování v kresbě */
+const pole = (p: { x: number; y: number; w: number; h: number }) =>
+  `left:${((p.x / SIRKA) * 100).toFixed(2)}%;top:${((p.y / VYSKA) * 100).toFixed(2)}%;width:${((p.w / SIRKA) * 100).toFixed(2)}%;height:${((p.h / VYSKA) * 100).toFixed(2)}%`;
+
+/** Bez skriptu aspoň obecný mail — skript ho přepíše na celou objednávku */
+const mailBezSkriptu = (nazev: string) =>
+  `mailto:${kontakt.email}?subject=${encodeURIComponent(`Dárková jízdenka: ${nazev}`)}&body=${encodeURIComponent(`Ahoj, chci objednat dárkovou jízdenku: ${nazev}\n\n`)}`;
+---
+<section class="rz-sekce rz-darky" id="rz-darky" data-hodina="19.8" aria-labelledby="rz-darky-nadpis">
+  <svg class="rzd-sprite" width="0" height="0" aria-hidden="true" focusable="false" set:html={SPRITE} />
+
+  <form class="rz-darky-karta papir" data-email={kontakt.email} onsubmit="return false">
+    {/* Kruh UV lampy na papíře — jen když je lampa zapnutá */}
+    <span class="rz-darky-svetlo" aria-hidden="true"></span>
+    <div class="rz-darky-hlava">
+      <div>
+        <p class="stitek">dárková jízdenka</p>
+        <h2 id="rz-darky-nadpis" class="nadpis-2"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>05</span> Daruj jízdenku</h2>
+      </div>
+      <button type="button" class="rz-darky-uv" aria-pressed="false" title="Pod UV lampou je vidět skrytý tisk — jako u přepážky, když se kontroluje cenina">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 h8 l-1.4 6 h-5.2 Z" /><rect x="9.6" y="9" width="4.8" height="9" rx="1.6" /><path class="rz-darky-uv-paprsky" d="M5 13 l-2.5 1.5 M4.5 9 l-2.8 -0.6 M19 13 l2.5 1.5 M19.5 9 l2.8 -0.6" /></svg>
+        <span class="rz-darky-uv-text">UV lampa</span>
+      </button>
+    </div>
+    <p class="rz-darky-perex">
+      Jízdenku jde koupit i pro někoho jiného — vždycky pro jednoho. Vybereš, na co pojede, jméno a vzkaz napíšeš
+      rovnou na jízdenku a den si obdarovaný vybere sám, až se mu to bude hodit. Platí {platnost} od vystavení.
+    </p>
+
+    <div class="rz-darky-vitrina">
+      {nabidky.map((d) => (
+        <article class={`rz-dar rz-dar-${d.id}`} data-dar={d.id} data-nazev={d.nazev} style={`--rzd-lak:${LAKY[d.id].stred};--rzd-inkoust:${LAKY[d.id].inkoust}`} aria-labelledby={`rzd-titul-${d.id}`}>
+          <div class="rz-dar-predmet">
+            {/* Za horní hranou Zvláštního vlaku vykukuje Vázička — hra na hledání kami (schovej v parta2/sber.ts) */}
+            {d.id === "kurz" && (
+              <button type="button" class="skryty rzd-vazicka" data-skryty="vazicka" aria-label="Někdo se tu schovává">
+                <VazickaSchovka barva="logo" poza="vykukuje" size={46} />
+              </button>
+            )}
+            {/* Dvě strany, které se otáčejí kolem svislé osy — líc s kresbou a poli na psaní, rub s tím, jak ji uplatnit */}
+            <div class="rzd-otacec">
+              <div class="rzd-strana rzd-strana-lic">
+                <svg class="rzd-listek" viewBox={VIEWBOX} role="img" aria-label={`Dárková jízdenka ${d.nazev}`} set:html={d.lic} />
+                <label class="rzd-pero rzd-pero-pro" style={pole(PERO.pro)}>
+                  <span class="sr-only">Pro koho — jméno na jízdenku</span>
+                  <input type="text" name="pro" maxlength="28" autocomplete="off" spellcheck="false" placeholder="někoho milého" />
+                </label>
+                <label class="rzd-pero rzd-pero-vzkaz" style={pole(PERO.vzkaz)}>
+                  <span class="sr-only">Vzkaz na jízdenku, nepovinné</span>
+                  <textarea name="vzkaz" rows="2" maxlength="70" spellcheck="false" placeholder="Ať se ti točí."></textarea>
+                </label>
+                <label class="rzd-pero rzd-pero-od" style={pole(PERO.od)}>
+                  <span aria-hidden="true">—</span>
+                  <span class="sr-only">Od koho, nepovinné</span>
+                  <input type="text" name="od" maxlength="28" autocomplete="name" spellcheck="false" placeholder="tvoje jméno" />
+                </label>
+                <svg class="rzd-obal" viewBox={VIEWBOX} aria-hidden="true" set:html={obal(d.id)} />
+              </div>
+              <div class="rzd-strana rzd-strana-rub" aria-hidden="true"><svg class="rzd-listek" viewBox={VIEWBOX} set:html={d.rub} /></div>
+            </div>
+          </div>
+
+          <div class="rz-dar-radek">
+            <h3 class="rz-dar-titul" id={`rzd-titul-${d.id}`}><small>{d.vlak}</small>{d.nazev}</h3>
+            <button type="button" class="rz-dar-otocit" aria-pressed="false" aria-label={`Otočit jízdenku ${d.nazev} — vzadu je, jak ji uplatnit`}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 a8 8 0 0 1 13.7 -5.6 M20 4 v4.6 h-4.6 M20 12 a8 8 0 0 1 -13.7 5.6 M4 20 v-4.6 h4.6" /></svg>
+              <span>otočit</span>
+            </button>
+          </div>
+          <p class="rz-dar-heslo">{d.heslo}</p>
+          <dl class="rz-dar-fakta">
+            {d.fakta.map((f) => <div><dt>{f.co}</dt><dd set:html={f.html} /></div>)}
+          </dl>
+
+          {d.id === "kurz" && (
+            <fieldset class="rz-dar-volba">
+              <legend>Na který kurz</legend>
+              <div class="rz-dar-volby">
+                <label class="rz-darky-volba"><input type="radio" name="kurz" value="" checked /><span>kterýkoli — vybere si sám</span></label>
+                {kurzy.map((k) => (
+                  <label class="rz-darky-volba"><input type="radio" name="kurz" value={k.id} /><span><i aria-hidden="true">{k.emblem}</i> {k.nazev}</span></label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
+          <div class="rz-dar-pokladna">
+            <p class="rz-dar-cena"><b>{d.cena}&nbsp;Kč</b> jízdenka pro jednoho</p>
+            <a class="tlacitko rz-dar-darovat" href={mailBezSkriptu(d.nazev)}>Zabalit a darovat</a>
+          </div>
+          <p class="rz-dar-hotovo" aria-live="polite"></p>
+          <button type="button" class="rz-dar-rozbalit" hidden>Rozbalit a upravit</button>
+        </article>
+      ))}
+    </div>
+
+    <div class="rz-darky-dole">
+      <fieldset class="rz-darky-forma">
+        <legend>Jízdenku pošleme</legend>
+        <label class="rz-darky-volba"><input type="radio" name="forma" value="pdf" checked /><span>v PDF mailem</span></label>
+        <label class="rz-darky-volba"><input type="radio" name="forma" value="papir" /><span>vytištěnou</span></label>
+      </fieldset>
+      <p class="rz-pozn">Zabalit a darovat otevře e-mail s objednávkou. Domluvíme se na placení a jízdenku pošleme, jak si vybereš.</p>
+    </div>
+    <p class="rz-darky-pata">
+      Dárková jízdenka nic nezamlouvá. Až ji obdarovaný bude chtít uplatnit, vybere si termín nahoře v pokladně
+      a do poznámky napíše číslo jízdenky — u zvláštního vlaku z vypsaných termínů, u permanentky tam, kde je na spoji volno.
+    </p>
+  </form>
+</section>

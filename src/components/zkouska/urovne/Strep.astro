@@ -1,0 +1,21 @@
+---
+/**
+ * Úroveň 九 Kintsugi — ráno po výpalu, prasklá miska na indigovém šátku.
+ * Slepit šest střepů a spáry obtáhnout zlatem; na konci přijde Střípek.
+ *
+ * Kresba je čistá funkce (strep-kresba.ts), hra je ve scripts/zkouska/
+ * urovne/strep.ts — ta při každém pokusu vylosuje vzor lomu a vrstvu
+ * střepů nakreslí znovu. Střípek je skutečná kresba party, proto stojí
+ * mezi kresbou a překryvy jako komponenta.
+ */
+import "../../../styles/zkouska-urovne/strep.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { kresba, prekryvy } from "./strep-kresba";
+---
+<div class="mu-scena mu-strep" data-uroven-scena="strep" hidden>
+  <div class="mu-okno">
+    <Fragment set:html={kresba()} />
+    <div class="ms9-kami" aria-hidden="true"><Postavicka id="stripek" size={140} varianta="kami" /></div>
+    <Fragment set:html={prekryvy()} />
+  </div>
+</div>

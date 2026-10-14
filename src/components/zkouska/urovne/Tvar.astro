@@ -1,0 +1,23 @@
+---
+/**
+ * Úroveň 四 Tvar „Podle předlohy“ — kruh, polička s mistrovým kusem
+ * a Vázička. Kresbu skládá tvar-kresba.ts (čisté SVG), Vázička je skutečná
+ * postavička mezi kresbou a plochou na kreslení, aby šlo na ni klepnout.
+ * Hru obsluhuje scripts/zkouska/urovne/tvar.ts.
+ */
+import "../../../styles/zkouska-urovne/tvar.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { kresba, prekryvy, ovladani, VAZICKA } from "./tvar-kresba";
+
+const poloha = `left:${VAZICKA.left}%;top:${VAZICKA.top}%;width:${VAZICKA.width}%`;
+---
+<div class="mu-scena mu-tvar" data-uroven-scena="tvar" hidden>
+  <div class="mu-okno mt4-okno">
+    <Fragment set:html={kresba()} />
+    <div class="mt4-kami" style={poloha} aria-hidden="true">
+      <Postavicka id="vazicka" size={180} varianta="kami" />
+    </div>
+    <Fragment set:html={prekryvy()} />
+  </div>
+  <Fragment set:html={ovladani()} />
+</div>

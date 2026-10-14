@@ -1,0 +1,152 @@
+---
+/**
+ * Losování pokladu ve svatyni. Krabička je stejná jako omikuji na Partě 2,
+ * jen má zlaté lemy a uvnitř jedinou tyčku s devítkou: lístek se vytáhne
+ * jednou, je to vždycky velké štěstí a zůstane uložený v prohlížeči.
+ *
+ * Lístek je svislý jako skutečné omikuji: nahoře jméno svatyně a 大吉
+ * v rámečku, pod tím věštba, rubriky a rudé razítko svatyně. Dole je přes
+ * perforaci ústřižek s odměnou (data/svatyne.ts, odmena) a heslem. Papír je
+ * den (slunce, mráčky, sakura, krajina se svatyní), ústřižek noc. Při
+ * vytažení se rozvine shora dolů, dopadne razítko a vyjede ústřižek
+ * (styles/svatyne.css, třída .je-novy). Plní ho scripts/svatyne/svatyne.ts;
+ * dokud není všech devět nalezeno, je sekce skrytá.
+ */
+import { odmena } from "../../data/svatyne";
+
+/* Paprsky slunce a padající lístky sakury na papíře (pevně, ať se stránka mezi buildy nemění) */
+const paprsky = Array.from({ length: 12 }, (_, i) => {
+  const a = (i * Math.PI) / 6, b = 0.13;
+  const bod = (r: number, u: number) => `${(Math.cos(u) * r).toFixed(1)} ${(Math.sin(u) * r).toFixed(1)}`;
+  return `M${bod(24, a - b)} L${bod(i % 2 ? 36 : 44, a)} L${bod(24, a + b)} Z`;
+}).join(" ");
+const platky = [
+  { x: 8, d: 13, z: -2, dx: 26 }, { x: 22, d: 17, z: -9, dx: -20 }, { x: 37, d: 15, z: -5, dx: 30 }, { x: 51, d: 19, z: -13, dx: -26 },
+  { x: 64, d: 14, z: -7, dx: 22 }, { x: 77, d: 18, z: -1, dx: -30 }, { x: 88, d: 16, z: -11, dx: 24 }, { x: 95, d: 20, z: -16, dx: -18 },
+];
+---
+<section class="omikuji sv-losovani" id="losovani" data-hodina="23.5" aria-labelledby="sv-losovani-nadpis" hidden>
+  <div class="omikuji-mriz sv-mriz">
+    <div class="omikuji-uvod">
+      <p class="stitek"><span lang="ja">御神籤</span> · omikuji</p>
+      <h2 id="sv-losovani-nadpis" class="nadpis-2">Jeden lístek, jen pro tebe.</h2>
+      <p class="omikuji-perex">
+        V téhle krabičce je jediná tyčka a na ní devítka — za devět kami.
+        Lístek se tahá jednou a zůstane ti. Je to tvůj poklad.
+      </p>
+      <div class="omikuji-stojan">
+        <button type="button" class="omikuji-krabicka sv-krabicka" aria-label="Zatřást krabičkou s pokladem">
+          <span class="omikuji-tycka" aria-hidden="true"><span class="omikuji-cislo" lang="ja">九</span></span>
+          <svg viewBox="0 0 160 260" aria-hidden="true">
+            <defs>
+              <linearGradient id="sv-omi-predek" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#C9A37A" />
+                <stop offset="1" stop-color="#B08660" />
+              </linearGradient>
+            </defs>
+            <polygon points="20,44 50,34 50,252 20,242" fill="#A9835C" />
+            <polygon points="110,34 140,44 140,242 110,252" fill="#A9835C" />
+            <rect x="50" y="34" width="60" height="218" fill="url(#sv-omi-predek)" />
+            <polygon points="20,44 50,34 110,34 140,44 110,54 50,54" fill="#D9B88E" />
+            <circle cx="80" cy="44" r="7" fill="#3A2E28" />
+            <rect x="50" y="62" width="60" height="10" fill="#D6A23A" />
+            <rect x="50" y="222" width="60" height="10" fill="#D6A23A" />
+            <rect x="60" y="84" width="40" height="126" fill="#FBF6EA" stroke="#D6A23A" stroke-width="2" />
+            <g font-family="Yuji Syuku, Yu Mincho, serif" font-size="30" fill="#2B2420" text-anchor="middle">
+              <text x="80" y="122">御</text>
+              <text x="80" y="160">神</text>
+              <text x="80" y="198">籤</text>
+            </g>
+            <path d="M20 242 L50 252 L110 252 L140 242" stroke="#5E452E" stroke-width="2" fill="none" />
+          </svg>
+        </button>
+        <p class="omikuji-pokyn sv-pokyn">Zatřes krabičkou.</p>
+      </div>
+    </div>
+
+    <div class="vestba-misto sv-misto" aria-live="polite">
+      <p class="vestba-prazdno">Tady se rozbalí tvůj lístek.</p>
+      <article class="sv-listek" hidden aria-label="Tvůj lístek omikuji">
+        <div class="sv-papir">
+          <div class="sv-den" aria-hidden="true">
+            <svg class="sv-slunce" viewBox="-50 -50 100 100">
+              <defs>
+                <radialGradient id="sv-den-slunce" cx="0.4" cy="0.38" r="0.65">
+                  <stop offset="0" stop-color="#FFF7D6" />
+                  <stop offset="0.55" stop-color="#FFD66E" />
+                  <stop offset="1" stop-color="#F2A93A" />
+                </radialGradient>
+              </defs>
+              <path class="sv-slunce-paprsky" d={paprsky} fill="#FFC94F" />
+              <circle r="21" fill="url(#sv-den-slunce)" />
+            </svg>
+            {[1, 2, 3].map((n) => (
+              <svg class={`sv-mrak sv-mrak-${n}`} viewBox="0 0 120 48">
+                <path d="M16 42 C2 42 2 26 16 26 C16 13 32 9 40 18 C44 5 66 3 72 17 C80 9 98 13 96 28 C110 28 112 42 98 42 Z" fill="#FFFFFF" />
+                <path d="M16 42 C8 42 5 37 6 33 C14 38 90 38 110 34 C110 39 105 42 98 42 Z" fill="#D7E9F2" />
+              </svg>
+            ))}
+            {platky.map((p) => (
+              <span class="sv-platek" style={`--x:${p.x}%;--d:${p.d}s;--z:${p.z}s;--dx:${p.dx}px`} />
+            ))}
+            {/* dole denní krajina: kopce, cedry a rumělková svatyně */}
+            <svg class="sv-den-krajina" viewBox="0 0 380 62" preserveAspectRatio="xMidYMax slice">
+              <path d="M0 62 V36 C40 26 84 28 124 34 C164 40 206 30 246 32 C292 34 334 26 380 32 V62 Z" fill="#BFDDB0" />
+              <path d="M0 62 V44 L10 30 L20 44 L28 34 L38 46 L50 24 L62 46 L70 38 L80 48 L92 32 L104 48 L116 38 L126 50 L136 42 V62 Z M244 62 V42 L254 50 L264 38 L276 48 L288 32 L300 48 L310 38 L318 46 L330 24 L342 46 L352 34 L360 44 L370 30 L380 44 V62 Z" fill="#76A886" />
+              <path d="M0 62 V54 C60 50 120 52 190 54 C260 56 320 50 380 54 V62 Z" fill="#9CC79A" />
+              <rect x="164" y="44" width="52" height="14" fill="#C4432B" />
+              <rect x="172" y="47" width="12" height="11" fill="#FFE3A0" />
+              <rect x="196" y="47" width="12" height="11" fill="#FFE3A0" />
+              <path d="M152 46 Q172 42 190 26 Q208 42 228 46 L225 50 Q208 46 190 32 Q172 46 155 50 Z" fill="#4E2A2E" />
+              <path d="M155 49 Q172 45 190 31 Q208 45 225 49" fill="none" stroke="#E2B24A" stroke-width="1.4" />
+              <circle cx="190" cy="25" r="2.6" fill="#E2B24A" />
+              <path d="M150 62 V56 H230 V62 Z" fill="#E4D8C2" />
+            </svg>
+          </div>
+          <header class="sv-hlava">
+            <p class="sv-svatyne" lang="ja">胡桃神社</p>
+            <p class="sv-svatyne-cesky">svatyně Ořechu · omikuji</p>
+          </header>
+          <div class="sv-los">
+            <p class="sv-cislo" lang="ja">第九番</p>
+            <p class="sv-stupen" lang="ja">大吉</p>
+            <p class="sv-cteni"><i lang="ja-Latn">daikichi</i> · velké štěstí</p>
+          </div>
+          <div class="sv-vestba">
+            <p class="vestba-text"></p>
+            <p class="vestba-podpis">— <span></span></p>
+          </div>
+          <dl class="sv-rubriky"></dl>
+          <svg class="sv-razitko" viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="5" y="5" width="90" height="90" rx="9" fill="#C4432B" />
+            <rect x="12" y="12" width="76" height="76" rx="5" fill="none" stroke="#FBF3E6" stroke-width="2.4" />
+            <g font-family="Yuji Syuku, Yu Mincho, serif" font-size="30" fill="#FBF3E6" text-anchor="middle">
+              <text x="66" y="45">胡</text>
+              <text x="66" y="80">桃</text>
+              <text x="34" y="45">神</text>
+              <text x="34" y="80">社</text>
+            </g>
+          </svg>
+        </div>
+        <div class="sv-ustrizek">
+          <span class="sv-nuzky" aria-hidden="true">✂</span>
+          <p class="sv-ustrizek-stitek">odměna za devět kami</p>
+          <p class="sv-sleva"><b>{odmena.sleva}</b><span>{odmena.co}</span></p>
+          <p class="sv-ustrizek-pokyn">{odmena.pokyn}:</p>
+          <p class="sv-heslo"><span class="sv-heslo-znak" lang="ja"></span><i class="sv-heslo-cteni" lang="ja-Latn"></i></p>
+          <p class="sv-datum"></p>
+          {/* dole noční les a svatyně se dvěma lampiony */}
+          <svg class="sv-ustrizek-les" viewBox="0 0 380 50" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+            <path d="M0 50 V36 L10 22 L20 36 L28 26 L38 38 L50 18 L62 38 L70 30 L80 40 L92 24 L104 40 L116 30 L126 42 L136 34 V50 Z M244 50 V34 L254 42 L264 30 L276 40 L288 24 L300 40 L310 30 L318 38 L330 18 L342 38 L352 26 L360 36 L370 22 L380 36 V50 Z" fill="#0A0B20" />
+            <path d="M150 50 V40 H230 V50 Z M146 40 Q170 37 190 22 Q210 37 234 40 L231 43 Q210 40 190 27 Q170 40 149 43 Z" fill="#0A0B20" />
+            <rect x="186" y="18" width="8" height="5" rx="1" fill="#0A0B20" />
+            <circle class="sv-lampionek" cx="160" cy="45" r="7" fill="#FFB866" fill-opacity="0.25" />
+            <circle class="sv-lampionek" cx="220" cy="45" r="7" fill="#FFB866" fill-opacity="0.25" />
+            <ellipse cx="160" cy="45" rx="2.6" ry="3.2" fill="#FFB866" />
+            <ellipse cx="220" cy="45" rx="2.6" ry="3.2" fill="#FFB866" />
+          </svg>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

@@ -18,6 +18,8 @@ export interface KamiInfo {
   repliky: string[];
   /** Nápověda v omamori, dokud se schovaný kami nenajde */
   skrys: string;
+  /** Jak těžké je ho najít — podle toho stojí v omamori v první, druhé, nebo třetí řadě */
+  narocnost: 1 | 2 | 3;
 }
 
 export const kamiInfo: Record<PostavaId, KamiInfo> = {
@@ -32,6 +34,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Kami země. Zní to vznešeně, ale většinou spím.",
     ],
     skrys: "Spí někde u kořenů velkého stromu.",
+    narocnost: 2,
   },
   kapka: {
     druh: "kami",
@@ -44,6 +47,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "V peci mě uvidíš do sta stupňů. Pak už jen páru.",
     ],
     skrys: "Visí na kraji police s miskami. Ještě neskápla.",
+    narocnost: 1,
   },
   pecinka: {
     druh: "kami",
@@ -56,6 +60,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Přes noc podřimuju. Ale jedním okem.",
     ],
     skrys: "Kouká z okna dílny. Ráno, když už je po výpalu.",
+    narocnost: 1,
   },
   stripek: {
     druh: "tsukumogami",
@@ -68,6 +73,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Kdo se nebojí chyb, točí rychleji.",
     ],
     skrys: "Leží na zemi pod ponkem. Tam, kam nikdo nezametá.",
+    narocnost: 3,
   },
   vazicka: {
     druh: "tsukumogami",
@@ -80,6 +86,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Čerstvé sakury, každý den. Člověk má mít standardy.",
     ],
     skrys: "Schovala se mezi hrnky v peci. Ráda se dívá, jak se skládá.",
+    narocnost: 1,
   },
   bublinka: {
     druh: "yōkai",
@@ -92,6 +99,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Kami? Kdepak. Yōkai. To je ta zábavnější strana.",
     ],
     skrys: "Bydlí v trubičce s vodou. Kachlík ji tam nesnáší.",
+    narocnost: 3,
   },
   kachlik: {
     druh: "tsukumogami",
@@ -104,6 +112,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Vodováha je můj nejlepší kamarád. Má bublinku. To jediné jí vyčítám.",
     ],
     skrys: "Leží na dně kádě s vodou. Prý se tam chladí.",
+    narocnost: 2,
   },
   cedulka: {
     druh: "tsukumogami",
@@ -116,6 +125,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Pamatuju si všechno. Hlavně to, čí je ta křivá.",
     ],
     skrys: "Visí na provaze mezi věštbami. Vypadá skoro stejně jako ony.",
+    narocnost: 3,
   },
   samotka: {
     druh: "tsukumogami",
@@ -128,8 +138,23 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Nikdo mi nikdy nepoděkoval. To je v pořádku. Fakt.",
     ],
     skrys: "Je uvnitř rozpálené pece. Stačí nakouknout.",
+    narocnost: 2,
   },
 };
+
+/* ——— Komnaty ——— */
+
+/**
+ * Za každé tři nalezené kami se otevře jedna komnata. Počítá se jen počet,
+ * ne kdo — první řada v omamori je ale nejsnazší, takže se většinou otevírají
+ * po řadách. Číslo je to samé jako na lístku závěsu (Zaves.astro).
+ * `kam` mají komnaty, které už stojí — otevřená dlaždice v omamori tam vede.
+ */
+export const komnaty: { prah: number; cislo: string; nazev: string; popis: string; kam?: string }[] = [
+  { prah: 3, cislo: "一", nazev: "Papírna", kam: "/papirna", popis: "Kami z papíru: vystřihni si partu, slep ji a k tomu omalovánka." },
+  { prah: 6, cislo: "二", nazev: "U mistra", kam: "/zkouska", popis: "Devět zastavení cesty hlíny, za každé razítko a na konci mistrovský list." },
+  { prah: 9, cislo: "三", nazev: "Poklad", kam: "/svatyne", popis: "Ve svatyni si vytáhneš omikuji. Co je na lístku, prozradí až ona." },
+];
 
 /* ——— Cesta hlíny ——— */
 
@@ -147,7 +172,10 @@ export interface Zastaveni {
    * jedním směrem a nevracela se.
    */
   hodina: number;
+  /** Co se na stanovišti děje a kdo ho hlídá — tenhle text jde i mimo Partu 2 (obsazení na /parta-3) */
   text: string;
+  /** Výzva ke hře ve scéně stanoviště; patří jen tam, kde ta scéna je */
+  pokyn?: string;
 }
 
 export const cesta: Zastaveni[] = [
@@ -157,19 +185,23 @@ export const cesta: Zastaveni[] = [
   },
   {
     id: "bublinka", cislo: "二", znak: "泡", cteni: "awa", nazev: "Hnětení", hodina: 8.5,
-    text: "Než hlína dojde na kruh, musí z ní ven každá bublinka vzduchu. V Japonsku se hněte do tvaru květu chryzantémy, říká se tomu kiku-neri. Zkus to: klikej na hroudu, dokud se Bublinka nevzdá.",
+    text: "Než hlína dojde na kruh, musí z ní ven každá bublinka vzduchu. V Japonsku se hněte do tvaru květu chryzantémy, říká se tomu kiku-neri.",
+    pokyn: "Zkus to: klikej na hroudu, dokud se Bublinka nevzdá.",
   },
   {
     id: "kapka", cislo: "三", znak: "水", cteni: "mizu", nazev: "Voda", hodina: 10,
-    text: "Bez vody se na kruhu netočí, hlína by drhla a trhala se. S moc vodou zase zvadne. Kapka hlídá, aby jí bylo akorát. Klikni do vody.",
+    text: "Bez vody se na kruhu netočí, hlína by drhla a trhala se. S moc vodou zase zvadne. Kapka hlídá, aby jí bylo akorát.",
+    pokyn: "Klikni do vody.",
   },
   {
     id: "vazicka", cislo: "四", znak: "形", cteni: "katachi", nazev: "Tvar", hodina: 13,
-    text: "Na kruhu se z hroudy stane tvar. Nejdřív se hlína vycentruje, pak otevře a vytáhne. Rozhoduje držení těla: lokty opřené, záda rovně, dech klidný. Sjeď dolů a nech ji růst.",
+    text: "Na kruhu se z hroudy stane tvar. Nejdřív se hlína vycentruje, pak otevře a vytáhne. Rozhoduje držení těla: lokty opřené, záda rovně, dech klidný.",
+    pokyn: "Sjeď dolů a nech ji růst.",
   },
   {
     id: "kachlik", cislo: "五", znak: "平", cteni: "taira", nazev: "Rovina", hodina: 15.5,
-    text: "Při sušení se tvar rád zkroutí — kraje schnou rychleji než střed. Proto se suší pomalu a přikryté a talíře se obracejí. Kachlík to hlídá. Zkus ho srovnat: hýbej myší, nebo prstem.",
+    text: "Při sušení se tvar rád zkroutí — kraje schnou rychleji než střed. Proto se suší pomalu a přikryté a talíře se obracejí. Kachlík to hlídá.",
+    pokyn: "Zkus ho srovnat: hýbej myší, nebo prstem.",
   },
   {
     id: "cedulka", cislo: "六", znak: "名", cteni: "na", nazev: "Jméno", hodina: 17.5,
@@ -177,11 +209,13 @@ export const cesta: Zastaveni[] = [
   },
   {
     id: "samotka", cislo: "七", znak: "棚", cteni: "tana", nazev: "Police", hodina: 20,
-    text: "Pec se skládá jako hlavolam: kusy se nesmějí dotýkat a každá police nese, co unese. Šamotka leží úplně dole a drží všechno ostatní. Dívej se, jak se plní.",
+    text: "Pec se skládá jako hlavolam: kusy se nesmějí dotýkat a každá police nese, co unese. Šamotka leží úplně dole a drží všechno ostatní.",
+    pokyn: "Dívej se, jak se plní.",
   },
   {
     id: "pecinka", cislo: "八", znak: "火", cteni: "hi", nazev: "Oheň", hodina: 23,
-    text: "Výpal trvá celý den a pak celou noc chladne. Teplota stoupá pomalu, protože hlína prochází proměnami, které se nedají uspěchat. Sjeď dolů a rozpal Pecinku.",
+    text: "Výpal trvá celý den a pak celou noc chladne. Teplota stoupá pomalu, protože hlína prochází proměnami, které se nedají uspěchat.",
+    pokyn: "Sjeď dolů a rozpal Pecinku.",
   },
   {
     id: "stripek", cislo: "九", znak: "金", cteni: "kin", nazev: "Střep", hodina: 29.5,

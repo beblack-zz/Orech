@@ -1,0 +1,275 @@
+/*
+ * Úroveň 七 Police — Skládání pece. Kresba je v components/zkouska/urovne/
+ * police-kresba.ts, hra ve scripts/zkouska/urovne/police.ts. Nad kresbou
+ * leží průhledná tlačítka (kusy, sloupky, houbička) a štítky, všechno
+ * v procentech okna; písmo štítků roste s šířkou okna (cqw).
+ */
+
+.mu-police .mp7-okno {
+  container-type: inline-size;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ——— Kresba ——— */
+
+.mu-police .mp7-kus-stin { fill: #2B2420; opacity: 0.16; transition: opacity 0.2s; }
+.mu-police .mp7-kus.drzeny .mp7-kus-stin { opacity: 0.05; }
+.mu-police .mp7-kus-ram { fill: none; stroke: none; }
+.mu-police .mp7-kus.drzeny .mp7-kus-ram { stroke: #D6A23A; stroke-width: 2.2; stroke-dasharray: 7 5; }
+.mu-police .mp7-kus.spatne .mp7-kus-ram { stroke: #C4432B; stroke-width: 2.6; stroke-dasharray: none; animation: mp7-pulz 1.1s ease-in-out infinite; }
+@keyframes mp7-pulz { 50% { stroke-opacity: 0.3; } }
+
+.mu-police .mp7-nahled { opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.mu-police .mp7-nahled.je { opacity: 1; }
+.mu-police .mp7-nahled-stin { fill: #2B2420; opacity: 0.3; transition: fill 0.15s; }
+.mu-police .mp7-nahled-stin.spatne { fill: #C4432B; opacity: 0.6; }
+
+.mu-police .mp7-vodidla { opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+.mu-police .mp7-vodidla.je { opacity: 1; }
+
+/* Šamotka zhoupne, když na ni něco dosedne */
+.mu-police .mp7-samotka-telo { transform-box: fill-box; transform-origin: 50% 100%; }
+.mu-police .mp7-samotka-telo.zhupne { animation: mp7-zhupne 0.5s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes mp7-zhupne { 30% { transform: scale(1.008, 0.93); } }
+
+/* Houbička se zmáčkne pod kusem */
+.mu-police .mp7-houba-telo { transform-box: fill-box; transform-origin: 50% 100%; }
+.mu-police .mp7-houba-telo.otira { animation: mp7-otira 0.76s ease-in-out; }
+@keyframes mp7-otira {
+  20% { transform: scale(1.08, 0.8); }
+  45% { transform: scale(0.96, 1.05); }
+  70% { transform: scale(1.07, 0.84); }
+}
+
+/* Konec: otevřené víko zmizí (sjíždí dolů), spirály se rozžhaví */
+.mu-police .mp7-viko-otevrene { transition: opacity 0.3s; }
+.mu-police.zaviram .mp7-viko-otevrene { opacity: 0; }
+.mu-police .mp7-spirala-zar,
+.mu-police .mp7-spirala-tecka { opacity: calc(var(--mp7-zar, 0) * 0.95); }
+.mu-police .mp7-samotka-zar { opacity: calc(0.75 + var(--mp7-zar, 0) * 0.25); }
+.mu-police.dosedlo .mp7-pec { animation: mp7-otres 0.32s ease-out; }
+@keyframes mp7-otres { 25% { transform: translateY(2px); } 60% { transform: translateY(-1px); } }
+
+/* ——— Ovládací vrstva ——— */
+
+.mu-police .mp7-plocha { position: absolute; inset: 0; z-index: 1; touch-action: manipulation; }
+.mu-police .mp7-tlacitka { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.mu-police .mp7-kus-tl,
+.mu-police .mp7-sloupky-tl,
+.mu-police .mp7-sloupky-pravy,
+.mu-police .mp7-houba-tl {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.mu-police .mp7-kus-tl { z-index: 3; touch-action: none; cursor: grab; transition: background 0.2s; }
+@media (hover: hover) {
+  .mu-police .mp7-kus-tl:hover { background: rgba(255, 248, 226, 0.22); }
+}
+.mu-police .mp7-kus-tl:active { cursor: grabbing; }
+.mu-police .mp7-kus-tl.v-ruce { pointer-events: none; z-index: 5; }
+.mu-police .mp7-kus-tl:focus-visible { outline: 2.5px solid var(--rumelka); outline-offset: 2px; }
+
+/* Štítek s rozměry na hraně regálu — na úzkém okně se nevejde, tam ho nahradí řádek pod scénou */
+.mu-police .mp7-stitek {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  transform: translate(-50%, -2px) rotate(-1.5deg);
+  padding: 2px 6px 3px;
+  border-radius: 3px;
+  background: #FBF7EC;
+  box-shadow: 0 1px 0 rgba(43, 36, 32, 0.22), 0 0 0 0.5px rgba(201, 180, 138, 0.8);
+  color: var(--inkoust);
+  font-family: var(--f-ruka);
+  font-size: clamp(9px, 1.55cqw, 15px);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.mu-police .mp7-stitek b { font-weight: 600; }
+.mu-police .mp7-kus-tl:nth-child(even) .mp7-stitek { transform: translate(-50%, -2px) rotate(1.2deg); }
+.mu-police .mp7-navic {
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translate(30%, -55%);
+  padding: 2px 6px 2px;
+  border-radius: 99px;
+  background: linear-gradient(#F3D27A, #D6A23A);
+  box-shadow: 0 2px 6px -2px rgba(107, 74, 18, 0.7);
+  color: #5A3E0E;
+  font-family: var(--f-display);
+  font-size: clamp(7.5px, 1.05cqw, 11px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  pointer-events: none;
+}
+.mu-police .mimo-regal .mp7-stitek,
+.mu-police .mimo-regal .mp7-navic { display: none; }
+
+/* Glazura na dně: červená kapka u paty */
+.mu-police .mp7-dno {
+  position: absolute;
+  right: -3px;
+  bottom: 0;
+  width: clamp(14px, 2.3cqw, 24px);
+  aspect-ratio: 1;
+  border-radius: 50% 50% 50% 0;
+  background: var(--rumelka);
+  box-shadow: 0 0 0 2px #FBF7EC, 0 3px 8px -2px rgba(80, 20, 10, 0.6);
+  transform: rotate(-45deg);
+  pointer-events: none;
+}
+.mu-police .mp7-dno::after {
+  content: "!";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #FFF7EC;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: clamp(9px, 1.5cqw, 15px);
+  line-height: 1;
+  transform: rotate(45deg);
+}
+.mu-police .mp7-kus-tl.spatne .mp7-dno { animation: mp7-kapka 0.9s ease-in-out infinite; }
+@keyframes mp7-kapka { 50% { box-shadow: 0 0 0 2px #FBF7EC, 0 0 0 7px rgba(196, 67, 43, 0.35); } }
+
+/* Sloupky: tlačítko přes levou stěnu a sloupek, štítek s výškou na stěně */
+.mu-police .mp7-sloupky-tl { z-index: 2; cursor: pointer; touch-action: manipulation; }
+.mu-police .mp7-sloupky-pravy { z-index: 2; cursor: pointer; }
+.mu-police .mp7-vyska {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 2px 7px 3px;
+  border-radius: 6px;
+  background: #FBF7EC;
+  box-shadow: 0 2px 6px -3px rgba(43, 36, 32, 0.6), 0 0 0 1px rgba(138, 124, 112, 0.25);
+  color: var(--inkoust);
+  font-family: var(--f-ruka);
+  font-size: clamp(10px, 1.75cqw, 18px);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.2s;
+}
+.mu-police .mp7-vyska::before { content: "↕ "; color: var(--rumelka); }
+.mu-police .mp7-sloupky-tl:hover .mp7-vyska,
+.mu-police .mp7-sloupky-tl:focus-visible .mp7-vyska { background: var(--zlato-2); transform: translateY(-50%) scale(1.06); }
+.mu-police .mp7-sloupky-tl:focus-visible { outline: 2.5px solid var(--rumelka); outline-offset: -2px; }
+
+.mu-police .mp7-houba-tl { z-index: 2; cursor: pointer; transition: box-shadow 0.2s; }
+.mu-police .mp7-houba-tl.cil,
+.mu-police .mp7-houba-tl:focus-visible { box-shadow: 0 0 0 3px #F3D27A, 0 0 22px 6px rgba(243, 210, 122, 0.75); outline: none; }
+
+/* Nosnost na hraně polic a na Šamotce */
+.mu-police .mp7-zatez {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+  padding: 2px 7px 3px;
+  border-radius: 6px;
+  background: rgba(251, 247, 236, 0.94);
+  box-shadow: 0 1px 0 rgba(43, 36, 32, 0.18);
+  color: var(--inkoust-2);
+  font-family: var(--f-ruka);
+  font-size: clamp(9.5px, 1.6cqw, 16px);
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateX(-100%);
+  transition: background 0.25s, color 0.25s;
+  pointer-events: none;
+}
+.mu-police .mp7-zatez-cislo { font-weight: 600; color: var(--inkoust); }
+.mu-police .mp7-zatez.plno { background: var(--zlato-2); }
+.mu-police .mp7-zatez.pretizeno { background: var(--rumelka); color: #FFF7EC; animation: mp7-tres 0.5s ease-in-out infinite; }
+.mu-police .mp7-zatez.pretizeno .mp7-zatez-cislo { color: #FFF7EC; }
+@keyframes mp7-tres { 25% { transform: translateX(-100%) rotate(-2deg); } 75% { transform: translateX(-100%) rotate(2deg); } }
+
+/* Důvod u kusu, který v peci nesedí */
+.mu-police .mp7-duvody { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.mu-police .mp7-duvod {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 3px 9px 4px;
+  border-radius: 99px;
+  background: var(--rumelka);
+  box-shadow: 0 6px 14px -8px rgba(60, 20, 10, 0.75);
+  color: #FFF7EC;
+  font-family: var(--f-display);
+  font-size: clamp(8.5px, 1.25cqw, 12.5px);
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+  animation: mp7-duvod 0.25s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+@keyframes mp7-duvod { from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } }
+
+/* Šamotka funí */
+.mu-police .mp7-kotva { position: absolute; pointer-events: none; }
+.mu-police .mp7-uf {
+  position: absolute;
+  z-index: 2;
+  color: var(--inkoust);
+  font-family: var(--f-ruka);
+  font-size: clamp(13px, 2.5cqw, 26px);
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0;
+  transform: translate(-50%, 6px) rotate(-8deg);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+.mu-police .mp7-uf.je { opacity: 1; transform: translate(-50%, 0) rotate(-8deg); animation: mp7-funi 1.4s ease-in-out infinite; }
+@keyframes mp7-funi { 50% { transform: translate(-50%, -3px) rotate(-4deg); } }
+
+/* ——— Řádek pod scénou ——— */
+
+.mu-police .mp7-ovladani { gap: 10px 16px; }
+.mu-police .mp7-info {
+  flex: 1 1 300px;
+  max-width: 640px;
+  min-height: 2.3em;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  color: var(--inkoust-2);
+  font-family: var(--f-ruka);
+  font-size: 21px;
+  line-height: 1.12;
+  text-align: center;
+  text-wrap: balance;
+}
+.mu-police .mp7-zavrit { min-width: 150px; justify-content: center; }
+.mu-police .mp7-zavrit.pripraveno { animation: mp7-vyzva 1.8s ease-in-out infinite; }
+@keyframes mp7-vyzva { 50% { box-shadow: 0 0 0 6px rgba(214, 162, 58, 0.35); } }
+
+@container (max-width: 520px) {
+  .mu-police .mp7-stitek,
+  .mu-police .mp7-zatez-z { display: none; }
+  .mu-police .mp7-vyska::before { content: ""; }
+}
+@media (max-width: 640px) {
+  .mu-police .mp7-info { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mu-police .mp7-okno *,
+  .mu-police .mp7-okno *::before,
+  .mu-police .mp7-okno *::after,
+  .mu-police .mp7-zavrit { animation: none !important; transition: none !important; }
+}

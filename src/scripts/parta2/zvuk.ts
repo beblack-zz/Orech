@@ -568,3 +568,8 @@ export const ohineri = () => {
     ton(360, 240, 0.06, "triangle", 0.1);
   }, 60);
 };
+
+/* Komnata Dílna (/zkouska): hry si skládají vlastní zvuky ze stejných kousků */
+export { ton, sumik };
+/** Kontext a hlavní výstup pro přesné plánování (rytmus hnětení) — null, dokud zvuk nehraje */
+export const audio = () => (muze() && ctx ? { ctx, vystup: hlavni as AudioNode } : null);

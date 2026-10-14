@@ -11,6 +11,8 @@ const u = uid();
   a v rohu červené razítko hanko se znakem 正 (sei, „rovný, správný“).
   Úřední potvrzení, že je v pořádku. Kdo umí japonsky, zasměje se,
   kdo ne, vidí aspoň razítko.
+  Jako na podobě Kami nosí na hlavě vodováhu, mezi obočím čtvercové
+  byakugó a stojí na geta — celý je proto o výšku geta výš.
 */}
 <svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
   <defs>
@@ -22,33 +24,57 @@ const u = uid();
     </radialGradient>
   </defs>
 
-  <ellipse cx="90" cy="154" rx="36" ry="6" fill="#3A2E28" opacity="0.14" />
+  <ellipse cx="90" cy="155.4" rx="36" ry="5" fill="#3A2E28" opacity="0.14" />
   <g filter={`url(#${u}-tah)`}>
-    <ellipse cx="72" cy="147" rx="11" ry="5" fill="#B84A2B" />
-    <ellipse cx="108" cy="147" rx="11" ry="5" fill="#B84A2B" />
+    {/* Geta: deska a dva zuby */}
+    <g stroke="#6B5D4F" stroke-linejoin="round">
+      {[63, 99].map((x) => (
+        <g>
+          <path d={`M${x + 2.4} 147.8 H${x + 6} V154.8 H${x + 2.4} Z M${x + 12} 147.8 H${x + 15.6} V154.8 H${x + 12} Z`} fill="#8C6444" stroke-width="0.9" />
+          <rect x={x} y="141.4" width="18" height="6.4" rx="1.4" fill="#C99A68" stroke-width="1.1" />
+          <path d={`M${x + 1.4} 143.2 H${x + 16.6}`} stroke="#E2BE8C" stroke-width="0.9" stroke-linecap="round" />
+        </g>
+      ))}
+    </g>
+    <ellipse cx="72" cy="137" rx="11" ry="5" fill="#B84A2B" />
+    <ellipse cx="108" cy="137" rx="11" ry="5" fill="#B84A2B" />
+    <path d="M65 141.4 Q72 132 79 141.4 M101 141.4 Q108 132 115 141.4" stroke="#3A2E28" stroke-width="2.1" stroke-linecap="round" />
   </g>
   <g class="kachlik-telo">
     <g filter={`url(#${u}-tah)`}>
-      <rect x="44" y="50" width="92" height="94" rx="7" fill={`url(#${u}-telo)`} stroke="#94542C" stroke-width="1.6" />
-      <rect x="53" y="59" width="74" height="76" rx="4" fill="none" stroke="#B84A2B" stroke-width="2" opacity="0.55" />
-      <path d="M50 58 L50 136" stroke="#E9B892" stroke-width="2" stroke-linecap="round" opacity="0.5" />
+      <rect x="44" y="40" width="92" height="94" rx="7" fill={`url(#${u}-telo)`} stroke="#94542C" stroke-width="1.6" />
+      <rect x="53" y="49" width="74" height="76" rx="4" fill="none" stroke="#B84A2B" stroke-width="2" opacity="0.55" />
+      <path d="M50 48 L50 126" stroke="#E9B892" stroke-width="2" stroke-linecap="round" opacity="0.5" />
       {/* Hanko */}
-      <rect x="108" y="116" width="14" height="14" rx="1.5" fill="#B84A2B" transform="rotate(-4 115 123)" />
-      <g stroke="#F4EBDD" stroke-width="1.3" stroke-linecap="square" transform="rotate(-4 115 123)">
-        <path d="M110.5 119 H119.5 M115 119 V127.5 M115 123 H118.5 M112 123.5 V127.5 M110 127.5 H120" />
+      <rect x="108" y="106" width="14" height="14" rx="1.5" fill="#B84A2B" transform="rotate(-4 115 113)" />
+      <g stroke="#F4EBDD" stroke-width="1.3" stroke-linecap="square" transform="rotate(-4 115 113)">
+        <path d="M110.5 109 H119.5 M115 109 V117.5 M115 113 H118.5 M112 113.5 V117.5 M110 117.5 H120" />
       </g>
+    </g>
+    {/* Vodováha na hlavě: dřevo, trubička se zelenou kapalinou a bublina přesně uprostřed */}
+    <g filter={`url(#${u}-tah)`}>
+      <rect x="61" y="39.4" width="58" height="1.4" fill="#3A2E28" opacity="0.25" />
+      <rect x="60" y="31.4" width="60" height="8.6" rx="1.7" fill="#C9A06A" stroke="#7A5A3C" stroke-width="0.9" />
+      <path d="M61.6 33.8 H118.4" stroke="#F0D4A4" stroke-width="1.1" stroke-linecap="round" opacity="0.7" />
+      <rect x="80.4" y="33.2" width="19.2" height="5" rx="2.5" fill="#2E3A2C" />
+      <rect x="81" y="33.8" width="18" height="3.8" rx="1.9" fill="#BCE07A" />
+      <path d="M86.4 33.2 V38.2 M93.6 33.2 V38.2" stroke="#2E3A2C" stroke-width="0.7" />
+      <ellipse cx="90" cy="35.7" rx="3.1" ry="1.6" fill="#F6FFE6" />
+      <circle cx="67.2" cy="35.7" r="1.4" fill="#7A5A3C" opacity="0.6" />
+      <circle cx="112.8" cy="35.7" r="1.4" fill="#7A5A3C" opacity="0.6" />
     </g>
     <g class="tvar">
       <g filter={`url(#${u}-mlha)`} fill="#B84A2B" opacity="0.35">
-        <ellipse cx="68" cy="102" rx="6" ry="4" />
-        <ellipse cx="112" cy="102" rx="6" ry="4" />
+        <ellipse cx="68" cy="92" rx="6" ry="4" />
+        <ellipse cx="112" cy="92" rx="6" ry="4" />
       </g>
-      <path d="M72 82 H84 M96 82 H108" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" />
-      <ellipse cx="78" cy="91" rx="3.3" ry="4.2" fill="#3A2E28" />
-      <ellipse cx="102" cy="91" rx="3.3" ry="4.2" fill="#3A2E28" />
-      <circle cx="77" cy="89.3" r="1.3" fill="#FFF3E6" />
-      <circle cx="101" cy="89.3" r="1.3" fill="#FFF3E6" />
-      <path d="M84 106 H96" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" />
+      <path d="M72 72 H84 M96 72 H108" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" />
+      <rect x="88.2" y="70.2" width="3.6" height="3.6" rx="0.4" fill="#E9C46E" stroke="#8A5A1E" stroke-width="0.6" />
+      <ellipse cx="78" cy="81" rx="3.3" ry="4.2" fill="#3A2E28" />
+      <ellipse cx="102" cy="81" rx="3.3" ry="4.2" fill="#3A2E28" />
+      <circle cx="77" cy="79.3" r="1.3" fill="#FFF3E6" />
+      <circle cx="101" cy="79.3" r="1.3" fill="#FFF3E6" />
+      <path d="M84 96 H96" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" />
     </g>
   </g>
 </svg>

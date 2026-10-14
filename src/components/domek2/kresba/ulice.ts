@@ -27,6 +27,12 @@ export interface UliceVolby {
   nebe?: boolean;
   /** Brána: posuvná křídla ve vlastní skupině, aby s nimi mohl hýbat skript */
   brana?: boolean;
+  /**
+   * Jen jedna vrstva (ve dne): „vzadu“ je dům, dílna a zem i s <defs>,
+   * „vpredu“ brána, zídka a lampa — mezi ně jde vložit HTML (noren ve dveřích).
+   * Druhá vrstva sahá na <defs> té první, musí být na stejné stránce.
+   */
+  vrstva?: "vzadu" | "vpredu";
 }
 
 /** Výřezy: hero je široký, „foto“ přesně rám fotky */
@@ -700,6 +706,8 @@ export function ulice(v: UliceVolby = {}) {
    */
   const vzadu = `${pozadi}${stit}${fasada}${strecha}${dilna}${zem}`;
   const vpredu = `${brana}${zidka}${lampa}`;
+  if (!noc && v.vrstva === "vzadu") return `${defs}${nebe}${vzadu}`;
+  if (!noc && v.vrstva === "vpredu") return vpredu;
   if (!noc) return `${defs}${nebe}${vzadu}${vpredu}`;
   return `${defs}${nebe}<g filter="url(#${p}-noc)">${vzadu}</g>${svetlaVzadu}<g filter="url(#${p}-noc)">${vpredu}</g>${svetlaVpredu}`;
 }

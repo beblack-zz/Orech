@@ -1,0 +1,38 @@
+---
+/**
+ * Razítka komnaty U mistra jako <symbol> — deska, sešit, okno úrovně i síň
+ * mistra na ně jen odkazují (<use href="#mrz-hrouda">). Kresby jsou
+ * v ./razitka.ts, odkud si je bere i obrázek listu ke stažení.
+ *
+ * Inkoust je currentColor: učeň rumělkou, tovaryš indigem, zkouška na
+ * mistra fialovou — barvu dává zkouska.css podle třídy .inkoust-0/1/2.
+ * Nerovný inkoust dělá filtr mrz-inkoust (jako rz-inkoust na Úvodu 2).
+ *
+ * K razítkům patří známky 優 良 可 jako malé hranaté pečeti.
+ */
+import { urovne, znamky } from "../../data/mistr";
+import { razitkoObsah, OBLOUK } from "./razitka";
+---
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <path id="mrz-oblouk" d={OBLOUK} />
+    <filter id="mrz-inkoust" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="5" result="vlna" />
+      <feDisplacementMap in="SourceGraphic" in2="vlna" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="tvar" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="11" result="zrno" />
+      <feColorMatrix in="zrno" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -11 0 0 0 7.1" result="diry" />
+      <feComposite in="tvar" in2="diry" operator="in" />
+    </filter>
+  </defs>
+
+  {urovne.map((u) => (
+    <symbol id={`mrz-${u.id}`} viewBox="0 0 100 100" set:html={razitkoObsah(u.id)} />
+  ))}
+
+  {Object.entries(znamky).map(([id, z]) => (
+    <symbol id={`mrz-znamka-${id}`} viewBox="0 0 40 40">
+      <rect x="3" y="3" width="34" height="34" rx="4" fill="none" stroke="currentColor" stroke-width="2.6" />
+      <text x="20" y="29.6" text-anchor="middle" font-size="25" fill="currentColor" font-family="Yuji Syuku, Yu Mincho, serif">{z.znak}</text>
+    </symbol>
+  ))}
+</svg>

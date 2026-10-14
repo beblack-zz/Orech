@@ -4,9 +4,8 @@
  *
  * Dny kreslí skript (scripts/rezervace/hlavni.ts), protože záleží na
  * dnešku — každý den je lepenková jízdenka jako ze staré pokladny
- * (japonsky kōken): úterky rumělkové, pátky zlaté, s ochranným podtiskem.
- * Vybraný den průvodčí cvakne — do jízdenky se vystřihne ořech. Den, kdy
- * jede kurz, má jízdenku tmavou se zlatým pruhem: zvláštní vlak.
+ * (japonsky kōken): úterky modré, pátky zlaté, s ochranným podtiskem.
+ * Vybraný den průvodčí cvakne — do jízdenky se vystřihne ořech.
  *
  * Pod dny je přepážka s permanentkami (teikiken — v Japonsku se
  * kupují přesně takhle, na měsíc, tři nebo šest): ranní a večerní spoj,
@@ -15,23 +14,46 @@
  * to dopisuje do nadpisu. Tatáž místa jsou vidět na tabuli v prvním
  * a posledním řádku; kde se klikne, je jedno.
  *
+ * Třetí je přepážka zvláštních vlaků: kurzy na celý den, které jezdí
+ * v sobotu. Vypsané bývají nejvýš dva, každý má tmavou kartu se zlatou
+ * linkou, jménem, dnem a sedadly. Karta vybere jeho den — tabule vedle
+ * ukáže trať a nastupuje se na ní. Mezi dny v kroku 02 soboty nejsou;
+ * tmavou jízdenku tam má jen kurz, který by vyjel v úterý nebo v pátek
+ * (výluka).
+ *
  * Kroky mají čísla jako japonské stanice (OŘ 01, OŘ 02…): značka
  * linky a pořadí zastávky v rámečku její barvy.
+ *
+ * Nahoře je cedulka pro toho, kdo se dívá — jen když jsou rezervace
+ * zapojené (scripts/rezervace/kalendar.ts). Člena, který přišel přes svůj
+ * odkaz, pozdraví jménem; ostatním řekne, že napoprvé je potřeba se ozvat.
  */
-import { rezervace, permanentka } from "../../data/rezervace";
+import { rezervace, permanentka, kurzy, hhmm } from "../../data/rezervace";
+import { kontakt } from "../../data/uvod2";
 
 /** Postavičky do volby „kolik vás pojede“ — každá další je o kousek menší */
 const lide = Array.from({ length: rezervace.maxOsob }, (_, i) => i + 1);
 const barvy = ["#9C7860", "#D79A94", "#93B39B", "#E8B440"];
 const mistaPermanentky = Array.from({ length: permanentka.mist }, (_, i) => i);
 const cenaPermanentky = permanentka.cena.toLocaleString("cs-CZ");
+const DNY = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
+const V_DEN = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
+/** Kurzy stojí stejně; kdyby ne, napíše se rozpětí */
+const cenyKurzuCisla = [...new Set(kurzy.map((k) => k.cena))].sort((a, b) => a - b);
+const cenyKurzu = cenyKurzuCisla.map((c) => c.toLocaleString("cs-CZ")).filter((_, i, a) => i === 0 || i === a.length - 1).join("–");
 ---
 <div class="rz-pokladna papir">
   <p class="stitek">pokladna</p>
   <h2 id="rz-pokladna-nadpis" class="nadpis-2">Kolik vás pojede a kdy</h2>
 
+  <div class="rz-clen" aria-live="polite" hidden>
+    <p data-clen="clen" hidden>Ahoj, <b class="rz-clen-jmeno"></b>! Jízdenka platí hned, jak ji označíš — nic se nepotvrzuje.</p>
+    <p data-clen="host" hidden>Zamluvit si odjezd rovnou můžou ti, kdo od nás mají svůj odkaz. Jsi tu poprvé? <a href={`mailto:${kontakt.email}`}>Napiš</a> nebo <a href={`tel:${kontakt.telefonOdkaz}`}>zavolej</a>, domluvíme se a odkaz ti pošleme.</p>
+    <p data-clen="neplatny" hidden>Tenhle odkaz už neplatí. <a href={`mailto:${kontakt.email}`}>Napiš nám</a> nebo <a href={`tel:${kontakt.telefonOdkaz}`}>zavolej</a> a pošleme ti nový.</p>
+  </div>
+
   <div class="rz-krok">
-    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>01</span> Kolik vás pojede <small>hodina je celá vaše — sám, nebo až ve čtyřech</small></h3>
+    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>01</span> Kolik vás pojede <small>odjezd je celý váš — sám, nebo až ve čtyřech</small></h3>
     <div class="rz-osoby" role="radiogroup" aria-label="Počet lidí">
       {lide.map((n) => (
         <label class="rz-osoba">
@@ -58,7 +80,7 @@ const cenaPermanentky = permanentka.cena.toLocaleString("cs-CZ");
   </div>
 
   <div class="rz-krok">
-    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>02</span> Den <small>úterky a pátky na měsíc dopředu — tmavá jízdenka je kurz na celý den</small></h3>
+    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>02</span> Den <small>úterky a pátky na měsíc dopředu</small></h3>
     <div class="rz-dny" role="group" aria-label="Dny, na které se dá rezervovat"></div>
   </div>
 
@@ -71,7 +93,7 @@ const cenaPermanentky = permanentka.cena.toLocaleString("cs-CZ");
       {permanentka.spoje.map((s) => (
         <button type="button" class="rz-pas-volba" data-pas={s.h} aria-pressed="false" disabled>
           <span class="rz-pas-hlava">{s.nazev} spoj</span>
-          <b class="rz-pas-cas">{s.h}:00–{s.h + 1}:00</b>
+          <b class="rz-pas-cas">{hhmm(s.h)}–{hhmm(s.h + rezervace.blok)}</b>
           <span class="rz-pas-mista" aria-hidden="true">
             {mistaPermanentky.map(() => <svg class="rz-sedacka pas" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg>)}
           </span>
@@ -81,8 +103,21 @@ const cenaPermanentky = permanentka.cena.toLocaleString("cs-CZ");
       ))}
     </div>
     <p class="rz-pas-pozn">
-      {cenaPermanentky}&nbsp;Kč za člověka, jeden den v týdnu a jeden spoj. V den kurzu je výluka a nejede se.
+      {cenaPermanentky}&nbsp;Kč za člověka, jeden den v týdnu a jeden spoj.
       <span class="rz-pas-stav" aria-live="polite"></span>
+    </p>
+  </div>
+
+  <div class="rz-krok rz-zvlastni">
+    <h3 class="rz-otazka">
+      <span class="rz-zvlastni-znak" aria-hidden="true">{DNY[rezervace.denKurzu]}</span> Zvláštní vlak
+      <small>kurz na celý den s lektorem a programem — jezdí {V_DEN[rezervace.denKurzu]} a místa se v něm plní po jednom. Vyber vlak a tabule ukáže jeho trať; nastupuje se tam.</small>
+    </h3>
+    {/* Karty vlaků kreslí skript — který kurz jede kdy, záleží na dnešku */}
+    <div class="rz-zvlastni-vlaky" role="group" aria-label="Zvláštní vlaky — kurzy na celý den"></div>
+    <p class="rz-zvlastni-pozn">
+      {cenyKurzu}&nbsp;Kč za člověka a celý den.
+      <span class="rz-zvlastni-stav" aria-live="polite"></span>
     </p>
   </div>
 </div>

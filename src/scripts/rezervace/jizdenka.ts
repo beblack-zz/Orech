@@ -2,7 +2,7 @@
  * Jízdenka (components/rezervace/Jizdenka.astro): údaje, obrázek s vláčkem
  * a označení.
  *
- * Vláček má vůz na každou vybranou hodinu, na cedulce vozu je ta hodina
+ * Vláček má vůz na každý vybraný odjezd, na cedulce vozu je jeho čas
  * a v oknech sedí tvoje skupina — hodina se zamlouvá celá, takže nikdo
  * cizí s vámi nejede. Obloha obrázku je obloha první vybrané hodiny. Když se
  * vybere první hodina, vláček přijede; s další hodinou se připojí vůz
@@ -25,7 +25,7 @@
  */
 import { vlak, delka, zvlastniVlak, DELKA_ZVLASTNIHO } from "../../components/rezervace/vlak";
 import type { Misto } from "../../components/rezervace/vlak";
-import { permanentka as P } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm } from "../../data/rezervace";
 import { sklonuj, zPoctu } from "../../data/pocty";
 import { paleta } from "../parta2/paleta";
 import { klid, omez, mix, mixBarva, hladce } from "../parta2/stav";
@@ -39,7 +39,12 @@ const MESICE_2 = ["ledna", "února", "března", "dubna", "května", "června", "
 const dvoj = (n: number) => String(n).padStart(2, "0");
 const kc = (n: number) => `${n.toLocaleString("cs-CZ")} Kč`;
 const lidi = (n: number) => (n === 1 ? "1 člověk" : `${n} lidi`);
-const hodin = (n: number) => (n === 1 ? "1 hodina" : n >= 2 && n <= 4 ? `${n} hodiny` : `${n} hodin`);
+const odjezdu = (n: number) => sklonuj(n, "odjezd", "odjezdy", "odjezdů");
+/** Kolik času je n odjezdů: „1,5 hodiny“, „3 hodiny“, „6 hodin“ */
+const trvani = (n: number) => {
+  const h = n * R.blok;
+  return `${String(h).replace(".", ",")} ${!Number.isInteger(h) || (h >= 2 && h <= 4) ? "hodiny" : h === 1 ? "hodina" : "hodin"}`;
+};
 const datum = (d: Date) => `${d.getDate()}. ${MESICE_2[d.getMonth()]} ${d.getFullYear()}`;
 
 /** Poměr stran obrázku — stejný jako aspect-ratio v rezervace.css */
@@ -49,15 +54,15 @@ const DEN_KURZU = 48000;
 const naJaro = (t: number) => 1 - Math.pow(1 - t, 3);
 const rozjezd = (t: number) => t * t;
 
-/** Hodiny po sobě se slijí do jednoho úseku: 9:00–11:00, 14:00–15:00 */
+/** Odjezdy po sobě se slijí do jednoho úseku: 9:00–12:00, 15:00–16:30 */
 export const useky = (hodiny: number[]) => {
   const out: [number, number][] = [];
   for (const x of [...hodiny].sort((a, b) => a - b)) {
     const p = out[out.length - 1];
-    if (p && p[1] === x) p[1] = x + 1;
-    else out.push([x, x + 1]);
+    if (p && p[1] === x) p[1] = x + R.blok;
+    else out.push([x, x + R.blok]);
   }
-  return out.map(([a, b]) => `${a}:00–${b}:00`).join(", ");
+  return out.map(([a, b]) => `${hhmm(a)}–${hhmm(b)}`).join(", ");
 };
 
 /** Odjezdová melodie — japonská nádraží hrají před odjezdem krátkou znělku */
@@ -80,6 +85,8 @@ export interface UdajeJizdenky {
   kurz?: KurzDne;
   /** Permanentka: na které spoje, odkdy dokdy a kolik jich je už prodaných */
   pas?: { spoje: number[]; platnost: { od: Date; do: Date; jizdy: Jizda[] }; obsazeno: ReadonlyMap<number, number> };
+  /** Zamlouvá člen se svým odkazem — jízdenka platí hned, nikdo ji nepotvrzuje */
+  hned?: boolean;
 }
 
 type Druh = "hodiny" | "kurz" | "pas";
@@ -233,12 +240,12 @@ export function initJizdenka() {
     program.textContent = "";
     if (!k) return;
     const zastavky = [...k.kurz.program].sort((a, b) => a.h - b.h);
-    const konec = (zastavky[zastavky.length - 1]?.h ?? 17) + 1;
+    const konec = (zastavky[zastavky.length - 1]?.h ?? R.do - R.blok) + R.blok;
     program.style.setProperty("--zastavek", String(zastavky.length + 1));
     for (const z of [...zastavky.map((x) => ({ ...x, cil: false })), { h: konec, nazev: "Cíl", popis: "Vlak je zpátky v Ořechu.", cil: true }]) {
       const li = prvek("li", z.cil ? "rz-lp-cil" : "");
       li.title = z.popis;
-      li.append(prvek("span", "rz-lp-cas", `${z.h}`), prvek("i", ""), prvek("span", "rz-lp-nazev", z.nazev));
+      li.append(prvek("span", "rz-lp-cas", hhmm(z.h)), prvek("i", ""), prvek("span", "rz-lp-nazev", z.nazev));
       program.append(li);
     }
   };
@@ -290,27 +297,28 @@ export function initJizdenka() {
           druh === "kurz" && c
             ? `Zvláštní vlak „${c.vlak}“ (${c.cteni} — ${c.vyznam}) · lektor ${c.lektor}`
             : druh === "pas"
-              ? `${d ? KAZDY[d.datum.getDay()].replace(/^k/, "K") : "Jeden den v týdnu"} po ${P.mesicu} měsíce, pokaždé stejným spojem. V den kurzu je výluka.`
+              ? `${d ? KAZDY[d.datum.getDay()].replace(/^k/, "K") : "Jeden den v týdnu"} po ${P.mesicu} měsíce, pokaždé stejným spojem.`
               : "";
       }
       if (denPopis) denPopis.textContent = druh === "pas" ? "Platí" : "Den";
       if (hodinyPopis) hodinyPopis.textContent = druh === "pas" ? "Spoj" : "Odjezd";
       if (platnost) {
+        const az = u.hned ? "." : ", až ji potvrdíme.";
         platnost.textContent =
           druh === "kurz"
-            ? "Platí na uvedený kurz, až ji potvrdíme."
+            ? `Platí na uvedený kurz${az}`
             : druh === "pas"
-              ? "Platí na uvedený spoj po celou dobu platnosti, až ji potvrdíme."
-              : "Platí pro uvedený den a odjezd, až ji potvrdíme.";
+              ? `Platí na uvedený spoj po celou dobu platnosti${az}`
+              : `Platí pro uvedený den a odjezd${az}`;
       }
 
       /* Údaje */
       if (druh === "kurz" && c && d) {
         const hodinyKurzu = c.program.map((z) => z.h);
         const od = Math.min(...hodinyKurzu);
-        const konec = Math.max(...hodinyKurzu) + 1;
+        const konec = Math.max(...hodinyKurzu) + R.blok;
         lDen.textContent = dlouhyDen;
-        lHodiny.textContent = `${od}:00–${konec}:00 · celý den, ${sklonuj(c.program.length, "zastávka", "zastávky", "zastávek")}`;
+        lHodiny.textContent = `${hhmm(od)}–${hhmm(konec)} · celý den, ${sklonuj(c.program.length, "zastávka", "zastávky", "zastávek")}`;
         lLide.textContent = `${lidi(u.osob)} · ${u.osob === 1 ? "jedno místo" : `${u.osob} místa`} ${zPoctu(c.mist)}`;
         lCena.textContent = `${kc(u.osob * c.cena)} · ${lidi(u.osob)} × ${kc(c.cena)}`;
         cislo.textContent = `${ddmm}·Z·${u.osob}`;
@@ -319,16 +327,16 @@ export function initJizdenka() {
         const pocetJizd = pl.jizdy.filter((j) => !j.vyluka).length;
         const celkem = u.pas.spoje.length * u.osob * P.cena;
         lDen.textContent = `od ${datum(pl.od)} do ${datum(pl.do)}`;
-        lHodiny.textContent = `${u.pas.spoje.map((h) => `${P.spoje.find((s) => s.h === h)?.nazev ?? ""} ${h}:00–${h + 1}:00`).join(" a ")}${d ? ` · ${KAZDY[d.datum.getDay()]}` : ""}`;
+        lHodiny.textContent = `${u.pas.spoje.map((h) => `${P.spoje.find((s) => s.h === h)?.nazev ?? ""} ${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ")}${d ? ` · ${KAZDY[d.datum.getDay()]}` : ""}`;
         lLide.textContent = lidi(u.osob);
         lCena.textContent = `${kc(celkem)}${pocetJizd ? ` · jedna jízda vyjde na ${kc(Math.round(P.cena / pocetJizd))}` : ""}`;
         cislo.textContent = `${ddmm}·P${u.pas.spoje.join("+")}·${u.osob}`;
       } else {
         lDen.textContent = dlouhyDen;
-        lHodiny.textContent = hodiny.length ? `${useky(hodiny)} · ${hodin(hodiny.length)}` : "ještě nevybraný";
+        lHodiny.textContent = hodiny.length ? `${useky(hodiny)} · ${trvani(hodiny.length)}` : "ještě nevybraný";
         lLide.textContent = lidi(u.osob);
-        lCena.textContent = hodiny.length ? `${kc(hodiny.length * u.osob * u.cena)} · ${hodin(hodiny.length)} × ${lidi(u.osob)} × ${kc(u.cena)}` : `${kc(u.cena)} za člověka a hodinu`;
-        cislo.textContent = d && hodiny.length ? `${ddmm}·${dvoj(hodiny[0])}·${u.osob}` : "—";
+        lCena.textContent = hodiny.length ? `${kc(hodiny.length * u.osob * u.cena)} · ${odjezdu(hodiny.length)} × ${lidi(u.osob)} × ${kc(u.cena)}` : `${kc(u.cena)} za člověka a hodinu a půl`;
+        cislo.textContent = d && hodiny.length ? `${ddmm}·${hhmm(hodiny[0]).replace(":", "").padStart(4, "0")}·${u.osob}` : "—";
       }
       koren.classList.toggle("je-vyplnena", !!d && n > 0);
       kresliProgram(u.kurz);
@@ -358,7 +366,7 @@ export function initJizdenka() {
         /* Vůz je celý váš — skupina sedí uprostřed, zbytek oken je prázdný */
         const mista: Misto[] = Array(6).fill(null);
         [2, 3, 1, 4].slice(0, u.osob).forEach((m, k) => (mista[m] = { kdo: "ty", barva: BARVY_LIDI[k] }));
-        vlakG.innerHTML = n ? vlak(hodiny.map((h) => ({ cislo: `${h}`, mista })), { smer: 1 }) : "";
+        vlakG.innerHTML = n ? vlak(hodiny.map((h) => ({ cislo: hhmm(h), mista })), { smer: 1 }) : "";
         osvetli(hodiny[0] ?? 10);
       }
       prazdno.hidden = n > 0;

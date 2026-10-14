@@ -1,51 +1,78 @@
 import type { PostavaId } from "./parta";
 
 /**
- * Rezervace hodin v dílně — /rezervace.
+ * Rezervace času v dílně — /rezervace.
  *
- * Termíny jsou každé úterý a pátek po hodinách od 9 do 18, na měsíc
- * dopředu. Hodina je buď volná, nebo obsazená: zamlouvá se celá, pro
- * jednoho člověka nebo skupinu až čtyř lidí — žádná místa se nepočítají.
- * Cena je za člověka a hodinu.
+ * Termíny jsou každé úterý a pátek od 9 do 18, na měsíc dopředu. Den je
+ * rozdělený na odjezdy po hodině a půl (`blok`): 9:00, 10:30, 12:00…
+ * Odjezd je buď volný, nebo obsazený: zamlouvá se celý, pro jednoho
+ * člověka nebo skupinu až čtyř lidí — žádná místa se nepočítají.
+ * Cena je za člověka a hodinu; jeden odjezd stojí `cenaOdjezdu`.
  *
  * Vedle hodin jsou tu dvě věci, kde se místa počítají: kurz, který zabere
  * celý den (`kurzy`), a permanentka na první a poslední spoj dne
  * (`permanentka`). Obojí je níž.
  *
- * Obsazenost je zatím SIMULOVANÁ (scripts/rezervace/simulace.ts): backend
- * nemáme, rezervace se posílá mailem. Až bude skutečný kalendář, stačí
- * místo simulace načíst, které hodiny jsou zamluvené.
+ * Co je zamluvené, je v Supabase (supabase/schema.sql) a stránka si to bere
+ * z /api/volno; rezervovat rovnou smí jen pozvaní členové, ostatní píšou
+ * mail. Dokud klíče k Supabase nejsou nastavené, je obsazenost SIMULOVANÁ
+ * (scripts/rezervace/simulace.ts) a rezervace se posílá mailem. Stejná
+ * čísla hlídá i server (src/lib/rezervace/pravidla.ts).
  */
 export const rezervace = {
   /** Dny v týdnu podle Date.getDay(): 2 = úterý, 5 = pátek */
   dny: [2, 5],
-  /** První a poslední hodina — poslední termín je 17:00–18:00 */
+  /** Od kdy do kdy je otevřeno — poslední odjezd je 16:30–18:00 */
   od: 9,
   do: 18,
-  /** Cena za jednoho člověka a hodinu */
+  /** Jak dlouho trvá jeden odjezd, v hodinách. Stejně dlouhé jsou i úseky mezi zastávkami zvláštního vlaku (kurzu). */
+  blok: 1.5,
+  /** Cena za jednoho člověka a hodinu (tu říká i Dílna); jeden odjezd stojí cenaOdjezdu */
   cena: 400,
   /** Největší skupina, která si může hodinu zamluvit */
   maxOsob: 4,
   /** Kolik dní dopředu se dá rezervovat */
   dniDopredu: 31,
+  /** Den, kdy jezdí zvláštní vlaky (kurzy): 6 = sobota. Hodinové spoje ten den nejedou. */
+  denKurzu: 6,
+  /** Kolik zvláštních vlaků bývá nejvýš vypsaných naráz — tolik karet má jejich přepážka v pokladně */
+  kurzuNaraz: 2,
+  /** Kolik hodin před začátkem jde jízdenka ještě zrušit přes web. ODHAD — čeká na potvrzení. */
+  zrusitHodinPredem: 24,
 };
+
+/** Začátky odjezdů během dne jako hodiny s půlkou: 9, 10.5, 12… */
+export const odjezdy = Array.from({ length: Math.round((rezervace.do - rezervace.od) / rezervace.blok) }, (_, i) => rezervace.od + i * rezervace.blok);
+/** Hodina s půlkou jako čas: 10.5 → „10:30“ */
+export const hhmm = (h: number) => `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, "0")}`;
+/** Cena jednoho odjezdu za člověka. ODHAD: hodinová cena krát délka odjezdu — čeká na potvrzení. */
+export const cenaOdjezdu = rezervace.cena * rezervace.blok;
 
 /* ——— Kurzy: zvláštní vlaky ———
  *
- * Kurz zabere celý den: hodinové spoje ten den nejedou (výluka) a místo
- * nich vyjede jeden zvláštní vlak od rána do večera. Má pár míst a lidi se
- * na ně hlásí po jednom, dokud není plno — na rozdíl od hodiny, která se
- * zamlouvá celá. Program dne je trať vlaku: co hodina, to zastávka.
+ * Kurzy jezdí v sobotu (`rezervace.denKurzu`), kdy hodinové spoje nejedou:
+ * jeden zvláštní vlak od rána do večera. Má pár míst a lidi se na ně hlásí
+ * po jednom, dokud není plno — na rozdíl od hodiny, která se zamlouvá
+ * celá. Program dne je trať vlaku: zastávky jsou po hodině a půl, ve stejné
+ * časy jako běžné odjezdy (9:00, 10:30, 12:00…).
  *
- * Kurz bez `terminy` rozdává ukázka (scripts/rezervace/simulace.ts), ať
+ * PROGRAMY JSOU NÁVRH: z původních devíti hodinových zastávek je šest
+ * po hodině a půl — hnětení, pauza a výběr se schovaly do sousedních.
+ * Čeká na potvrzení.
+ *
+ * Se Supabase se termíny vypisují tam, v tabulce `kurzy` (den, id kurzu
+ * a kolik míst), a `terminy` ani ukázka se nepoužijí. Bez ní:
+ * kurz bez `terminy` rozdává ukázka (scripts/rezervace/simulace.ts), ať
  * je na stránce vidět, i když skutečné termíny ještě nejsou. Jakmile se
- * sem termíny dopíšou, ukázka ho přestane rozdávat.
+ * sem termíny dopíšou, ukázka ho přestane rozdávat. Pevný termín může být
+ * kterýkoli den; kdyby padl na úterý nebo pátek, hodinové spoje i
+ * permanentky by ten den měly výluku — stránka s tím počítá.
  *
  * Názvy a popisy vycházejí z kurzů v data/kurzy.ts. CENA JE ODHAD
  * (nejvyšší poukaz z Kurzů 2) a čeká na potvrzení.
  */
 export interface Zastavka {
-  /** Hodina dne, kdy zastávka začíná */
+  /** Kdy zastávka začíná — hodina dne i s půlkou (10.5 je 10:30), jeden ze začátků odjezdů */
   h: number;
   /** Krátké jméno — na klapku tabule a do mapy trasy na jízdence */
   nazev: string;
@@ -63,7 +90,7 @@ export interface KurzVlak {
   emblem: string;
   lektor: string;
   popis: string;
-  /** Pro koho kurz je — jednou větou do vysvětlivek jízdního řádu; říká totéž co `popis` */
+  /** Pro koho kurz je — jednou větou do vysvětlivek pod tabulí; říká totéž co `popis` */
   proKoho: string;
   /** Cena za člověka a celý den */
   cena: number;
@@ -88,15 +115,12 @@ export const kurzy: KurzVlak[] = [
     cena: 2400,
     mist: 7,
     program: [
-      { h: 9, nazev: "Nástup", popis: "Zástěra, kafe a kdo je kdo." },
-      { h: 10, nazev: "Hnětení", popis: "Hlína se musí probudit. Ruce taky." },
-      { h: 11, nazev: "Středění", popis: "Nejtěžší zastávka trati: dostat hroudu doprostřed." },
-      { h: 12, nazev: "Otevření", popis: "Palec dolů, dno a první stěna." },
-      { h: 13, nazev: "Pauza", popis: "Ruce z hlíny, hlava taky." },
-      { h: 14, nazev: "Válec", popis: "Stěny nahoru. Z válce se dá udělat všechno." },
+      { h: 9, nazev: "Nástup", popis: "Zástěra, kafe a kdo je kdo. Pak hnětení: hlína se musí probudit, ruce taky." },
+      { h: 10.5, nazev: "Středění", popis: "Nejtěžší zastávka trati: dostat hroudu doprostřed." },
+      { h: 12, nazev: "Otevření", popis: "Palec dolů, dno a první stěna. A pauza: ruce z hlíny, hlava taky." },
+      { h: 13.5, nazev: "Válec", popis: "Stěny nahoru. Z válce se dá udělat všechno." },
       { h: 15, nazev: "Miska", popis: "Z válce do šířky." },
-      { h: 16, nazev: "Výběr", popis: "Co půjde do pece a co zpátky do kýble." },
-      { h: 17, nazev: "Podpis", popis: "Značka do dna, kusy na polici, kruh umýt." },
+      { h: 16.5, nazev: "Podpis", popis: "Co půjde do pece a co zpátky do kýble. Značka do dna, kusy na polici, kruh umýt." },
     ],
   },
   {
@@ -112,15 +136,12 @@ export const kurzy: KurzVlak[] = [
     cena: 2400,
     mist: 7,
     program: [
-      { h: 9, nazev: "Nástup", popis: "Zástěra, kafe a kdo je kdo." },
-      { h: 10, nazev: "Vzorník", popis: "Deska se zkouškami: co která glazura udělá." },
-      { h: 11, nazev: "Teorie", popis: "Oxidace, redukce a proč to z pece vyleze jinak." },
-      { h: 12, nazev: "Máčení", popis: "Tři vteřiny v kýblu. Ani o jednu víc." },
-      { h: 13, nazev: "Pauza", popis: "Ruce z glazury, hlava taky." },
-      { h: 14, nazev: "Polévání", popis: "Naběračkou přes okraj." },
+      { h: 9, nazev: "Nástup", popis: "Zástěra, kafe a kdo je kdo. Pak vzorník: deska se zkouškami, co která glazura udělá." },
+      { h: 10.5, nazev: "Teorie", popis: "Oxidace, redukce a proč to z pece vyleze jinak." },
+      { h: 12, nazev: "Máčení", popis: "Tři vteřiny v kýblu. Ani o jednu víc. A pauza: ruce z glazury, hlava taky." },
+      { h: 13.5, nazev: "Polévání", popis: "Naběračkou přes okraj." },
       { h: 15, nazev: "Vrstvení", popis: "Glazura přes glazuru. Tady začíná dobrodružství." },
-      { h: 16, nazev: "Štětec", popis: "Oxidy a linky, pod glazuru i na ni." },
-      { h: 17, nazev: "Do pece", popis: "Otřít dna, naložit, zavřít." },
+      { h: 16.5, nazev: "Do pece", popis: "Štětec, oxidy a linky. Pak otřít dna, naložit, zavřít." },
     ],
   },
 ];
@@ -131,8 +152,8 @@ export const kurzy: KurzVlak[] = [
  * s permanentkou. Ta platí tři měsíce na jeden den v týdnu (každé úterý,
  * nebo každý pátek — člověk si vybere) a na jeden spoj, ranní, nebo
  * večerní. Kdo chce oba dny nebo oba spoje, bere si permanentek víc.
- * V den, kdy jede kurz, je výluka. Míst je na každém dni a spoji pár
- * a plní se po jednom jako kurz.
+ * Míst je na každém dni a spoji pár a plní se po jednom jako kurz.
+ * (Výluku by měla jen v den, kdy by kurz vyjel v úterý nebo v pátek.)
  *
  * CENA JE ODHAD: tři měsíce po 1 900 Kč bývalo měsíční členství v open
  * studiu na oba dny, tohle je polovina, protože jde o jeden den v týdnu.
@@ -141,7 +162,7 @@ export const kurzy: KurzVlak[] = [
 export const permanentka = {
   spoje: [
     { h: 9, nazev: "ranní" },
-    { h: 17, nazev: "večerní" },
+    { h: 16.5, nazev: "večerní" },
   ],
   /** Kolik permanentek se prodá na jeden spoj jednoho dne v týdnu */
   mist: 3,
@@ -149,6 +170,31 @@ export const permanentka = {
   /** Cena za člověka, jeden den v týdnu a jeden spoj na celou dobu platnosti */
   cena: 2850,
 };
+
+/* ——— Dárkové jízdenky ———
+ *
+ * Tři věci z Rezervace jdou koupit pro někoho jiného (components/
+ * rezervace/Darky.astro): tři hodiny v dílně, permanentka a zvláštní vlak.
+ * Ceny se počítají z pravidel výš — dárek stojí totéž, jako by si to
+ * obdarovaný koupil sám. Dárková jízdenka je vždycky pro jednoho a nic
+ * nezamlouvá: den, odjezd, spoj i termín kurzu si obdarovaný vybere, až
+ * ji bude uplatňovat.
+ *
+ * Platnost 12 měsíců a „vytiskneme ho na papír, nebo pošleme v PDF“ jsou
+ * ze staré stránky Kurzy (poukazText v uvod2.ts). Objednává se mailem
+ * (scripts/rezervace/darky.ts) — server je jen pro rezervace členů.
+ *
+ * ODHAD, čeká na potvrzení: že se odjezdy dají uplatnit po sobě i každý
+ * jindy a že se jízdenka uplatní číslem v poznámce rezervace.
+ */
+export const darky = {
+  /** „Tři hodiny v dílně“ — kolik hodin; jsou z toho odjezdy po hodině a půl (odjezduDarku) */
+  hodin: 3,
+  /** Jak dlouho dárková jízdenka platí od vystavení, v měsících */
+  platnostMesicu: 12,
+};
+/** Kolik odjezdů jsou ty tři hodiny — tolik kuponů má jízdenka a tolik vozů vlak na ní */
+export const odjezduDarku = Math.max(1, Math.round(darky.hodin / rezervace.blok));
 
 /* ——— Přání party (jen archivní /rezervace-ema) ———
  *

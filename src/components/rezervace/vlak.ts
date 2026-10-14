@@ -21,6 +21,10 @@ export const DVERE = [48, 424];
 export const OKNA = [94, 130, 166, 202, 238, 274, 310, 346, 382];
 /** Středy oken, ve kterých se sedí: šest míst na vůz, jako má dílna na hodinu */
 export const SEDADLA = [0, 2, 3, 5, 6, 8].map((i) => OKNA[i] + 14);
+/** Sklo oken: horní hrana a výška; dolní část skla (OPERADLA) zakrývají opěradla sedadel */
+export const SKLO_Y = -103;
+export const SKLO_H = 36;
+export const OPERADLA = 0.37;
 /** Výška vlaku nad hladinou i se sběračem */
 export const VYSKA = 176;
 /** Kde vlak na pozadí stránky stojí u nástupiště stanice Ořech */
@@ -29,10 +33,12 @@ export const STANICE = 280;
 export type Misto = { kdo: "stin" } | { kdo: "ty"; barva: string; jmeno?: string } | null;
 
 export interface Vuz {
-  /** Nápis na cedulce vozu — na jízdence hodina odjezdu */
+  /** Nápis na cedulce vozu — na jízdence čas odjezdu */
   cislo?: string;
   /** Kdo sedí v šesti oknech, zleva doprava */
   mista?: Misto[];
+  /** Kresba navíc v souřadnicích vozu, oříznutá na skla oken (Šamotka schovaná na pozadí Rezervace) */
+  navic?: string;
 }
 
 export const delka = (pocet: number) => pocet * VUZ + Math.max(0, pocet - 1) * MEZERA;
@@ -251,10 +257,14 @@ export function vlak(vozy: Vuz[], { smer = 1, trida = "" }: { smer?: 1 | -1; tri
     const otoceny = i % 2 === 1;
     const tr = otoceny ? `translate(${x + VUZ} 0) scale(-1 1)` : `translate(${x} 0)`;
     const sberac = !otoceny && (i === 0 || i % 4 === 0) ? `<use href="#vl-pantograf"/>` : "";
-    telo += `<g transform="${tr}"><use href="#vl-vuz"/>${sberac}${cestujici(v.mista ?? [], i * 3)}</g>`;
+    const navic = v.navic ? `<g clip-path="url(#vl-okna-orez)">${v.navic}</g>` : "";
+    telo += `<g transform="${tr}"><use href="#vl-vuz"/>${sberac}${cestujici(v.mista ?? [], i * 3)}${navic}</g>`;
     if (v.cislo) {
       const cx = otoceny ? x + VUZ - 487 : x + 487;
-      cedulky += `<text x="${cx}" y="-33.5" class="vl-cedulka">${esc(v.cislo)}</text>`;
+      /* čas odjezdu (10:30) se na cedulku z kresby vozu nevejde — dostane širší */
+      const dlouhy = v.cislo.length > 2;
+      if (dlouhy) cedulky += `<rect x="${cx - 20}" y="-46" width="40" height="17" rx="2" fill="#EED8A4"/>`;
+      cedulky += `<text x="${cx}" y="-33.5" class="vl-cedulka${dlouhy ? " dlouha" : ""}">${esc(v.cislo)}</text>`;
     }
     if (i < n - 1) {
       const gx = x + VUZ - 2;

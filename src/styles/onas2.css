@@ -221,6 +221,8 @@
 .zlato-supinka svg { filter: drop-shadow(0 0 3px rgba(255, 220, 130, 0.9)); }
 .zlato-supinka.nalezen { opacity: 0.35; filter: grayscale(0.4); animation: none; }
 .zlato-supinka.nalezen-ted { animation: nalezen 0.75s cubic-bezier(0.3, 1.6, 0.5, 1); }
+/* V roce dílny leží šupinky v partě nad kresbou, která klikání propouští */
+.rok .zlato-supinka { pointer-events: auto; }
 @keyframes n2-trpyt { 0%, 86%, 100% { transform: rotate(var(--u, 0deg)); filter: none; } 90% { transform: rotate(calc(var(--u, 0deg) + 12deg)) scale(1.2); filter: brightness(1.25); } }
 
 /* Odvíjení zprava doleva: jen na širokém okně se skriptem */

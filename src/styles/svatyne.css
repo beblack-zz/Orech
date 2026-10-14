@@ -1,0 +1,327 @@
+/*
+ * ——— Svatyně ———
+ *
+ * Vlastní věci stránky /svatyne; písmo, barvy, papír, obloha, hlavička
+ * i krabička s omikuji jsou z Party 2 (styles/parta2.css). Brána je
+ * rozvržená jako úvod Party 3: text vlevo, scéna vpravo a les z ní běží
+ * přes celou šířku; na mobilu je scéna pod textem.
+ *
+ * Odemčení (.sv-brana.je-otevreno) jde v pořadí: spadne provaz (0,3 s),
+ * otevřou se dvířka svatyňky (0,8 s), postupně se rozsvítí záře, okna,
+ * lampiony, světlo na cestě a lucerny v lese (od 0,9 s po --z), parta
+ * se rozsvítí a pozdraví (od 2,2 s) a vyletí světlušky (2 s).
+ */
+
+/* ——— Brána ——— */
+
+.sv-brana { position: relative; z-index: 2; height: 100svh; min-height: 680px; overflow: clip; }
+.sv-scena {
+  position: absolute;
+  right: max(0px, calc(50% - 860px));
+  bottom: 0;
+  height: min(92%, 50vw);
+  aspect-ratio: 1200 / 1000;
+}
+/* les a nádvoří sahají daleko za scénu (viewBox -1800 -600 4800 1600 proti scéně 1200 × 1000) */
+.sv-pozadi { position: absolute; left: -150%; top: -60%; width: 400%; height: 160%; pointer-events: none; }
+.sv-kresba, .sv-popredi { position: absolute; inset: 0; pointer-events: none; }
+.sv-scena svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* Parta: kdo ještě chybí, je na svém místě jen stín */
+.sv-kami { position: absolute; transform: translate(-50%, -100%); pointer-events: none; }
+.sv-kami svg { display: block; width: 100%; height: auto; filter: brightness(0) opacity(0.34); transition: filter 0.9s; }
+.sv-kami.je svg { filter: none; }
+.sv-brana.je-otevreno .sv-kami svg { filter: drop-shadow(0 0 7px rgba(255, 212, 130, 0.6)); transition-delay: calc(1.8s + var(--i) * 0.12s); }
+.sv-brana.je-otevreno .sv-kami { animation: sv-pozdrav 0.75s cubic-bezier(0.3, 1.5, 0.5, 1) both; animation-delay: calc(2.2s + var(--i) * 0.12s); }
+@keyframes sv-pozdrav { 45% { transform: translate(-50%, -110%); } }
+/* kdo visí nebo něco drží, nepovyskočí — jen se zhoupne */
+.sv-brana.je-otevreno .sv-kami:is([data-sv-kami="cedulka"], [data-sv-kami="kapka"]) { animation-name: sv-zhoupni; transform-origin: 50% 12%; }
+.sv-brana.je-otevreno .sv-kami[data-sv-kami="samotka"] { animation: none; }
+@keyframes sv-zhoupni { 30% { transform: translate(-50%, -100%) rotate(9deg); } 65% { transform: translate(-50%, -100%) rotate(-6deg); } }
+
+/* Co se rozsvítí, rozsvítí se postupně */
+.sv-svetlo { opacity: 0; transition: opacity 1.4s ease calc(0.9s + var(--z, 0) * 0.28s); }
+.sv-brana.je-otevreno .sv-svetlo { opacity: 1; }
+.sv-plamen { animation: sv-plamen 3.4s ease-in-out infinite; }
+@keyframes sv-plamen { 0%, 100% { opacity: 1; } 40% { opacity: 0.74; } 55% { opacity: 0.94; } 70% { opacity: 0.82; } }
+
+/* Dvířka svatyňky se otevřou do stran */
+.sv-dvere-l, .sv-dvere-p { transform-box: fill-box; transition: transform 1.3s cubic-bezier(0.5, 0, 0.2, 1) 0.8s; }
+.sv-dvere-l { transform-origin: 0 50%; }
+.sv-dvere-p { transform-origin: 100% 50%; }
+.sv-brana.je-otevreno :is(.sv-dvere-l, .sv-dvere-p) { transform: scaleX(0.14); }
+.sv-dvere-kruhy { transition: opacity 0.3s 0.8s; }
+.sv-brana.je-otevreno .sv-dvere-kruhy { opacity: 0; }
+
+/* Provaz se zámkem se utrhne na pravém konci a spadne */
+.sv-provaz { transform-box: view-box; transform-origin: 33.7% 88%; transition: transform 1s cubic-bezier(0.5, 0, 0.75, 0.3) 0.3s, opacity 0.5s 1s; }
+.sv-brana.je-otevreno .sv-provaz { transform: rotate(14deg) translateY(4%); opacity: 0; }
+/* Při dalších návštěvách je brána otevřená rovnou — bez pádu provazu a pozdravu party (svatyne.ts) */
+.sv-brana.hned :is(.sv-provaz, .sv-svetlo, .sv-kami, .sv-kami svg, .sv-dvere-l, .sv-dvere-p, .sv-dvere-kruhy, .sv-svetlusky) { transition: none !important; animation: none !important; }
+
+/* Drobný pohyb: papírky, zvonky, voda, měsíční paprsky */
+.sv-shide { animation: sv-shide 4.2s ease-in-out infinite; }
+@keyframes sv-shide { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+.sv-zvonek { animation: sv-zvonek 6.5s ease-in-out infinite; }
+@keyframes sv-zvonek { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+.sv-proud { animation: sv-proud 0.5s linear infinite; }
+@keyframes sv-proud { to { stroke-dashoffset: -16; } }
+.sv-kruh { transform-box: fill-box; transform-origin: center; animation: sv-kruh 1.5s ease-out infinite; }
+@keyframes sv-kruh { from { transform: scale(0.3); opacity: 1; } to { transform: scale(2.6); opacity: 0; } }
+.sv-paprsky { animation: sv-paprsky 11s ease-in-out infinite alternate; }
+@keyframes sv-paprsky { from { opacity: 0.6; } to { opacity: 1; } }
+
+/* Světlušky — vyletí, až je otevřeno */
+.sv-svetlusky { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 2.4s 2s; }
+.sv-brana.je-otevreno .sv-svetlusky { opacity: 1; }
+.sv-svetlusky span {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #FFF2B0;
+  box-shadow: 0 0 10px 3px rgba(255, 214, 120, 0.7);
+  animation: sv-svetluska var(--d) ease-in-out infinite;
+  animation-delay: var(--z);
+}
+@keyframes sv-svetluska {
+  0% { transform: translate(0, 0); opacity: 0; }
+  20% { opacity: 1; }
+  50% { transform: translate(var(--dx), -36px); opacity: 0.35; }
+  80% { opacity: 1; }
+  100% { transform: translate(calc(var(--dx) * -0.4), -80px); opacity: 0; }
+}
+
+/* Text */
+.sv-text { top: clamp(100px, 15vh, 160px); max-width: min(540px, 38vw); }
+.sv-text .uvod-pokyn b { font-weight: 600; }
+.sv-akce { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.sv-omamori { background: #FFFBF2 !important; border-color: #FFFBF2 !important; color: var(--inkoust) !important; }
+.sv-omamori:hover { background: #FFFFFF !important; }
+.sv-tlacitko-svetle { border-color: #FFFBF2 !important; color: #FFFBF2 !important; background: transparent !important; text-decoration: none; }
+.sv-tlacitko-svetle:hover { background: #FFFBF2 !important; color: var(--inkoust) !important; }
+.sv-tategaki { top: 96px; }
+
+@media (max-width: 1100px) {
+  .sv-scena { right: -6vw; }
+  .sv-text { max-width: min(480px, 44vw); }
+}
+@media (max-width: 860px) {
+  .sv-brana { height: auto; min-height: 100svh; display: flex; flex-direction: column; }
+  .sv-text { position: relative; top: auto; left: auto; max-width: none; padding: 104px 20px 0; }
+  /* scéna o kus širší než displej: kraje lesa se ořežou, parta je celá uvnitř */
+  .sv-scena { position: relative; right: auto; bottom: auto; height: auto; width: 120vw; margin: 8px 0 0 -10vw; flex: none; }
+  .sv-tategaki { display: none; }
+}
+
+/* ——— Losování ——— */
+
+.sv-losovani { padding-bottom: 12vh; }
+.sv-mriz { align-items: center; }
+.sv-krabicka.je-vytazeno:hover { transform: none; }
+.sv-krabicka.trese-malo { animation: sv-trese-malo 0.45s ease-in-out; }
+@keyframes sv-trese-malo { 30% { transform: rotate(-5deg); } 65% { transform: rotate(4deg); } }
+.sv-misto { display: grid; justify-items: center; }
+
+/* Lístek: svislý papír jako skutečné omikuji, dole ústřižek s odměnou.
+   Papír je den (obloha, slunce, mráčky, sakura, dole krajina se svatyní),
+   ústřižek pod perforací je noc (hvězdy, srpek, les se svatyní a lampiony). */
+.sv-listek { position: relative; width: min(380px, 100%); filter: drop-shadow(0 26px 36px rgba(28, 20, 44, 0.32)); }
+.sv-papir {
+  position: relative;
+  z-index: 2;
+  padding: 24px 24px 82px;
+  border-radius: 3px 3px 0 0;
+  /* denní obloha a dva přehyby po složení */
+  background:
+    linear-gradient(180deg, transparent 33%, rgba(90, 110, 130, 0.08) 33.3%, rgba(255, 255, 255, 0.75) 33.7%, transparent 34.6%),
+    linear-gradient(180deg, transparent 66%, rgba(120, 88, 48, 0.08) 66.3%, rgba(255, 255, 255, 0.75) 66.7%, transparent 67.6%),
+    linear-gradient(180deg, #BCE0F1 0%, #DDF0F4 26%, #FFF9EC 55%, #FFF2DA 100%);
+  text-align: center;
+  transform-origin: 50% 0;
+}
+.sv-papir > :not(.sv-den, .sv-razitko) { position: relative; z-index: 1; }
+.sv-papir::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 10px 10px 68px;
+  border: 1.5px solid rgba(196, 67, 43, 0.75);
+  outline: 1px solid rgba(196, 67, 43, 0.3);
+  outline-offset: 3px;
+  pointer-events: none;
+}
+.sv-hlava { margin: 0 8px; padding: 6px 0 12px; border-bottom: 1.5px solid rgba(196, 67, 43, 0.6); }
+.sv-svatyne { margin: 0; padding-left: 0.42em; font-family: var(--f-kanji); font-size: 25px; letter-spacing: 0.42em; color: var(--rumelka); }
+.sv-svatyne-cesky { margin: 3px 0 0; font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--inkoust-3); }
+.sv-los { margin: 16px 0 8px; isolation: isolate; }
+/* sluneční paprsky za velkým štěstím, pomalu se otáčejí */
+.sv-los::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 54%;
+  width: 380px;
+  height: 380px;
+  margin: -190px 0 0 -190px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 206, 110, 0.32) 0deg 7deg, transparent 7deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 18%, transparent 66%);
+  mask: radial-gradient(circle, #000 18%, transparent 66%);
+  animation: sv-tocit 90s linear infinite;
+}
+@keyframes sv-tocit { to { transform: rotate(1turn); } }
+.sv-cislo { margin: 0; font-family: var(--f-kanji); font-size: 15px; letter-spacing: 0.24em; color: var(--inkoust-3); }
+.sv-stupen {
+  position: relative;
+  display: inline-block;
+  margin: 8px 0 6px;
+  padding: 2px 20px 10px;
+  border: 2.5px solid var(--rumelka);
+  outline: 1px solid rgba(196, 67, 43, 0.4);
+  outline-offset: 4px;
+  font-family: var(--f-kanji);
+  font-size: clamp(76px, 9vw, 104px);
+  line-height: 1.05;
+  color: var(--rumelka);
+  background: rgba(255, 252, 244, 0.86);
+}
+/* zlaté jiskry kolem velkého štěstí */
+.sv-stupen::before, .sv-stupen::after {
+  content: "✦";
+  position: absolute;
+  font-family: var(--f-display);
+  font-size: 20px;
+  line-height: 1;
+  color: #E2B24A;
+  animation: sv-jiskra 2.6s ease-in-out infinite;
+}
+.sv-stupen::before { left: -22px; top: 6px; }
+.sv-stupen::after { right: -24px; bottom: 12px; font-size: 14px; animation-delay: -1.3s; }
+@keyframes sv-jiskra { 0%, 100% { opacity: 0.25; transform: scale(0.7) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(20deg); } }
+.sv-cteni { margin: 0; font-size: 14px; color: var(--inkoust-2); }
+.sv-vestba { margin: 14px 8px 0; padding-top: 14px; border-top: 1px dashed rgba(43, 36, 32, 0.22); }
+.sv-vestba .vestba-podpis { margin-bottom: 0; }
+.sv-rubriky { display: grid; gap: 8px; margin: 14px 8px 0; padding-top: 14px; border-top: 1px dashed rgba(43, 36, 32, 0.22); text-align: left; }
+.sv-rubriky div { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 14px; line-height: 1.4; }
+.sv-rubriky dt { font-family: var(--f-kanji); font-size: 18px; text-align: center; color: var(--rumelka); }
+.sv-rubriky dd { margin: 0; }
+.sv-rubriky dd b { margin-right: 3px; font-weight: 600; color: var(--inkoust-2); }
+/* rudé razítko svatyně vpravo vedle velkého štěstí */
+.sv-razitko { position: absolute; z-index: 1; right: 18px; top: 150px; width: 62px; height: 62px; opacity: 0.88; mix-blend-mode: multiply; transform: rotate(-8deg); }
+
+/* Den na papíře: slunce, mráčky, padající sakura a krajina se svatyní */
+.sv-den { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; border-radius: inherit; }
+.sv-slunce { position: absolute; top: 20px; left: 22px; width: 58px; height: 58px; filter: drop-shadow(0 0 10px rgba(255, 200, 90, 0.55)); }
+.sv-slunce-paprsky { animation: sv-tocit 40s linear infinite; }
+.sv-mrak { position: absolute; animation: sv-mrak 24s ease-in-out infinite alternate; }
+.sv-mrak-1 { top: 28px; right: 20px; width: 84px; }
+.sv-mrak-2 { top: 43%; left: -18px; width: 66px; opacity: 0.6; animation-duration: 32s; animation-delay: -9s; }
+.sv-mrak-3 { top: 63%; right: -14px; width: 58px; opacity: 0.5; animation-duration: 28s; animation-delay: -15s; }
+@keyframes sv-mrak { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
+.sv-platek {
+  position: absolute;
+  top: -12px;
+  left: var(--x);
+  width: 9px;
+  height: 7px;
+  border-radius: 80% 0 80% 0;
+  background: linear-gradient(135deg, #FBD6DC, #EFA8B6);
+  opacity: 0.9;
+  animation: sv-platek var(--d) linear infinite;
+  animation-delay: var(--z);
+}
+@keyframes sv-platek {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(var(--dx), 240px) rotate(110deg); }
+  50% { transform: translate(0, 480px) rotate(200deg); }
+  75% { transform: translate(calc(var(--dx) * -1), 720px) rotate(290deg); }
+  100% { transform: translate(0, 980px) rotate(380deg); }
+}
+.sv-den-krajina { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 62px; }
+
+/* Ústřižek v barvách noci: obloha se hvězdami a srpkem, zlatá sláva, dole les a svatyně s lampiony */
+.sv-ustrizek {
+  position: relative;
+  z-index: 1;
+  padding: 32px 24px 58px;
+  border-radius: 0 0 6px 6px;
+  background:
+    radial-gradient(2px 2px at 13% 30%, #FFF6D6 50%, transparent 100%),
+    radial-gradient(1.6px 1.6px at 30% 16%, #FFF6D6 50%, transparent 100%),
+    radial-gradient(2.2px 2.2px at 74% 40%, #FFF6D6 50%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 88% 58%, #FFF6D6 50%, transparent 100%),
+    radial-gradient(1.8px 1.8px at 9% 62%, #FFF6D6 50%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 58% 12%, #FFF6D6 50%, transparent 100%),
+    radial-gradient(1.6px 1.6px at 92% 26%, #FFF6D6 50%, transparent 100%),
+    radial-gradient(60% 34% at 50% 40%, rgba(255, 186, 104, 0.2), transparent 75%),
+    linear-gradient(180deg, #2A3262 0%, #1C2149 55%, #151836 100%);
+  color: #FFF4DE;
+  text-align: center;
+  /* půlkruhové výřezy po stranách perforace */
+  -webkit-mask: radial-gradient(circle 10px at 0 13px, transparent 98%, #000) top left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% 13px, transparent 98%, #000) top right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 10px at 0 13px, transparent 98%, #000) top left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% 13px, transparent 98%, #000) top right / 51% 100% no-repeat;
+}
+.sv-ustrizek > p { position: relative; z-index: 1; }
+.sv-ustrizek::before { content: ""; position: absolute; left: 46px; right: 18px; top: 12px; border-top: 2px dashed rgba(255, 244, 220, 0.4); }
+/* srpek měsíce vpravo nahoře */
+.sv-ustrizek::after {
+  content: "";
+  position: absolute;
+  top: 30px;
+  right: 26px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset -6px 3px 0 0 #F6D682;
+  filter: drop-shadow(0 0 6px rgba(246, 214, 130, 0.6));
+  transform: rotate(-18deg);
+}
+.sv-nuzky { position: absolute; z-index: 1; left: 20px; top: 3px; font-size: 18px; line-height: 1; color: #C9C4E8; }
+.sv-ustrizek-stitek { margin: 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #F6D682; }
+.sv-sleva { display: grid; justify-items: center; margin: 2px 0 12px; }
+.sv-sleva b {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-size: 78px;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  background: linear-gradient(105deg, #E6AE45 40%, #FFF6D0 50%, #E6AE45 60%) 100% 0 / 320% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(255, 196, 110, 0.35));
+  animation: sv-lesk 7s ease-in-out 2.2s infinite;
+}
+@keyframes sv-lesk { 0% { background-position: 100% 0; } 22%, 100% { background-position: 0 0; } }
+.sv-sleva span { font-family: var(--f-display); font-weight: 600; font-size: 19px; color: #FFF4DE; }
+.sv-ustrizek-pokyn { margin: 0 0 8px; font-size: 14px; color: #C9C4E8; }
+.sv-heslo { display: inline-flex; align-items: center; gap: 12px; margin: 0; padding: 6px 20px 8px; border: 2px solid #E6AE45; border-radius: 10px; background: rgba(10, 12, 34, 0.55); color: #F6D682; box-shadow: 0 0 18px rgba(230, 174, 69, 0.18); }
+.sv-heslo-znak { font-family: var(--f-kanji); font-size: 38px; line-height: 1; }
+.sv-heslo-cteni { font-family: var(--f-display); font-size: 22px; color: #FFF4DE; }
+.sv-datum { margin: 12px 0 0; font-size: 12px; color: #9C98C6; }
+.sv-ustrizek-les { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 50px; pointer-events: none; }
+.sv-ustrizek-les .sv-lampionek { animation: sv-plamen 3.4s ease-in-out infinite; }
+
+/* Nový lístek: rozvine se shora, dopadne razítko, vyjede ústřižek */
+.sv-listek.je-novy .sv-papir { animation: sv-rozvin 1.1s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+@keyframes sv-rozvin {
+  0% { transform: perspective(900px) rotateX(-86deg) scaleY(0.2); opacity: 0; }
+  35% { opacity: 1; }
+  72% { transform: perspective(900px) rotateX(7deg); }
+  100% { transform: none; }
+}
+.sv-listek.je-novy .sv-razitko { animation: sv-razitko 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) 1.15s both; }
+@keyframes sv-razitko { from { transform: rotate(-8deg) scale(2.3); opacity: 0; } to { transform: rotate(-8deg) scale(1); opacity: 0.88; } }
+.sv-listek.je-novy .sv-ustrizek { animation: sv-ustrizek 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.2) 1.5s both; }
+@keyframes sv-ustrizek { from { transform: translateY(-70%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-provaz, .sv-svetlo, .sv-kami svg, .sv-dvere-l, .sv-dvere-p, .sv-svetlusky { transition: none; }
+  .sv-brana.je-otevreno .sv-kami, .sv-plamen, .sv-shide, .sv-zvonek, .sv-proud, .sv-kruh, .sv-paprsky, .sv-svetlusky span,
+  .sv-stupen::before, .sv-stupen::after, .sv-sleva b, .sv-ustrizek-les .sv-lampionek, .sv-listek.je-novy *,
+  .sv-los::before, .sv-slunce-paprsky, .sv-mrak, .sv-platek { animation: none !important; }
+  .sv-platek { display: none; }
+}

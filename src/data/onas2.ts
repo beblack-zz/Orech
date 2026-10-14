@@ -25,6 +25,10 @@ export const oNasTexty = {
  * svitek a obloha nad ním jde z noci do večera — první rok dílny jako
  * jeden den. Texty jsou milníky z uvod2.ts (páruje se podle měsíce),
  * tady je jen kdo z party u toho byl a co k tomu říká.
+ *
+ * Na stránce je místo svitku teď rok dílny (onas2/Rok.astro) — z téhle
+ * tabulky bere denní dobu nad každým měsícem a id šupinky zlata;
+ * repliky a Svitek.astro zůstaly pro případ, že by se svitek vracel.
  */
 export interface Scena {
   /** Měsíc v roce 2026 jako v uvod2.ts (milniky.m); 0 = teď */
@@ -51,8 +55,8 @@ export const sceny: Scena[] = [
 
 /* ——— Zlato na kintsugi ———
  *
- * Kintsugi potřebuje zlato. V každé scéně svitku je schovaná jedna
- * šupinka; kdo je najde všechny, může Střípek zalít misku dozlatova
+ * Kintsugi potřebuje zlato. V každém měsíci roku dílny (onas2/Rok.astro)
+ * je schovaná jedna šupinka; kdo je najde všechny, může Střípek zalít misku dozlatova
  * (klíč onas2-zlato). Nápověda stojí v dialogu, dokud šupinka chybí.
  */
 export const zlato: { id: string; nazev: string; skrys: string }[] = [
@@ -60,11 +64,11 @@ export const zlato: { id: string; nazev: string; skrys: string }[] = [
   { id: "brezen", nazev: "Březnová šupinka", skrys: "V březnu spadla do kbelíku s barvou." },
   { id: "duben", nazev: "Dubnová šupinka", skrys: "V dubnu se zakutálela pod stůl z kanceláře." },
   { id: "kveten", nazev: "Květnová šupinka", skrys: "V květnu zůstala ve skříňce." },
-  { id: "cerven", nazev: "Červnová šupinka", skrys: "V červnu se schovává mezi srdíčky." },
+  { id: "cerven", nazev: "Červnová šupinka", skrys: "V červnu se schovává v knihovně." },
   { id: "cervenec", nazev: "Červencová šupinka", skrys: "V červenci jiskří u zásuvky." },
   { id: "srpen", nazev: "Srpnová šupinka", skrys: "V srpnu leží mezi zkušebními glazurami." },
-  { id: "zari", nazev: "Zářijová šupinka", skrys: "V září ji někdo přinesl na botě." },
-  { id: "ted", nazev: "Dnešní šupinka", skrys: "Dnes visí na kalendáři." },
+  { id: "zari", nazev: "Zářijová šupinka", skrys: "V září ji někdo přinesl na botě. Sleduj šlápoty." },
+  { id: "ted", nazev: "Dnešní šupinka", skrys: "Dnes leží na regálu s hotovými kusy." },
 ];
 
 /* ——— Ensō ———

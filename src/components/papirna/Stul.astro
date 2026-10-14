@@ -1,0 +1,104 @@
+---
+/**
+ * Stůl v Papírně: řezací podložka a na ní parta už slepená z papíru —
+ * Kachlík jako krabička na podstavci s getami a s vodováhou na hlavě,
+ * Kapka jako stojánek s bílým lemem po nůžkách. Kolem nůžky, lepidlo
+ * a odstřižky. Kresby stěn i postaviček jsou tytéž, ze kterých se skládá
+ * PDF (scripts/papirna/kresby.mjs), takže na stole stojí přesně to, co
+ * si člověk vytiskne.
+ *
+ * Kreslí se v šikmém promítání: přední stěny rovně, hloubka jde doprava
+ * nahoru (DX, DY na jednotku hloubky).
+ */
+import { R, kachlikSteny, getaSteny, vodovahaSteny, kapkaLic, kapkaObrysy, KAPKA } from "../../../scripts/papirna/kresby.mjs";
+import { INKOUST } from "../../../scripts/papirna/site.mjs";
+
+interface Props { class?: string; }
+const { class: cls = "" } = Astro.props;
+
+const DX = 0.5, DY = 0.34;
+const f = (n: number) => Math.round(n * 100) / 100;
+
+/** Kvádr v šikmém promítání: čelo rovně, pravý bok a víko zkosené; vrací SVG */
+function kvadr(x: number, y: number, W: number, H: number, D: number, steny: Record<string, (w: number, h: number) => string>, id: string) {
+  const sx = DX, sy = DY;
+  const bok = `matrix(${sx} ${-sy} 0 1 ${f(x + W)} ${f(y)})`;
+  const vrch = `matrix(1 0 ${-sx} ${sy} ${f(x + D * sx)} ${f(y - D * sy)})`;
+  const plocha = (k: string, w: number, h: number, t: string, stin: number) =>
+    `<clipPath id="${id}-${k}"><rect width="${w}" height="${h}"/></clipPath>` +
+    `<g transform="${t}"><g clip-path="url(#${id}-${k})">${steny[k](w, h)}<rect width="${w}" height="${h}" fill="#1E1A24" opacity="${stin}"/></g>` +
+    `<rect width="${w}" height="${h}" fill="none" stroke="${INKOUST}" stroke-width="0.25" opacity="0.5"/></g>`;
+  return plocha("pravy", D, H, bok, 0.22) + plocha("vrch", W, D, vrch, 0) + plocha("celo", W, H, `translate(${f(x)} ${f(y)})`, 0);
+}
+
+/* Kachlík: podstavec 44 × 10, krabička 44 × 44 × 44, vodováha 34 × 7 × 7 uprostřed víka */
+const S = 44, T = 10;
+const kx = 116, kz = 124; // levý přední roh podstavce na stole
+const kachlik =
+  kvadr(kx, kz - T, S, T, S, { ...getaSteny(false, "pa-g"), vrch: () => "" }, "pa-pod") +
+  kvadr(kx, kz - T - S, S, S, S, kachlikSteny(false, "pa-k"), "pa-kos") +
+  kvadr(kx + 5 + (S / 2 - 3.5) * DX, kz - T - S - (S / 2 - 3.5) * DY - 7, 34, 7, 7, vodovahaSteny(false), "pa-vv");
+
+/* Kapka jako stojánek: líc s lemem a za ním zrcadlo rubu, trochu do hloubky */
+const k = 0.4;
+const lem = 1.6 / k;
+const kpx = 66, kpz = 128;
+const silueta = (barva: string, sirka: number) =>
+  `<g fill="${barva}" stroke="${barva}" stroke-width="${f(sirka)}" stroke-linejoin="round" stroke-linecap="round">${kapkaObrysy}</g>`;
+const kapkaT = (dx: number, dy: number) => `translate(${f(kpx - KAPKA.stred * k + dx)} ${f(kpz - KAPKA.zem * k + dy)}) scale(${k})`;
+const kapka =
+  `<ellipse cx="${kpx + 4}" cy="${kpz + 1}" rx="22" ry="3.4" fill="#1E1A24" opacity="0.16"/>` +
+  `<g transform="${kapkaT(6 * DX * 1.6, -6 * DY * 1.6)}">${silueta("#D9D2C6", 2 * lem)}</g>` +
+  `<g transform="${kapkaT(0, 0)}">${silueta(INKOUST, 2 * lem + 0.5 / k)}${silueta("#FFFFFF", 2 * lem)}${kapkaLic(R(false, k, "pa-kp"))}</g>`;
+
+/* Stůl a podložka: rovnoběžníky do hloubky */
+const stul = `<path d="M-20 132 H240 L270 96 H10 Z" fill="#C9A06A"/><path d="M-20 132 H240 V150 H-20 Z" fill="#9C7448"/><path d="M-20 132 H240" stroke="#E2BE8C" stroke-width="0.8"/>`;
+const mx0 = 26, mx1 = 196, mz0 = 130, hl = 60;
+let mrizka = "";
+for (let i = 0; i <= 17; i++) {
+  const x = mx0 + ((mx1 - mx0) * i) / 17;
+  mrizka += `<path d="M${f(x)} ${mz0} l${f(hl * DX * 0.55)} ${f(-hl * DY * 0.55 * 1.6)}" />`;
+}
+for (let j = 1; j <= 5; j++) {
+  const d = (hl * 0.55 * j) / 5;
+  mrizka += `<path d="M${f(mx0 + d * DX)} ${f(mz0 - d * DY * 1.6)} H${f(mx1 + d * DX)}"/>`;
+}
+const podlozka =
+  `<path d="M${mx0} ${mz0} H${mx1} l${f(hl * 0.55 * DX)} ${f(-hl * 0.55 * DY * 1.6)} H${f(mx0 + hl * 0.55 * DX)} Z" fill="#4F7A64"/>` +
+  `<g stroke="#8DB59C" stroke-width="0.3" opacity="0.7">${mrizka}</g>` +
+  `<path d="M${mx0} ${mz0} H${mx1}" stroke="#2F4E3E" stroke-width="1.4"/>`;
+
+/* Nůžky: rumělková očka, ocelové čepele, rozevřené */
+const nuzky =
+  `<g transform="translate(176 136) rotate(-18)">` +
+  `<ellipse cx="0" cy="2" rx="22" ry="3" fill="#1E1A24" opacity="0.14"/>` +
+  `<path d="M2 -3 L30 -9 Q32 -8 30 -6.6 L4 0 Z" fill="#C9CED6" stroke="#6E7682" stroke-width="0.4"/>` +
+  `<path d="M2 -1 L29 2 Q31 3.4 29 4.4 L3 2.4 Z" fill="#B3B9C3" stroke="#6E7682" stroke-width="0.4"/>` +
+  `<circle cx="3" cy="-0.6" r="1" fill="#6E7682"/>` +
+  `<ellipse cx="-7" cy="-5" rx="7" ry="4.4" fill="none" stroke="#C4432B" stroke-width="2.6" transform="rotate(-14 -7 -5)"/>` +
+  `<ellipse cx="-7" cy="4" rx="7" ry="4.4" fill="none" stroke="#A93522" stroke-width="2.6" transform="rotate(12 -7 4)"/>` +
+  `</g>`;
+
+/* Lepidlo v tyčince */
+const lepidlo =
+  `<g transform="translate(200 112)">` +
+  `<ellipse cx="0" cy="12" rx="9" ry="2.2" fill="#1E1A24" opacity="0.16"/>` +
+  `<rect x="-5.5" y="-12" width="11" height="24" rx="2" fill="#F2EBDD" stroke="${INKOUST}" stroke-width="0.3"/>` +
+  `<rect x="-5.5" y="-4" width="11" height="9" fill="#2A2C5E"/>` +
+  `<rect x="-5.9" y="-17" width="11.8" height="6.4" rx="2" fill="#C4432B"/>` +
+  `<path d="M-3.2 -1 h6.4 M-3.2 2 h4.4" stroke="#FBE9B7" stroke-width="0.7" stroke-linecap="round"/>` +
+  `</g>`;
+
+/* Odstřižky: kousky papíru s čárkovanou čarou, jak zbydou po stříhání */
+const odstrizky = [
+  [36, 126, -12, "M0 0 L9 -2 L11 4 L2 6 Z"],
+  [92, 133, 20, "M0 0 L12 1 L10 5 L-1 3 Z"],
+  [168, 122, -30, "M0 0 Q5 -3 10 0 L8 4 L1 3 Z"],
+].map(([x, y, u, d]) => `<g transform="translate(${x} ${y}) rotate(${u})"><path d="${d}" fill="#FFFFFF" stroke="${INKOUST}" stroke-width="0.25"/><path d="M1 1 L8 0.5" stroke="${INKOUST}" stroke-width="0.2" stroke-dasharray="0.8 0.6"/></g>`).join("");
+
+/* Stín pod Kachlíkem */
+const stinK = `<path d="M${kx - 2} ${kz + 1} H${kx + S + 4} L${f(kx + S + S * DX + 6)} ${f(kz - S * DY)} H${f(kx + S * DX + 2)} Z" fill="#1E1A24" opacity="0.16"/>`;
+---
+<svg class={cls} viewBox="0 46 220 104" role="img" aria-label="Na řezací podložce stojí Kachlík a Kapka slepení z papíru, vedle nůžky a lepidlo." preserveAspectRatio="xMidYMax meet">
+  <Fragment set:html={stul + podlozka + odstrizky + stinK + kapka + kachlik + lepidlo + nuzky} />
+</svg>

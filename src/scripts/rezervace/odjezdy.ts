@@ -1,15 +1,17 @@
 /**
  * Odjezdová tabule s hodinami vybraného dne (components/rezervace/
  * Odjezdy.astro). Řádky s časy jsou v HTML; tady se dopisuje, co záleží
- * na dni: jestli je hodina volná, obsazená, už odjela, nebo jestli na ni
- * nastupuješ ty. Hodina se zamlouvá celá — žádná místa se nepočítají.
+ * na dni: jestli je odjezd volný, obsazený, už odjel, nebo jestli na něj
+ * nastupuješ ty. Odjezd (hodina a půl) se zamlouvá celý — žádná místa se
+ * nepočítají.
  *
  * Řádek může být i něco jiného než hodina:
  *
  *   spoj permanentky  první a poslední odjezd dne má místa pro držitele
  *                     permanentky; klik na něj přidá permanentku na ten
  *                     den v týdnu, který je zrovna na tabuli
- *   zastávka kurzu    v den kurzu jsou řádky tratí zvláštního vlaku —
+ *   zastávka kurzu    v den kurzu jsou řádky tratí zvláštního vlaku (jede
+ *                     ve stejné časy jako odjezdy) —
  *                     u tečky pořadí, na klapce jméno zastávky a vedle,
  *                     co se na ní děje;
  *                     nastupuje se cedulí nad nimi, ne řádkem
@@ -22,7 +24,7 @@ import { Klapka, cesta, nahodne } from "../parta2/klapka";
 import { klid } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
 import { sekkiDne } from "../../data/koyomi";
-import { rezervace as R, permanentka as P } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm } from "../../data/rezervace";
 import { zPoctu, volnaMista, jenMist, zbyvaMist } from "../../data/pocty";
 import { zvlastniVlak } from "../../components/rezervace/vlak";
 import type { Misto } from "../../components/rezervace/vlak";
@@ -85,9 +87,9 @@ const poznamka = (s: StavHodiny, mam: boolean) => (mam ? "nastupuješ" : s === "
 const BUBEN = ["volno", "obsazeno", "odjel", "nastupuješ", "včas", "Ořech", "permanentka"];
 
 const radaHodiny = (denVTydnu?: number) =>
-  "Klikni na volný odjezd — klidně na víc. Hodina je celá vaše, ať jedeš sám, nebo až ve čtyřech. " +
+  "Klikni na volný odjezd — klidně na víc. Každý trvá hodinu a půl a je celý váš, ať jedeš sám, nebo až ve čtyřech. " +
   `První a poslední spoj dne jsou na permanentku: ${denVTydnu === undefined ? "jeden den v týdnu" : KAZDY[denVTydnu]} po ${P.mesicu} měsíce, ${P.mist} místa na spoji. ` +
-  "Obloha nad mořem ukáže, jaké v tu hodinu bude v dílně světlo.";
+  "Obloha nad mořem ukáže, jaké v tu dobu bude v dílně světlo.";
 const RADA_KURZ =
   "Dnes jede jen zvláštní vlak — celý den, od první zastávky po poslední. Nastupuje se po jednom, dokud jsou místa. " +
   "Najeď na zastávku a obloha nad mořem ukáže, jaké při ní bude v dílně světlo.";
@@ -120,7 +122,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
   const hlaseni = koren.querySelector<HTMLElement>(".rz-hlaseni");
   const seznam = koren.querySelector<HTMLElement>(".rz-tabule-radky");
   const denKlapky = [...koren.querySelectorAll<HTMLElement>(".rz-tabule-den [data-flap]")].map((el) => new Klapka(el));
-  const radky: Radek[] = [...koren.querySelectorAll<HTMLLIElement>(".rz-o")].map((li) => ({
+  const naRadek = (li: HTMLLIElement): Radek => ({
     h: Number(li.dataset.h),
     li,
     btn: li.querySelector<HTMLButtonElement>(".rz-o-volba")!,
@@ -129,8 +131,11 @@ export function initOdjezdy(n: TabuleNastaveni) {
     sedacky: [...li.querySelectorAll<SVGSVGElement>(".rz-o-mista .rz-sedacka")],
     poradi: li.querySelector<HTMLElement>(".rz-o-poradi")!,
     co: li.querySelector<HTMLElement>(".rz-o-co")!,
-  }));
+  });
+  const radky = [...koren.querySelectorAll<HTMLLIElement>(".rz-o")].map(naRadek);
   const casKlapky = radky.map((r) => [...r.li.querySelectorAll<HTMLElement>(".rz-o-cas [data-flap]")].map((el) => new Klapka(el)));
+  /** Čtyři číslice času na klapkách: 10.5 → „1030“ */
+  const cislice = (h: number) => `${dvoj(Math.floor(h))}${dvoj(Math.round((h % 1) * 60))}`;
 
   radky.forEach((r) => {
     r.btn.addEventListener("click", () => n.prepni(r.h));
@@ -196,9 +201,9 @@ export function initOdjezdy(n: TabuleNastaveni) {
     r.btn.disabled = s !== "volno" && !mam;
     r.btn.setAttribute("aria-pressed", String(mam));
     const popis = mam
-      ? `nastupuješ — hodina je vaše, ${v.osob === 1 ? "jedeš sám" : `jedete ${v.osob}`}`
+      ? `nastupuješ — odjezd je celý váš, ${v.osob === 1 ? "jedeš sám" : `jedete ${v.osob}`}`
       : s === "pryc" ? "už odjel" : s === "plno" ? "obsazeno" : "volno";
-    r.popis.textContent = `${h.h}:00 až ${h.h + 1}:00, ${popis}`;
+    r.popis.textContent = `${hhmm(h.h)} až ${hhmm(h.h + R.blok)}, ${popis}`;
     klapni(r.stav, poznamka(s, mam), zaklapat, poradi * 70 + 40);
   };
 
@@ -218,19 +223,19 @@ export function initOdjezdy(n: TabuleNastaveni) {
     const popis = mam
       ? `bereš si permanentku ${naDny} na ${P.mesicu} měsíce${v.osob > 1 ? ` pro ${v.osob} lidi` : ""}`
       : s === "pryc" ? "dnes už odjel" : s === "plno" ? "permanentky jsou rozebrané" : s === "malo" ? `${zbyvaMist(volna)}, tolik vás nepojede` : `${volnaMista(volna)} ${zPoctu(P.mist)}`;
-    r.popis.textContent = `${h.h}:00 až ${h.h + 1}:00, ${spoj?.nazev ?? ""} spoj na permanentku ${naDny}: ${popis}`;
+    r.popis.textContent = `${hhmm(h.h)} až ${hhmm(h.h + R.blok)}, ${spoj?.nazev ?? ""} spoj na permanentku ${naDny}: ${popis}`;
     klapni(r.stav, mam ? "předplaceno" : s === "pryc" ? "odjel" : s === "plno" ? "rozebráno" : s === "malo" ? kolik : "permanentka", zaklapat, poradi * 70 + 40);
   };
 
   /** Zastávka zvláštního vlaku: na klapce jméno, vedle co se tam děje */
-  const radekKurzu = (r: Radek, h: Hodina, k: KurzDne, v: Vyber, zaklapat: boolean, poradi: number) => {
+  const radekKurzu = (r: Radek, k: KurzDne, v: Vyber, zaklapat: boolean, poradi: number) => {
     const z = k.kurz.program.find((x) => x.h === r.h);
     r.li.className = `rz-o kurz${k.probehlo ? " pryc" : ""}${v.kurz ? " vybrana" : ""}${z ? "" : " bez-zastavky"}`;
     r.btn.disabled = true;
     r.btn.setAttribute("aria-pressed", "false");
     r.poradi.textContent = z ? String(k.kurz.program.indexOf(z) + 1) : "";
     r.co.textContent = z?.popis ?? "";
-    r.popis.textContent = z ? `${h.h}:00 až ${h.h + 1}:00, zastávka ${z.nazev}: ${z.popis}` : `${h.h}:00 až ${h.h + 1}:00, vlak jede dál`;
+    r.popis.textContent = z ? `${hhmm(r.h)} až ${hhmm(r.h + R.blok)}, zastávka ${z.nazev}: ${z.popis}` : `${hhmm(r.h)} až ${hhmm(r.h + R.blok)}, vlak jede dál`;
     klapni(r.stav, z?.nazev ?? "", zaklapat, poradi * 70 + 40, k.kurz.program.map((x) => x.nazev));
   };
 
@@ -244,8 +249,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
       posad(r.sedacky, Array(R.maxOsob).fill("pryc"));
       return;
     }
-    if (d.kurz) radekKurzu(r, h, d.kurz, v, zaklapat, poradi);
-    else if (h.pas) radekPermanentky(r, d, h, v, zaklapat, poradi);
+    if (h.pas) radekPermanentky(r, d, h, v, zaklapat, poradi);
     else radekHodiny(r, h, v, zaklapat, poradi);
   };
 
@@ -258,12 +262,15 @@ export function initOdjezdy(n: TabuleNastaveni) {
     const c = k.kurz;
     const hodinyKurzu = c.program.map((z) => z.h);
     const od = Math.min(...hodinyKurzu);
-    const konec = Math.max(...hodinyKurzu) + 1;
+    const konec = Math.max(...hodinyKurzu) + R.blok;
     if (zvlNazev) zvlNazev.textContent = c.nazev;
     if (zvlJmeno) zvlJmeno.textContent = `Vlak „${c.vlak}“ — ${c.cteni} je japonsky ${c.vyznam}`;
-    if (zvlUdaje) zvlUdaje.textContent = `${od}:00 → ${konec}:00 · lektor ${c.lektor} · ${kc(c.cena)} za člověka`;
+    if (zvlUdaje) zvlUdaje.textContent = `${hhmm(od)} → ${hhmm(konec)} · lektor ${c.lektor} · ${kc(c.cena)} za člověka`;
     if (zvlPopis) zvlPopis.textContent = c.popis;
     if (zvlZnak) zvlZnak.textContent = c.emblem;
+    /* v sobotu jede jen on; v den, kdy je jinak otevřeno, vyloučil hodinové spoje */
+    const led = zvl.querySelector(".rz-zvl-led-vyluka");
+    if (led && d) led.textContent = R.dny.includes(d.datum.getDay()) ? "výluka — běžné spoje dnes nejedou" : `${DNY[d.datum.getDay()]} — jede jen zvláštní vlak`;
 
     const volna = volnoVKurzu(k);
     const mista = mistaKurzu(k, v.osob, v.kurz);
@@ -302,7 +309,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
       koren.classList.toggle("bez-dne", !d);
       koren.classList.toggle("je-kurz", !!d?.kurz);
       if (rada) rada.textContent = d?.kurz ? RADA_KURZ : radaHodiny(d?.datum.getDay());
-      seznam?.setAttribute("aria-label", d?.kurz ? "Trať zvláštního vlaku — zastávky programu po hodinách" : "Odjezdy vybraného dne — vyber jednu nebo víc hodin");
+      seznam?.setAttribute("aria-label", d?.kurz ? "Trať zvláštního vlaku — zastávky programu po hodině a půl" : "Odjezdy vybraného dne — vyber jeden nebo víc");
 
       if (d) {
         const s = `${DNY[d.datum.getDay()]} ${d.datum.getDate()}. ${MESICE_2[d.datum.getMonth()]}`;
@@ -315,20 +322,21 @@ export function initOdjezdy(n: TabuleNastaveni) {
         denKlapky.forEach((kl, i) => klapni(kl, i ? "-" : "—", false, 0));
       }
       cedule(d, v);
-      radky.forEach((r, i) => radek(r, d, v, zaklapat, i));
+      const k = d?.kurz;
+      radky.forEach((r, i) => (k ? radekKurzu(r, k, v, zaklapat, i) : radek(r, d, v, zaklapat, i)));
       if (zaklapat && !klid && novyDen) {
         /* Časy odjezdů jsou pořád stejné, ale při novém dni probliknou — tabule načítá.
            Cíl z hodiny řádku, ne z klapky — ta může být zrovna v mezikroku. */
         casKlapky.forEach((kk, i) =>
           kk.forEach((kl, j) => {
-            const t = `${dvoj(radky[i].h)}00`[j];
+            const t = cislice(radky[i].h)[j];
             window.setTimeout(() => kl.nastav(t, cesta(String((Number(t) + 7) % 10), t).slice(-2)), i * 70 + j * 22);
           }),
         );
         zvuk.klapky(18);
       }
     },
-    /** Jeden řádek po přidání nebo ubrání hodiny nebo permanentky */
+    /** Jeden řádek po přidání nebo ubrání odjezdu nebo permanentky */
     radek(d: Den, h: number, v: Vyber) {
       const r = radky.find((x) => x.h === h);
       if (!r) return;

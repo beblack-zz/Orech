@@ -1,0 +1,157 @@
+/*
+ * Úroveň 三 Voda — „Na střed“ (components/zkouska/urovne/Voda.astro).
+ *
+ * Kresba má tři vrstvy SVG přes sebe: pozadí, houbu v kbelíku a popředí.
+ * Popředí se překresluje každý snímek, a proto má vlastní vrstvu
+ * (will-change) — pozadí s rozostřenými stíny se pak znovu nemaluje.
+ * Nad kresbou leží plocha na ruce, kbelík a Kapka.
+ */
+
+.mu-voda { --mu-pomer: 10 / 7; }
+.mu-voda .mu-okno {
+  isolation: isolate;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.mu-voda .mu-kresba { pointer-events: none; }
+.mu-voda .mu-voda-popredi,
+.mu-voda .mu-voda-kbelik-hladina { will-change: transform; }
+
+/* Písmo v kresbě */
+.mu-voda .mu-voda-ruka-pismo,
+.mu-voda .mu-voda-popisek { font-family: var(--f-ruka); }
+.mu-voda .mu-voda-cislo { font-family: var(--f-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ——— Kam se sahá ——— */
+
+.mu-voda-dotyk {
+  position: absolute;
+  z-index: 3;
+  border-radius: 50%;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.mu-voda.mu-voda-tlaci .mu-voda-dotyk { cursor: grabbing; }
+.mu-voda-dotyk:focus-visible { box-shadow: 0 0 0 4px rgba(247, 241, 227, 0.9), 0 0 0 7px var(--rumelka); }
+.mu-voda-kbelik-cil {
+  position: absolute;
+  z-index: 3;
+  border-radius: 50%;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ——— Kapka na okraji vany ——— */
+
+.mu-voda-kapka { position: absolute; z-index: 4; pointer-events: none; }
+.mu-voda-kapka svg { display: block; width: 100%; height: auto; overflow: visible; }
+.mu-voda-kapka-pruzina { transform-origin: 50% 88%; }
+.mu-voda-kapka.skok .mu-voda-kapka-pruzina { animation: mu-voda-skok 0.7s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.mu-voda-kapka.radost .mu-voda-kapka-pruzina { animation: mu-voda-radost 1s ease-in-out; }
+.mu-voda-kapka.strach .mu-voda-kapka-pruzina { animation: mu-voda-strach 0.8s ease-in-out; }
+.mu-voda-kapka.varuje .mu-voda-kapka-pruzina { animation: mu-voda-varuje 0.55s ease-in-out; }
+@keyframes mu-voda-skok {
+  0% { transform: none; }
+  18% { transform: scale(1.14, 0.84); }
+  45% { transform: translateY(-20%) scale(0.9, 1.12); }
+  72% { transform: scale(1.1, 0.9); }
+  100% { transform: none; }
+}
+@keyframes mu-voda-radost {
+  0%, 100% { transform: none; }
+  20% { transform: translateY(-14%) rotate(-8deg); }
+  40% { transform: scale(1.08, 0.92); }
+  60% { transform: translateY(-14%) rotate(8deg); }
+  80% { transform: scale(1.06, 0.94); }
+}
+@keyframes mu-voda-strach {
+  0%, 100% { transform: none; }
+  20% { transform: rotate(-9deg) scale(0.96, 1.04); }
+  45% { transform: rotate(7deg); }
+  70% { transform: rotate(-4deg); }
+}
+@keyframes mu-voda-varuje {
+  0%, 100% { transform: none; }
+  20%, 60% { transform: translateX(-4%) rotate(-5deg); }
+  40%, 80% { transform: translateX(4%) rotate(5deg); }
+}
+
+/* ——— Ruce, když hlína drhne ——— */
+
+.mu-voda .mu-voda-drhne-ruka { transition: opacity 0.15s; }
+.mu-voda .mu-voda-ruce.drhne .mu-voda-drhne-ruka { opacity: 0.38; }
+
+/* ——— Ukazatele ——— */
+
+.mu-voda .mu-voda-vlhkomer-obrys { transition: stroke 0.3s; }
+.mu-voda[data-voda="malo"] .mu-voda-vlhkomer-obrys { stroke: #D6A23A; animation: mu-voda-pulz 1.1s ease-in-out infinite; }
+.mu-voda[data-voda="sucho"] .mu-voda-vlhkomer-obrys { stroke: #C4432B; animation: mu-voda-pulz 0.6s ease-in-out infinite; }
+.mu-voda[data-voda="hodne"] .mu-voda-vlhkomer-obrys { stroke: #3F7590; }
+.mu-voda[data-voda="moc"] .mu-voda-vlhkomer-obrys { stroke: #2C557A; animation: mu-voda-pulz 0.6s ease-in-out infinite; }
+@keyframes mu-voda-pulz { 50% { stroke-width: 6; } }
+
+.mu-voda .mu-voda-cil { transition: fill 0.3s; }
+.mu-voda[data-stred="ano"] .mu-voda-cil { fill: #FFE07A; }
+.mu-voda .mu-voda-terc.zari .mu-voda-drzeni { animation: mu-voda-zar 0.9s ease-out; }
+@keyframes mu-voda-zar {
+  0% { stroke-width: 6; }
+  40% { stroke-width: 14; stroke: #F3D27A; }
+  100% { stroke-width: 6; }
+}
+
+/* ——— Kbelík: houba se namočí, voda se zavlní ——— */
+
+.mu-voda .mu-voda-kbelik-vlna { transform-box: fill-box; transform-origin: center; }
+.mu-voda .vlni .mu-voda-kbelik-vlna { animation: mu-voda-vlna 0.9s ease-out; }
+.mu-voda .vlni .mu-voda-kbelik-vlna-2 { animation-delay: 0.15s; }
+@keyframes mu-voda-vlna {
+  0% { opacity: 0.9; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+.mu-voda .mu-voda-houba-kbelik-nori { transform-box: fill-box; transform-origin: center; }
+.mu-voda .vlni .mu-voda-houba-kbelik-nori { animation: mu-voda-nori 0.6s ease-in-out; }
+@keyframes mu-voda-nori {
+  0%, 100% { transform: none; }
+  40% { transform: scale(0.86); opacity: 0.75; }
+}
+
+/* ——— Ovládání pod oknem ——— */
+
+.mu-voda-ovladani { gap: 8px 16px; }
+.mu-voda .mu-voda-tlacitko {
+  min-height: 50px;
+  padding: 10px 22px 10px 16px;
+  font-size: 17px;
+  touch-action: manipulation;
+}
+.mu-voda .mu-voda-tlacitko:active { transform: scale(0.96); }
+.mu-voda-tlacitko-ikona { width: 26px; height: 26px; flex: none; }
+.mu-voda-klavesa {
+  padding: 1px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(247, 241, 227, 0.4);
+  font-family: var(--f-text);
+  font-size: 12.5px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+.mu-voda-napoveda { margin: 0; font-family: var(--f-ruka); font-size: 21px; line-height: 1.1; color: var(--inkoust-2); }
+
+/* Bez klávesnice nemá smysl o klávesách mluvit */
+@media (hover: none) and (pointer: coarse) {
+  .mu-voda-klavesa,
+  .mu-voda-napoveda-klavesa { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mu-voda-kapka .mu-voda-kapka-pruzina,
+  .mu-voda .mu-voda-vlhkomer-obrys,
+  .mu-voda .mu-voda-terc.zari .mu-voda-drzeni,
+  .mu-voda .vlni .mu-voda-kbelik-vlna,
+  .mu-voda .vlni .mu-voda-houba-kbelik-nori { animation: none !important; }
+  .mu-voda .mu-voda-tlacitko:active { transform: none; }
+}

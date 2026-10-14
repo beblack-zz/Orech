@@ -105,8 +105,14 @@ import HlinkaSchovka from "../components/characters/kami-buh/HlinkaSchovka.astro
 import SamotkaNese from "../components/characters/kami-buh/SamotkaNese.astro";
 import SamotkaSchovka from "../components/characters/kami-buh/SamotkaSchovka.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
+import Kami from "../components/parta2/Kami.astro";
+import Louka from "../components/parta2/Louka.astro";
+import Lucernicka from "../components/parta2/Lucernicka.astro";
 import { parta } from "../data/parta";
 import type { PostavaId } from "../data/parta";
+
+/** Pořadí v průvodu s lucerničkami — stejné jako na Úvodu 2 */
+const pruvodLucernicek: PostavaId[] = ["kachlik", "vazicka", "kapka", "pecinka", "hlinka", "stripek", "cedulka", "bublinka", "samotka"];
 
 const tvare = [
   { id: "original", cislo: "Teď", nazev: "Původní", popis: "Zavřená očka do úsměvu." },
@@ -386,6 +392,24 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      {/* Tatáž parta jako malá kami s lucerničkami — noční průvod z Úvodu 2 (uvod2/Noc.astro), tady na vlastním kousku noci; klik = replika */}
+      <section class="mc-sekce" data-hodina="17.5" aria-label="Průvod s lucerničkami">
+        <div class="papir mc-siroky">
+          <figure class="mc-podoba">
+            <div class="mc-lucernicky" role="group" aria-label="Noční průvod party — klikni na kohokoli">
+              {pruvodLucernicek.map((id, i) => (
+                <div class="mc-lucernicky-clen" style={`--i:${i}`}>
+                  <Lucernicka />
+                  <Kami id={id} class="pruvod-kami" />
+                </div>
+              ))}
+              <Louka class="mc-lucernicky-louka" seed={5} />
+            </div>
+            <figcaption><span class="mc-nazev">Průvod s lucerničkami</span></figcaption>
+          </figure>
         </div>
       </section>
 

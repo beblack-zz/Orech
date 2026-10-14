@@ -304,7 +304,6 @@ body.p2 {
   .hlava-nav a[aria-current="page"], .hlava-stranka-odhal { animation: none; }
 }
 .hlava-akce { display: flex; align-items: center; gap: 4px; }
-.omamori-tlacitko,
 .zvuk-tlacitko {
   display: flex;
   align-items: center;
@@ -315,13 +314,8 @@ body.p2 {
   white-space: nowrap;
   transition: background 0.2s;
 }
-.omamori-tlacitko:hover,
 .zvuk-tlacitko:hover { background: rgba(43, 36, 32, 0.07); }
-.omamori-tlacitko svg { width: 22px; height: 30px; }
-.omamori-latka { fill: var(--rumelka); transition: fill 0.6s; }
-.je-vse .omamori-latka { fill: var(--zlato); }
 .omamori-pocet { font-variant-numeric: tabular-nums; }
-.omamori-tlacitko.cinkne svg { animation: cinkne 0.7s cubic-bezier(0.3, 1.6, 0.5, 1); }
 @keyframes cinkne { 30% { transform: rotate(-14deg) scale(1.25); } 60% { transform: rotate(8deg); } }
 /* Zvonkohra (Zvonkohra.astro): kresba je větší než tlačítko a visí přes
    spodní okraj pruhu. Na myš nereaguje — klikne se jen na tlačítko, pod
@@ -346,6 +340,52 @@ body.p2 {
   filter: drop-shadow(0 3px 2.5px rgba(28, 20, 44, 0.26));
   /* Hýbe se každý snímek — vlastní vrstva, ať se nepřekresluje celý pruh */
   will-change: transform;
+}
+/* Závěs s kami (Zaves.astro) visí na každé stránce ze spodní hrany pruhu,
+   vlevo vedle zvonkohry — v pruhu samém místo nezabírá. Odkaz je jen kroužek
+   a břevno torii hned pod hranou (na Partě 2 otevře omamori, jinde vede na
+   Partu 2); šňůrky pod ním na myš nereagují a jde pod nimi klikat dál na
+   stránku. Háček sedí na tahu po okraji bubliny: tah běží 3,25 px nad spodní
+   hranou (OSA v tah-kresba.ts) a háček je 1,4 px pod vrškem kresby.
+   --zaves-kde je střed závěsu od pravého konce pruhu: o 80 px dál než střed
+   zvonkohry, ať se při houpání nepotkají.
+   Selektor je „> svg“ schválně: kdyby se dovnitř někdy dostalo vnořené svg,
+   nesmí zdědit rozměry kresby. */
+.hlava { --zaves-kde: 109px; }
+.zaves {
+  position: absolute;
+  top: 100%;
+  right: calc(var(--zaves-kde) - 30px);
+  width: 60px;
+  height: 26px;
+  margin-top: -5px;
+  border-radius: 10px;
+  -webkit-tap-highlight-color: transparent;
+}
+.zaves:focus-visible { outline: 2px solid var(--rumelka); outline-offset: 2px; }
+.zaves > svg {
+  position: absolute;
+  left: 50%;
+  top: 0.35px;
+  width: 68px;
+  height: 132px;
+  margin-left: -34px;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 2.5px rgba(28, 20, 44, 0.26));
+  will-change: transform;
+}
+/* Na místě buď korálek, nebo nalezený kami — ten přiskočí a šňůrka sebou cukne (zaves.ts) */
+.zv-misto.je .zv-koralek { display: none; }
+.zv-kami { transform-box: fill-box; transform-origin: 50% 50%; }
+.zv-kami.zv-prisel { animation: zv-prisel 0.75s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes zv-prisel { from { transform: scale(0.2) rotate(-30deg); opacity: 0; } }
+/* Lístek komnaty: holý papír, dokud šňůrka není plná; pak se přebarví do soumraku a svítí */
+.zv-sviti { opacity: 0; transition: opacity 0.9s ease 0.35s; }
+.zv-listek.je .zv-sviti { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .zv-kami.zv-prisel { animation: none; }
+  .zv-sviti { transition: none; }
 }
 /* Sbírky Obchodu 2, O nás 2 a Rezervace — tlačítka obsluhuje scripts/parta2/sbirka.ts */
 .sbirka-tlacitko {
@@ -403,8 +443,8 @@ body.p2 {
 .hlava.je-noc .hlava-nav a { color: rgba(241, 232, 214, 0.8); }
 .hlava.je-noc .hlava-nav a:hover { background: rgba(241, 232, 214, 0.09); color: #FFF8EA; }
 .hlava.je-noc .hlava-nav a[aria-current="page"] { color: #FFF8EA; }
-.hlava.je-noc :is(.hlava-tema, .zvuk-tlacitko, .sbirka-tlacitko, .omamori-tlacitko, .razitka-tlacitko, .naradi-tlacitko, .hlava-menu-tlacitko):hover { background: rgba(241, 232, 214, 0.09); }
-.hlava.je-noc :is(.sbirka-tlacitko, .omamori-tlacitko, .razitka-tlacitko, .naradi-tlacitko) svg { filter: drop-shadow(0 0 0.8px rgba(241, 232, 214, 0.75)); }
+.hlava.je-noc :is(.hlava-tema, .zvuk-tlacitko, .sbirka-tlacitko, .razitka-tlacitko, .naradi-tlacitko, .hlava-menu-tlacitko):hover { background: rgba(241, 232, 214, 0.09); }
+.hlava.je-noc :is(.sbirka-tlacitko, .razitka-tlacitko, .naradi-tlacitko) svg { filter: drop-shadow(0 0 0.8px rgba(241, 232, 214, 0.75)); }
 .hlava.je-noc ~ .hlava-menu { background: #2A3160; color: var(--noc-krem, #F1E8D6); }
 .hlava.je-noc ~ .hlava-menu a[aria-current="page"] { background: #F1E8D6; color: #2A3160; }
 
@@ -434,19 +474,22 @@ body.p2 {
 @media (max-width: 1400px) {
   .hlava-nav { display: none; }
   .hlava-akce { margin-left: auto; }
+  /* přibylo tlačítko menu, zvonkohra se posunula doleva a závěs s ní */
+  .hlava { --zaves-kde: 153px; }
   .hlava-menu-tlacitko { display: grid; }
 }
 @media (max-width: 480px) {
   /* Tlačítko zabere stejně místa jako dřív malý fūrin, miska přesahuje do okrajů */
   .zvuk-tlacitko { padding: 5px 4px; }
   .zvonkohra { width: 26px; }
+  .hlava { --zaves-kde: 141px; }
   /* S přepínačem den / noc a větší značkou se pruh na telefonu nevešel — vše o kus těsněji */
   .hlava { gap: 8px; }
   .hlava-znacka { gap: 6px; }
   .hlava-znacka .znacka-stetec { width: 80px; height: auto; }
   .hlava-akce { gap: 2px; }
   .hlava-tema { width: 30px; }
-  :is(.sbirka-tlacitko, .omamori-tlacitko) { padding: 5px 6px 5px 4px; }
+  .sbirka-tlacitko { padding: 5px 6px 5px 4px; }
 }
 
 /* ——— Úvod ——— */
@@ -456,6 +499,9 @@ body.p2 {
 .uvod-kopce { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 64%; }
 .uvod-orech { position: absolute; right: -6vw; bottom: 3%; height: 95%; aspect-ratio: 1000 / 1100; }
 .uvod-louka { position: absolute; left: 0; right: 0; bottom: 0; height: 26%; }
+/* Zelený dům z Domku 2 v krajině (Krajina.astro): mladá sakura na trávníku kvete */
+.krajina-domek .sak-1 { fill: #D98C8A; }
+.krajina-domek .sak-2 { fill: #EBA9A6; }
 
 .orech { position: relative; }
 .orech-vrstva { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -960,6 +1006,25 @@ body.p2 {
   40% { transform: scale(1.04, 0.88); }
   70% { transform: scale(1.03, 0.9); }
 }
+
+/* Kami s lucerničkou v nočním průvodu (Úvod 2, /marcel): kami šlape na místě,
+   tyčka s lucernou (Lucernicka.astro) mu vyrůstá zpoza ramene. Obal posouvá stránka. */
+.pruvod-kami { position: relative; z-index: 2; width: 100%; animation: pruvod-krok 0.8s ease-in-out infinite alternate; }
+:nth-child(even) > .pruvod-kami { animation-delay: -0.4s; }
+@keyframes pruvod-krok { from { transform: translateY(0) rotate(-2.5deg); } to { transform: translateY(-5%) rotate(2.5deg); } }
+.lucerna {
+  position: absolute;
+  z-index: 3;
+  left: 46%;
+  bottom: 36%;
+  width: 66%;
+  overflow: visible;
+  filter: drop-shadow(0 0 10px rgba(255, 176, 80, 0.9));
+  pointer-events: none;
+}
+.lucerna-telo { transform-box: fill-box; transform-origin: 50% 0; animation: lucerna-houp 1.6s ease-in-out infinite alternate; }
+@keyframes lucerna-houp { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+@media (prefers-reduced-motion: reduce) { .pruvod-kami, .lucerna-telo { animation: none; } }
 
 /* Bublina s replikou — kreslí ji scripts/parta2/kami.ts mimo okna */
 .bublina {
@@ -1542,8 +1607,11 @@ body.p2 {
 }
 .vrstva-pozadi, .vrstva-pozadi svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .vrstva-nalez { position: relative; display: grid; place-items: center; }
-.vrstva-nalez svg { width: min(100%, 420px); height: auto; display: block; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.25)); }
-.vrstva.odkryta .vrstva-nalez svg { animation: nalez 1.3s 0.45s both cubic-bezier(0.3, 1.35, 0.5, 1); }
+.vrstva-nalez-obal { position: relative; width: min(100%, 420px); }
+.vrstva-nalez-obal > svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.25)); }
+.vrstva.odkryta .vrstva-nalez-obal { animation: nalez 1.3s 0.45s both cubic-bezier(0.3, 1.35, 0.5, 1); }
+/* Černá Hlínka za trilobitem: spodek vykukující kresby leží na horní hraně kamene (podzemi.ts, SCHOVANA), kývá se kolem něj */
+.skryty.pata-hlinka { z-index: 1; transform-origin: 50% 100%; }
 @keyframes nalez { from { opacity: 0; transform: translateY(26px) scale(0.92) rotate(-3deg); } }
 .vrstva-text { position: relative; max-width: 46ch; }
 .vrstva:nth-child(even) .vrstva-nalez { order: 2; }
@@ -1597,11 +1665,11 @@ body.p2 {
   .pata-info > :first-child { grid-column: 1 / -1; }
   .vrstva-plocha { grid-template-columns: 1fr; padding-top: 40px; padding-bottom: 36px; }
   .vrstva:nth-child(even) .vrstva-nalez { order: 0; }
-  .vrstva-nalez svg { width: min(78%, 320px); }
+  .vrstva-nalez-obal { width: min(78%, 320px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .vrstva, .kopani-akce { transition: none; }
-  .vrstva.odkryta .vrstva-nalez svg, .kopat.kope .lopata { animation: none; }
+  .vrstva.odkryta .vrstva-nalez-obal, .kopat.kope .lopata { animation: none; }
 }
 
 /* ——— Omamori ——— */
@@ -1632,7 +1700,13 @@ body.p2 {
   line-height: 1;
 }
 .omamori-perex { margin: 0; max-width: 58ch; color: var(--inkoust-2); }
-.omamori-seznam { list-style: none; padding: 0; margin: 22px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.omamori-rady { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 22px; }
+.omamori-rada-hlava { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 10px; }
+.omamori-rada-nazev { font-family: var(--f-display); font-weight: 600; font-size: 18px; }
+.omamori-rada-popis { font-size: 14px; color: var(--inkoust-3); }
+/* tři kami a na konci řady komnata; komnata je o kousek širší než karta, ať se dá přečíst */
+.omamori-rada-telo { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1.1fr); gap: 12px; }
+.omamori-seznam { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .omamori-polozka { display: grid; justify-items: center; align-content: start; gap: 4px; padding: 14px 10px 16px; border-radius: 16px; background: var(--papir-2); text-align: center; }
 .omamori-obr { width: 74px; }
 .omamori-obr svg { width: 100%; height: auto; display: block; filter: brightness(0) opacity(0.16); transition: filter 0.5s; }
@@ -1642,9 +1716,81 @@ body.p2 {
 .omamori-nalezen { display: none; font-family: var(--f-ruka); font-size: 20px; color: var(--rumelka); }
 .omamori-polozka.je .omamori-napoveda { display: none; }
 .omamori-polozka.je .omamori-nalezen { display: block; }
+
+/* Komnata — lístek jako na konci šňůrky závěsu; zamčená je jen čárkovaná */
+.omamori-komnata {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  padding: 14px 12px 16px;
+  border: 1.5px dashed var(--papir-3);
+  border-radius: 16px;
+  text-align: center;
+  color: var(--inkoust-3);
+  transition: background 0.5s, border-color 0.5s, color 0.5s, transform 0.2s;
+}
+.omamori-listek {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 48px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  background: var(--papir-2);
+  font-size: 20px;
+  color: var(--inkoust-3);
+  transition: background 0.5s, color 0.5s, box-shadow 0.5s;
+}
+.omamori-komnata-prah { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.omamori-komnata-nazev { font-family: var(--f-display); font-weight: 600; font-size: 16px; color: var(--inkoust); }
+.omamori-komnata-popis { font-size: 13px; line-height: 1.4; }
+.omamori-komnata-stav { margin-top: 4px; font-family: var(--f-ruka); font-size: 19px; }
+a.omamori-komnata { color: var(--inkoust-3); text-decoration: none; }
+a.omamori-komnata[href]:hover { transform: translateY(-2px); }
+.omamori-komnata.je { border-style: solid; border-color: var(--rumelka); background: #FBF4E6; color: var(--inkoust-2); }
+.omamori-komnata.je .omamori-listek { background: var(--rumelka); color: var(--papir); box-shadow: 0 0 0 4px rgba(196, 67, 43, 0.14); }
+.omamori-komnata.je .omamori-komnata-stav { color: var(--rumelka); }
+.omamori-poklad.je { border-color: var(--zlato); background: #FBF1DA; }
+.omamori-poklad.je .omamori-listek { background: var(--zlato); color: var(--inkoust); box-shadow: 0 0 18px 2px rgba(243, 210, 122, 0.8); }
+.omamori-poklad.je .omamori-komnata-stav { color: #A8761A; }
+/* Omamori schovaných kami je černé: hledají se stíny, nenalezený kami je
+   na kartě jen černá silueta, Střípek a Bublinka bílá (perex v Omamori.astro to říká). Ostatní
+   sbírky s omamori-dialog zůstávají krémové. */
+[data-zaves-dialog] {
+  --papir: #15120F;
+  --papir-2: #2C2620;
+  --papir-3: #4A4037;
+  --inkoust: #F4EBDC;
+  --inkoust-2: #D3C6B2;
+  --inkoust-3: #9C8F7F;
+  background: var(--papir);
+  color: var(--inkoust);
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 240, 220, 0.08);
+}
+[data-zaves-dialog] .omamori-obr svg { filter: brightness(0); }
+/* Střípek a Bublinka jsou průsvitní — jejich stín je bílý */
+[data-zaves-dialog] :is([data-omamori="stripek"], [data-omamori="bublinka"]) .omamori-obr svg { filter: brightness(0) invert(1); }
+[data-zaves-dialog] .omamori-polozka.je .omamori-obr svg { filter: none; }
+[data-zaves-dialog] .omamori-komnata.je { background: #2A1712; }
+[data-zaves-dialog] .omamori-komnata.je .omamori-listek { color: #FFF8EA; }
+[data-zaves-dialog] .omamori-poklad.je { background: #2B2111; }
+[data-zaves-dialog] .omamori-poklad.je .omamori-komnata-stav { color: var(--zlato-2); }
+
 .omamori-pata { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .omamori-stav { margin: 0; font-size: 16px; }
-@media (max-width: 600px) { .omamori-seznam { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* užší: komnata pod kami na celou šířku, lístek vlevo */
+@media (max-width: 720px) {
+  .omamori-rada-telo { grid-template-columns: minmax(0, 1fr); }
+  .omamori-komnata { grid-template-columns: auto minmax(0, 1fr); justify-items: start; column-gap: 14px; row-gap: 2px; text-align: left; padding: 12px 16px; }
+  .omamori-listek { grid-row: span 4; margin: 0; }
+}
+/* telefon: kami pod sebou, obrázek vlevo — tři vedle sebe by nápovědu nadrobily na slova */
+@media (max-width: 520px) {
+  .omamori-seznam { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .omamori-polozka { grid-template-columns: 56px minmax(0, 1fr); justify-items: start; column-gap: 14px; row-gap: 2px; padding: 10px 16px; text-align: left; }
+  .omamori-obr { width: 56px; grid-row: span 2; align-self: center; }
+}
 
 /* Oznámení o nálezu */
 .oznameni {
@@ -1697,9 +1843,42 @@ body.p2 {
   animation: oslava-ven 0.5s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 .oslava-zprava p { margin: 0 0 16px; color: var(--inkoust-2); }
+.oslava-akce { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .oslava-parta { display: flex; justify-content: center; margin: 0 0 12px; }
 .oslava-parta svg { width: 40px; height: auto; margin: 0 -3px; }
 @keyframes oslava-ven { from { transform: translate(-50%, -40%) scale(0.9); opacity: 0; } }
+
+/* ——— Mistr z komnaty U mistra (scripts/parta2/mistr.ts) ———
+ * Kdo převzal mistrovský list na /zkouska, má vedle značky pečeť 名人
+ * a v omamori pásku s titulem. Třídu je-mistr dostává <html> ještě před
+ * prvním vykreslením (Hlavicka.astro).
+ */
+.hlava-mistr { display: none; flex: none; width: 30px; height: 30px; margin-left: -4px; border-radius: 6px; transform: rotate(-7deg); transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.je-mistr .hlava-mistr { display: block; }
+.hlava-mistr svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 2px rgba(28, 20, 44, 0.25)); }
+.hlava-mistr:hover { transform: rotate(0deg) scale(1.08); }
+.hlava-mistr text { font-family: var(--f-kanji); }
+.omamori-mistr { display: none; }
+.je-mistr .omamori-mistr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0 0 14px;
+  padding: 9px 16px 9px 10px;
+  border-radius: 14px;
+  background: linear-gradient(100deg, #FFF3D2, #F7E2B2);
+  color: var(--inkoust);
+  text-decoration: none;
+  box-shadow: inset 0 0 0 1px rgba(214, 162, 58, 0.45);
+}
+.omamori-mistr-pecet { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 5px; background: var(--rumelka); color: #FFF8EA; font-family: var(--f-kanji); font-size: 13px; line-height: 1; writing-mode: vertical-rl; transform: rotate(-6deg); }
+.omamori-mistr-text { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 16px; }
+.omamori-mistr-odkaz { margin-left: auto; font-family: var(--f-ruka); font-size: 20px; color: var(--rumelka); }
+/* Sešit razítek v hlavičce komnaty U mistra: brokátové desky, plný sešit zezlátne */
+.mss-ikona-desky { fill: #34427A; transition: fill 0.6s; }
+.je-cely-sesit .mss-ikona-desky { fill: #B8862A; }
+.mss-tlacitko svg { width: 26px; height: 30px; }
 
 /* ——— Méně pohybu ——— */
 

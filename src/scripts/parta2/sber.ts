@@ -6,29 +6,51 @@ import type { PostavaId } from "../../data/parta";
 import { nacti, uloz } from "./stav";
 import { jmeno, rekni } from "./kami";
 import * as zvuk from "./zvuk";
+import { ukazZaves, KLIC_NALEZENI } from "./zaves";
+import { ukazOmamori, SMAZANO } from "./omamori";
 
-const KLIC = "parta2-nalezeni";
+const KLIC = KLIC_NALEZENI;
 const VSICHNI = 9;
 const nalezeni = new Set<string>(nacti<string[]>(KLIC, []));
 
-let oznameniCas: number | undefined;
-
-function aktualizuj() {
-  const n = nalezeni.size;
-  for (const b of document.querySelectorAll(".omamori-pocet b, .omamori-stav b, .sber-stav b")) b.textContent = String(n);
-  document.querySelector(".omamori-tlacitko")?.setAttribute("aria-label", `Omamori: nalezeno ${n} z ${VSICHNI} kami`);
-  for (const li of document.querySelectorAll<HTMLElement>(".omamori-polozka")) {
-    li.classList.toggle("je", nalezeni.has(li.dataset.omamori!));
-  }
-  for (const s of document.querySelectorAll<HTMLElement>(".skryty")) {
+/** Nalezení kami ve skrýších svítí — na Partě 2 i mimo ni (schovej níž) */
+function ukazNalezene() {
+  for (const s of document.querySelectorAll<HTMLElement | SVGElement>("[data-skryty]")) {
     s.classList.toggle("nalezen", nalezeni.has(s.dataset.skryty!));
   }
+}
+
+/* Kdo vyprázdní omamori, tomu zhasnou skrýše na kterékoli stránce. Registruje se
+   jednou při načtení modulu, ne za stránku — platí pro celou návštěvu. */
+document.addEventListener(SMAZANO, () => {
+  nalezeni.clear();
+  ukazNalezene();
+});
+
+let oznameniCas: number | undefined;
+
+/** `novy` je ten, koho člověk našel právě teď — na závěs pod hlavičkou (Zaves.astro) přiskočí */
+function aktualizuj(novy?: string) {
+  const n = nalezeni.size;
+  ukazZaves([...nalezeni], novy);
+  ukazOmamori([...nalezeni]);
+  for (const b of document.querySelectorAll(".omamori-pocet b, .sber-stav b")) b.textContent = String(n);
+  ukazNalezene();
   document.documentElement.classList.toggle("je-vse", n === VSICHNI);
 }
 
-function oznam(s: HTMLElement, id: PostavaId) {
-  const o = document.querySelector<HTMLElement>(".oznameni");
-  if (!o) return;
+/** Proužek s nálezem má v sobě jen Parta 2 — jinde (patička) se přidá, až je potřeba */
+function prouzek() {
+  const o = document.createElement("div");
+  o.className = "oznameni";
+  o.setAttribute("role", "status");
+  o.setAttribute("aria-live", "polite");
+  document.body.append(o);
+  return o;
+}
+
+function oznam(s: Element, id: PostavaId) {
+  const o = document.querySelector<HTMLElement>(".oznameni") ?? prouzek();
   o.textContent = "";
   const obr = s.querySelector("svg")?.cloneNode(true);
   if (obr) o.append(obr);
@@ -65,62 +87,84 @@ function oslava() {
   zprava.setAttribute("aria-label", "Všech devět kami nalezeno");
   const parta = document.createElement("div");
   parta.className = "oslava-parta";
-  for (const s of document.querySelectorAll(".omamori-obr svg")) parta.append(s.cloneNode(true));
+  for (const s of document.querySelectorAll("[data-zaves-dialog] .omamori-obr svg")) parta.append(s.cloneNode(true));
   const nadpis = document.createElement("h2");
   nadpis.className = "nadpis-2";
   nadpis.textContent = "Všech devět!";
   const text = document.createElement("p");
-  text.textContent = "Omamori je plné a zezlátlo. Teď zbývá najít je v dílně — tam jsou z hlíny a schovávají se líp.";
+  text.textContent = "Omamori je plné a všechny tři lístky na závěsu svítí. Provaz z brány svatyně spadl — čeká tam na tebe omikuji s pokladem.";
+  const svatyne = document.createElement("a");
+  svatyne.className = "tlacitko";
+  svatyne.href = "/svatyne";
+  svatyne.textContent = "Do svatyně";
   const zavrit = document.createElement("button");
   zavrit.type = "button";
-  zavrit.className = "tlacitko";
+  zavrit.className = "tlacitko tlacitko-obrys";
   zavrit.textContent = "Arigatō";
   zavrit.addEventListener("click", () => {
     zprava.remove();
     vrstva.remove();
   });
-  zprava.append(parta, nadpis, text, zavrit);
+  const akce = document.createElement("div");
+  akce.className = "oslava-akce";
+  akce.append(svatyne, zavrit);
+  zprava.append(parta, nadpis, text, akce);
   document.body.append(zprava);
   zavrit.focus();
   window.setTimeout(() => vrstva.remove(), 9000);
 }
 
 export function initSber() {
-  const dialog = document.querySelector<HTMLDialogElement>(".omamori-dialog");
-  const tlacitko = document.querySelector<HTMLElement>(".omamori-tlacitko");
+  /* modul žije přes přechody mezi stránkami — omamori mezitím mohl někdo vyprázdnit jinde */
+  nalezeni.clear();
+  for (const id of nacti<string[]>(KLIC, [])) nalezeni.add(id);
   aktualizuj();
+
+  /* omamori obsluhuje omamori.ts z hlavičky — tady jen zapomenout, když ho někdo vyprázdní */
+  document.addEventListener(SMAZANO, () => {
+    nalezeni.clear();
+    aktualizuj();
+  });
 
   document.addEventListener("click", (e) => {
     const s = (e.target as Element).closest<HTMLElement>(".skryty");
-    if (!s) return;
-    const id = s.dataset.skryty as PostavaId;
-    if (nalezeni.has(id)) {
-      rekni(s, id, "Mě už máš. Hledej dál!");
-      return;
-    }
-    nalezeni.add(id);
-    uloz(KLIC, [...nalezeni]);
-    s.classList.add("nalezen-ted");
-    window.setTimeout(() => s.classList.remove("nalezen-ted"), 800);
-    aktualizuj();
-    zvuk.nalezeno();
-    oznam(s, id);
-    if (tlacitko) {
-      tlacitko.classList.remove("cinkne");
-      void tlacitko.offsetWidth;
-      tlacitko.classList.add("cinkne");
-    }
-    if (nalezeni.size === VSICHNI) window.setTimeout(oslava, 900);
+    if (s) najdi(s);
   });
+}
 
-  tlacitko?.addEventListener("click", () => dialog?.showModal());
-  dialog?.querySelector(".omamori-zavrit")?.addEventListener("click", () => dialog.close());
-  dialog?.addEventListener("click", (e) => {
-    if (e.target === dialog) dialog.close();
-  });
-  dialog?.querySelector(".omamori-reset")?.addEventListener("click", () => {
-    nalezeni.clear();
-    uloz(KLIC, []);
-    aktualizuj();
+/**
+ * Klik na schovaného kami (.skryty s data-skryty). Volá ji Parta 2 a schovej()
+ * pro skrýše jinde po webu,
+ * proto si nálezy pokaždé znovu přečte — mezitím mohly přibýt jinde.
+ */
+export function najdi(s: HTMLElement | SVGElement) {
+  nalezeni.clear();
+  for (const id of nacti<string[]>(KLIC, [])) nalezeni.add(id);
+  const id = s.dataset.skryty as PostavaId;
+  if (nalezeni.has(id)) {
+    rekni(s, id, "Mě už máš. Hledej dál!");
+    return;
+  }
+  nalezeni.add(id);
+  uloz(KLIC, [...nalezeni]);
+  s.classList.add("nalezen-ted");
+  window.setTimeout(() => s.classList.remove("nalezen-ted"), 800);
+  aktualizuj(id);
+  zvuk.nalezeno();
+  oznam(s, id);
+  if (nalezeni.size === VSICHNI) window.setTimeout(oslava, 900);
+}
+
+/**
+ * Skrýš mimo Partu 2: Hlínka za trilobitem v patičce (paticka.ts), na Rezervaci
+ * Šamotka v okně vlaku a Kachlík v tabuli příštího odjezdu (rezervace/hlavni.ts).
+ * Ukáže, jestli už je nalezený, a klik ho najde. Dál ho nepustí — ani
+ * k dokumentu (Parta 2 by ho počítala podruhé), ani k tlačítku, ve kterém sedí.
+ */
+export function schovej(el: HTMLElement | SVGElement) {
+  el.classList.toggle("nalezen", nacti<string[]>(KLIC, []).includes(el.dataset.skryty!));
+  el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    najdi(el);
   });
 }

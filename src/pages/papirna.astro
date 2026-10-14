@@ -1,0 +1,143 @@
+---
+/**
+ * Papírna — první komnata hry se schovanými kami. Otevře se za tři
+ * nalezené (omamori pod hlavičkou) a je v ní ke stažení Kami z papíru:
+ * vystřihovánka party a omalovánka. Japonsky se papír řekne taky kami.
+ * V menu není: vede sem dlaždice 一 v omamori.
+ *
+ *   úvod     karta se zámkem a stůl s partou slepenou z papíru
+ *            (components/papirna/Stul.astro)
+ *   listy    náhledy stran, stažení a rady k tisku
+ *
+ * PDF i náhledy stran skládá skript `node scripts/papirna/papirna.mjs`
+ * do public/papirna. Vzhled je z Party 2 (styles/parta2.css), vlastní
+ * věci stránky v styles/papirna.css, zámek ve scripts/papirna/hlavni.ts.
+ */
+import fs from "node:fs";
+import path from "node:path";
+import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/papirna.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Stul from "../components/papirna/Stul.astro";
+import { komnaty } from "../data/kami";
+
+const PDF = "/papirna/kami-z-papiru.pdf";
+const velikost = (fs.statSync(path.join(process.cwd(), "public", PDF)).size / 1024 / 1024).toLocaleString("cs-CZ", { maximumFractionDigits: 1 });
+const prah = komnaty[0].prah;
+
+const listy = [
+  { soubor: "kachlik", nazev: "Kachlík", popis: "Krabička, podstavec s getami a vodováha na hlavu." },
+  { soubor: "kapka", nazev: "Kapka", popis: "Stojánek: zepředu i zezadu, slepí se na špičce." },
+  { soubor: "kachlik-obrys", nazev: "Kachlík k vybarvení", popis: "Tatáž krabička, jen obrysy. Nejdřív barvy, pak nůžky." },
+  { soubor: "kapka-obrys", nazev: "Kapka k vybarvení", popis: "Může být i duhová. Nikdo se nezlobí." },
+  { soubor: "dilna", nazev: "V dílně", popis: "Omalovánka. Na zdi visí prázdný obraz — tam patříš ty." },
+];
+
+const rady = [
+  "Tiskni na čtvrtku nebo aspoň tvrdší papír — z obyčejného se krabička prohne.",
+  "V tisku nastav skutečnou velikost (100 %), ne „přizpůsobit stránce“.",
+  "Čárkované čáry ohýbej přes hranu pravítka, ohyb pak bude rovný.",
+  "Stačí lepidlo v tyčince. Na chlopně ho dej víc, ať chytí.",
+  "Na omalovánku a obrysy pastelky nebo fixy. Vodovky papír zvlní.",
+];
+
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("一紙神")}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Papírna · JIRO saku</title>
+    <meta name="description" content="Za tři nalezené kami se otevře Papírna: vystřihovánka party z dílny a omalovánka ke stažení." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#4F5E9C" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
+  </head>
+  <body class="p2 pa" data-stranka="papirna" data-prah={prah}>
+    <Nebe />
+    <Hlavicka sber="zadny" />
+
+    <main>
+      <section class="pa-uvod" data-hodina="13" aria-labelledby="pa-nadpis">
+        <div class="pa-karta papir">
+          <p class="stitek"><span lang="ja">一</span> · Papírna</p>
+          <h1 id="pa-nadpis" class="pa-nadpis">Kami z papíru <em>vystřihni si partu.</em></h1>
+          <p class="pa-perex">
+            Japonsky se papír řekne <i>kami</i> <span lang="ja" class="pa-znak">紙</span> — stejně jako duchové
+            <span lang="ja" class="pa-znak">神</span>, kteří se schovávají po webu. Tak tady jsou z papíru.
+            Vytiskni, vystřihni, ohni a slep: Kachlík je krabička na getách, Kapka stojí sama. A k tomu omalovánka.
+          </p>
+
+          <div class="pa-zamceno">
+            <p class="pa-pokyn">Papírna se otevře za {prah} nalezené kami. Máš <b class="pa-pocet">0</b> z {prah}.</p>
+            <div class="pa-akce">
+              <button type="button" class="tlacitko pa-omamori">Otevřít omamori</button>
+              <a class="tlacitko tlacitko-obrys" href="/parta-2">Kde začít hledat</a>
+            </div>
+          </div>
+          <div class="pa-otevreno" hidden>
+            <div class="pa-akce">
+              <a class="tlacitko" href={PDF} download>Stáhnout PDF</a>
+              <a class="tlacitko tlacitko-obrys" href="#pa-listy">Co je uvnitř</a>
+            </div>
+            <p class="pa-drobne">5 stran A4 · {velikost} MB</p>
+          </div>
+        </div>
+
+        <Stul class="pa-stul" />
+      </section>
+
+      <section class="pa-sekce" id="pa-listy" data-hodina="15.5" aria-labelledby="pa-listy-nadpis" hidden>
+        <div class="papir pa-siroky">
+          <p class="stitek">Co je v balíčku</p>
+          <h2 id="pa-listy-nadpis" class="nadpis-2">Pět listů A4</h2>
+          <ol class="pa-listy">
+            {listy.map((l, i) => (
+              <li>
+                <a class="pa-list" href={PDF} download>
+                  <img src={`/papirna/listy/${l.soubor}.webp`} width="620" height="877" alt={`Strana ${i + 1}: ${l.nazev}`} loading="lazy" />
+                </a>
+                <p class="pa-list-nazev"><span class="pa-cislo">{String(i + 1).padStart(2, "0")}</span> {l.nazev}</p>
+                <p class="pa-list-popis">{l.popis}</p>
+              </li>
+            ))}
+          </ol>
+
+          <div class="pa-pod">
+            <div class="pa-rady">
+              <h3 class="pa-h">Než začneš</h3>
+              <ul>{rady.map((r) => <li>{r}</li>)}</ul>
+            </div>
+            <div class="pa-stahnout">
+              <a class="tlacitko" href={PDF} download>Stáhnout PDF</a>
+              <p class="pa-brzy">Zatím jsou tu Kachlík a Kapka. Zbytek party se právě stříhá — přibude sem.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <Paticka poznamka={`Papírna je první komnata hry se schovanými kami. Otevře se za ${prah} nalezené.`} />
+
+    <script>
+      import "../scripts/papirna/hlavni.ts";
+    </script>
+  </body>
+</html>

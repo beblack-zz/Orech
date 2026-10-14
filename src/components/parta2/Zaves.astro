@@ -1,0 +1,155 @@
+---
+/**
+ * Závěs s kami pod hlavičkou — místo počítadla „0/9“. Visí na každé
+ * stránce nového vzhledu ze spodní hrany pruhu, vlevo vedle zvonkohry,
+ * a ukazuje, koho už člověk na Partě 2 našel.
+ *
+ * Nahoře je břevno torii, pod ním tři šňůrky po třech místech a na konci
+ * každé lístek s číslem komnaty. Prázdné místo je korálek z nepálené hlíny;
+ * koho člověk najde, ten se na šňůrku navlékne místo něj — v pořadí, v jakém
+ * je nacházel, takže se šňůrky plní odleva. Plná šňůrka rozsvítí svůj
+ * lístek: tři, šest, devět.
+ *
+ * Kresba je v klidové poloze spočítané fyzikou (scripts/parta2/
+ * zaves-fyzika.ts) — bez skriptu visí rovně a prázdná, se skriptem ji
+ * rozhoupe vítr zvonkohry a zaplní se podle nálezů (scripts/parta2/
+ * zaves.ts). Prvky, se kterými skript hýbe, mají data-zv.
+ *
+ * Kliká se jen na kroužek a břevno (styles/parta2.css) a otevře se
+ * omamori — na každé stránce, nikam se nepřechází. Odkaz na Partu 2 je
+ * tu jen pro případ, že neběží skript. Při přechodu mezi stránkami se prvek přenáší (transition:persist)
+ * a houpe se dál — proto je na všech stránkách stejný.
+ *
+ * Kami jsou malé kresby na schovávanou (characters/schovka) v barvách loga.
+ * Čekají schovaní ve skladu na konci kresby a skript je na šňůrku přesouvá,
+ * neklonuje — jejich přechody tak mají na stránce jediné id (prefix zvk-).
+ * Jejich drobný pohyb je ve styles/schovka.css.
+ */
+import "../../styles/schovka.css";
+import { parta } from "../../data/parta";
+import type { PostavaId } from "../../data/parta";
+import { zaves, zapis, KOTVY, KOTVA_Y, MIST, MISTO, LISTEK } from "../../scripts/parta2/zaves-fyzika";
+import { KROUZEK_R } from "../../scripts/parta2/zvonkohra-fyzika";
+import type { SchovkaVolby } from "../characters/schovka/pecinka";
+import { pecinkaSchovka } from "../characters/schovka/pecinka";
+import { bublinkaSchovka } from "../characters/schovka/bublinka";
+import { stripekSchovka } from "../characters/schovka/stripek";
+import { hlinkaSchovka } from "../characters/schovka/hlinka";
+import { cedulkaSchovka } from "../characters/schovka/cedulka";
+import { kachlikSchovka } from "../characters/schovka/kachlik";
+import { samotkaSchovka } from "../characters/schovka/samotka";
+import { vazickaSchovka } from "../characters/schovka/vazicka";
+import { kapkaSchovka } from "../characters/schovka/kapka";
+
+const klidna = zaves().poloha();
+const atributy: Record<string, Record<string, string>> = {};
+zapis(klidna, (klic, atribut, hodnota) => {
+  (atributy[klic] ??= {})[atribut] = hodnota;
+});
+const a = (klic: string) => atributy[klic] ?? {};
+
+const KRESBY: Record<PostavaId, (v: SchovkaVolby) => string> = {
+  hlinka: hlinkaSchovka, kapka: kapkaSchovka, pecinka: pecinkaSchovka, stripek: stripekSchovka, vazicka: vazickaSchovka,
+  bublinka: bublinkaSchovka, kachlik: kachlikSchovka, cedulka: cedulkaSchovka, samotka: samotkaSchovka,
+};
+/* Generátor vrací celé <svg>; tady z něj zbyde skupina vystředěná na místo na šňůrce.
+   Vnořené <svg> by si přebarvila a přeměřila pravidla hlavičky psaná na „tlačítko svg“. */
+const kami = parta.map((p) => {
+  const svg = KRESBY[p.id]({ barva: "logo", velikost: MISTO, id: `zvk-${p.id}` });
+  const m = svg.match(/^<svg[^>]*?class="([^"]*)"[^>]*?viewBox="0 0 ([\d.]+) ([\d.]+)"[^>]*?style="([^"]*)"[^>]*>([\s\S]*)<\/svg>$/);
+  if (!m) throw new Error(`Zaves: kresba ${p.id} má jiný obal, než se čekalo`);
+  const [, trida, w, h, styl, obsah] = m;
+  const k = MISTO / Number(w);
+  return { id: p.id, trida, styl, obsah, transform: `translate(${-MISTO / 2} ${(-Number(h) * k) / 2}) scale(${k})` };
+});
+
+const snura = { fill: "none", stroke: "#5C5047", "stroke-width": 0.8, "stroke-linecap": "round", "stroke-linejoin": "round" };
+const mosaz = "#B98D3E";
+const rumelka = "#C4432B";
+const lw = LISTEK.sirka / 2;
+const ZNAKY = ["一", "二", "三"];
+const pismo = "Yuji Syuku, Yu Mincho, serif";
+---
+
+<a href="/parta-2" class="zaves" data-zaves transition:persist="zaves" aria-label="Schovaní kami: hledají se na Partě">
+  <svg viewBox="-34 -8 68 132" width="68" height="132" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="zv-papir" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#C0708A" />
+        <stop offset="0.3" stop-color="#7A5E8E" />
+        <stop offset="0.62" stop-color="#4E4A84" />
+        <stop offset="1" stop-color="#2A2C5E" />
+      </linearGradient>
+      <linearGradient id="zv-hlina" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#EAD9BC" />
+        <stop offset="1" stop-color="#B99A72" />
+      </linearGradient>
+      <linearGradient id="zv-lak" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#D9573A" />
+        <stop offset="1" stop-color="#A93522" />
+      </linearGradient>
+    </defs>
+
+    {/* Závěs v okapu hlavičky a kroužek — stejné jako u zvonkohry */}
+    <ellipse cx="0" cy="-6.6" rx="2.4" ry="0.8" fill={mosaz} />
+    <path d={`M0 -6.2 V${-KROUZEK_R}`} stroke={mosaz} stroke-width="1.1" />
+    <circle cx="0" cy="0" r={KROUZEK_R} fill="none" stroke={mosaz} stroke-width="1.1" />
+
+    <g data-zv="visi">
+      {KOTVY.map((_, i) => (
+        <g>
+          <polyline data-zv={`snura-${i}`} {...a(`snura-${i}`)} {...snura} />
+          {Array.from({ length: MIST }, (_, j) => (
+            <g class="zv-misto" data-zv={`misto-${i}-${j}`} {...a(`misto-${i}-${j}`)}>
+              <g class="zv-koralek">
+                <ellipse cx="0" cy="0" rx="3.7" ry="3.3" fill="url(#zv-hlina)" stroke="#8E7352" stroke-width="0.7" />
+                <ellipse cx="0" cy="-3" rx="1.2" ry="0.5" fill="#6B5540" />
+                <path d="M-2.2 -1 Q-1.6 -2.2 -0.2 -2.3" stroke="#FFF8EA" stroke-width="0.7" fill="none" stroke-linecap="round" opacity="0.8" />
+              </g>
+            </g>
+          ))}
+          <g class="zv-listek" data-zv={`listek-${i}`} {...a(`listek-${i}`)}>
+            <g data-zv={`listek-${i}-lic`} {...a(`listek-${i}-lic`)}>
+              {/* zamčený: holý papír s číslem vyblednutou tuší */}
+              <rect x={-lw} y="0" width={LISTEK.sirka} height={LISTEK.vyska} rx="0.8" fill="#F1E8D6" stroke="#B9AB95" stroke-width="0.5" />
+              <text x="0" y={LISTEK.vyska * 0.7} text-anchor="middle" font-size="7.4" font-family={pismo} fill="#8A7C70" opacity="0.75" lang="ja">{ZNAKY[i]}</text>
+              {/* odemčený: soumrak z loga a číslo zlatem */}
+              <g class="zv-sviti">
+                <rect x={-lw} y="0" width={LISTEK.sirka} height={LISTEK.vyska} rx="0.8" fill="url(#zv-papir)" />
+                <rect x={-lw + 0.3} y="0.3" width={LISTEK.sirka - 0.6} height={LISTEK.vyska - 0.6} rx="0.6" fill="none" stroke="#FBE9B7" stroke-opacity="0.45" stroke-width="0.6" />
+                <text x="0" y={LISTEK.vyska * 0.7} text-anchor="middle" font-size="7.4" font-family={pismo} fill="#FBE9B7" lang="ja">{ZNAKY[i]}</text>
+              </g>
+              <circle cx="0" cy="2" r="0.75" fill="#5C5047" opacity="0.7" />
+            </g>
+            <g data-zv={`listek-${i}-rub`} {...a(`listek-${i}-rub`)}>
+              <rect x={-lw} y="0" width={LISTEK.sirka} height={LISTEK.vyska} rx="0.8" fill="#E9DFCB" stroke="#B9AB95" stroke-width="0.5" />
+              <circle cx="0" cy="2" r="0.75" fill="#5C5047" opacity="0.6" />
+            </g>
+          </g>
+        </g>
+      ))}
+    </g>
+
+    {/* Břevno torii: černý hřeben s vyhnutými konci, pod ním rumělkový trám, dva sloupky a příčka, ze které visí šňůrky */}
+    <g data-zv="tram" {...a("tram")}>
+      <line x1="0" y1={KROUZEK_R} x2="0" y2="6.6" stroke="#5C5047" stroke-width="0.8" stroke-linecap="round" />
+      <path d="M-14.6 9 V16 M14.6 9 V16" stroke="url(#zv-lak)" stroke-width="3" />
+      <rect x="-3" y="9.6" width="6" height="4.6" rx="0.6" fill="#F1E8D6" stroke="#8E2C1C" stroke-width="0.6" />
+      <circle cx="0" cy="11.9" r="1" fill={rumelka} />
+      <rect x="-23" y="13.6" width="46" height="2.8" rx="0.7" fill="url(#zv-lak)" />
+      <path d="M-25.4 6.9 Q0 10.5 25.4 6.9 L25 10 Q0 12.6 -25 10 Z" fill="url(#zv-lak)" />
+      <path d="M-27.6 4.6 Q0 8.8 27.6 4.6 L26.6 7.5 Q0 11 -26.6 7.5 Z" fill="#2B2420" />
+      <path d="M-25.6 5.6 Q0 9.3 25.6 5.6" stroke="#FFF5E6" stroke-width="0.5" fill="none" opacity="0.35" />
+      {KOTVY.map((k) => <circle cx={k} cy={KOTVA_Y} r="0.9" fill={mosaz} />)}
+    </g>
+
+    {/* Sklad: nenalezení kami čekají tady, skript je přesouvá na šňůrky */}
+    <g class="zv-sklad" display="none">
+      {kami.map((k) => (
+        <g class="zv-kami" data-zv-kdo={k.id}>
+          <g class={k.trida} style={k.styl} transform={k.transform} fill="none" set:html={k.obsah} />
+        </g>
+      ))}
+    </g>
+  </svg>
+</a>

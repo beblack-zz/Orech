@@ -296,3 +296,6 @@
 @media (prefers-reduced-motion: reduce) {
   .schovka, .schovka * { animation: none !important; }
 }
+
+/* Statická podoba — kresba se nehýbe (mrkání, plamínek, bubny…); třída schovka-staticka na <svg> */
+.schovka-staticka, .schovka-staticka * { animation: none !important; }

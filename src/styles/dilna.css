@@ -60,36 +60,6 @@
 }
 .d-odkaz:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* ——— Hlavička: deska zkoušek ——— */
-
-.zkousky-tlacitko svg { width: 34px; height: 30px; }
-.zkousky-deska { fill: #C9A37A; stroke: #8A6A48; stroke-width: 1.2; transition: fill 0.6s; }
-.zkousky-dlazdice { fill: #F6EFE2; transition: fill 0.6s; }
-.je-vse-zkousky .zkousky-deska { fill: var(--zlato); }
-
-/* ——— Zkouška glazury (schovaná na stránce) ——— */
-
-.d2 .d-zkouska {
-  position: absolute;
-  z-index: 6;
-  display: block;
-  padding: 0;
-  pointer-events: auto;
-  transition: transform 0.25s, filter 0.3s;
-  -webkit-tap-highlight-color: transparent;
-}
-.d-zkouska::before { content: ""; position: absolute; inset: -9px; }
-.d-zkouska svg { position: relative; width: 100%; height: auto; display: block; overflow: visible; }
-.d-zkouska:hover,
-.d-zkouska:focus-visible { filter: drop-shadow(0 0 5px rgba(255, 236, 190, 0.95)); }
-.d-zkouska.nalezen { filter: drop-shadow(0 0 6px rgba(246, 210, 122, 0.95)); }
-.d-zkouska.nalezen-ted { animation: zkouska-nalezena 0.75s cubic-bezier(0.3, 1.6, 0.5, 1); }
-@keyframes zkouska-nalezena { 40% { transform: scale(1.5) rotate(-10deg); } }
-.d-zkouska-obr { display: block; }
-.d-zkouska-obr svg { width: 100%; height: auto; display: block; }
-.d-zkousky-seznam .omamori-obr { width: 46px; }
-.d-zkousky-seznam .omamori-jmeno { text-transform: none; }
-
 /* ——— Úvod ——— */
 
 .d-uvod {
@@ -458,8 +428,6 @@
 .pl-odrezky.pryc { opacity: 0; }
 .pl-sablona { transition: opacity 0.2s; }
 .pl-sablona.nevejde { stroke: #8A7C70; }
-.pl-zkouska { transform: rotate(-64deg); transform-origin: 50% 80%; }
-.pl-zkouska:hover { transform: rotate(-70deg) translateY(-2px); }
 .pl-sablony { display: grid; gap: 6px; }
 .pl-sablony-nadpis { margin: 0; font-family: var(--f-display); font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--inkoust-3); }
 .pl-sablony-rada { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -500,7 +468,6 @@
 .tc-cara { transition: opacity 0.45s; }
 .tc-zebro { transition: opacity 0.2s; pointer-events: none; }
 .tc-drat { transition: opacity 0.2s; }
-.tc-zkouska { transform: rotate(-8deg); }
 
 /* Glazovat */
 .gl-zadni { z-index: 1; }
@@ -564,17 +531,12 @@
   box-shadow: 0 0 0 2px rgba(255, 252, 240, 0.95), 0 0 14px 3px rgba(255, 210, 130, 0.8);
 }
 .d2 .gl-sklenice-tlacitko[aria-checked="true"] { box-shadow: 0 0 0 3px var(--rumelka); }
-.gl-tajna-tlacitko { cursor: help !important; }
-.odkryto .gl-tajna-tlacitko { cursor: pointer !important; }
-.gl-poklice { transition: opacity 0.8s, transform 0.8s; transform-box: fill-box; transform-origin: 50% 100%; }
-.odkryto .gl-poklice { opacity: 0; transform: translateY(-26px) rotate(-14deg); }
 .d2 .gl-houba { position: absolute; z-index: 4; padding: 0; transition: transform 0.2s; }
 .gl-houba svg { width: 100%; height: auto; display: block; }
 .d2 .gl-houba:hover:not(:disabled) { transform: translateY(-3px) rotate(-3deg); }
 .d2 .gl-houba:disabled { opacity: 0.6; cursor: default; }
 .gl-houba.otira { animation: gl-otira 0.65s ease-in-out; }
 @keyframes gl-otira { 25% { transform: translate(-60%, -60%) rotate(-12deg); } 50% { transform: translate(-90%, -64%) rotate(8deg); } 75% { transform: translate(-60%, -60%) rotate(-8deg); } }
-.gl-zkouska { transform: rotate(4deg); }
 .gl-pec { position: absolute; inset: 0; z-index: 7; opacity: 0; transition: opacity 0.4s; --zar: 0; }
 .gl-pec.je { opacity: 1; }
 .gl-pec-kresba { width: 100%; height: 100%; display: block; }
@@ -762,7 +724,6 @@
 .d-krok-kami svg { width: 100%; height: auto; display: block; }
 .d-krok h3 { margin: 2px 0 4px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 48; font-weight: 600; font-size: 20px; line-height: 1.15; }
 .d-krok p { margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--inkoust-2); }
-.d-krok-zkouska { right: 4%; top: 12px; width: 22px; transform: rotate(12deg); }
 
 /* ——— Cena a kafe ——— */
 

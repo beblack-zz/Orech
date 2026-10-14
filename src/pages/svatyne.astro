@@ -1,0 +1,78 @@
+---
+/**
+ * Svatyně — třetí komnata hry se schovanými kami. Otevře se tomu, kdo
+ * najde všech devět (omamori pod hlavičkou), a uvnitř se jednou vytáhne
+ * omikuji s pokladem. V menu není: vede sem dlaždice Poklad v omamori
+ * a oslava po devátém nálezu na Partě 2.
+ *
+ *   brána      noc v lese a malá svatyně Ořechu 胡桃神社, parta rozesetá
+ *              po svatyni; zavřeno provazem, dokud chybí kami
+ *              (components/svatyne/Brana.astro, kresba v ./kresba.ts)
+ *   losování   krabička s jedinou tyčkou 九 a svislý lístek s ústřižkem:
+ *              20 % sleva na první návštěvu a heslo do dílny
+ *              (components/svatyne/Losovani.astro)
+ *
+ * Vzhled, obloha, hlavička a patička jsou z Party 2 (styles/parta2.css),
+ * vlastní věci stránky v styles/svatyne.css, logika ve scripts/svatyne.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/schovka.css";
+import "../styles/svatyne.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Brana from "../components/svatyne/Brana.astro";
+import Losovani from "../components/svatyne/Losovani.astro";
+import { cesta, rubriky } from "../data/kami";
+
+/* Štětcové písmo na japonské znaky se stahuje jen s těmi, které na stránce opravdu jsou */
+const znaky = new Set<string>();
+const pridej = (s: string) => {
+  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
+};
+cesta.forEach((c) => pridej(c.znak));
+rubriky.forEach((r) => pridej(r.znak));
+pridej("一二三九胡桃神社御籤第番大吉お守り正献灯奉納洗心");
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Svatyně · JIRO saku</title>
+    <meta name="description" content="Za devět nalezených kami se otevře svatyně a v ní omikuji s pokladem." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#1B1D45" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
+  </head>
+  <body class="p2 sv" data-stranka="svatyne">
+    <Nebe />
+    <Hlavicka sber="zadny" />
+
+    <main>
+      <Brana />
+      <Losovani />
+    </main>
+
+    <Paticka poznamka="Svatyně je třetí komnata hry se schovanými kami. Otevře se jen tomu, kdo jich najde všech devět." />
+
+    <script>
+      import "../scripts/svatyne/hlavni.ts";
+    </script>
+  </body>
+</html>

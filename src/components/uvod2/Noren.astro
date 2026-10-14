@@ -8,12 +8,26 @@
  * Je to odkaz: kliknutím (nebo scrollem, viz scripts/uvod2/brana.ts)
  * se jím prochází do dílny. Rozhrnutí řídí proměnná --rozhrnuti (0–1),
  * vítr jede v CSS na vnitřní látce, aby se ty dva pohyby nepraly.
+ *
+ * Bez `href` (null) je to jen kresba — na Domku 2 visí ve dveřích dílny
+ * a odkazem jsou celé dveře.
+ *
+ * `barvy="logo"`: látka v soumraku ze značky (rumělka do noční modři,
+ * přes obě půlky jedním tahem) a erb se zlatým lemem jako ikona webu.
  */
 interface Props {
-  href?: string;
+  href?: string | null;
   class?: string;
+  style?: string;
+  barvy?: "indigo" | "logo";
 }
-const { href = "#prohlidka", class: cls = "" } = Astro.props;
+const { href = "#prohlidka", class: cls = "", style, barvy = "indigo" } = Astro.props;
+const logo = barvy === "logo";
+const lem = logo ? "#E2B95A" : "#F6F1E6";
+const Obal = href ? "a" : "span";
+const obal = href
+  ? { href, "aria-label": "Projít norenem do dílny" }
+  : { "aria-hidden": "true" };
 
 /* Plátek sakury ze značky (Hlavicka.astro), jen v bílé */
 const platek = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
@@ -22,7 +36,7 @@ const pulky = [
   { strana: "pravy", text: "saku", mala: "Ořech", kurziva: true },
 ];
 ---
-<a class={`noren ${cls}`} href={href} aria-label="Projít norenem do dílny">
+<Obal class={`noren ${logo ? "noren-logo" : ""} ${cls}`} style={style} {...obal}>
   <span class="noren-tyc" aria-hidden="true"></span>
   {pulky.map((p) => (
     <span class={`noren-pul noren-${p.strana}`} aria-hidden="true">
@@ -30,12 +44,19 @@ const pulky = [
         <span class="noren-ocka"><i></i><i></i><i></i></span>
         <span class="noren-erb">
           <svg viewBox="-20 -20 40 40">
-            <circle r="18.4" fill="none" stroke="#F6F1E6" stroke-width="1.5" />
-            <circle r="15.6" fill="none" stroke="#F6F1E6" stroke-width="0.5" opacity="0.6" />
-            <g fill="#F6F1E6" transform="rotate(-18) scale(1.02)">
+            <circle r="18.4" fill="none" stroke={lem} stroke-width="1.5" />
+            <circle r="15.6" fill="none" stroke={lem} stroke-width="0.5" opacity="0.6" />
+            <g fill="#F6F1E6" transform="rotate(-18) scale(1.02)" {...(logo ? { stroke: "#B8862A", "stroke-width": "0.7", "stroke-linejoin": "round" } : {})}>
               {[0, 72, 144, 216, 288].map((u) => <path d={platek} transform={`rotate(${u}) translate(0 -1.4)`} />)}
             </g>
-            <circle r="1.9" fill="#26336A" />
+            {logo ? (
+              <>
+                <circle r="2.4" fill="#E2B95A" />
+                <circle r="1.1" fill="#C4432B" />
+              </>
+            ) : (
+              <circle r="1.9" fill="#26336A" />
+            )}
           </svg>
         </span>
         <span class="noren-text">{p.kurziva ? <em>{p.text}</em> : p.text}</span>
@@ -43,4 +64,4 @@ const pulky = [
       </span>
     </span>
   ))}
-</a>
+</Obal>

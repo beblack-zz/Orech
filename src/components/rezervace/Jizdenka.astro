@@ -2,7 +2,7 @@
 /**
  * Jízdenka — souhrn rezervace a podpis. Nahoře na jízdence je
  * obrázek jako na pamětních jízdenkách: vláček na moři, který má tolik
- * vozů, kolik hodin si člověk vybral, na cedulce každého vozu hodinu
+ * vozů, kolik odjezdů si člověk vybral, na cedulce každého vozu čas
  * a v oknech tvoje postavičky vedle stínů ostatních cestujících. Obloha
  * obrázku je obloha první vybrané hodiny (scripts/rezervace/jizdenka.ts).
  *
@@ -11,26 +11,30 @@
  * ořech), dopadne razítko Odesláno a vláček odjede — pak se otevře e-mail.
  * Telefon a poznámka jsou vedle, jízdenka by s nimi byla přeplněná.
  *
+ * Člen, který přišel přes svůj odkaz, e-mail nepíše: tlačítko zamluví
+ * rovnou, razítko říká Zamluveno a jméno i telefon už známe (nápisy
+ * přepisuje scripts/rezervace/hlavni.ts).
+ *
  * Jízdenka má tři podoby a skript mezi nimi přepíná třídou na .rz-listek:
  *
  *   (bez třídy)  hodinová jízdenka, zelený podtisk
  *   .kurz        zvláštní jízdenka na kurz: zlatý podtisk, na obrázku
  *                parní vlak se salonem a pod údaji mapa trasy — program
  *                kurzu jako zastávky na lince
- *   .pas         permanentka: modrý podtisk, trasa tam i zpět, místo
+ *   .pas         permanentka: červený podtisk, trasa tam i zpět, místo
  *                dne platnost a pod údaji všechny jízdy, na které platí
  *                (dny kurzů jsou přeškrtnuté — výluka)
  */
-import { rezervace } from "../../data/rezervace";
+import { cenaOdjezdu } from "../../data/rezervace";
 
-const cena = rezervace.cena.toLocaleString("cs-CZ");
+const cena = cenaOdjezdu.toLocaleString("cs-CZ");
 
 /* Ochranný podtisk (japonsky jimon) z drobných vlnek — jako na jízdenkách JR */
 const jimon = (barva: string) =>
   `url("data:image/svg+xml,${encodeURIComponent(
     `<svg xmlns='http://www.w3.org/2000/svg' width='22' height='9'><path d='M0 4.5 Q5.5 0.5 11 4.5 T22 4.5' fill='none' stroke='${barva}' stroke-width='0.55' opacity='0.28'/></svg>`,
   )}")`;
-const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};--jimon-pas:${jimon("#4A5FA8")}`;
+const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};--jimon-pas:${jimon("#C4432B")}`;
 ---
 <section class="rz-sekce rz-nastup" id="rz-jizdenka" data-hodina="17.6" aria-labelledby="rz-jizdenka-nadpis">
   <div class="rz-nastup-karta papir">
@@ -96,7 +100,7 @@ const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};-
             <div><dt class="rz-l-den-popis">Den</dt><dd class="rz-l-den">ještě nevybraný</dd></div>
             <div><dt class="rz-l-hodiny-popis">Odjezd</dt><dd class="rz-l-hodiny">ještě nevybraný</dd></div>
             <div><dt>Cestující</dt><dd class="rz-l-lide">1 člověk</dd></div>
-            <div><dt>Jízdné</dt><dd class="rz-l-cena">{cena} Kč za člověka a hodinu</dd></div>
+            <div><dt>Jízdné</dt><dd class="rz-l-cena">{cena} Kč za člověka a hodinu a půl</dd></div>
           </dl>
           {/* Mapa trasy zvláštního vlaku: program kurzu jako zastávky — kreslí skript */}
           <ol class="rz-listek-program" aria-label="Trať zvláštního vlaku — program kurzu" hidden></ol>
@@ -124,10 +128,11 @@ const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};-
         <label class="rz-pole">Telefon <small>nepovinné, kdybychom něco potřebovali</small><input type="tel" name="telefon" autocomplete="tel" inputmode="tel" /></label>
         <label class="rz-pole">Poznámka <small>nepovinné</small><textarea name="poznamka" rows="3" maxlength="300" placeholder="Třeba že přijdete poprvé."></textarea></label>
         <p class="rz-cena"><span>Celkem</span> <b>0 Kč</b></p>
-        <p class="rz-cena-vypocet">{cena} Kč za člověka a hodinu</p>
+        <p class="rz-cena-vypocet">{cena} Kč za člověka a hodinu a půl</p>
         <a class="tlacitko rz-odeslat" aria-disabled="true" role="link">Označit a poslat</a>
         <p class="rz-pozn">Otevře se e-mail s vybranými odjezdy. Jízdenka platí, až ji potvrdíme.</p>
         <p class="rz-chybi" aria-live="polite"></p>
+        <p class="rz-hotovo" aria-live="polite"></p>
       </div>
     </div>
   </div>

@@ -1,8 +1,6 @@
 /**
  * Vstup pro /domek-2. Obloha, hlavička, zvuky a klikací kami jsou společné
- * s ostatními stránkami nového vzhledu, rok dílny jede na stejném skriptu
- * jako na Úvodu 2 (uvod2/rok.ts — stačí stejné třídy a data-od/data-do
- * v kresbě). Sbírka klíčů se načte dřív než scény, plánovač scrollu
+ * s ostatními stránkami nového vzhledu. Sbírka klíčů se načte dřív než scény, plánovač scrollu
  * se spustí jednou nakonec.
  */
 import { stranka } from "../parta2/prechody";
@@ -10,7 +8,6 @@ import { spust } from "../parta2/stav";
 import { initNebe } from "../parta2/nebe";
 import { initKami } from "../parta2/kami";
 import { hlavicka } from "../parta2/hlavicka";
-import { rok } from "../uvod2/rok";
 import { sezonaMesice } from "../../data/uvod2";
 import { initKlice } from "./klice";
 import { ulice } from "./ulice";
@@ -42,6 +39,5 @@ stranka("domek-2", () => {
   ulice();
   prohlidka();
   porovnani();
-  rok();
   spust();
 });

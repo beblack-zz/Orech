@@ -1,0 +1,81 @@
+---
+/**
+ * Úvod /zkouska: dílna u startu desky sugoroku, ráno, když se otevírá
+ * (kresba v ./kresba/dvere.ts). Ve dveřích visí noren v barvách loga;
+ * dokud člověk nemá šest kami, je přes ně natažený provaz s lístkem 二
+ * a noren otevře jen omamori. Pak provaz spadne a norenem se projde
+ * k desce. U dveří čeká parta — každý nalezený kami na svém místě
+ * (Hlínka u kořenů ořechu, Bublinka v nádržce, Pecinka na střeše u komína…).
+ *
+ * Přepíná to scripts/zkouska/dvere.ts třídou .je-otevreno a třídami .je
+ * u postaviček; bez skriptu zůstane zavřeno a parta schovaná.
+ */
+import Noren from "../uvod2/Noren.astro";
+import Kami from "../parta2/Kami.astro";
+import { stavbaSvg, krajinaSvg, DVERE, PARTA_U_DVERI, STAVBA_W, STAVBA_H } from "./kresba/dvere";
+
+const px = (x: number) => ((x / STAVBA_W) * 100).toFixed(3);
+const py = (y: number) => ((y / STAVBA_H) * 100).toFixed(3);
+/** Noren visí v horní části dveří */
+const noren = `left:${px(DVERE.x0)}%;width:${px(DVERE.x1 - DVERE.x0)}%;top:${py(DVERE.y0)}%;height:${py(168)}%`;
+/** Provaz přes dveře, o kus širší než otvor */
+const provaz = `left:${px(DVERE.x0 - 34)}%;width:${px(DVERE.x1 - DVERE.x0 + 68)}%;top:${py(DVERE.y0 + 56)}%`;
+/** Postavička stojí patou na y; kresby mají pod nohama asi osminu výšky vzduchu */
+const misto = (x: number, y: number, w: number) => `left:${px(x - w / 2)}%;top:${py(y - w * 0.88)}%;width:${px(w)}%`;
+---
+<section class="zk-dvere" data-hodina="6.1" aria-labelledby="zk-nadpis">
+  <div class="zk-krajina" aria-hidden="true" set:html={krajinaSvg()} />
+
+  <div class="uvod-text zk-text">
+    <p class="stitek stitek-svetly"><span lang="ja">二</span> · u mistra · <span lang="ja">修業</span></p>
+    <h1 id="zk-nadpis" class="uvod-nadpis">
+      Za šest kami
+      <em>učení u mistra.</em>
+    </h1>
+    <div class="zk-zamceno">
+      <p class="uvod-perex">
+        Přes dveře dílny je natažený provaz. Spadne, až najdeš šest kami,
+        kteří se schovávají po webu. Pak tě parta pustí dovnitř — na devět
+        zastavení cesty hlíny, od hroudy až po zlato.
+      </p>
+      <p class="uvod-pokyn">Máš <b class="zk-pocet">0</b> z 6.<span class="zk-chybi"></span></p>
+      <div class="zk-akce">
+        <button type="button" class="tlacitko zk-omamori">Otevřít omamori</button>
+        <a class="tlacitko tlacitko-svetle-obrys" href="/parta-2">Kde začít hledat</a>
+      </div>
+    </div>
+    <div class="zk-otevreno" hidden>
+      <p class="uvod-perex">
+        Provaz spadl. Za norenem leží deska s cestou k mistrovi: devět úrovní,
+        každou hlídá jeden kami, za každou razítko do sešitu. Na konci síň
+        mistra a v ní mistrovský list.
+      </p>
+      <p class="uvod-pokyn zk-postup" hidden>Máš <b></b>.</p>
+      <a class="uvod-dolu" href="#deska">
+        <span>Projdi norenem dovnitř</span>
+        <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="zk-stavba">
+    <Fragment set:html={stavbaSvg()} />
+    <Noren href="#deska" barvy="logo" class="zk-noren" style={noren} />
+    {/* Provaz s lístkem 二 — spadne, až je kami dost */}
+    <svg class="zk-provaz" viewBox="0 0 400 120" aria-hidden="true" style={provaz}>
+      <path d="M-6 26 C110 78 290 78 406 26" stroke="#8A6A48" stroke-width="11" fill="none" stroke-linecap="round" />
+      <path d="M-6 26 C110 78 290 78 406 26" stroke="#E8D3A4" stroke-width="5" fill="none" stroke-dasharray="10 9" stroke-linecap="round" />
+      <path d="M200 66 V74" stroke="#5C5047" stroke-width="2" />
+      <g transform="rotate(-4 200 92)">
+        <rect x="178" y="72" width="44" height="46" rx="3" fill="#FBF7EC" stroke="#C9B48A" stroke-width="1.4" />
+        <text x="200" y="107" text-anchor="middle" font-size="30" fill="#C4432B" font-family="Yuji Syuku, Yu Mincho, serif">二</text>
+      </g>
+    </svg>
+    {/* Parta u dveří — vidět je, kdo je nalezený */}
+    {PARTA_U_DVERI.map((p) => (
+      <Kami id={p.id} size={Math.round(p.w * 1.2)} class="zk-kami" style={misto(p.x, p.y, p.w)} />
+    ))}
+  </div>
+
+  <p class="uvod-tategaki zk-tategaki" lang="ja" aria-hidden="true">工房</p>
+</section>

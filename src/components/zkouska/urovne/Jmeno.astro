@@ -1,0 +1,26 @@
+---
+/**
+ * 六 Jméno — „Čí je která“. Nahoře okno se dvěma místy nad sebou: stůl
+ * s pečetním kamenem (vyrýt pečeť a otisknout ji) a police s miskami
+ * (hra na skořápky). Kamera mezi nimi přejede. Cedulka je HTML nad kresbou:
+ * na stole leží, u police visí z trámu a jsou na ní jména. Tlačítka na
+ * misky staví skript podle kola. Pod oknem formulář pečeti, potom
+ * počítadlo kol.
+ *
+ * Kresba: ./jmeno-kresba.ts, hra: scripts/zkouska/urovne/jmeno.ts.
+ */
+import "../../../styles/zkouska-urovne/jmeno.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { kresba, napisCedulky, prekryvy, ovladani } from "./jmeno-kresba";
+---
+<div class="mu-scena mu-jmeno" data-uroven-scena="jmeno" hidden>
+  <div class="mu-okno">
+    <Fragment set:html={kresba()} />
+    <div class="mj6-cedulka">
+      <Postavicka id="cedulka" size={140} varianta="kami" class="mj6-cedulka-kresba" />
+      <Fragment set:html={napisCedulky("")} />
+    </div>
+    <Fragment set:html={prekryvy()} />
+  </div>
+  <Fragment set:html={ovladani()} />
+</div>

@@ -2,20 +2,20 @@
 /**
  * Parta 3 — nebeský chrám. Parta 2 je den v dílně (cesta hlíny od hroudy
  * po výpal); tohle je noc nad ní. Když dílna zhasne, kami vystoupají do
- * chrámu nad oblaky a hrají divadlo:
+ * chrámu nad oblaky a ukážou se v plné parádě:
  *
  *   úvod      soumrak, ostrov s chrámem nad oblačným mořem (parta3/Uvod.astro)
  *   průvod    sedm podob Lampion jde po papírovém svitku (Pruvod.astro)
- *   divadlo   jeviště kagura-den: devět lampionů, opona, mekuri a program;
- *             vybraná postavička odehraje své vystoupení (Divadlo.astro,
- *             scripts/parta3/reziser.ts, choreografie ve scripts/parta3/vystoupeni)
- *   závěr     svítání, parta je zpátky dole na louce (Zaver.astro)
+ *   obsazení  kdo je kdo: pod střechou chrámového jeviště devět lampionů,
+ *             kdo svítí, toho list visí pod nimi — živá podoba Kami, popis
+ *             z Party 2 a v textu původní malá kami (Obsazeni.astro)
+ *   závěr     svítání, parta je zpátky dole pod ořechem — obrázek z úvodu
+ *             Party 2 se zeleným domem z Domku 2 (Zaver.astro)
  *
  * Postavičky jsou přehnané podoby z /marcel (components/characters/kami-buh):
- * Kami a Tušový lem hrají na jevišti, Lampion jde v průvodu, Na schovávanou
+ * Kami jsou živé scény v obsazení, Lampion jde v průvodu, Na schovávanou
  * jsou erby na lampionech a parta v závěru. Každá velká podoba smí být na
- * stránce jen jednou (pevná id v kresbách), proto je průvod i jeviště tady
- * a ne na víc místech.
+ * stránce jen jednou (pevná id v kresbách) — každá tu je právě jednou.
  *
  * Vzhled, obloha, hlavička a patička jsou z Party 2 (styles/parta2.css),
  * vlastní věci stránky v styles/parta3.css.
@@ -39,7 +39,7 @@ import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
 import Uvod from "../components/parta3/Uvod.astro";
 import Pruvod from "../components/parta3/Pruvod.astro";
-import Divadlo from "../components/parta3/Divadlo.astro";
+import Obsazeni from "../components/parta3/Obsazeni.astro";
 import Zaver from "../components/parta3/Zaver.astro";
 import { cesta } from "../data/kami";
 
@@ -53,7 +53,7 @@ const pridej = (s: string) => {
   for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
 };
 cesta.forEach((c) => { pridej(c.znak); pridej(c.cislo); });
-pridej("高天原神楽殿提灯行列満員御礼夜明け済一二三");
+pridej("高天原提灯行列顔ぶれ夜明け");
 pridej("円相顔筆奉納稲荷五隹止矢");
 const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
 ---
@@ -62,8 +62,8 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Parta 3 — nebeský chrám · JIRO saku</title>
-    <meta name="description" content="Když dílna zhasne, devět kami z Ořechu vystoupá do chrámu nad oblaky a hraje divadlo. Vyber si, kdo vystoupí." />
+    <title>KAMI parta — nebeský chrám · JIRO saku</title>
+    <meta name="description" content="Když dílna zhasne, devět kami z Ořechu vystoupá do chrámu nad oblaky a ukáže se v plné parádě. Rozsviť lampion a podívej se, kdo je kdo a co hlídá přes den." />
     <meta name="theme-color" content="#3A3C7C" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -79,11 +79,11 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <main>
       <Uvod />
       <Pruvod />
-      <Divadlo />
+      <Obsazeni />
       <Zaver />
     </main>
 
-    <Paticka poznamka="Parta 3 je návrh: chrám nad oblaky, kde parta po nocích hraje divadlo. Kresby, pohyb i zvuky vznikají přímo v prohlížeči — žádné fotky, žádné nahrávky." />
+    <Paticka poznamka="KAMI parta je návrh: chrám nad oblaky, kam parta chodí po nocích. Kresby, pohyb i zvuky vznikají přímo v prohlížeči — žádné fotky, žádné nahrávky." />
 
     <script>
       import "../scripts/parta3/hlavni.ts";

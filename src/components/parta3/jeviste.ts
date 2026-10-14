@@ -1,38 +1,31 @@
 /**
- * Stavba jeviště kagura-den pro divadlo na /parta-3 — čelní pohled.
- * Kresba je jen dřevo kolem: střecha s prohnutým štítem, vlys, na kterém
- * visí lampiony, dva sloupy, práh a schůdky. Otvor mezi sloupy je prázdný;
- * scénu, oponu a lampiony do něj pokládá stránka (Divadlo.astro) podle
- * rozměrů níže, v procentech téhle kresby.
+ * Vršek jeviště kagura-den na /parta-3 — čelní pohled: střecha s prohnutým
+ * štítem a vlys, ze kterého visí řada lampionů a pod ním řasená látka.
+ * Jeviště samo už na stránce není; pod vlysem visí list obsazení
+ * (Obsazeni.astro) a lampiony přepínají, čí je.
  *
- * viewBox 0 0 1000 1300. Střecha přesahuje přes okraje (overflow: visible) —
- * na širokém okně je vidět celá, na úzkém ji ořízne okraj stránky a jeviště
- * zůstane přes celou šířku.
+ * viewBox 0 0 1000 372. Střecha přesahuje přes okraje (overflow: visible) —
+ * na širokém okně je vidět celá, na úzkém ji ořízne okraj stránky.
  */
 import { strecha, B } from "./chram";
 
 /**
- * Otvor jeviště (čtverec), vlys a pás, kde visí lampiony — v jednotkách
- * kresby. Lampiony visí z okapu přes vlys; podle LAMPIONY je rozmísťuje
- * parta3.css (v procentech).
+ * Šířka a výška plátna, vlys, pás, kde visí lampiony, a pruh pod vlysem
+ * (šíře řasení, pod ním visí list) — v jednotkách kresby. Podle nich
+ * rozmísťuje lampiony a list parta3.css (v procentech).
  */
-export const OTVOR = { x: 70, y: 350, s: 860 };
+export const PLATNO = { s: 1000, v: 372 };
 export const VLYS = { y: 254, v: 96 };
 export const LAMPIONY = { y: 215, v: 135 };
-export const PLATNO = { s: 1000, v: 1300 };
+/** Pruh pod vlysem: x a šířka řasení, y je spodní hrana vlysu */
+const O = { x: 70, y: 350, s: 860 };
 
 const f = (n: number) => Math.round(n * 10) / 10;
 
-export function jeviste() {
-  const O = OTVOR;
-  const dno = O.y + O.s; /* 1210: horní hrana prahu */
+export function vrsekJeviste() {
   let s =
     `<defs>` +
-    `<linearGradient id="jv-sloup-l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7C2A22"/><stop offset="0.55" stop-color="${B.rumelka}"/><stop offset="1" stop-color="#9A3226"/></linearGradient>` +
-    `<linearGradient id="jv-sloup-p" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9A3226"/><stop offset="0.45" stop-color="${B.rumelkaSvetlo}"/><stop offset="1" stop-color="${B.rumelka}"/></linearGradient>` +
     `<linearGradient id="jv-vlys" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#241A2B"/><stop offset="1" stop-color="#3B2B38"/></linearGradient>` +
-    `<linearGradient id="jv-prah" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9B58C"/><stop offset="0.3" stop-color="#B98A62"/><stop offset="1" stop-color="#7A5644"/></linearGradient>` +
-    `<linearGradient id="jv-pod" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A1F2C"/><stop offset="1" stop-color="#2A1F2C" stop-opacity="0"/></linearGradient>` +
     `<linearGradient id="jv-stit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5961A0"/><stop offset="1" stop-color="#3A4278"/></linearGradient>` +
     `</defs>`;
 
@@ -71,30 +64,6 @@ export function jeviste() {
     s += `<path d="M${f(x)} ${O.y - 20} H${f(x + O.s / n + 0.4)} V${O.y + 8} Q${f(x + O.s / n / 2)} ${O.y + 20} ${f(x)} ${O.y + 8} Z" fill="${pruhy[i % 3]}"/>`;
   }
   s += `<rect x="${O.x}" y="${O.y - 24}" width="${O.s}" height="6" fill="#15101A"/>`;
-
-  /* ——— sloupy ——— */
-  for (const k of [-1, 1]) {
-    const x = k < 0 ? 18 : 930;
-    s += `<rect x="${x}" y="${VLYS.y + 8}" width="52" height="${dno + 26 - VLYS.y - 8}" fill="url(#jv-sloup-${k < 0 ? "l" : "p"})"/>`;
-    /* objímky nahoře a dole */
-    s += `<rect x="${x - 3}" y="${O.y - 2}" width="58" height="16" rx="2" fill="#15101A"/><rect x="${x - 3}" y="${O.y + 1}" width="58" height="3" fill="${B.zlato}" opacity="0.9"/>`;
-    s += `<rect x="${x - 3}" y="${dno - 34}" width="58" height="34" rx="2" fill="#15101A"/><rect x="${x - 3}" y="${dno - 30}" width="58" height="3" fill="${B.zlato}" opacity="0.9"/>`;
-  }
-
-  /* ——— práh jeviště, pod ním tma, kůly a schůdky ——— */
-  s += `<rect x="-22" y="${dno + 26}" width="1044" height="74" fill="url(#jv-pod)"/>`;
-  for (const x of [40, 250, 750, 960]) s += `<rect x="${x - 9}" y="${dno + 24}" width="18" height="66" fill="#2A1F2C"/>`;
-  let mriz = "";
-  for (let x = 70; x < 380; x += 26) mriz += `M${x} ${dno + 26} V${dno + 78} `;
-  for (let x = 646; x < 950; x += 26) mriz += `M${x} ${dno + 26} V${dno + 78} `;
-  s += `<path d="${mriz}" stroke="#4A3340" stroke-width="5" opacity="0.8"/>`;
-  s += `<rect x="-22" y="${dno}" width="1044" height="28" rx="4" fill="url(#jv-prah)"/>`;
-  s += `<rect x="-22" y="${dno}" width="1044" height="4" rx="2" fill="#F1D9B4" opacity="0.9"/>`;
-  /* schůdky: tři stupně, dolů širší */
-  for (let i = 0; i < 3; i++) {
-    const w = 210 + i * 34, y = dno + 28 + i * 22;
-    s += `<rect x="${500 - w / 2}" y="${y}" width="${w}" height="22" fill="${i % 2 ? "#8E6A52" : "#A47C5E"}"/><rect x="${500 - w / 2}" y="${y}" width="${w}" height="3.4" fill="#E2C39A" opacity="0.85"/>`;
-  }
 
   return `<svg viewBox="0 0 ${PLATNO.s} ${PLATNO.v}" aria-hidden="true" focusable="false">${s}</svg>`;
 }

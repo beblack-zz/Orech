@@ -15,12 +15,11 @@ import { omez, hladce, klid, cislo } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
 import { rekni } from "../parta2/kami";
 import { krivka } from "../../data/kami";
-import { syrova, orechova } from "../../data/dilna";
+import { syrova } from "../../data/dilna";
 import { kusSvg, vychoziKus } from "../../components/dilna/kus";
 import type { Kus } from "../../components/dilna/kus";
 import { tvujKus, ulozKus, priZmeneKusu } from "./stav-kusu";
 import type { Ulozeny } from "./stav-kusu";
-import { celaDeska } from "./zkousky";
 
 /** Míry scény (viewBox 640 × 520) — kus visí v krabici 140 × 140 od y = 190 */
 const SCENA_W = 640;
@@ -35,7 +34,6 @@ const O_GLAZURE: Record<string, string> = {
   "matná bílá": "Matná bílá. Bez lesku, jako papír.",
   "popelová šedá": "Popelová šedá. Matná a klidná.",
   "železitá hnědá": "Železitá hnědá. Teplá — od železa, co je v ní.",
-  [orechova.nazev]: "Ořechová. Tajná, se zlatými tečkami. Tu jinde nenajdeš.",
 };
 
 const T_MAX = krivka[krivka.length - 1][1];
@@ -168,12 +166,7 @@ export function glazovat() {
   };
 
   /* ——— Výběr glazury ——— */
-  const odemceno = () => celaDeska();
   const vyber = (g: string, rict = true) => {
-    if (g === orechova.nazev && !odemceno()) {
-      rikej("Tenhle kbelík je přikrytý. Najdi všech šest zkoušek glazur — jsou schované po stránce.");
-      return;
-    }
     vybrana = g;
     volby.forEach((b) => {
       const je = b.dataset.glazura === g;
@@ -196,22 +189,10 @@ export function glazovat() {
       const smer = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
       if (!smer) return;
       e.preventDefault();
-      let j = i;
-      do j = (j + smer + volby.length) % volby.length;
-      while (volby[j].dataset.glazura === orechova.nazev && !odemceno() && j !== i);
+      const j = (i + smer + volby.length) % volby.length;
       volby[j].focus();
       vyber(volby[j].dataset.glazura ?? "celadon");
     });
-  });
-
-  const odkryj = () => sc.classList.toggle("odkryto", odemceno());
-  document.addEventListener("dilna:zkousky", () => {
-    const bylo = sc.classList.contains("odkryto");
-    odkryj();
-    if (!bylo && odemceno()) {
-      zvuk.zlato();
-      rikej("Kbelík na kraji police se odkryl. Ořechová glazura — se zlatými tečkami.");
-    }
   });
 
   jakTl.forEach((b) =>
@@ -249,7 +230,6 @@ export function glazovat() {
       rikej("Dvě vrstvy stačí. Třetí by v peci stekla až na Šamotku.");
       return;
     }
-    if (vybrana === orechova.nazev && !odemceno()) return;
     prace = true;
     tlacitka();
     const hlavou = jak === "horni";

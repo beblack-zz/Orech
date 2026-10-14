@@ -1,0 +1,181 @@
+/*
+ * Úroveň 二 Kiku-neri — hnětení do rytmu. Kresba scény je
+ * v components/zkouska/urovne/hneteni-kresba.ts, logika
+ * ve scripts/zkouska/urovne/hneteni.ts. Všechno je pod .mu-hneteni,
+ * id i třídy v kresbě mají předponu mn2-.
+ */
+
+.mu-hneteni { --mu-pomer: 10 / 7; }
+.mu-hneteni .mu-okno { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+
+/* Dráha leží přes kresbu a hýbe se každý snímek — vlastní vrstva, ať se nepřekresluje hrouda */
+.mu-hneteni .mn2-draha-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; will-change: transform; }
+.mu-hneteni .mn2-draha-svg text { font-family: var(--f-ruka); }
+.mu-hneteni .mn2-draha-svg .mn2-rada { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-variant-numeric: tabular-nums; }
+
+/* Ukázka not pod úvodní kartou zmizí, když se začne */
+.mu-hneteni .mn2-ukazka { transition: opacity 0.4s; }
+.mu-hneteni .mn2-ukazka.pryc { opacity: 0; }
+
+/* ——— Hrouda ——— */
+
+/* Záhyby květu vyrostou ze středu rozety a přitočí se */
+.mu-hneteni .mn2-platek { visibility: hidden; transform-origin: 0 0; }
+.mu-hneteni .mn2-platek.je { visibility: visible; animation: mn2-platek 0.6s cubic-bezier(0.3, 1.45, 0.5, 1) both; }
+@keyframes mn2-platek { from { opacity: 0; transform: scale(0.3) rotate(-14deg); } }
+/* Světlo a stín záhybů drží směr, ať se rozeta otočí jakkoli (proměnné nastavuje skript) */
+.mu-hneteni .mn2-pl-stin { transform: translate(var(--mn2-sx, 2.2px), var(--mn2-sy, 4.7px)); }
+.mu-hneteni .mn2-pl-svetlo { transform: translate(var(--mn2-hx, -1.4px), var(--mn2-hy, -3px)); }
+.mu-hneteni .mn2-hrube { transition: opacity 0.6s; }
+
+/* Vzduchové bublinky po minutí — naskočí, a když je řada vytlačí, prasknou */
+.mu-hneteni .mn2-bublina { visibility: hidden; transform-box: fill-box; transform-origin: center; }
+.mu-hneteni .mn2-bublina.je { visibility: visible; animation: mn2-bublina 0.45s cubic-bezier(0.3, 1.7, 0.5, 1) both; }
+.mu-hneteni .mn2-bublina.praska { visibility: visible; animation: mn2-praska 0.28s ease-out both; }
+@keyframes mn2-bublina { from { transform: scale(0); } }
+@keyframes mn2-praska { to { opacity: 0; transform: scale(1.9); } }
+
+/* ——— Dráha ——— */
+
+.mu-hneteni .mn2-nota-tvar { transform-box: fill-box; transform-origin: center; }
+.mu-hneteni .mn2-nota.je-trefa .mn2-nota-tvar { animation: mn2-trefa 0.3s ease-out both; }
+.mu-hneteni .mn2-nota.je-vedle .mn2-nota-tvar { opacity: 0.32; }
+@keyframes mn2-trefa { 30% { opacity: 1; transform: scale(1.18); } to { opacity: 0; transform: scale(1.5); } }
+
+.mu-hneteni .mn2-terc-zasah { transform-box: fill-box; transform-origin: center; stroke: #8A7C70; }
+.mu-hneteni .mn2-terc-zasah.vyborne { stroke: #D6A23A; }
+.mu-hneteni .mn2-terc-zasah.je { animation: mn2-zasah 0.32s ease-out both; }
+@keyframes mn2-zasah { from { opacity: 0.95; transform: scale(0.88); } to { opacity: 0; transform: scale(1.4); } }
+
+/* Hodnocení úderu pod terčem */
+.mu-hneteni .mn2-soud { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.mu-hneteni .mn2-soud.vyborne { fill: #C4432B; }
+.mu-hneteni .mn2-soud.dobre { fill: #5C5047; }
+.mu-hneteni .mn2-soud.vedle { fill: #8A7C70; }
+.mu-hneteni .mn2-soud.je { animation: mn2-soud 0.65s ease-out both; }
+@keyframes mn2-soud {
+  0% { opacity: 0; transform: translateY(8px) scale(0.8); }
+  18% { opacity: 1; transform: translateY(0) scale(1.12); }
+  32% { transform: scale(1); }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+/* Odpočet v terči: raz — dva — raz, dva, tři, čtyři */
+.mu-hneteni .mn2-odpocet { transform-box: fill-box; transform-origin: center; }
+.mu-hneteni .mn2-odpocet.je { animation: mn2-odpocet 0.55s ease-out both; }
+@keyframes mn2-odpocet { 0% { opacity: 0; transform: scale(1.7); } 22% { opacity: 1; transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0.25; } }
+
+/* Buben vlevo počítá řadu, při válci údery */
+.mu-hneteni .mn2-tomoe { transition: opacity 0.25s; }
+.mu-hneteni .mn2-buben.ma-radu .mn2-tomoe { opacity: 0.14; }
+.mu-hneteni .mn2-rada { transform-box: fill-box; transform-origin: center; }
+.mu-hneteni .mn2-rada.je { animation: mn2-rada 0.22s ease-out; }
+.mu-hneteni .mn2-buben.valec .mn2-rada { fill: #B9852A; }
+@keyframes mn2-rada { from { transform: scale(1.35); } }
+
+/* ——— Bublinka v důlku ——— */
+
+.mu-hneteni .mn2-bublinka {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: 16.25%;
+  aspect-ratio: 1;
+  transform-origin: 50% 70.77%;
+  pointer-events: none;
+}
+.mu-hneteni .mn2-dulek,
+.mu-hneteni .mn2-lem { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+/* Okénko končí na hraně důlku (y 128 ze 180) — co je níž, je v hlíně */
+.mu-hneteni .mn2-bublinka-okenko { position: absolute; left: 0; top: 0; width: 100%; height: 71.11%; overflow: hidden; transform-origin: 50% 100%; }
+.mu-hneteni .mn2-bublinka-telo { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 1; transform-origin: 50% 71%; }
+.mu-hneteni .mn2-bublinka-telo svg { display: block; width: 100%; height: 100%; }
+.mu-hneteni .mn2-bublinka .bublinka-stin { display: none; }
+
+/* Prošlo: vyskočí a uletí, důlek se zavře */
+.mu-hneteni .mn2-bublinka.je-venku .mn2-bublinka-okenko { overflow: visible; }
+.mu-hneteni .mn2-bublinka.je-venku .mn2-bublinka-telo { animation: mn2-ven 1.7s cubic-bezier(0.25, 0.7, 0.3, 1) forwards; }
+.mu-hneteni .mn2-bublinka.je-venku .mn2-lem,
+.mu-hneteni .mn2-bublinka.je-venku .mn2-dulek { animation: mn2-zavri 0.6s 0.25s ease-in forwards; transform-origin: 50% 75%; }
+@keyframes mn2-ven {
+  0% { transform: translateY(6%) scale(1); }
+  12% { transform: translateY(-6%) scale(1.2, 0.84); }
+  30% { transform: translateY(-46%) scale(0.94, 1.1) rotate(-6deg); }
+  48% { transform: translate(12%, -78%) scale(1) rotate(4deg); opacity: 1; }
+  100% { transform: translate(90%, -230%) scale(0.75) rotate(16deg); opacity: 0; }
+}
+@keyframes mn2-zavri { to { opacity: 0; transform: scale(0.4, 0.2); } }
+
+/* Neprošlo: zachechtá se a zaleze */
+.mu-hneteni .mn2-bublinka.je-uvnitr .mn2-bublinka-okenko { animation: mn2-smich 0.36s ease-in-out 4; }
+@keyframes mn2-smich { 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
+
+/* Kam ukazuje bublina řeči během hry — dole vpravo, mimo dráhu */
+.mu-hneteni .mn2-kotva { position: absolute; left: 78%; top: 78%; width: 1px; height: 1px; pointer-events: none; }
+
+/* ——— Plochy na hraní ——— */
+
+.mu-hneteni .mn2-ovladani { flex-wrap: nowrap; gap: 12px; width: min(100%, 640px); margin-inline: auto; }
+.mu-hneteni .mn2-pad {
+  --mn2-hrana: #7E2616;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 76px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 16px 12px;
+  border-radius: 22px;
+  color: #FFF6E8;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1;
+  box-shadow: 0 6px 0 var(--mn2-hrana), 0 16px 26px -14px rgba(40, 16, 10, 0.75);
+  transition: transform 0.07s, box-shadow 0.07s;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.mu-hneteni .mn2-pad-tlac { background: radial-gradient(120% 150% at 30% 18%, #E66A50, #C4432B 55%, #A2341F); }
+.mu-hneteni .mn2-pad-otoc { --mn2-hrana: #16264A; background: radial-gradient(120% 150% at 30% 18%, #5A79AC, #34507F 55%, #22385E); }
+.mu-hneteni .mn2-pad:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--mn2-hrana), 0 6px 14px -10px rgba(40, 16, 10, 0.75); }
+.mu-hneteni .mn2-pad.uder { animation: mn2-pad 0.16s ease-out; }
+@keyframes mn2-pad {
+  0%, 35% { transform: translateY(5px); box-shadow: 0 1px 0 var(--mn2-hrana), 0 6px 14px -10px rgba(40, 16, 10, 0.75); filter: brightness(1.12); }
+}
+.mu-hneteni .mn2-pad-ikona { flex: none; width: 38px; height: 38px; display: block; }
+.mu-hneteni .mn2-pad-nazev { letter-spacing: 0.01em; }
+.mu-hneteni .mn2-pad-klavesy { font-family: var(--f-text); font-size: 12.5px; font-weight: 500; letter-spacing: 0.12em; opacity: 0.72; }
+/* Na dotykovém displeji klávesy nic neříkají */
+@media (hover: none) and (pointer: coarse) {
+  .mu-hneteni .mn2-pad-klavesy { display: none; }
+}
+@media (max-width: 560px) {
+  .mu-hneteni .mn2-ovladani { gap: 10px; }
+  .mu-hneteni .mn2-pad { min-height: 70px; padding: 8px 10px 10px; border-radius: 18px; font-size: 20px; gap: 8px; }
+  .mu-hneteni .mn2-pad-ikona { width: 32px; height: 32px; }
+}
+
+/* ——— Méně pohybu: hra zůstává, ozdoby ne ——— */
+
+@media (prefers-reduced-motion: reduce) {
+  .mu-hneteni .mn2-platek.je,
+  .mu-hneteni .mn2-bublina.je,
+  .mu-hneteni .mn2-rada.je,
+  .mu-hneteni .mn2-odpocet.je,
+  .mu-hneteni .mn2-pad.uder,
+  .mu-hneteni .mn2-bublinka.je-uvnitr .mn2-bublinka-okenko { animation: none; }
+  .mu-hneteni .mn2-bublina.praska { animation: mn2-zmiz 0.2s both; }
+  .mu-hneteni .mn2-bublinka.je-venku .mn2-bublinka-telo { animation: mn2-zmiz 0.8s 0.2s both; }
+  .mu-hneteni .mn2-nota.je-trefa .mn2-nota-tvar { animation: mn2-zmiz 0.2s both; }
+  .mu-hneteni .mn2-soud.je { animation: mn2-soud-klid 0.6s both; }
+}
+@keyframes mn2-zmiz { to { opacity: 0; } }
+@keyframes mn2-soud-klid { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }

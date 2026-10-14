@@ -234,6 +234,31 @@ const ryha = (d: string, sila = 2, tma = "#3E2A1C", svetlo = "#D4B08A") =>
 const strep = (P: Bod[], lic: string, lom: string, id: string) =>
   `<path d="${cara(P)} Z" fill="${lom}" transform="translate(3 5)"/><path d="${cara(P)} Z" fill="${lic}"/><clipPath id="${id}"><path d="${cara(P)} Z"/></clipPath>`;
 
+/** Břidlice s trilobitem — obrys sdílí kresba a Hlínka, která se za ní schovává */
+const KAMEN = obrys(120, 82, 104, 64, 13, 93, 0.14);
+
+/**
+ * Kde v nálezu vykukuje schovaná Hlínka (Paticka.astro): spodek její
+ * vykukující kresby (mřížka 32 × 21) leží na horní hraně kamene vpravo od
+ * trilobitovy hlavy a je natočený podle sklonu hrany. Vrací left, top
+ * a šířku v procentech nálezu (viewBox 240 × 160) a natočení ve stupních.
+ */
+export const SCHOVANA = (() => {
+  const x = 168, w = 30, h = (w * 21) / 32;
+  const n = KAMEN.length;
+  /* hrana kamene nad x: ze všech úseků, které x kříží, ten nejvýš */
+  let nej: { y: number; u: number } | null = null;
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = KAMEN[i], [x2, y2] = KAMEN[(i + 1) % n];
+    if ((x - x1) * (x - x2) > 0 || x1 === x2) continue;
+    const y = y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
+    const u = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+    if (!nej || y < nej.y) nej = { y, u: x2 > x1 ? u : u - 180 };
+  }
+  const { y, u } = nej!;
+  return { vrstva: "trilobit" as VrstvaId, x: f(((x - w / 2) / 240) * 100), y: f(((y - h) / 160) * 100), w: f((w / 240) * 100), u: f(u) };
+})();
+
 const NALEZY: Record<VrstvaId, () => string> = {
   orech: () => {
     const r = nahoda(61);
@@ -311,7 +336,7 @@ const NALEZY: Record<VrstvaId, () => string> = {
   },
   trilobit: () => {
     const r = nahoda(91);
-    const P = obrys(120, 82, 104, 64, 13, 93, 0.14);
+    const P = KAMEN;
     let s = `<defs><linearGradient id="n-bridlice" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#4E5864"/><stop offset="1" stop-color="#2E353D"/></linearGradient><linearGradient id="n-tri" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B2AA9A"/><stop offset="1" stop-color="#7E786C"/></linearGradient></defs>`;
     s += `<ellipse cx="120" cy="150" rx="96" ry="8" fill="#000" opacity="0.3"/>`;
     s += strep(P, "url(#n-bridlice)", "#1E2329", "n-bridlice-o");

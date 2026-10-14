@@ -344,6 +344,11 @@ export function zvonkohra() {
       return Math.min(1, vanek.rychlost / 70);
     },
 
+    /** Rychlost větru zleva doprava (px/s) — fouká jím i do závěsu s kami vedle (zaves-fyzika.ts) */
+    get vitrX() {
+      return vanek.x;
+    },
+
     /** Posune čas o dt sekund; nasobek ztiší vítr (v noci je klidněji). Vrací údery. */
     krok(dt: number, nasobek = 1): Uder[] {
       const udery: Uder[] = [];

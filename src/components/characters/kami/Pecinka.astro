@@ -6,12 +6,23 @@ import { uid } from "../dospele/uid";
 interface Props { class?: string; size?: number; }
 const { class: cls = "", size = 64 } = Astro.props;
 const u = uid();
+
+/** Jazyk plamene: pata v počátku, špička nahoře v −1, mírně stočená doprava. */
+const JAZYK = "M-1 0 C-1.06 -0.34 -0.62 -0.62 -0.36 -0.78 C-0.18 -0.9 -0.08 -0.96 0.16 -1 C0.02 -0.86 0.04 -0.72 0.24 -0.58 C0.56 -0.4 1.08 -0.34 1 0 C0.86 0.3 -0.86 0.3 -1 0 Z";
+/** Ohýnek ve dvířkách: tři vrstvy nízkých jazyků u dna, jako na podobě Kami */
+const ohynek = [
+  { barva: "#C4432B", k: 1, w: 3.7 },
+  { barva: "#F29A3B", k: 0.68, w: 2.5 },
+  { barva: "#FBE3A0", k: 0.4, w: 1.5 },
+];
+const JAZYKY: [number, number][] = [[76, 7.5], [84, 9.9], [91, 11.5], [98, 9.9], [105, 7.5]];
 ---
 {/*
   KAMADO-GAMI — kami ohniště. Jediná z party, kdo je kami doopravdy podle
   tradice, proto jediná nese shimenawu: svatý slaměný provázek s papírky
   shide, kterým se v Japonsku označuje místo, kde kami bydlí.
-  Plameny dostaly záři, aby pec svítila zevnitř.
+  Jako na podobě Kami stojí na geta, ve dvířkách jí u dna hoří ohýnek
+  a na komíně plamínek jako na perle hódžu.
 */}
 <svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={`char-breathe ${cls}`} aria-hidden="true">
   <defs>
@@ -21,43 +32,78 @@ const u = uid();
       <stop offset="0.55" stop-color="#B84A2B" />
       <stop offset="1" stop-color="#97391F" />
     </radialGradient>
+    <radialGradient id={`${u}-vyhen`} cx="0.5" cy="1.05" r="0.8">
+      <stop offset="0" stop-color="#FFB45A" stop-opacity="0.95" />
+      <stop offset="0.4" stop-color="#E0582E" stop-opacity="0.55" />
+      <stop offset="0.85" stop-color="#9A2E16" stop-opacity="0" />
+    </radialGradient>
+    <clipPath id={`${u}-dvirka`}><rect x="62" y="88" width="56" height="35" rx="8" /></clipPath>
+    <path id={`${u}-jazyk`} d={JAZYK} />
   </defs>
 
+  <ellipse cx="90" cy="155" rx="34" ry="4.6" fill="#3A2E28" opacity="0.14" />
   <g filter={`url(#${u}-tah)`}>
-    <rect x="108" y="42" width="14" height="24" rx="5" fill="#A8432A" stroke="#7E2F18" stroke-width="1.3" />
-    <rect x="45" y="60" width="90" height="85" rx="20" fill={`url(#${u}-telo)`} stroke="#7E2F18" stroke-width="1.6" />
-    <rect x="62" y="100" width="56" height="35" rx="8" fill="#3A2E28" opacity="0.4" />
-    <ellipse cx="70" cy="148" rx="10" ry="5" fill="#3A2E28" opacity="0.3" />
-    <ellipse cx="110" cy="148" rx="10" ry="5" fill="#3A2E28" opacity="0.3" />
+    {/* Geta a nohy s páskem hanao */}
+    <g stroke="#6B5D4F" stroke-linejoin="round">
+      {[61, 101].map((x) => (
+        <g>
+          <path d={`M${x + 2.4} 147.2 H${x + 6} V154.2 H${x + 2.4} Z M${x + 12} 147.2 H${x + 15.6} V154.2 H${x + 12} Z`} fill="#8C6444" stroke-width="0.9" />
+          <rect x={x} y="141" width="18" height="6.4" rx="1.4" fill="#C99A68" stroke-width="1.1" />
+          <path d={`M${x + 1.4} 142.8 H${x + 16.6}`} stroke="#E2BE8C" stroke-width="0.9" stroke-linecap="round" />
+        </g>
+      ))}
+    </g>
+    <ellipse cx="70" cy="136.4" rx="9.4" ry="4.8" fill="#97391F" />
+    <ellipse cx="110" cy="136.4" rx="9.4" ry="4.8" fill="#97391F" />
+    <path d="M63 141 Q70 131.6 77 141 M103 141 Q110 131.6 117 141" stroke="#C4432B" stroke-width="2.1" stroke-linecap="round" />
+
+    <rect x="108" y="30" width="14" height="24" rx="5" fill="#A8432A" stroke="#7E2F18" stroke-width="1.3" />
+    <path d="M108.6 34.6 H121.4" stroke="#7E2F18" stroke-width="0.8" opacity="0.6" />
+    <rect x="45" y="48" width="90" height="85" rx="20" fill={`url(#${u}-telo)`} stroke="#7E2F18" stroke-width="1.6" />
+    <rect x="62" y="88" width="56" height="35" rx="8" fill="#3A2E28" opacity="0.45" />
   </g>
 
-  <ellipse class="plamen plamen-1" cx="90" cy="124" rx="22" ry="12" fill="#E8B440" opacity="0.5" filter={`url(#${u}-mlha)`} />
-  <ellipse class="plamen plamen-1" cx="80" cy="124" rx="6" ry="9" fill="#F0C55E" />
-  <ellipse class="plamen plamen-2" cx="92" cy="122" rx="5" ry="7" fill="#F0C55E" />
-  <ellipse class="plamen plamen-3" cx="100" cy="126" rx="4" ry="6" fill="#C87E4E" />
-
-  {/* Shimenawa: slaměný provázek přes rameno pece, dva papírky shide */}
-  <g filter={`url(#${u}-tah)`}>
-    <path d="M44 70 Q90 80 136 70" stroke="#C9B186" stroke-width="6.5" stroke-linecap="round" />
-    <path d="M44 70 Q90 80 136 70" stroke="#EBDDB8" stroke-width="5" stroke-linecap="round" />
-    <path d="M44 70 Q90 80 136 70" stroke="#C9B186" stroke-width="5" stroke-dasharray="1.6 4.4" />
+  {/* Ohýnek u dna dvířek a záře jen odspodu — velký jasný otvor by působil jako pusa */}
+  <g clip-path={`url(#${u}-dvirka)`}>
+    <rect x="62" y="88" width="56" height="35" rx="8" fill={`url(#${u}-vyhen)`} opacity="0.7" />
+    {ohynek.map((v, i) => (
+      <g fill={v.barva} class={`plamen plamen-${i + 1}`}>
+        {JAZYKY.map(([x, L], j) => (
+          <use href={`#${u}-jazyk`} transform={`translate(${x} 123.6) scale(${j < 2 ? v.w : -v.w} ${L * v.k})`} />
+        ))}
+      </g>
+    ))}
+    <ellipse cx="90" cy="124" rx="22" ry="4" fill="#FFD27A" opacity="0.35" />
   </g>
-  <Shide x={66} y={75} />
-  <Shide x={110} y={75} zpozdeni />
+  <rect x="62" y="88" width="56" height="35" rx="8" stroke="#7E2F18" stroke-width="1.1" />
+
+  {/* Shimenawa: slaměný provázek přes rameno pece, dva papírky shide po krajích */}
+  <g filter={`url(#${u}-tah)`}>
+    <path d="M44 58 Q90 68 136 58" stroke="#C9B186" stroke-width="6.5" stroke-linecap="round" />
+    <path d="M44 58 Q90 68 136 58" stroke="#EBDDB8" stroke-width="5" stroke-linecap="round" />
+    <path d="M44 58 Q90 68 136 58" stroke="#C9B186" stroke-width="5" stroke-dasharray="1.6 4.4" />
+  </g>
+  <Shide x={55} y={61} />
+  <Shide x={125} y={61} zpozdeni />
 
   <g class="tvar">
     <g filter={`url(#${u}-mlha)`} fill="#E8B440" opacity="0.35">
-      <ellipse cx="66" cy="92" rx="6" ry="4" />
-      <ellipse cx="114" cy="92" rx="6" ry="4" />
+      <ellipse cx="66" cy="80" rx="6" ry="4" />
+      <ellipse cx="114" cy="80" rx="6" ry="4" />
     </g>
-    <ellipse cx="76" cy="86" rx="3.3" ry="4.2" fill="#3A2E28" />
-    <ellipse cx="104" cy="86" rx="3.3" ry="4.2" fill="#3A2E28" />
-    <circle cx="75" cy="84.3" r="1.3" fill="#FFF3D6" />
-    <circle cx="103" cy="84.3" r="1.3" fill="#FFF3D6" />
-    <path d="M84 96 Q90 101 96 96" stroke="#F4EBDD" stroke-width="2" stroke-linecap="round" fill="none" />
+    <ellipse cx="76" cy="74" rx="3.3" ry="4.2" fill="#3A2E28" />
+    <ellipse cx="104" cy="74" rx="3.3" ry="4.2" fill="#3A2E28" />
+    <circle cx="75" cy="72.3" r="1.3" fill="#FFF3D6" />
+    <circle cx="103" cy="72.3" r="1.3" fill="#FFF3D6" />
+    <path d="M84 84 Q90 89 96 84" stroke="#F4EBDD" stroke-width="2" stroke-linecap="round" fill="none" />
   </g>
 
-  <circle class="kour kour-1" cx="115" cy="38" r="5" fill="#6B5D4F" />
-  <circle class="kour kour-2" cx="115" cy="38" r="4" fill="#6B5D4F" />
-  <circle class="kour kour-3" cx="115" cy="38" r="3" fill="#6B5D4F" />
+  {/* Plamínek hódžu na komíně */}
+  <g transform="translate(115 31.5)">
+    <ellipse cy="-6" rx="9" ry="10" fill="#F6B85A" opacity="0.4" filter={`url(#${u}-mlha)`} />
+    <use class="plamen plamen-3" href={`#${u}-jazyk`} transform="scale(4.6 17)" fill="#9A2716" />
+    <use href={`#${u}-jazyk`} transform="scale(3.4 12.6)" fill="#E0582E" />
+    <use class="plamen plamen-2" href={`#${u}-jazyk`} transform="scale(2.3 8.2)" fill="#F6C15A" />
+    <use href={`#${u}-jazyk`} transform="scale(1.3 4.1)" fill="#FFF3CF" />
+  </g>
 </svg>

@@ -1,0 +1,306 @@
+/*
+ * Úroveň 五 Rovina — Sušárna (components/zkouska/urovne/Rovina.astro,
+ * scripts/zkouska/urovne/rovina.ts). Kresba je SVG, nad ní leží průhledná
+ * tlačítka kusů, kulatá tlačítka „obrátit“, okno, Kachlík a Bublinka.
+ * Stav nesou třídy: na kořeni mr5-bezi, mr5-otevreno, mr5-pruvan,
+ * mr5-konec, mr5-klid; na kusu prikryto, obraci, praskl; na vodováze
+ * data-stav (ok, pozor, zle, suche, prasklo).
+ */
+
+.mu-rovina .mr5-okno {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+.mu-rovina .mr5-ruka { font-family: var(--f-ruka); font-weight: 600; }
+
+/* ——— Tlačítka nad kresbou ——— */
+
+.mu-rovina .mr5-kus-tl {
+  position: absolute;
+  z-index: 4;
+  padding: 0;
+  border-radius: 18px;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.mu-rovina .mr5-kus-tl:hover { background: rgba(255, 250, 235, 0.12); box-shadow: inset 0 0 0 2px rgba(255, 252, 242, 0.75); }
+.mu-rovina .mr5-kus-tl:active { background: rgba(255, 250, 235, 0.22); }
+.mu-rovina .mr5-kus-tl:focus-visible,
+.mu-rovina.mr5-klavesnice .mr5-kus-tl.vybrany {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--rumelka), 0 0 0 2px rgba(255, 252, 242, 0.8);
+}
+.mu-rovina.mr5-konec .mr5-kus-tl,
+.mu-rovina.mr5-konec .mr5-obrat-tl,
+.mu-rovina.mr5-konec .mr5-kachlik { pointer-events: none; }
+
+.mu-rovina .mr5-obrat-tl {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: clamp(30px, 5.2%, 46px);
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--papir);
+  color: var(--inkoust);
+  box-shadow: 0 6px 14px -6px rgba(30, 20, 10, 0.6), inset 0 0 0 1.6px var(--inkoust);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.5, 1), background 0.2s, opacity 0.35s;
+}
+.mu-rovina .mr5-obrat-tl svg { width: 64%; height: 64%; display: block; }
+.mu-rovina .mr5-obrat-tl:hover { background: #FFFFFF; transform: translate(-50%, -50%) rotate(-40deg); }
+.mu-rovina .mr5-obrat-tl:active { transform: translate(-50%, -50%) rotate(-120deg) scale(0.9); }
+.mu-rovina .mr5-obrat-tl:focus-visible { outline: 3px solid var(--rumelka); outline-offset: 2px; border-radius: 50%; }
+.mu-rovina .mr5-obrat-tl:disabled { opacity: 0; pointer-events: none; }
+
+/* Okno jde zavřít, jen když je otevřené — pak pulzuje a má cedulku */
+.mu-rovina .mr5-okno-tl {
+  position: absolute;
+  z-index: 4;
+  padding: 0;
+  border-radius: 10px;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+.mu-rovina .mr5-okno-tl:disabled { pointer-events: none; }
+.mu-rovina .mr5-okno-tl:not(:disabled) { cursor: pointer; animation: mr5-okno-pulz 0.9s ease-in-out infinite; }
+.mu-rovina .mr5-okno-tl:focus-visible { outline: 3px solid var(--rumelka); outline-offset: 2px; }
+@keyframes mr5-okno-pulz {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 67, 43, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(196, 67, 43, 0.6), 0 0 26px 8px rgba(255, 226, 160, 0.55); }
+}
+.mu-rovina .mr5-okno-cedulka {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  padding: 0 10px 2px;
+  border-radius: 8px;
+  background: var(--rumelka);
+  color: #FFF4E4;
+  font-family: var(--f-ruka);
+  font-size: clamp(15px, 2.2vw, 22px);
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 6px) rotate(-4deg);
+  transition: opacity 0.2s, transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+  pointer-events: none;
+}
+.mu-rovina .mr5-okno-tl:not(:disabled) .mr5-okno-cedulka { opacity: 1; transform: translate(-50%, 0) rotate(-4deg); }
+
+/* ——— Postavičky ——— */
+
+.mu-rovina .mr5-kachlik {
+  position: absolute;
+  z-index: 3;
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 30%;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mu-rovina .mr5-kachlik svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform-origin: 50% 88%;
+  filter: brightness(calc(1 - var(--mr5-noc, 0) * 0.34));
+  transition: filter 0.4s;
+}
+.mu-rovina .mr5-kachlik:hover svg { transform: rotate(-3deg); }
+.mu-rovina .mr5-kachlik:focus-visible { outline: 3px solid var(--rumelka); outline-offset: -6px; }
+.mu-rovina .mr5-kachlik.skace svg { animation: mr5-skok 0.55s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.mu-rovina .mr5-kachlik.lekne svg { animation: mr5-lek 0.5s ease-in-out; }
+@keyframes mr5-skok {
+  0% { transform: none; }
+  30% { transform: translateY(-14%) scale(0.96, 1.05); }
+  60% { transform: translateY(0) scale(1.06, 0.93); }
+  100% { transform: none; }
+}
+@keyframes mr5-lek {
+  20% { transform: translateX(-4%) rotate(-4deg); }
+  45% { transform: translateX(4%) rotate(3deg); }
+  70% { transform: translateX(-2%) rotate(-1deg); }
+}
+
+.mu-rovina .mr5-bublinka {
+  position: absolute;
+  z-index: 2;
+  aspect-ratio: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+.mu-rovina .mr5-bublinka svg { width: 100%; height: 100%; display: block; }
+.mu-rovina .mr5-bublinka.leti { animation: mr5-bublinka 2.1s ease-in-out both; }
+@keyframes mr5-bublinka {
+  0% { opacity: 0; transform: translate(40%, 70%) scale(0.5); }
+  18% { opacity: 1; transform: translate(0, 0) scale(1); }
+  30% { transform: translate(6%, 2%) rotate(8deg); }
+  40% { transform: translate(-16%, 0) rotate(-12deg) scale(1.06); }
+  62% { opacity: 1; transform: translate(-4%, -12%) rotate(0deg); }
+  100% { opacity: 0; transform: translate(70%, -110%) rotate(16deg) scale(0.6); }
+}
+
+/* ——— Kusy ——— */
+
+.mu-rovina .mr5-folie {
+  opacity: 0;
+  transform: translateY(-30px) scaleY(1.18);
+  transition: opacity 0.18s, transform 0.42s cubic-bezier(0.3, 1.55, 0.5, 1);
+  pointer-events: none;
+}
+.mu-rovina .prikryto .mr5-folie { opacity: 1; transform: none; }
+.mu-rovina.mr5-pruvan .prikryto .mr5-folie-tvar { animation: mr5-trepot 0.26s ease-in-out infinite alternate; }
+@keyframes mr5-trepot {
+  from { transform: skewX(-1.5deg); }
+  to { transform: skewX(-5deg) scaleY(1.02); }
+}
+
+/* Obrácení: kus vyskočí, na hraně se prohodí strana (skript), dosedne s pružností */
+.mu-rovina .mr5-kus.obraci .mr5-telo { animation: mr5-obrat 0.56s cubic-bezier(0.4, 0, 0.3, 1); }
+.mu-rovina .mr5-kus.obraci .mr5-stin { animation: mr5-obrat-stin 0.56s ease-in-out; }
+@keyframes mr5-obrat {
+  0% { transform: none; }
+  28% { transform: translateY(-36px) scaleY(0.45); }
+  48% { transform: translateY(-44px) scaleY(0.04); }
+  70% { transform: translateY(-12px) scaleY(0.96); }
+  84% { transform: translateY(0) scale(1.06, 0.88); }
+  100% { transform: none; }
+}
+@keyframes mr5-obrat-stin { 48% { opacity: 0.4; transform: scale(0.72); } }
+.mu-rovina .mr5-kus.praskl .mr5-telo { animation: mr5-tres 0.42s ease-in-out; }
+@keyframes mr5-tres {
+  20% { transform: translateX(-3px) rotate(-1.4deg); }
+  40% { transform: translateX(3px) rotate(1.2deg); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(1px); }
+}
+
+/* ——— Vodováhy ——— */
+
+.mu-rovina .mr5-tekutina { transition: fill 0.3s; }
+.mu-rovina .mr5-vodovaha[data-stav="pozor"] .mr5-tekutina { fill: #F4C24E; }
+.mu-rovina .mr5-vodovaha[data-stav="zle"] .mr5-tekutina { fill: #EC6A44; }
+.mu-rovina .mr5-vodovaha[data-stav="zle"] .mr5-ryska { stroke: #FFFFFF; }
+.mu-rovina .mr5-vodovaha[data-stav="zle"] .mr5-vv-telo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mr5-vv-zle 0.45s ease-in-out infinite alternate;
+}
+@keyframes mr5-vv-zle {
+  from { transform: rotate(-2.5deg); }
+  to { transform: rotate(2.5deg); }
+}
+.mu-rovina .mr5-vv-telo { transition: opacity 0.6s; }
+.mu-rovina .mr5-vodovaha[data-stav="suche"] .mr5-vv-telo { opacity: 0.3; }
+.mu-rovina .mr5-vodovaha[data-stav="suche"] .mr5-bublina-g,
+.mu-rovina .mr5-vodovaha[data-stav="prasklo"] .mr5-bublina-g { opacity: 0; }
+.mu-rovina .mr5-vodovaha[data-stav="prasklo"] .mr5-tekutina { fill: #A4ABA2; }
+.mu-rovina .mr5-vodovaha[data-stav="prasklo"] .mr5-vv-strep { opacity: 0.95; }
+.mu-rovina .mr5-vodovaha[data-stav="prasklo"] .mr5-vv-telo { opacity: 0.55; }
+.mu-rovina .mr5-vv-slunce { opacity: 0; transition: opacity 0.4s; }
+.mu-rovina .mr5-vodovaha.v-slunci .mr5-vv-slunce { opacity: 1; }
+
+/* ——— Cedulky: razítko 正 za suchý kus, kapka za nedosušený ——— */
+
+.mu-rovina .mr5-cedulka.suche .mr5-razitko { opacity: 1; }
+.mu-rovina .mr5-cedulka.ted .mr5-razitko-obr {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mr5-razitko 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes mr5-razitko {
+  0% { opacity: 0; transform: scale(2.6) rotate(-24deg); }
+  60% { opacity: 1; transform: scale(0.88); }
+  100% { transform: none; }
+}
+.mu-rovina .mr5-cedulka.mokre .mr5-mokre { opacity: 1; }
+.mu-rovina .mr5-cedulka.mokre .mr5-mokre-obr {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mr5-kapka 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes mr5-kapka { from { opacity: 0; transform: translateY(-12px) scale(0.4); } }
+
+/* ——— Kalendář ——— */
+
+.mu-rovina .mr5-krizek {
+  opacity: 0;
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+  transition: opacity 0.2s, stroke-dashoffset 0.6s ease-out;
+}
+.mu-rovina .mr5-krizek.je { opacity: 0.7; stroke-dashoffset: 0; }
+.mu-rovina .mr5-dnes.kresli path { stroke-dasharray: 110; animation: mr5-krouzek 0.7s ease-out; }
+@keyframes mr5-krouzek {
+  from { stroke-dashoffset: 110; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ——— Okno ——— */
+
+.mu-rovina .mr5-kridlo {
+  transform-box: view-box;
+  transform-origin: 22px 180px;
+  transition: transform 0.45s cubic-bezier(0.3, 1.35, 0.5, 1);
+}
+.mu-rovina.mr5-otevreno .mr5-kridlo { transform: scaleX(0.14) skewY(-8deg); }
+
+/* ——— Ovládání pod scénou ——— */
+
+.mu-rovina .mr5-ovladani { gap: 8px 12px; }
+.mu-rovina .mr5-napoveda {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  font-family: var(--f-ruka);
+  font-size: 20px;
+  line-height: 1.15;
+  color: var(--inkoust-2);
+}
+.mu-rovina .mr5-klavesy { color: var(--inkoust-3); }
+.mu-rovina .mr5-rada { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.mu-rovina .mr5-ikona { display: inline-grid; width: 18px; height: 18px; }
+.mu-rovina .mr5-ikona svg { width: 100%; height: 100%; display: block; }
+.mu-rovina .mr5-rada .tlacitko:disabled { opacity: 0.38; cursor: default; transform: none; }
+.mu-rovina .mr5-zavrit-rada:not(:disabled) {
+  background: var(--rumelka);
+  border-color: var(--rumelka);
+  animation: mr5-tep 0.9s ease-in-out infinite;
+}
+@keyframes mr5-tep { 50% { transform: scale(1.06); } }
+@media (pointer: coarse) {
+  .mu-rovina .mr5-klavesy { display: none; }
+}
+@media (max-width: 640px) {
+  .mu-rovina .mr5-napoveda { font-size: 18px; }
+  .mu-rovina .mr5-rada .tlacitko { padding: 8px 12px; font-size: 13.5px; }
+}
+
+/* ——— Méně pohybu: hra stejná, jen bez ozdobného pohybu ——— */
+
+.mu-rovina.mr5-klid .mr5-bublinka.leti { animation: none; opacity: 1; }
+.mu-rovina.mr5-klid .mr5-folie { transform: none; }
+.mu-rovina.mr5-klid .mr5-folie,
+.mu-rovina.mr5-klid .mr5-kridlo,
+.mu-rovina.mr5-klid .mr5-krizek,
+.mu-rovina.mr5-klid .mr5-obrat-tl { transition: none; }
+.mu-rovina.mr5-klid .mr5-okno-tl:not(:disabled),
+.mu-rovina.mr5-klid .mr5-zavrit-rada:not(:disabled),
+.mu-rovina.mr5-klid .mr5-vodovaha[data-stav="zle"] .mr5-vv-telo,
+.mu-rovina.mr5-klid.mr5-pruvan .prikryto .mr5-folie-tvar,
+.mu-rovina.mr5-klid .mr5-kus.obraci .mr5-telo,
+.mu-rovina.mr5-klid .mr5-kus.praskl .mr5-telo,
+.mu-rovina.mr5-klid .mr5-cedulka.ted .mr5-razitko-obr,
+.mu-rovina.mr5-klid .mr5-cedulka.mokre .mr5-mokre-obr,
+.mu-rovina.mr5-klid .mr5-dnes.kresli path { animation: none; }
+.mu-rovina.mr5-klid .mr5-okno-tl:not(:disabled) { box-shadow: 0 0 0 4px rgba(196, 67, 43, 0.6); }

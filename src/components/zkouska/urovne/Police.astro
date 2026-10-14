@@ -1,0 +1,13 @@
+---
+/**
+ * Úroveň 七 Police — Skládání pece. Pec v řezu se Šamotkou na dně, dvě
+ * police na sloupcích a regál se syrovými kusy. Celá scéna je z čistého
+ * generátoru v police-kresba.ts; hra (scripts/zkouska/urovne/police.ts)
+ * si ji při každém pokusu vykreslí znovu ze stejného generátoru.
+ */
+import "../../../styles/zkouska-urovne/police.css";
+import { scena } from "./police-kresba";
+---
+<div class="mu-scena mu-police" data-uroven-scena="police" hidden>
+  <Fragment set:html={scena()} />
+</div>

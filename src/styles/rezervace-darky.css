@@ -1,0 +1,493 @@
+/*
+ * ——— Rezervace: dárkové jízdenky (components/rezervace/Darky.astro) ———
+ *
+ * Staví na rezervace.css (papír, čísla stanic, pole, cena). Vlastní věci:
+ *
+ *   vitrína   tři svislé nabídky vedle sebe; každá má nahoře jízdenku
+ *             v lakované desce (kreslí ji darky.ts jako SVG), pod ní, co
+ *             obdarovaný dostane, cenu a vlastní tlačítko Zabalit a darovat.
+ *             Barvu laku dostane sloupec v --rzd-lak a --rzd-inkoust.
+ *   jízdenka  tři vrstvy nad sebou: kresba, pole na psaní (jméno, vzkaz,
+ *             podpis — píše se rovnou na jízdenku) a obal (razítko
+ *             a páska). Skript ji naklání za myší (--rx, --ry).
+ *   UV        tlačítko zhasne papír do fialova; kruh lampy jde za myší
+ *             a v jízdenkách pod ním svítí skrytý tisk (maska v kresbě)
+ *   balení    .balim spustí razítko, pásku, mašli a odjezd vláčku,
+ *             .zabaleno nechá jízdenku zabalenou
+ *
+ * Písmo uvnitř kreseb má pevné barvy, ne proměnné stránky — UV režim
+ * přebarvuje papír kolem, jízdenka zůstat má. Pole na psaní mají písmo
+ * v jednotkách cqw (strana jízdenky je kontejner), takže rostou
+ * a zmenšují se s kresbou a písmo sedí na linku.
+ */
+
+.rzd-sprite { position: absolute; }
+
+.rz-darky { padding-top: 6vh; }
+.rz-darky-karta {
+  --okraj: clamp(24px, 4vw, 56px);
+  position: relative;
+  width: min(1320px, 100%);
+  margin: 0 auto;
+  transition: background 0.7s, box-shadow 0.7s, color 0.7s;
+}
+.rz-darky-hlava { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.rz-darky-perex { max-width: 64ch; margin: -4px 0 26px; color: var(--inkoust-2); }
+
+/* ——— Vitrína: tři svislé nabídky ——— */
+
+.rz-darky-vitrina {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(22px, 3vw, 48px);
+  align-items: stretch;
+}
+.rz-dar { position: relative; display: flex; flex-direction: column; min-width: 0; }
+
+/* Otáčedlo nese obě strany jízdenky: naklání se za myší (--rx, --ry), při najetí se zvedne (--zdvih)
+   a otočená se přetočí na rub (--otoceni). Stín má každá strana sama — filtr na otáčedle by 3D zploštil. */
+.rz-dar-predmet { position: relative; padding: 8px 2px 20px; perspective: 1500px; }
+/* Vázička za horní hranou Zvláštního vlaku: stojí za jízdenkou, vidět je jen hlava nad hranou */
+.skryty.rzd-vazicka { z-index: 0; top: auto; bottom: calc(100% - 10px); right: 16%; width: 46px; transform-origin: 50% 100%; }
+.rz-dar-kurz .rzd-otacec { z-index: 1; }
+.rzd-otacec {
+  --zdvih: 0px;
+  position: relative;
+  display: block;
+  transform-style: preserve-3d;
+  transform: translateY(var(--zdvih)) rotateX(var(--rx, 0deg)) rotateY(calc(var(--ry, 0deg) + var(--otoceni, 0deg)));
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+/* Dokud se za myší naklání, jde rychle; když myš odejde, dosedne pomalu */
+.rz-dar-predmet.nakloneno .rzd-otacec { transition: transform 0.14s linear; }
+.rz-dar.otocena .rzd-otacec { --otoceni: 180deg; }
+.rz-dar:hover .rzd-otacec,
+.rz-dar:focus-within .rzd-otacec { --zdvih: -6px; }
+.rzd-strana {
+  position: relative;
+  display: block;
+  container-type: inline-size;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rzd-strana-rub { position: absolute; inset: 0; transform: rotateY(180deg); }
+.rzd-listek {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 18px 16px rgba(20, 12, 30, 0.26)) drop-shadow(0 3px 3px rgba(20, 12, 30, 0.2));
+  transition: filter 0.4s;
+}
+.rz-dar:hover .rzd-listek {
+  filter: drop-shadow(0 28px 22px rgba(20, 12, 30, 0.3)) drop-shadow(0 4px 4px rgba(20, 12, 30, 0.2));
+}
+
+/* Obal: razítko a páska nad poli na psaní */
+.rzd-obal { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+
+/* ——— Pole na psaní: jméno na linku jízdenky, věnování zlatem na desku ——— */
+
+.rzd-pero { position: absolute; z-index: 1; display: block; margin: 0; }
+.rzd-pero input,
+.rzd-pero textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0 0.15em;
+  border: 0;
+  border-radius: 0.2em;
+  background: transparent;
+  color: inherit;
+  font-family: var(--f-ruka);
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  caret-color: var(--rumelka);
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  transition: background 0.2s, box-shadow 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rzd-pero ::placeholder { color: inherit; opacity: 0.42; }
+.rzd-pero input:hover,
+.rzd-pero textarea:hover { background: rgba(255, 252, 240, 0.12); }
+.rzd-pero input:focus,
+.rzd-pero textarea:focus { background: rgba(255, 252, 240, 0.2); }
+.rzd-pero input:focus-visible,
+.rzd-pero textarea:focus-visible { box-shadow: 0 0 0 2px rgba(196, 67, 43, 0.55); }
+/* Jméno: inkoustem jízdenky na tečkovanou linku; dlouhé se zmenší (--zmenseni počítá skript) */
+.rzd-pero-pro {
+  color: var(--rzd-inkoust, #2B2420);
+  font-size: calc(var(--zmenseni, 1) * 8.4cqw);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.rzd-pero-pro input { padding-top: 0.06em; }
+/* Věnování: zlatem na lak, dva řádky na střed */
+.rzd-pero-vzkaz {
+  color: #F3D27A;
+  font-size: calc(var(--zmenseni, 1) * 6.7cqw);
+  font-weight: 400;
+  line-height: 1.12;
+}
+.rzd-pero-vzkaz textarea { padding-top: 0.12em; text-align: center; }
+.rzd-pero-vzkaz textarea:hover,
+.rzd-pero-vzkaz textarea:focus { background: rgba(255, 240, 200, 0.07); }
+/* Podpis: „— jméno“ vpravo pod věnováním; šířku pole podle textu nastaví skript */
+.rzd-pero-od {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.2em;
+  color: #F3D27A;
+  font-size: 5.8cqw;
+  font-weight: 600;
+  line-height: 1;
+}
+.rzd-pero-od > span { flex: none; }
+.rzd-pero-od input { flex: 0 1 auto; width: 6.2em; min-width: 2.5em; max-width: 100%; }
+.rzd-pero-od input:hover,
+.rzd-pero-od input:focus { background: rgba(255, 240, 200, 0.07); }
+
+/* ——— Pod jízdenkou: co to je, co obdarovaný dostane, cena a tlačítko ——— */
+
+.rz-dar-radek { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.rz .rz-dar-otocit {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 4px 11px 5px 8px;
+  border: 1.5px solid rgba(43, 36, 32, 0.24);
+  border-radius: 999px;
+  font-family: var(--f-text);
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--inkoust-2);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.rz-dar-otocit svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.6s; }
+.rz .rz-dar-otocit:hover { border-color: var(--inkoust); color: var(--inkoust); }
+.rz .rz-dar-otocit[aria-pressed="true"] { background: var(--papir-2); color: var(--inkoust); }
+.rz-dar-otocit[aria-pressed="true"] svg { transform: rotate(180deg); }
+.rz-dar-titul {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 72;
+  font-weight: 600;
+  font-size: clamp(21px, 1.8vw, 26px);
+  line-height: 1.15;
+}
+/* Malý štítek nad jménem v barvě laku — jako číslo vozu */
+.rz-dar-titul small {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 3px;
+  font-family: var(--f-text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rzd-lak);
+}
+.rz-dar-titul small::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--rzd-lak); box-shadow: 0 0 0 2px #E0B04A; }
+.rz-dar-heslo {
+  margin: 6px 0 8px;
+  font-family: var(--f-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 36;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.rz-dar-fakta { margin: 0 0 16px; font-size: 14px; line-height: 1.42; color: var(--inkoust-2); }
+.rz-dar-fakta > div { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 0 10px; padding: 6px 0 7px; border-top: 1px solid rgba(43, 36, 32, 0.11); }
+.rz-dar-fakta dt { padding-top: 3px; font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; color: var(--inkoust-3); }
+.rz-dar-fakta dd { margin: 0; }
+.rz-dar-fakta b { font-weight: 600; color: var(--inkoust); }
+
+/* Na který kurz — jen u zvláštního vlaku */
+.rz-dar-volba { min-width: 0; margin: -10px 0 16px; padding: 10px 0 0; border: 0; border-top: 1px solid rgba(43, 36, 32, 0.11); }
+.rz-dar-volba legend { float: left; width: 100%; margin: 0 0 7px; padding: 0; font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--inkoust-3); }
+.rz-dar-volby { display: flex; flex-wrap: wrap; gap: 6px; clear: both; }
+.rz-darky-volba { position: relative; cursor: pointer; }
+.rz-darky-volba input { position: absolute; opacity: 0; pointer-events: none; }
+.rz-darky-volba > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 7px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--papir-2);
+  font-size: 14px;
+  line-height: 1.2;
+  transition: background 0.2s, border-color 0.2s;
+}
+.rz-darky-volba:hover > span { background: #F3E3C6; }
+.rz-darky-volba input:checked + span { border-color: var(--rzd-lak, var(--inkoust)); background: #FFFDF6; }
+.rz-darky-volba input:focus-visible + span { outline: 2px solid var(--rumelka); outline-offset: 3px; }
+.rz-darky-volba i {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.6px solid var(--rumelka);
+  border-radius: 50%;
+  background: #FBF1D6;
+  font-family: var(--f-display);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* Cena a tlačítko: v řadě dole, u všech tří ve stejné výšce */
+.rz-dar-pokladna {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid rgba(43, 36, 32, 0.3);
+}
+.rz-dar-cena { margin: 0; font-size: 13.5px; line-height: 1.2; color: var(--inkoust-3); }
+.rz-dar-cena b {
+  display: block;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 0, "opsz" 36;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: var(--inkoust);
+}
+.rz .rz-dar-darovat {
+  justify-content: center;
+  padding: 12px 20px;
+  border-color: var(--rzd-lak);
+  background: var(--rzd-lak);
+  color: #F8E6AA !important;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px rgba(243, 210, 122, 0.55), 0 10px 18px -12px rgba(20, 12, 30, 0.7);
+}
+.rz .rz-dar-darovat:hover { background: color-mix(in srgb, var(--rzd-lak) 82%, #000); color: #FFF1C4 !important; }
+.rz-dar-darovat[aria-busy="true"] { pointer-events: none; opacity: 0.6; }
+.rz-dar-hotovo { margin: 10px 0 0; font-family: var(--f-ruka); font-size: 21px; line-height: 1.15; color: #3E6E68; }
+.rz-dar-hotovo:empty { display: none; }
+.rz .rz-dar-rozbalit { align-self: flex-start; margin-top: 6px; padding: 5px 14px 6px; border: 1.5px solid currentColor; border-radius: 999px; font-size: 14px; color: var(--inkoust-2); }
+.rz .rz-dar-rozbalit:hover { color: var(--rumelka); }
+
+/* ——— Pod vitrínou: jak ji poslat a co dál ——— */
+
+.rz-darky-dole {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 28px;
+  margin-top: clamp(28px, 3vw, 44px);
+  padding-top: 18px;
+  border-top: 1px dashed rgba(43, 36, 32, 0.22);
+}
+.rz-darky-forma { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.rz-darky-forma legend { float: left; margin: 0 6px 0 0; padding: 0; font-size: 15px; color: var(--inkoust-2); }
+.rz-darky-dole .rz-pozn { max-width: 52ch; }
+.rz-darky-pata { max-width: 82ch; margin: 16px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--inkoust-3); }
+
+/* ——— UV lampa ——— */
+
+.rz .rz-darky-uv {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 15px 8px 11px;
+  border-radius: 999px;
+  background: #1E1840;
+  color: #D9CCFF;
+  font-family: var(--f-display);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1.5px #3B2F7A;
+  transition: background 0.3s, box-shadow 0.3s, color 0.3s;
+}
+.rz-darky-uv svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.rz-darky-uv-paprsky { stroke: #B48CFF; opacity: 0; transition: opacity 0.3s; }
+.rz .rz-darky-uv:hover { box-shadow: 0 0 0 1.5px #7A5CFF, 0 0 14px rgba(150, 110, 255, 0.35); }
+.rz .rz-darky-uv[aria-pressed="true"] { background: #2A1B66; color: #F1EAFF; box-shadow: 0 0 0 1.5px #9B7BFF, 0 0 24px rgba(150, 110, 255, 0.6); }
+.rz-darky-uv[aria-pressed="true"] .rz-darky-uv-paprsky { opacity: 1; }
+
+/* Zhasnuto: papír kolem jízdenek je fialové přítmí, text kolem se rozsvítí */
+.rz-darky-karta.uv {
+  --inkoust: #F3EEFF;
+  --inkoust-2: #D2C8F2;
+  --inkoust-3: #A99FD3;
+  --papir-2: #362C6A;
+  background: #211A47;
+  color: var(--inkoust);
+  box-shadow: 0 30px 70px -34px rgba(8, 4, 26, 0.85), 0 0 0 1px rgba(150, 120, 255, 0.28);
+}
+.rz-darky-karta.uv .stitek { color: #C7A6FF; }
+.rz-darky-karta.uv .rz-stanice { background: #2A2160; }
+.rz-darky-karta.uv .rz-dar-fakta > div,
+.rz-darky-karta.uv .rz-dar-volba,
+.rz-darky-karta.uv .rz-darky-dole { border-color: rgba(200, 185, 255, 0.18); }
+.rz-darky-karta.uv .rz-dar-pokladna { border-top-color: rgba(200, 185, 255, 0.35); }
+.rz-darky-karta.uv .rz-dar-otocit { border-color: rgba(220, 208, 255, 0.35); }
+.rz-darky-karta.uv .rz-dar-titul small { color: #D9CCFF; }
+.rz-darky-karta.uv .rz-darky-volba:hover > span { background: #43377E; }
+.rz-darky-karta.uv .rz-darky-volba input:checked + span { border-color: #CBB8FF; background: #4A3D8C; }
+.rz-darky-karta.uv .rz-dar-predmet { cursor: crosshair; }
+/* Kruh lampy na papíře kolem — v jízdenkách svítí maska v kresbě */
+.rz-darky-svetlo {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 260px;
+  margin: -130px 0 0 -130px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(170, 120, 255, 0.34), rgba(120, 70, 255, 0.14) 46%, rgba(120, 70, 255, 0) 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.rz-darky-karta.uv .rz-darky-svetlo.sviti { opacity: 1; }
+.rz-darky-karta > :not(.rz-darky-svetlo) { position: relative; z-index: 1; }
+
+.rzd-uv { opacity: 0; transition: opacity 0.35s; }
+.rz-darky-karta.uv .rzd-uv { opacity: 1; }
+
+/* ——— Písmo a drobnosti v kresbách jízdenek (jednotky kresby, deska je 400 široká) ——— */
+
+.rzd-t-znacka { font-family: var(--f-text); font-weight: 600; font-size: 7.6px; letter-spacing: 3.2px; fill: #E0B04A; opacity: 0.85; }
+.rzd-t-deska { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-weight: 600; font-size: 17px; fill: #F3D27A; }
+.rzd-t-hlavicka { font-family: var(--f-text); font-weight: 600; font-size: 11.5px; letter-spacing: 2.3px; }
+.rzd-t-cislo { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-weight: 600; font-size: 12.5px; letter-spacing: 0.4px; font-variant-numeric: tabular-nums; }
+.rzd-t-trasa { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 26px; }
+.rzd-t-radek { font-family: var(--f-text); font-weight: 600; font-size: 9.4px; letter-spacing: 1.5px; }
+.rzd-t-udaj { font-family: var(--f-text); font-weight: 600; font-size: 7.4px; letter-spacing: 1.3px; opacity: 0.85; }
+.rzd-t-hodnota { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-weight: 600; font-size: 15px; }
+.rzd-t-caps { font-family: var(--f-text); font-weight: 600; font-size: 10.5px; letter-spacing: 1.5px; }
+.rzd-t-caps-male { font-family: var(--f-text); font-weight: 600; font-size: 8px; letter-spacing: 1px; }
+.rzd-t-kupon-cap { font-family: var(--f-text); font-weight: 600; font-size: 9px; letter-spacing: 1.5px; }
+.rzd-t-kupon { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 25px; }
+.rzd-t-nebo { font-family: var(--f-text); font-style: italic; font-size: 10.5px; }
+.rzd-t-spoj { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-weight: 600; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.rzd-t-kurz { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 36; font-weight: 600; font-size: 14px; }
+.rzd-t-serie { font-family: var(--f-text); font-weight: 600; font-size: 6.6px; letter-spacing: 0.6px; font-variant-numeric: tabular-nums; }
+.rzd-t-mikro { font-family: var(--f-text); font-size: 5px; letter-spacing: 0.3px; opacity: 0.55; }
+.rzd-t-nominal { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 144; font-weight: 700; font-size: 30px; }
+.rzd-t-nominal-h { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 16px; }
+.rzd-t-nominal-j { font-family: var(--f-text); font-weight: 700; font-size: 7.5px; letter-spacing: 1.2px; }
+.rzd-t-emblem { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 700; font-size: 18px; fill: #2B2420; }
+.rzd-t-emblem-dva { font-size: 14px; }
+.rzd-t-emblem-maly { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 36; font-weight: 700; font-size: 12px; fill: #2B2420; }
+.rzd-t-krok { font-family: var(--f-text); font-size: 15.5px; }
+.rzd-t-krok-cislo { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 24; font-weight: 700; font-size: 12px; }
+.rzd-t-rub-titul { font-family: var(--f-text); font-weight: 600; font-size: 9.6px; letter-spacing: 2.2px; fill: #F3D27A; }
+.rzd-t-rub-cas { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-weight: 600; font-size: 15px; fill: #F3D27A; font-variant-numeric: tabular-nums; }
+.rzd-t-rub-zastavka { font-family: var(--f-text); font-size: 13.5px; fill: #F4EAD0; }
+.rzd-t-rub-kurz { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 16px; fill: #F3D27A; }
+.rzd-t-rub-pozn { font-family: var(--f-text); font-style: italic; font-size: 12.5px; fill: #F4EAD0; opacity: 0.85; }
+.rzd-t-rub-pata { font-family: var(--f-text); font-size: 11px; letter-spacing: 0.3px; fill: #CDBF98; }
+.rzd-t-razitko-kruh { font-family: var(--f-text); font-weight: 600; font-size: 8.6px; letter-spacing: 1.2px; fill: #C4432B; }
+.rzd-t-razitko { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-weight: 700; font-size: 22px; letter-spacing: 2px; fill: #C4432B; }
+.rzd-t-razitko-datum { font-family: var(--f-text); font-weight: 600; font-size: 10px; fill: #C4432B; font-variant-numeric: tabular-nums; }
+.rzd-t-paska { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-weight: 700; font-size: 20px; letter-spacing: 6px; fill: #C4432B; }
+.rzd-t-paska-male { font-family: var(--f-text); font-weight: 600; font-size: 9px; letter-spacing: 3px; fill: #8A5A16; }
+.rzd-t-uv { font-family: var(--f-text); font-weight: 600; font-size: 9px; letter-spacing: 1px; fill: #FF8AE8; }
+.rzd-znaky-dva .vl-emblem { font-size: 15px; }
+.rzd-scena .vl-para { fill: #FFFDF6; }
+
+/* Závěsy v okně: když se na jízdenku najede myší, pootevřou se — stáhnou se ke krajům okna */
+.rzd-kridlo { transform-box: fill-box; transform-origin: 0 50%; transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.rz-dar-predmet.nakloneno .rzd-kridlo { transform: scaleX(0.84); }
+
+/* Hologram na rohu okna se pomalu přelévá */
+.rzd-hologram { transform-box: fill-box; transform-origin: center; animation: rzd-hologram 7s linear infinite; }
+@keyframes rzd-hologram { to { transform: rotate(360deg); } }
+
+/* Mimo obrazovku nic nepoběží (scripts/rezervace/darky.ts) */
+.rz-darky.mimo .vl-para circle,
+.rz-darky.mimo .rzd-hologram { animation-play-state: paused; }
+
+/* ——— Balení: razítko, páska, mašle a vláček odjede a vrátí se ——— */
+
+.rzd-razitko,
+.rzd-paska { visibility: hidden; }
+.rz-dar.zabaleno .rzd-razitko,
+.rz-dar.zabaleno .rzd-paska { visibility: visible; }
+.rzd-razitko { mix-blend-mode: multiply; }
+.rzd-razitko-telo { transform-box: fill-box; transform-origin: center; opacity: 0.88; }
+.rz-dar.balim .rzd-razitko-telo { animation: rzd-razitko 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) 0.12s both; }
+@keyframes rzd-razitko { from { opacity: 0; transform: scale(1.9); } }
+.rz-dar.balim .rzd-paska-pruh { animation: rzd-paska 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.7s both; }
+@keyframes rzd-paska { from { transform: translateX(-440px); } }
+.rzd-masle { transform-box: fill-box; transform-origin: 50% 32%; }
+.rz-dar.balim .rzd-masle { animation: rzd-masle 0.65s cubic-bezier(0.3, 1.7, 0.5, 1) 1.35s both; }
+@keyframes rzd-masle { from { transform: scale(0) rotate(-35deg); } }
+/* Zabalenou už nejde psát — přepsat ji jde až po rozbalení */
+.rz-dar.zabaleno .rzd-pero { pointer-events: none; }
+
+/* Vlak v okně: kde je, říká --rzd-x na scéně; dědí ji vlak i jeho odraz (<use>), takže jedou spolu */
+@property --rzd-x {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+.rzd-vlak { transform: translateX(calc(var(--rzd-x, 0) * 1px)); }
+.rz-dar.balim .rzd-scena { animation: rzd-odjezd 3.6s 1.7s both; }
+@keyframes rzd-odjezd {
+  0% { --rzd-x: 0; animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.4); }
+  44% { --rzd-x: 2100; }
+  45% { --rzd-x: -2100; animation-timing-function: cubic-bezier(0.1, 0.6, 0.3, 1); }
+  100% { --rzd-x: 0; }
+}
+
+/* ——— Užší okna: jízdenky vedle sebe jako karty, které se posouvají ——— */
+
+@media (max-width: 1020px) {
+  .rz-darky-vitrina {
+    display: flex;
+    gap: 18px;
+    margin: 0 calc(-1 * var(--okraj));
+    padding: 0 var(--okraj) 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--okraj);
+    -webkit-overflow-scrolling: touch;
+  }
+  .rz-dar { flex: 0 0 min(360px, 80%); scroll-snap-align: start; }
+}
+@media (max-width: 760px) {
+  .rz-darky-karta { --okraj: 18px; padding: 22px 18px 24px; }
+  .rz-darky-hlava { flex-direction: column; gap: 4px; }
+  .rz-darky-uv { order: 2; margin-top: -4px; }
+  .rz-dar { flex-basis: 86%; }
+  .rz-dar-fakta { font-size: 13.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rzd-otacec,
+  .rzd-listek,
+  .rzd-kridlo,
+  .rz-dar-otocit svg { transition: none; }
+  .rzd-hologram,
+  .rz-dar.balim .rzd-razitko-telo,
+  .rz-dar.balim .rzd-paska-pruh,
+  .rz-dar.balim .rzd-masle,
+  .rz-dar.balim .rzd-scena { animation: none !important; }
+}

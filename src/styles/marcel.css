@@ -106,6 +106,43 @@
 }
 .mc-parta li { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .mc-parta svg { display: block; width: min(104px, 100%); height: auto; }
+
+/* Průvod s lucerničkami: kousek noci, po louce jde dokola devět malých kami (kami šlape a lucerna se houpe — parta2.css),
+   dopředu je posouvá tahle animace přes šířku pruhu (cqw). Při najetí myší stojí, ať jde na ně kliknout. */
+.mc-lucernicky {
+  position: relative;
+  container-type: inline-size;
+  height: clamp(190px, 22vw, 270px);
+  border-radius: 16px;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 90% at 50% 100%, rgba(255, 190, 110, 0.12), transparent 70%),
+    linear-gradient(#171B3C, #252A57 70%, #2E3463);
+}
+.mc-lucernicky-louka {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  filter: brightness(0.32) saturate(0.55) hue-rotate(18deg);
+}
+.mc-lucernicky-clen {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  bottom: 9%;
+  width: clamp(48px, 7.5cqw, 96px);
+  animation: mc-lucernicky 54s linear infinite;
+  animation-delay: calc(var(--i) * -6s);
+}
+@keyframes mc-lucernicky { from { transform: translateX(-110%); } to { transform: translateX(100cqw); } }
+.mc-lucernicky:hover .mc-lucernicky-clen,
+.mc-lucernicky:focus-within .mc-lucernicky-clen { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .mc-lucernicky-clen { animation: none; left: calc(2cqw + var(--i) * 10.8cqw); }
+}
 .mc-jmeno {
   font-family: var(--f-display);
   font-variation-settings: "SOFT" 100;

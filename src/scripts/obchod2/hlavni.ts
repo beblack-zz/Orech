@@ -11,6 +11,7 @@ import { hlavicka } from "../parta2/hlavicka";
 import { sezonaMesice } from "../../data/uvod2";
 import { initSatek } from "./satek";
 import { kramek } from "./kramek";
+import { schovej } from "../parta2/sber";
 
 /* Celé se to spustí při každé návštěvě stránky, i po přechodu bez načtení (prechody.ts) */
 stranka("obchod-2", () => {
@@ -21,5 +22,7 @@ stranka("obchod-2", () => {
   document.querySelectorAll<HTMLElement>(".o2-noc-scena").forEach((el) => (el.dataset.sezona = sezonaMesice(new Date().getMonth() + 1)));
   const satek = initSatek();
   kramek(satek);
+  /* Střípek schovaný v hodinách krámku — hra na hledání kami */
+  document.querySelectorAll<HTMLElement>(".o2k-hodiny [data-skryty]").forEach(schovej);
   spust();
 });

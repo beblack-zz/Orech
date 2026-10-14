@@ -1,0 +1,32 @@
+---
+/**
+ * Úroveň 一 Hrouda — „Šest stejných“. Ranní kout dílny: stará kuchyňská
+ * váha, přes stůl dlouhý blok hlíny, před ním krejčovský metr a prkénko
+ * na šest koulí, v popředí pytel hlíny. Na bloku spí Hlínka.
+ *
+ * Kresba je v hrouda-kresba.ts (čisté funkce, blok podle hrouda-model.ts),
+ * hra ve scripts/zkouska/urovne/hrouda.ts. Mezi zadní a přední vrstvou
+ * kresby je HTML obal se skutečnou Hlínkou — hra s ním převaluje a drát
+ * vede před ní. Přes postavičku leží její probuzená tvář, schovaná,
+ * dokud spí.
+ */
+import "../../../styles/zkouska-urovne/hrouda.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { zadni, predni, ovladani, hlinkaVzhuru, hlinkaStyl, hlinkaVychozi, OKNO_POPIS } from "./hrouda-kresba";
+
+const h = hlinkaVychozi();
+---
+<div class="mu-scena mu-hrouda" data-uroven-scena="hrouda" hidden>
+  <div class="mu-okno mh1-okno" tabindex="0" role="application" aria-label={OKNO_POPIS}>
+    <Fragment set:html={zadni()} />
+    <div class="mh1-hlinka" style={hlinkaStyl(h.x, h.y)}>
+      <div class="mh1-hlinka-telo">
+        <Postavicka id="hlinka" size={120} varianta="kami" />
+        <Fragment set:html={hlinkaVzhuru()} />
+      </div>
+    </div>
+    <Fragment set:html={predni()} />
+    <p class="mh1-hlaseni" aria-live="polite"></p>
+  </div>
+  <Fragment set:html={ovladani()} />
+</div>

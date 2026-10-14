@@ -2,11 +2,19 @@
  * ——— Domek 2 ———
  *
  * Staví na parta2.css (barvy, písmo, papír, obloha, hlavička, kami),
- * dilna-rez.css (roční období, dílna v řezu, kruhy, hrouda) a uvod2.css
- * (karty prohlídky, rok dílny, noční průvod). Tady je jen to, co je
+ * dilna-rez.css (roční období, dílna v řezu, kruhy, hrouda), dilna-suteren.css
+ * (pec, kávovar a voda ve skutečné dílně) a uvod2.css (karty prohlídky,
+ * noční průvod). Tady je jen to, co je
  * Domku vlastní: ulice s bránou a rozhlasem, rám z oken dílny, fotky
  * u zastávek, kresba přes fotku s táhlem, krajina s domem a klíče.
  */
+
+/* ——— Svítání: krajina z Party 2 (.uvod v parta2.css), text z Úvodu 2 ——— */
+
+.dm-uvod-akce { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; text-shadow: none; }
+/* Na obloze nad krajinou je obrysové tlačítko světlé */
+.dm-uvod .tlacitko-obrys { border-color: rgba(255, 251, 242, 0.85); color: #FFFBF2 !important; }
+.dm-uvod .tlacitko-obrys:hover { background: #FFFBF2; color: var(--inkoust) !important; }
 
 /* ——— Ulice ——— */
 
@@ -236,34 +244,6 @@
 .stanice.aktivni .dm-polaroid img { filter: none; }
 .dm-polaroid figcaption { padding: 8px 4px 11px; text-align: center; font-family: var(--f-ruka); font-size: 21px; line-height: 1.1; color: var(--inkoust-2); }
 
-/* Dílna v suterénu (components/domek2/kresba/dilna.ts) */
-.dm-rez .rez-misto:hover,
-.dm-rez .rez-misto:focus-visible { background: rgba(255, 246, 220, 0.1); }
-.dl-pec-viko-otevrene,
-.dl-pec-uvnitr { opacity: 0; transition: opacity 0.4s 0.15s; }
-.dl-pec-viko { transition: opacity 0.3s; }
-.rez[data-pec="otevrena"] .dl-pec-viko { opacity: 0; }
-.rez[data-pec="otevrena"] .dl-pec-viko-otevrene,
-.rez[data-pec="otevrena"] .dl-pec-uvnitr { opacity: 1; }
-.dl-pec-zar { opacity: var(--zar, 0); transition: opacity 0.3s; }
-.dl-pec-horko { opacity: calc(var(--zar, 0) * 0.95); }
-.dl-pec-horko path { animation: pec-horko 1.6s ease-in-out infinite; }
-.dl-pec-horko path:nth-child(2) { animation-delay: -0.5s; }
-.dl-pec-horko path:nth-child(3) { animation-delay: -1s; }
-.dl-pec.tres { animation: pec-tres 0.5s ease-in-out; transform-box: fill-box; transform-origin: 50% 100%; }
-.dl-para { opacity: 0; }
-.dl-kavovar.vari .dl-para { opacity: 1; }
-.dl-kavovar.vari .dl-para path { animation: kafe-para 1.4s ease-out infinite; }
-.dl-kavovar.vari .dl-para path:nth-child(2) { animation-delay: 0.3s; }
-.dl-kavovar.vari .dl-para path:nth-child(3) { animation-delay: 0.6s; }
-.dl-voda { transition: opacity 0.15s; }
-.rez.voda-tece .dl-voda { opacity: 1; }
-.rez.voda-tece .dl-voda path { animation: voda-tece 0.35s linear infinite; }
-@keyframes voda-tece { to { stroke-dashoffset: -6; } }
-.dl-lampa-kuzel { transition: opacity 0.25s; }
-.dl-lampa.sviti .dl-lampa-kuzel { opacity: 0.42; }
-.dl-lampa.sviti .dl-lampa-svetlo { fill: #FFF3C8; }
-.dl-slunce { mix-blend-mode: soft-light; }
 .rez-klic { position: absolute; z-index: 5; pointer-events: auto; }
 
 /* ——— Klíče ——— */
@@ -518,10 +498,6 @@
   .kudy-parta { left: 2vw; right: 2vw; bottom: 1.5%; display: grid; grid-template-columns: repeat(5, 1fr); justify-items: center; align-items: end; }
 }
 
-/* ——— Rok dílny v suterénu ——— */
-
-.dm-rok .rok-ram { background: linear-gradient(#CBD6E4, #E4E1D8 60%); }
-
 /* ——— Večer ——— */
 
 .dm-vecer-scena { overflow: clip; }
@@ -536,6 +512,24 @@
 .dm-vecer-kresba { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 /* Parta jde po chodníku: ten je v kresbě 11 až 17 % nad spodkem */
 .dm-vecer .pruvod { z-index: 4; bottom: 10.5%; }
+/*
+ * Průvod s lampiony z /marcel: kresby jsou čtvercové a chodí na místě, dopředu
+ * je nese CSS. Mezera je aspoň 1,2 šířky, takže na úzkém displeji jdou řidčeji
+ * (část cesty je mimo obrazovku) a na širokém celá šňůra vyplní chodník.
+ * Ve čtverci je pod nohama asi osmina vzduchu — kresba se o ni stáhne pod
+ * spodek člena, aby šlapali po chodníku jako dřív parta.
+ */
+.dm-pruvod { height: clamp(110px, 13vw, 200px); }
+.dm-pruvod-clen {
+  width: clamp(110px, 13vw, 200px);
+  animation: dm-pruvod 70s linear infinite;
+  animation-delay: calc(var(--i) * -70s / var(--clenu, 7));
+}
+@keyframes dm-pruvod {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(calc(max(100vw + 100%, var(--clenu, 7) * 120%) - 100%)); }
+}
+.dm-pruvod-kresba { width: 100%; margin-bottom: -12%; }
 .dm-vecer .noc-karta { margin-top: 0; }
 .dm-klice-stav { font-size: 15px; color: var(--inkoust-2); }
 @media (max-width: 860px) {
@@ -549,14 +543,12 @@
   .ulice-scena { position: relative; }
   .ulice-dolu svg,
   .u-rozhlas-vlny.hraje path,
-  .dl-pec-horko path,
-  .dl-kavovar.vari .dl-para path,
-  .rez.voda-tece .dl-voda path,
   .z-sakura.trese,
   .kudy-tady,
   .dm-hacek.je .dm-hacek-klic,
   .dm-klic.nalezen-ted,
   .rozhlas-bublina { animation: none !important; }
+  .dm-pruvod-clen { left: calc(1vw + var(--i) * 14vw); animation: none; }
   .u-brana-kridla,
   .dm-klic,
   .dm-polaroid img { transition: none; }

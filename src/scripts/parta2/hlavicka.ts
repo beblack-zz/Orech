@@ -1,18 +1,25 @@
 /**
  * Hlavička nového vzhledu: mobilní menu, zvonkohra, kterou se zvuk ztlumí,
- * přepínač den / noc (bublina v noční modré) a tah štětce po okraji
- * bubliny (tah.ts). Sdílí ji všechny stránky nového
- * vzhledu.
+ * přepínač den / noc (bublina v noční modré), tah štětce po okraji
+ * bubliny (tah.ts) a závěs s nalezenými kami pod pruhem (zaves.ts), který
+ * otevírá omamori (omamori.ts). Sdílí
+ * ji všechny stránky nového vzhledu, a proto spouští i tušový flek, který
+ * je s patičkou na každé stránce (scripts/flek/flek.ts).
  *
  * Při přechodu mezi stránkami (prechody.ts) se tlačítko se zvonkohrou
  * přenáší do nové stránky (transition:persist), takže zvonkohra a zvuk se
- * nastaví jen poprvé a běží dál. Menu a tah jsou na každé stránce nové.
+ * nastaví jen poprvé a běží dál; stejně tak závěs. Menu a tah jsou na každé
+ * stránce nové a závěs se na každé znovu naplní podle toho, co je nalezeno.
  */
 import * as zvuk from "./zvuk";
 import { initZvonkohra } from "./zvonkohra";
 import { initTah } from "./tah";
+import { initZaves, ukazZaves, KLIC_NALEZENI } from "./zaves";
+import { initOmamori } from "./omamori";
 import { nacti, uloz } from "./stav";
 import { trvale } from "./prechody";
+import { ukazMistra } from "./mistr";
+import { initFlek } from "../flek/flek";
 
 const KLIC_ZTLUMENO = "zvuk-ztlumeno";
 /** Den, nebo noc v hlavičce — čte ho i skript hned za hlavičkou (Hlavicka.astro), ať noc neproblikne */
@@ -26,6 +33,7 @@ let zk: ReturnType<typeof initZvonkohra> | null = null;
 /* Nová hlavička po přechodu dostane noc dřív, než se poprvé vykreslí */
 document.addEventListener("astro:after-swap", () => {
   if (nacti(KLIC_TEMA, "den") === "noc") document.querySelector(".hlava")?.classList.add("je-noc");
+  ukazMistra();
 });
 
 export function hlavicka() {
@@ -34,8 +42,14 @@ export function hlavicka() {
   if (!zvukHotovy) {
     zvukHotovy = true;
     trvale(zvonkohraAZvuk);
+    /* Závěs s kami se přenáší mezi stránkami stejně jako zvonkohra a fouká do něj její vítr */
+    trvale(() => initZaves(() => zk?.vitrX() ?? 0));
   }
+  ukazZaves(nacti<string[]>(KLIC_NALEZENI, []));
+  initOmamori();
+  ukazMistra();
   initTah({ zavadi: (sila) => zk?.cukni(sila) });
+  initFlek();
 }
 
 function initMenu() {

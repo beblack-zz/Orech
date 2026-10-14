@@ -1,0 +1,140 @@
+---
+/**
+ * Deska sugoroku — mapa úrovní komnaty U mistra. Kresba je v ./kresba/deska.ts,
+ * nad ní leží tlačítka políček, figurka a parta (scripts/zkouska/deska.ts).
+ *
+ * Políčko je zamčené, na řadě, nebo prošlé — prošlé má razítko a známku
+ * a vedle něj se objeví kami toho zastavení, jako by se přidal na cestu.
+ * Figurka je kámen ze šógi se stupněm (見習 → 職人 → 名人); při povýšení
+ * se otočí jako povýšený kámen. Na vrcholu je síň mistra, do té se jde
+ * dolů na stránce (Sin.astro), až je všech devět razítek.
+ *
+ * Ve střeše síně se schovává Cedulka — černá silueta vykukuje přes
+ * hřeben proti slunci. Patří do hry na hledání: kliknutí ji najde
+ * (schovej ze scripts/parta2/sber.ts), stejně jako Hlínku v patičce.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import CedulkaSchovka from "../characters/schovka/Cedulka.astro";
+import { urovne, stupne } from "../../data/mistr";
+import { deskaSvg, POLICKA, SIN, DESKA_W, DESKA_H } from "./kresba/deska";
+
+const procX = (x: number) => ((x / DESKA_W) * 100).toFixed(3);
+const procY = (y: number) => ((y / DESKA_H) * 100).toFixed(3);
+/** Kam si kami sedne vedle svého políčka — tam, kde nepřekáží cestě */
+const vedle: Record<string, [number, number]> = {
+  hrouda: [-96, -86], hneteni: [92, -92], voda: [96, -70],
+  tvar: [-100, -90], rovina: [-96, -96], jmeno: [100, -88],
+  police: [-92, 86], ohen: [-104, -78], strep: [-100, -92],
+};
+---
+<section class="msd" id="deska" data-hodina="10.5" aria-labelledby="msd-nadpis">
+  <div class="msd-mriz">
+    <div class="msd-hlava papir">
+      <p class="stitek"><span lang="ja">修業双六</span> · deska</p>
+      <h2 id="msd-nadpis" class="nadpis-2">Cesta k mistrovi</h2>
+      <p class="msd-perex">
+        Devět zastavení cesty hlíny, od hroudy až po zlato. Každé hlídá kami
+        a za každé je razítko do sešitu. Kdo projde všech devět, vystoupá do
+        síně mistra pro mistrovský list.
+      </p>
+
+      <div class="msd-stav" aria-live="polite">
+        <span class="msd-stav-koma" aria-hidden="true">
+          <svg viewBox="0 0 60 66"><use href="#msd-koma-tvar" /></svg>
+          <b class="msd-stav-znak" lang="ja">{stupne[0].znak}</b>
+        </span>
+        <p>
+          <span class="msd-stav-stitek">Tvůj stupeň</span>
+          <b class="msd-stav-nazev">{stupne[0].nazev}</b>
+          <span class="msd-stav-pocet">Razítek <b>0</b> z {urovne.length}</span>
+        </p>
+      </div>
+      <ol class="msd-cesta" aria-hidden="true">
+        {urovne.map((u) => <li data-teplo={u.id} lang="ja">{u.znak}</li>)}
+      </ol>
+
+      <div class="msd-akce">
+        <button type="button" class="tlacitko msd-hrat">Začít: 一 Hrouda</button>
+        <button type="button" class="tlacitko tlacitko-obrys msd-sesit">Sešit razítek</button>
+      </div>
+      <p class="msd-pokyn">Na desce se hraje klepnutím na políčko. Prošlé jdou hrát znovu — na lepší známku.</p>
+    </div>
+
+    <div class="msd-deska">
+      <Fragment set:html={deskaSvg()} />
+
+      {/* Kami, kteří se přidali na cestu */}
+      {urovne.map((u) => {
+        const [x, y] = POLICKA[u.id];
+        const [dx, dy] = vedle[u.id] ?? [90, -80];
+        return (
+          <span class="msd-kami" data-kami-pole={u.id} style={`left:${procX(x + dx)}%;top:${procY(y + dy)}%`} aria-hidden="true">
+            <Postavicka id={u.kdo} size={84} varianta="kami" />
+          </span>
+        );
+      })}
+
+      {urovne.map((u, i) => {
+        const [x, y] = POLICKA[u.id];
+        return (
+          <button
+            type="button"
+            class={`msd-pole inkoust-${Math.floor(i / 3)}`}
+            data-pole={u.id}
+            style={`left:${procX(x)}%;top:${procY(y)}%`}
+            aria-describedby={`msd-popis-${u.id}`}
+          >
+            <span class="msd-pole-kruh">
+              <span class="msd-pole-cislo" lang="ja" aria-hidden="true">{u.cislo}</span>
+              <span class="msd-pole-znak" lang="ja" aria-hidden="true">{u.znak}</span>
+              <span class="msd-pole-razitko" aria-hidden="true">
+                <svg viewBox="0 0 100 100"><g filter="url(#mrz-inkoust)"><use href={`#mrz-${u.id}`} /></g></svg>
+              </span>
+              <span class="msd-pole-znamka" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#mrz-znamka-ka" /></svg></span>
+              <span class="msd-pole-provaz" aria-hidden="true"></span>
+            </span>
+            <span class="msd-pole-nazev">{u.stanice}</span>
+            <span class="msd-pole-popis" id={`msd-popis-${u.id}`}>
+              <b>{u.cislo} {u.nazev}</b>
+              <span class="msd-pole-ukol">{u.ukol}</span>
+              <span class="msd-pole-stav"></span>
+            </span>
+          </button>
+        );
+      })}
+
+      <a class="msd-sin" href="#sin" style={`left:${procX(SIN[0])}%;top:${procY(SIN[1] + 6)}%`} aria-label="Síň mistra — otevře se po devíti razítkách">
+        <span class="msd-sin-zamek" aria-hidden="true">上がり</span>
+      </a>
+
+      {/* Cedulka schovaná na spodní hraně střechy síně (okap na y 234), vpravo nad cedulí 名人 — černá na tmavé střeše */}
+      <button type="button" class="skryty msd-cedulka" data-skryty="cedulka" aria-label="Někdo se tu schovává" style={`left:${procX(628)}%;top:${procY(205)}%;width:${procX(44)}%`}>
+        <CedulkaSchovka barva="cerna" poza="vykukuje" size={44} />
+      </button>
+
+      {/* Figurka: kámen ze šógi. Rub je povýšený — otočí se při povýšení na tovaryše a na mistra */}
+      <span class="msd-koma" aria-hidden="true">
+        <span class="msd-koma-obal">
+          <svg class="msd-koma-lic" viewBox="0 0 60 66"><use href="#msd-koma-tvar" /><text x="30" y="34" text-anchor="middle" font-size="15" fill="#2B2420" class="msd-koma-text">{stupne[0].znak[0]}</text><text x="30" y="52" text-anchor="middle" font-size="15" fill="#2B2420" class="msd-koma-text">{stupne[0].znak[1]}</text></svg>
+          <svg class="msd-koma-rub" viewBox="0 0 60 66"><use href="#msd-koma-tvar" /><text x="30" y="34" text-anchor="middle" font-size="15" fill="#C4432B" class="msd-koma-text">{stupne[1].znak[0]}</text><text x="30" y="52" text-anchor="middle" font-size="15" fill="#C4432B" class="msd-koma-text">{stupne[1].znak[1]}</text></svg>
+        </span>
+      </span>
+    </div>
+  </div>
+
+  {/* Tvar kamene ze šógi: pětiúhelník ze dřeva se zkosenou špičkou */}
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="msd-koma-drevo" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#F6DFAE" />
+        <stop offset="0.55" stop-color="#E6C68A" />
+        <stop offset="1" stop-color="#C9A066" />
+      </linearGradient>
+      <g id="msd-koma-tvar">
+        <path d="M30 2 L52 12 L58 64 H2 L8 12 Z" fill="#8A6A48" transform="translate(1.5 2)" opacity="0.35" />
+        <path d="M30 2 L52 12 L58 64 H2 L8 12 Z" fill="url(#msd-koma-drevo)" stroke="#8A6A48" stroke-width="1.6" stroke-linejoin="round" />
+        <path d="M30 6.5 L48.6 15 L53.6 60 H6.4 L11.4 15 Z" fill="none" stroke="#FFF4DA" stroke-width="1" opacity="0.7" />
+      </g>
+    </defs>
+  </svg>
+</section>

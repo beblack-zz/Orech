@@ -1,0 +1,248 @@
+/*
+ * Úroveň 八 Oheň — Pálicí křivka (components/zkouska/urovne/Ohen.astro).
+ *
+ * Kresba je SVG, barvy podle teploty a denní doby přepisuje skript
+ * (scripts/zkouska/urovne/ohen.ts) přímo v atributech. Tady je jen to,
+ * co je HTML nebo pohyb: dvířka ve 3D, Pecinka se září, tlačítka pod
+ * oknem, pára, praskliny a jiskřičky.
+ */
+
+.mu-ohen { --mu-pomer: 10 / 7; --vykon: 0; }
+
+.mu-ohen .mu-ohen-okno { isolation: isolate; }
+/* Písmo v kresbě: atributy jsou záloha, na stránce platí proměnné písma */
+.mu-ohen .mu-ohen-ruka { font-family: var(--f-ruka); }
+.mu-ohen .mu-ohen-cisla { font-family: var(--f-display); }
+.mu-ohen .mu-ohen-kanji { font-family: var(--f-kanji); }
+.mu-ohen .mu-ohen-nad {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* ——— Dvířka: otvírají se kolem pantů vlevo, ven k divákovi ——— */
+
+.mu-ohen .mu-ohen-dvirka {
+  position: absolute;
+  perspective: 1200px;
+  perspective-origin: 0% 50%;
+  pointer-events: none;
+}
+.mu-ohen .mu-ohen-dvirka-list {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0% 50%;
+  transform-style: preserve-3d;
+  transition: transform 1.2s cubic-bezier(0.32, 0.72, 0.22, 1);
+}
+.mu-ohen .mu-ohen-dvirka.otevreno .mu-ohen-dvirka-list { transform: rotateY(-104deg); }
+.mu-ohen .mu-ohen-dvirka.bez-prechodu .mu-ohen-dvirka-list { transition: none; }
+.mu-ohen .mu-ohen-dvirka-lic,
+.mu-ohen .mu-ohen-dvirka-rub {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.mu-ohen .mu-ohen-dvirka-rub { transform: rotateY(180deg); }
+
+/* ——— Pecinka: v žáru svítí a oheň v jejích dvířkách roste ——— */
+
+.mu-ohen .mu-ohen-pecinka { position: absolute; --zar: 0; pointer-events: none; }
+.mu-ohen .mu-ohen-pecinka svg { position: relative; width: 100%; height: auto; display: block; }
+.mu-ohen .mu-ohen-pecinka::before {
+  content: "";
+  position: absolute;
+  inset: 14% -16% 6%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 186, 92, 0.9), rgba(255, 128, 48, 0.4) 55%, rgba(255, 128, 48, 0));
+  opacity: var(--zar);
+}
+.mu-ohen .mu-ohen-pecinka g.plamen {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: scale(calc(1 + var(--zar) * 0.25), calc(1 + var(--zar) * 1.2));
+}
+.mu-ohen .mu-ohen-pecinka.otres { animation: mu-ohen-pecinka-otres 0.65s ease-out; }
+.mu-ohen .mu-ohen-pecinka.spi svg { filter: saturate(0.8) brightness(0.92); }
+@keyframes mu-ohen-pecinka-otres {
+  0% { transform: translate(0, 0) rotate(0); }
+  15% { transform: translate(-3px, -6px) rotate(-5deg); }
+  35% { transform: translate(3px, 0) rotate(4deg); }
+  55% { transform: translate(-2px, -2px) rotate(-2deg); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+
+/* Otřes celé dílny — pára bouchla, dvířka se otevřela nahorko */
+.mu-ohen.mu-ohen-otres .mu-ohen-okno { animation: mu-ohen-otres 0.5s ease-out; }
+@keyframes mu-ohen-otres {
+  0%, 100% { translate: 0 0; }
+  20% { translate: -5px 2px; }
+  40% { translate: 4px -2px; }
+  60% { translate: -3px 1px; }
+  80% { translate: 2px 0; }
+}
+
+/* ——— Pohyb v kresbě ——— */
+
+.mu-ohen .mu-ohen-horko path { animation: mu-ohen-horko 1.7s ease-in-out infinite; }
+.mu-ohen .mu-ohen-horko path:nth-child(2) { animation-delay: -0.55s; }
+.mu-ohen .mu-ohen-horko path:nth-child(3) { animation-delay: -1.1s; }
+@keyframes mu-ohen-horko {
+  0% { opacity: 0; transform: translateY(6px); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.mu-ohen .mu-ohen-shide {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: mu-ohen-shide 3.4s ease-in-out infinite;
+  animation-delay: var(--z, 0s);
+}
+@keyframes mu-ohen-shide {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.mu-ohen .mu-ohen-lupa { transition: opacity 0.5s; }
+.mu-ohen .mu-ohen-voditka { transition: opacity 0.4s; }
+.mu-ohen .mu-ohen-voditka.pryc { opacity: 0; }
+
+.mu-ohen .mu-ohen-obl {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mu-ohen-obl 1.9s ease-out both;
+  animation-delay: calc(var(--i, 0) * 0.07s);
+}
+@keyframes mu-ohen-obl {
+  0% { opacity: 0; transform: translateY(6px) scale(0.3); }
+  15% { opacity: 0.85; }
+  100% { opacity: 0; transform: translateY(-46px) scale(1.7); }
+}
+.mu-ohen .mu-ohen-praskla { animation: mu-ohen-praskla 1.5s ease-out both; }
+@keyframes mu-ohen-praskla {
+  0%, 30% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.mu-ohen .mu-ohen-jiskra {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: mu-ohen-jiskra 1.9s ease-in-out infinite;
+  animation-delay: calc(0.9s + var(--i, 0) * 0.4s);
+}
+@keyframes mu-ohen-jiskra {
+  0%, 100% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  45% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+.mu-ohen .mu-ohen-znacka { animation: mu-ohen-znacka 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both; transform-box: fill-box; transform-origin: center; }
+@keyframes mu-ohen-znacka { from { transform: scale(0); } }
+
+/* ——— Ovládání ——— */
+
+.mu-ohen .mu-ohen-ovladani { gap: 6px 14px; }
+.mu-ohen .mu-ohen-topit,
+.mu-ohen .mu-ohen-otevrit {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: min(300px, 100%);
+  min-height: 62px;
+  padding: 10px 30px;
+  border: 2px solid var(--inkoust);
+  border-radius: 999px;
+  background: var(--inkoust);
+  color: var(--papir);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s, box-shadow 0.25s, background 0.3s;
+}
+.mu-ohen .mu-ohen-topit:focus-visible,
+.mu-ohen .mu-ohen-otevrit:focus-visible { outline: 3px solid var(--rumelka); outline-offset: 3px; border-radius: 999px; }
+/* Jak moc se topí: tlačítko se plní žárem zleva */
+.mu-ohen .mu-ohen-topit-mira {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, #7A2412, #D2481E 55%, #F6B85A);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--vykon));
+}
+.mu-ohen .mu-ohen-topit.drzi {
+  transform: scale(0.97);
+  box-shadow: 0 0 0 5px rgba(240, 110, 40, 0.22), 0 12px 32px -8px rgba(240, 110, 40, 0.75);
+}
+.mu-ohen .mu-ohen-topit-plamen { width: 22px; height: 28px; color: #F29A3B; flex: none; }
+.mu-ohen .mu-ohen-topit.drzi .mu-ohen-topit-plamen { animation: mu-ohen-plamen 0.5s ease-in-out infinite alternate; }
+@keyframes mu-ohen-plamen { to { transform: scale(1.12, 1.2); } }
+.mu-ohen .mu-ohen-topit-pod { font-family: var(--f-ruka); font-weight: 400; font-size: 21px; opacity: 0.72; }
+
+.mu-ohen .mu-ohen-otevrit { background: var(--papir); color: var(--inkoust); }
+.mu-ohen .mu-ohen-otevrit:hover { background: var(--papir-2); }
+.mu-ohen .mu-ohen-otevrit.ted {
+  border-color: #8A6424;
+  background: linear-gradient(180deg, #F8E29A, #D6A23A);
+  animation: mu-ohen-ted 1.5s ease-in-out infinite;
+}
+@keyframes mu-ohen-ted {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 162, 58, 0.55); }
+  50% { box-shadow: 0 0 0 10px rgba(214, 162, 58, 0); }
+}
+.mu-ohen .mu-ohen-otevrit-ted { display: none; font-family: var(--f-ruka); font-weight: 600; font-size: 26px; color: var(--rumelka); }
+.mu-ohen .mu-ohen-otevrit.ted .mu-ohen-otevrit-ted { display: inline; }
+.mu-ohen .mu-ohen-otevrit:disabled { cursor: default; opacity: 0.65; animation: none; }
+
+.mu-ohen .mu-ohen-napoveda {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--inkoust-3);
+}
+
+@media (max-width: 560px) {
+  .mu-ohen .mu-ohen-topit,
+  .mu-ohen .mu-ohen-otevrit { min-height: 58px; font-size: 19px; }
+  .mu-ohen .mu-ohen-napoveda { font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mu-ohen .mu-ohen-horko path,
+  .mu-ohen .mu-ohen-shide,
+  .mu-ohen .mu-ohen-obl,
+  .mu-ohen .mu-ohen-jiskra,
+  .mu-ohen .mu-ohen-znacka,
+  .mu-ohen .mu-ohen-topit.drzi .mu-ohen-topit-plamen,
+  .mu-ohen .mu-ohen-otevrit.ted,
+  .mu-ohen .mu-ohen-pecinka.otres,
+  .mu-ohen.mu-ohen-otres .mu-ohen-okno { animation: none; }
+  .mu-ohen .mu-ohen-horko path { opacity: 0.6; }
+  .mu-ohen .mu-ohen-obl { opacity: 0.5; }
+  .mu-ohen .mu-ohen-jiskra { opacity: 0.85; }
+  .mu-ohen .mu-ohen-dvirka-list,
+  .mu-ohen .mu-ohen-lupa,
+  .mu-ohen .mu-ohen-voditka,
+  .mu-ohen .mu-ohen-topit,
+  .mu-ohen .mu-ohen-otevrit { transition: none; }
+}

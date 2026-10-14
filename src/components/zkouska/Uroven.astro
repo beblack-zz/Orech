@@ -1,0 +1,102 @@
+---
+/**
+ * Okno úrovně — dialog přes celou stránku, ve kterém se hraje. Nahoře
+ * záhlaví (kami zastavení, číslo, znak, název, ukazatel hry), pod ním
+ * jeviště se všemi devíti scénami (vidět je jen ta otevřená), úvodní
+ * karta se zadáním a výsledková karta se známkou a razítkem.
+ *
+ * Obsluha je ve scripts/zkouska/uroven.ts, hry samotné ve scripts/zkouska/
+ * urovne — každá dostane svou scénu a prostředí podle scripts/zkouska/hra.ts.
+ *
+ * V záhlaví úrovně 三 Voda se schovává Bublinka — bílá mýdlová bublina
+ * vykukuje zespodu uprostřed pruhu. Patří do hry na hledání kami.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import BublinkaSchovka from "../characters/schovka/Bublinka.astro";
+import { urovne } from "../../data/mistr";
+import Hrouda from "./urovne/Hrouda.astro";
+import Hneteni from "./urovne/Hneteni.astro";
+import Voda from "./urovne/Voda.astro";
+import Tvar from "./urovne/Tvar.astro";
+import Rovina from "./urovne/Rovina.astro";
+import Jmeno from "./urovne/Jmeno.astro";
+import Police from "./urovne/Police.astro";
+import Ohen from "./urovne/Ohen.astro";
+import Strep from "./urovne/Strep.astro";
+---
+<dialog class="mu-dialog" aria-labelledby="mu-nazev">
+  <div class="mu-ram">
+    <header class="mu-hlava">
+      <button type="button" class="mu-kami" aria-label="Kami zastavení — klikni a něco ti řekne">
+        {urovne.map((u) => (
+          <span class="mu-kami-portret" data-portret={u.id} hidden><Postavicka id={u.kdo} size={64} varianta="kami" /></span>
+        ))}
+      </button>
+      <div class="mu-hlava-text">
+        <p class="mu-hlava-stitek"><span class="mu-cislo" lang="ja"></span><span class="mu-znak" lang="ja"></span><span class="mu-stanice"></span></p>
+        <h2 class="mu-nazev" id="mu-nazev"></h2>
+      </div>
+      <p class="mu-ukazatel"></p>
+      <button type="button" class="skryty mu-bublinka" data-skryty="bublinka" aria-label="Někdo se tu schovává">
+        <BublinkaSchovka barva="pruhledna" poza="vykukuje" size={44} />
+      </button>
+      <button type="button" class="mu-zavrit" aria-label="Zpět na desku">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 L18 18 M18 6 L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+      </button>
+    </header>
+
+    <div class="mu-jeviste">
+      <Hrouda />
+      <Hneteni />
+      <Voda />
+      <Tvar />
+      <Rovina />
+      <Jmeno />
+      <Police />
+      <Ohen />
+      <Strep />
+
+      {/* Úvodní karta: zadání, ovládání, za co je 優 a dosavadní nejlepší */}
+      <div class="mu-uvod">
+        <div class="mu-karta papir">
+          <span class="mu-karta-razitko" aria-hidden="true">
+            <svg viewBox="0 0 100 100"><g filter="url(#mrz-inkoust)"><use class="mu-karta-razitko-use" href="#mrz-hrouda" /></g></svg>
+          </span>
+          <p class="stitek"><span class="mu-uvod-stupen"></span></p>
+          <h3 class="mu-karta-nazev mu-uvod-nazev"></h3>
+          <p class="mu-uvod-zadani"></p>
+          <dl class="mu-uvod-info">
+            <div><dt>Jak</dt><dd class="mu-uvod-ovladani"></dd></div>
+            <div><dt lang="ja">優</dt><dd class="mu-uvod-vyborne"></dd></div>
+            <div class="mu-uvod-nejlepsi" hidden><dt>Zatím</dt><dd></dd></div>
+          </dl>
+          <button type="button" class="tlacitko mu-zacit">Začít</button>
+        </div>
+      </div>
+
+      {/* Výsledková karta: známka, razítko, čísla a co na to kami */}
+      <div class="mu-vysledek" hidden>
+        <div class="mu-karta papir">
+          <div class="mu-vysledek-hlava" aria-hidden="true">
+            <span class="mu-vysledek-razitko">
+              <svg viewBox="0 0 100 100"><g filter="url(#mrz-inkoust)"><use class="mu-vysledek-razitko-use" href="#mrz-hrouda" /></g></svg>
+            </span>
+            <span class="mu-vysledek-znamka"><svg viewBox="0 0 40 40"><use class="mu-vysledek-znamka-use" href="#mrz-znamka-ka" /></svg></span>
+            <span class="mu-vysledek-znovu-znak" lang="ja">再</span>
+          </div>
+          <p class="mu-vysledek-titul"></p>
+          <p class="mu-vysledek-novinka" hidden></p>
+          <dl class="mu-vysledek-udaje"></dl>
+          <blockquote class="mu-vysledek-veta"><p></p><cite></cite></blockquote>
+          <div class="mu-vysledek-akce">
+            <button type="button" class="tlacitko tlacitko-obrys mu-znovu">Znovu</button>
+            <button type="button" class="tlacitko tlacitko-obrys mu-na-desku">Na desku</button>
+            <button type="button" class="tlacitko mu-dalsi">Další</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="mu-zprava" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+</dialog>

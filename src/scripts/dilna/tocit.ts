@@ -10,6 +10,9 @@
  * Co by na skutečném kruhu spadlo, spadne i tady: moc široké nahoře na
  * vysoké nádobě, převis, vysoké a tenké. Předlohy jsou pro ty, kdo
  * kreslit nechtějí, a jdou i z klávesnice.
+ *
+ * Pravidla padání a převod čáry na obrys (spadne, zBodu) si půjčuje
+ * i úroveň Tvar v komnatě U mistra (scripts/zkouska/urovne/tvar.ts).
  */
 import { omez, mix, hladce, klid, kdyzVidet } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
@@ -61,14 +64,14 @@ const RADY: Record<Druh, string> = {
   kachel: "",
 };
 
-const PADA: Record<string, string> = {
+export const PADA: Record<string, string> = {
   siroke: "Takhle široké nahoře to neudrží — stěny se rozjedou. Spadlo to. To k tomu patří.",
   previs: "Převis! Hlína nahoru nepadá. Spadlo to — příště se do šířky jde pomaleji.",
   tenke: "Moc vysoké a tenké. Rozkmitalo se to a spadlo.",
 };
 
 /** Spadlo by to? */
-function spadne(r: number[], v: number): string | null {
+export function spadne(r: number[], v: number): string | null {
   const n = r.length;
   const dh = v / (n - 1);
   const rmax = Math.max(...r);
@@ -81,7 +84,7 @@ function spadne(r: number[], v: number): string | null {
 }
 
 /** Z bodů čáry obrys: poloměr v každém z N pásů výšky */
-function zBodu(body: { r: number; h: number }[]) {
+export function zBodu(body: { r: number; h: number }[]) {
   const v = omez(Math.max(...body.map((b) => b.h)), 20, H_MAX);
   const pasy: number[][] = Array.from({ length: N }, () => []);
   for (const b of body) pasy[Math.round(omez(b.h / v) * (N - 1))].push(b.r);
@@ -104,7 +107,7 @@ function zBodu(body: { r: number; h: number }[]) {
 
 const f1 = (n: number) => n.toFixed(1);
 
-function hladkaCesta(body: [number, number][]) {
+export function hladkaCesta(body: [number, number][]) {
   let d = "";
   for (let i = 0; i < body.length - 1; i++) {
     const p0 = body[i - 1] ?? body[i];

@@ -5,48 +5,110 @@ import { uid } from "../dospele/uid";
 interface Props { class?: string; size?: number; }
 const { class: cls = "", size = 64 } = Astro.props;
 const u = uid();
+
+const telo = "M90 38 Q60 85 56 108 Q52 132 72 146 Q82 152 90 152 Q98 152 108 146 Q128 132 124 108 Q120 85 90 38 Z";
+/** Oko jako korálek magatama, kolem počátku; levé je zrcadlově. */
+const MAGATAMA = "M0 -4.2 C3.2 -4.2 4.8 -1.6 4.4 1.4 C4 4.6 0.8 6.8 -1.8 7.8 C-0.4 5.8 -0.8 4.6 -2.3 3.7 C-4.6 2.5 -4.8 -0.8 -3.1 -2.7 C-2.3 -3.7 -1.2 -4.2 0 -4.2 Z";
+/**
+ * Ruka s paličkou bači: oblázek u boku a z něj palička nahoru do strany.
+ * Rameno a úhel jsou z podoby Kami (scripts/kapka-hrom), tady v klidu.
+ */
+const ruce = ([[57.5, 106, -142], [122.5, 106, -38]] as const).map(([x, y, uhel]) => {
+  const a = (uhel * Math.PI) / 180;
+  const na = (d: number) => `${Math.round((x + Math.cos(a) * d) * 10) / 10} ${Math.round((y + Math.sin(a) * d) * 10) / 10}`;
+  return { dlan: na(5.5), od: na(5), omotavka: [na(11.4), na(15)], spicka: na(31), uhel };
+});
 ---
 {/*
-  KAMI VODY. Skok i squash & stretch zůstávají. Místo stínu teď při
-  dopadu rozbíhá kruhy po hladině — vlnky jedou ve stejném 2,8s cyklu
-  jako skok a rozjedou se přesně v okamžiku dopadu (52 %).
-  Oči jsou otevřené s odleskem: Kapka je ta zvědavá.
+  KAMI VODY A HROMU, jako na podobě Kami: kapka vody s druhým tiskem
+  v barvách soumraku, na geta a se dvěma paličkami — bubny má schované
+  v mracích. Skok i squash & stretch zůstávají, při dopadu rozbíhá kruhy
+  po hladině ve stejném 2,8s cyklu (52 %).
+  Oči jsou otevřené, magatama s odleskem: Kapka je ta zvědavá.
 */}
 <svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
   <defs>
-    <Kresba id={u} />
-    <radialGradient id={`${u}-telo`} cx="0.36" cy="0.42" r="0.75">
-      <stop offset="0" stop-color="#EBBDB7" />
-      <stop offset="0.5" stop-color="#D79A94" />
-      <stop offset="1" stop-color="#BE7F79" />
-    </radialGradient>
+    <Kresba id={u} zrno={false} />
+    <linearGradient id={`${u}-voda`} gradientUnits="userSpaceOnUse" x1="62" y1="52" x2="120" y2="150">
+      <stop offset="0" stop-color="#9DCBE8" />
+      <stop offset="0.46" stop-color="#7FB4D8" />
+      <stop offset="1" stop-color="#6CA5CE" />
+    </linearGradient>
+    {/* stín z druhého průchodu tisku: z rumělky do noci jako tah ensó ve značce */}
+    <linearGradient id={`${u}-soumrak`} gradientUnits="userSpaceOnUse" x1="60" y1="150" x2="124" y2="36">
+      <stop offset="0" stop-color="#C4432B" />
+      <stop offset="0.28" stop-color="#C0708A" />
+      <stop offset="0.55" stop-color="#7A5E8E" />
+      <stop offset="0.8" stop-color="#4E4A84" />
+      <stop offset="1" stop-color="#2A2C5E" />
+    </linearGradient>
   </defs>
 
-  <ellipse class="kapka-stin" cx="90" cy="160" rx="22" ry="5" fill="#D79A94" opacity="0.15" />
-  <g stroke="#C98C86" fill="none">
+  <ellipse class="kapka-stin" cx="90" cy="160" rx="22" ry="5" fill="#5A91BC" opacity="0.15" />
+  <g stroke="#7FB4D8" fill="none">
     <ellipse class="kami-vlnka" cx="90" cy="160" rx="26" ry="5" stroke-width="1.4" />
     <ellipse class="kami-vlnka kami-vlnka-2" cx="90" cy="160" rx="26" ry="5" stroke-width="1" />
   </g>
 
   <g class="kapka-telo">
-    <g filter={`url(#${u}-tah)`}>
-      <path d="M90 38 Q60 85 56 108 Q52 132 72 146 Q82 152 90 152 Q98 152 108 146 Q128 132 124 108 Q120 85 90 38 Z" fill={`url(#${u}-telo)`} stroke="#B47670" stroke-width="1.5" />
-      <ellipse cx="76" cy="98" rx="7" ry="15" fill="#FBE7E3" opacity="0.5" transform="rotate(-15 76 98)" />
-      <ellipse cx="52" cy="118" rx="7" ry="5" fill="#D79A94" stroke="#B47670" stroke-width="1" />
-      <ellipse cx="128" cy="118" rx="7" ry="5" fill="#D79A94" stroke="#B47670" stroke-width="1" />
-      <ellipse cx="80" cy="154" rx="8" ry="4" fill="#B87C76" />
-      <ellipse cx="100" cy="154" rx="8" ry="4" fill="#B87C76" />
+    {/* Geta: deska a dva zuby */}
+    <g filter={`url(#${u}-tah)`} stroke="#6B5D4F" stroke-linejoin="round">
+      {[71, 91].map((x) => (
+        <g>
+          <path d={`M${x + 2.4} 152.2 H${x + 6} V159.2 H${x + 2.4} Z M${x + 12} 152.2 H${x + 15.6} V159.2 H${x + 12} Z`} fill="#8C6444" stroke-width="0.9" />
+          <rect x={x} y="146" width="18" height="6.4" rx="1.4" fill="#C99A68" stroke-width="1.1" />
+          <path d={`M${x + 1.4} 147.8 H${x + 16.6}`} stroke="#E2BE8C" stroke-width="0.9" stroke-linecap="round" />
+        </g>
+      ))}
     </g>
-    <g class="tvar">
-      <g filter={`url(#${u}-mlha)`} fill="#B86A64" opacity="0.5">
-        <ellipse cx="71" cy="118" rx="6" ry="4" />
-        <ellipse cx="109" cy="118" rx="6" ry="4" />
+
+    {/* Paličky z dlaní nahoru do strany */}
+    <g filter={`url(#${u}-tah)`}>
+      {ruce.map((r) => (
+        <g>
+          <path d={`M${r.od} L${r.spicka}`} stroke="#6B5D4F" stroke-width="3.6" stroke-linecap="round" />
+          <path d={`M${r.od} L${r.spicka}`} stroke="#E2BE8C" stroke-width="2.3" stroke-linecap="round" />
+          <path d={`M${r.omotavka[0]} L${r.omotavka[1]}`} stroke="#C4432B" stroke-width="3" />
+        </g>
+      ))}
+    </g>
+
+    {/* Tělo je o výšku geta výš než na původní kresbě */}
+    <g transform="translate(0 -12)">
+      <g filter={`url(#${u}-tah)`}>
+        <path d={telo} fill={`url(#${u}-soumrak)`} transform="translate(5 -4)" />
+        <path d={telo} fill={`url(#${u}-voda)`} />
+        <ellipse cx="76" cy="100" rx="8" ry="14" fill="#E4F3FB" opacity="0.55" transform="rotate(-15 76 100)" />
+        <path d="M119 113 Q120.4 129 105 142" stroke="#C4E4F5" stroke-width="2.4" stroke-linecap="round" opacity="0.36" />
+        {/* Chodidla s červeným páskem hanao */}
+        {[80, 100].map((x) => (
+          <g>
+            <ellipse cx={x} cy="154" rx="8" ry="4" fill="#5A91BC" />
+            <path d={`M${x - 6.4} 158 Q${x} 150.6 ${x + 6.4} 158`} stroke="#C4432B" stroke-width="1.9" stroke-linecap="round" />
+          </g>
+        ))}
       </g>
-      <ellipse cx="79" cy="107" rx="3.4" ry="4.4" fill="#5E3430" />
-      <ellipse cx="101" cy="107" rx="3.4" ry="4.4" fill="#5E3430" />
-      <circle cx="78" cy="105.2" r="1.3" fill="#FFF8F2" />
-      <circle cx="100" cy="105.2" r="1.3" fill="#FFF8F2" />
-      <path d="M85 120 Q90 124 95 120" stroke="#8C5751" stroke-width="2" stroke-linecap="round" fill="none" />
+      <g class="tvar">
+        <g filter={`url(#${u}-mlha)`} fill="#E89AA4" opacity="0.6">
+          <ellipse cx="72" cy="116" rx="6" ry="4" />
+          <ellipse cx="108" cy="116" rx="6" ry="4" />
+        </g>
+        {[79.4, 100.6].map((x, i) => (
+          <g transform={`translate(${x} 106.4) scale(${i ? 0.95 : -0.95} 0.95)`}>
+            <path d={MAGATAMA} fill="#2C557A" />
+            <circle cx="-0.8" cy="-1.4" r="1.2" fill="#F2FAFF" />
+          </g>
+        ))}
+        <path d="M83 120 Q86.5 124.6 90 121.6 Q93.5 124.6 97 120" stroke="#2C557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+    </g>
+
+    {/* Dlaně až nakonec, aby palička vycházela zpod nich */}
+    <g filter={`url(#${u}-tah)`} fill="#7FB4D8">
+      {ruce.map((r) => {
+        const [x, y] = r.dlan.split(" ");
+        return <ellipse cx={x} cy={y} rx="7" ry="5" transform={`rotate(${r.uhel} ${x} ${y})`} />;
+      })}
     </g>
   </g>
 </svg>

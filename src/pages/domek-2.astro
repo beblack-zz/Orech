@@ -6,16 +6,18 @@
  * jen domeček s krovem a garáž v řezu nahradil skutečný zelený dům
  * a dílna v jeho suterénu. Jeden den v Luční:
  *
+ *   svítání   — krajina z Party 2 se zeleným domem na stráni, text z Úvodu 2
  *   ráno      — ulice: brána odjede za zídku, rampou dolů k oknům dílny
  *   dopoledne — prohlídka dílny skrz okna, u každé zastávky fotka
  *   odpoledne — kresba a fotka přes sebe a sakura během roku
  *             — kudy k nám: Ořech z kopce s domem mezi sousedy
- *   podvečer  — rok dílny: z garáže po havárii až do teď
  *   večer     — lampa svítí, parta jde s lucerničkami, kontakt
  *
  * Po stránce je sedm klíčů (sbírka v hlavičce, klíčovnice v dialogu).
+ * Rok dílny (z garáže po havárii až do teď) se přestěhoval na O nás 2.
  * Kresby jsou generátory v components/domek2/kresba, styly
- * v styles/domek2.css nad parta2.css, dilna-rez.css a uvod2.css.
+ * v styles/domek2.css nad parta2.css, dilna-rez.css, dilna-suteren.css
+ * a uvod2.css.
  */
 import "@fontsource-variable/fraunces/full.css";
 import { ClientRouter } from "astro:transitions";
@@ -27,17 +29,18 @@ import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/dilna-rez.css";
+import "../styles/dilna-suteren.css";
 import "../styles/uvod2.css";
 import "../styles/domek2.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
+import Uvod from "../components/domek2/Uvod.astro";
 import Ulice from "../components/domek2/Ulice.astro";
 import Prohlidka from "../components/domek2/Prohlidka.astro";
 import Porovnani from "../components/domek2/Porovnani.astro";
 import Kudy from "../components/domek2/Kudy.astro";
-import Rok from "../components/domek2/Rok.astro";
 import Vecer from "../components/domek2/Vecer.astro";
 import KliceDialog from "../components/domek2/KliceDialog.astro";
 
@@ -53,7 +56,7 @@ const pridej = (s: string) => {
   for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
 };
 zastavky.forEach((z) => pridej(z.znak));
-pridej("工房見学放送写生道順鍵");
+pridej("工房見学放送写生道順鍵土と時間");
 const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
 ---
 <!doctype html>
@@ -77,11 +80,11 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <Hlavicka sber="klice" />
 
     <main>
+      <Uvod />
       <Ulice sezona={sezona} />
       <Prohlidka sezona={sezona} />
       <Porovnani sezona={sezona} />
       <Kudy sezona={sezona} />
-      <Rok />
       <Vecer />
     </main>
 

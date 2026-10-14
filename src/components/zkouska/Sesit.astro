@@ -1,0 +1,52 @@
+---
+/**
+ * Sešit razítek komnaty U mistra jako knížka goshuin z japonských svatyní:
+ * skládaná harmonika v brokátových deskách, na každé straně červená
+ * pečeť, štětcem znak zastavení a den. Dokud razítko chybí, je strana
+ * prázdná a stojí na ní jen úkol. Obsluha: scripts/zkouska/sesit.ts.
+ */
+import { urovne } from "../../data/mistr";
+---
+<dialog class="omamori-dialog mss-dialog" aria-labelledby="mss-nadpis">
+  <div class="omamori-obsah mss-obsah">
+    <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
+    <p class="stitek"><span lang="ja">修業帳</span> · sešit razítek</p>
+    <h2 id="mss-nadpis" class="nadpis-2">Sešit z učení</h2>
+    <p class="omamori-perex">
+      Jako knížky goshuin, do kterých se v Japonsku sbírají pečeti ze svatyní:
+      za každé zastavení červené razítko, štětcem jeho znak a den, kdy se to
+      povedlo. Dole známka.
+    </p>
+
+    <div class="mss-kniha" tabindex="0" aria-label="Strany sešitu — posouvá se do strany">
+      <div class="mss-desky" aria-hidden="true">
+        <span class="mss-stitek-desek" lang="ja">修業帳</span>
+        <span class="mss-pecet"></span>
+        <span class="mss-jmeno"></span>
+      </div>
+      <ol class="mss-strany">
+        {urovne.map((u, i) => (
+          <li class={`mss-strana inkoust-${Math.floor(i / 3)}`} data-strana={u.id}>
+            <span class="mss-hlavicka" lang="ja" aria-hidden="true">修業</span>
+            <span class="mss-znak" lang="ja" aria-hidden="true">{u.znak}</span>
+            <span class="mss-razitko" aria-hidden="true">
+              <svg viewBox="0 0 100 100"><g filter="url(#mrz-inkoust)"><use href={`#mrz-${u.id}`} /></g></svg>
+            </span>
+            <span class="mss-datum" lang="ja" aria-hidden="true"></span>
+            <span class="mss-znamka" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#mrz-znamka-ka" /></svg></span>
+            <span class="mss-popis">
+              <b><span lang="ja">{u.cislo}</span> {u.stanice}</b>
+              <span class="mss-ukol">{u.ukol}</span>
+              <span class="mss-den"></span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <div class="omamori-pata">
+      <p class="omamori-stav">Razítek <b class="mss-pocet">0</b> z {urovne.length}.</p>
+      <button type="button" class="tlacitko tlacitko-obrys mss-reset">Začít znovu od hroudy</button>
+    </div>
+  </div>
+</dialog>

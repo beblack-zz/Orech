@@ -1,0 +1,23 @@
+---
+/**
+ * Úroveň 三 Voda — „Na střed“. Hrnčířský kruh shora: hrouda běží mimo osu
+ * a obíhá, ruce ji stáhnou na střed, když jsou u osy a v klidu, a voda musí
+ * být akorát. Kapka sedí na okraji vany a hlídá vodu.
+ *
+ * Kresba (pozadí, houba v kbelíku, popředí) je v voda-kresba.ts, hra
+ * a fyzika ve scripts/zkouska/urovne/voda.ts a voda-fyzika.ts.
+ */
+import "../../../styles/zkouska-urovne/voda.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { kresba, prekryvy, ovladani, KAPKA_STYL } from "./voda-kresba";
+---
+<div class="mu-scena mu-voda" data-uroven-scena="voda" hidden>
+  <div class="mu-okno">
+    <Fragment set:html={kresba()} />
+    <Fragment set:html={prekryvy()} />
+    <div class="mu-voda-kapka" style={KAPKA_STYL} aria-hidden="true">
+      <div class="mu-voda-kapka-pruzina"><Postavicka id="kapka" size={152} varianta="kami" /></div>
+    </div>
+  </div>
+  <Fragment set:html={ovladani()} />
+</div>

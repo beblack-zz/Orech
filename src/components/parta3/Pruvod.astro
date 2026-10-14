@@ -10,6 +10,9 @@
  *
  * Kachlík a Šamotka lampion nemají — v průvodu nejdou a text pod svitkem
  * říká proč.
+ *
+ * Nad horní hranou svitku hned u levého válečku vykukuje černá Pecinka —
+ * hra na hledání kami (schovej v parta2/sber.ts, voláno z parta3/hlavni.ts).
  */
 import VazickaGejsa from "../characters/kami-buh/VazickaGejsa.astro";
 import KapkaHrom from "../characters/kami-buh/KapkaHrom.astro";
@@ -22,6 +25,7 @@ import { pruvod } from "../../data/parta3";
 import { parta } from "../../data/parta";
 import { nahoda } from "../parta2/tvary";
 import type { PostavaId } from "../../data/parta";
+import PecinkaSchovka from "../characters/schovka/Pecinka.astro";
 
 const Lampion = {
   hlinka: HlinkaZeme, bublinka: BublinkaStrasidlo, stripek: StripekZlato, kapka: KapkaHrom,
@@ -65,6 +69,9 @@ const pas = `<path d="${kopce}" fill="#E4D6B8" opacity="0.55"/><g fill="#E9D9B2"
 
   <div class="svitek">
     <span class="svitek-valec svitek-valec-l" aria-hidden="true"></span>
+    <button type="button" class="skryty" data-skryty="pecinka" aria-label="Někdo se tu schovává" style="top:auto;bottom:100%;left:calc(clamp(16px, 2vw, 26px) + 14px);width:46px;transform-origin:50% 100%">
+      <PecinkaSchovka barva="cerna" poza="vykukuje" size={46} />
+    </button>
     <div class="svitek-papir" data-svitek>
       <svg class="svitek-pozadi" viewBox={`0 0 ${S} ${V}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <g class="svitek-ujizdi">
@@ -90,6 +97,6 @@ const pas = `<path d="${kopce}" fill="#E4D6B8" opacity="0.55"/><g fill="#E9D9B2"
 
   <p class="pruvod3-dovetek">
     Kachlík a Šamotka v průvodu nejdou. Kachlík hlídá, jestli brána stojí rovně,
-    a Šamotka drží jeviště — uvidíš je až na něm.
+    a Šamotka nese chrám — potkáš je až nahoře.
   </p>
 </section>

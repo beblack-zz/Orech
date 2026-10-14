@@ -2,9 +2,10 @@
  * Simulovaná obsazenost odjezdů na /rezervace — dokud nemáme skutečný
  * kalendář. Jsou tu tři věci, které se dají koupit:
  *
- *   hodina       buď volná, nebo obsazená: rezervuje se celá, pro jednoho
- *                až čtyři lidi jako jednu skupinu, žádná místa
- *   kurz         zabere celý den (výluka hodinových spojů), má pár míst
+ *   odjezd       hodina a půl v dílně; buď volný, nebo obsazený: rezervuje
+ *                se celý, pro jednoho až čtyři lidi jako jednu skupinu,
+ *                žádná místa (v kódu se mu pořád říká hodina)
+ *   kurz         zvláštní vlak na celý den, jezdí v sobotu; má pár míst
  *                a ta se plní po jednom
  *   permanentka  první nebo poslední spoj jednoho dne v týdnu na tři
  *                měsíce, taky s místy
@@ -15,19 +16,22 @@
  * nabízet nedají.
  *
  * Kurzy s termínem v datech jedou v ten termín. Kurzy bez termínu rozdává
- * ukázka: jeden na pátek každého třetího týdne — podle kalendáře, ne podle
- * dneška, takže stejný den je kurzem pořád.
+ * ukázka: jeden na sobotu každého třetího týdne, kurzy se střídají — podle
+ * kalendáře, ne podle dneška, takže stejná sobota má pořád stejný kurz.
+ * Na měsíc dopředu tak vyjdou jeden nebo dva, víc jich naráz vypsaných
+ * nebývá (`kurzuNaraz` v datech).
  *
- * Až bude skutečný kalendář, stačí místo simuluj() a obsazenoPermanentek()
- * načíst, co je zamluvené — tabule, jízdenka i e-mail počítají jen s tím,
- * co odsud dostanou. (Archivní /rezervace-ema má vlastní simulaci,
+ * Skutečný kalendář je v kalendar.ts: když jsou rezervace zapojené, dny
+ * postaví z toho, co je opravdu zamluvené, a tahle ukázka se nepoužije —
+ * tabule a jízdenka počítají jen s tím, co dostanou. Typy dnů a pomocné
+ * funkce odsud bere i on. (Archivní /rezervace-ema má vlastní simulaci,
  * ema-simulace.ts.)
  */
-import { rezervace as R, kurzy, permanentka as P } from "../../data/rezervace";
+import { rezervace as R, kurzy, permanentka as P, odjezdy } from "../../data/rezervace";
 import type { KurzVlak } from "../../data/rezervace";
 
 export interface Hodina {
-  /** Začátek odjezdu — hodina dne */
+  /** Začátek odjezdu — hodina dne i s půlkou: 10.5 je 10:30 */
   h: number;
   /** Nikdo ji ještě nezamluvil */
   volno: boolean;
@@ -47,7 +51,7 @@ export interface Den {
   datum: Date;
   klic: string;
   hodiny: Hodina[];
-  /** Ten den jede zvláštní vlak a hodinové spoje ne */
+  /** Ten den jede zvláštní vlak a hodinové spoje ne — v sobotu, nebo jako výluka v úterý či v pátek */
   kurz?: KurzDne;
 }
 
@@ -73,7 +77,7 @@ export function kurzDne(d: Date): KurzVlak | null {
   const pevny = kurzy.find((k) => k.terminy?.includes(klic));
   if (pevny) return pevny;
   const ukazkove = kurzy.filter((k) => !k.terminy?.length);
-  if (!ukazkove.length || d.getDay() !== 5) return null;
+  if (!ukazkove.length || d.getDay() !== R.denKurzu) return null;
   const t = tyden(d);
   return t % 3 === 2 ? ukazkove[Math.floor(t / 3) % ukazkove.length] : null;
 }
@@ -85,15 +89,15 @@ export function simuluj(dnes: Date, ted = new Date()): Den[] {
   for (let i = 0; i <= R.dniDopredu; i++) {
     const d = new Date(dnes.getFullYear(), dnes.getMonth(), dnes.getDate() + i);
     const kurz = kurzDne(d);
-    /* Kurz s pevným termínem může vyjet i v den, kdy jinak není otevřeno */
+    /* Zvláštní vlak jezdí v sobotu, kdy jinak otevřeno není */
     if (!kurz && !R.dny.includes(d.getDay())) continue;
     const klic = klicDne(d);
     // Jak moc je den rozebraný: 0 = klid, nad 0,92 je obsazený celý
     const naval = nahoda(`${klic}-den`);
     const hodiny: Hodina[] = [];
-    for (let h = R.od; h < R.do; h++) {
+    for (const h of odjezdy) {
       const obsazena = naval > 0.92 || nahoda(`${klic}-${h}`) < 0.14 + naval * 0.42;
-      const zacatek = new Date(d.getFullYear(), d.getMonth(), d.getDate(), h);
+      const zacatek = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(h), (h % 1) * 60);
       hodiny.push({ h, volno: !obsazena, probehlo: zacatek <= ted, pas: jeSpojPermanentky(h) });
     }
     const den: Den = { datum: d, klic, hodiny };
@@ -132,13 +136,14 @@ export interface Jizda {
 
 /**
  * Na které dny permanentka platí, když se začne jezdit od daného dne:
- * každý týden ve stejný den, po celou dobu platnosti.
+ * každý týden ve stejný den, po celou dobu platnosti. Kdy jede kurz, říká
+ * `jeKurz` — bez něj ukázka.
  */
-export function platnostPermanentky(od: Date): { od: Date; do: Date; jizdy: Jizda[] } {
+export function platnostPermanentky(od: Date, jeKurz = (d: Date) => !!kurzDne(d)): { od: Date; do: Date; jizdy: Jizda[] } {
   const konec = new Date(od.getFullYear(), od.getMonth() + P.mesicu, od.getDate() - 1);
   const jizdy: Jizda[] = [];
   for (let d = new Date(od.getFullYear(), od.getMonth(), od.getDate()); d <= konec; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7)) {
-    jizdy.push({ datum: d, vyluka: !!kurzDne(d) });
+    jizdy.push({ datum: d, vyluka: jeKurz(d) });
   }
   return { od, do: konec, jizdy };
 }

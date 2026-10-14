@@ -4,9 +4,11 @@
  * k nástupišti s rozsvícenými okny (More.astro, more.ts) a pod kartou
  * je pro něj volné místo, ať je vidět celý. Na kartě poslední odeslaná
  * jízdenka (dopisuje skript z prohlížeče), kontakt pro ty, kdo radši
- * volají.
+ * volají. Člen, který přišel přes svůj odkaz, tu místo ní má všechny své
+ * zamluvené jízdenky a může je zrušit.
  */
 import { kontakt, mapa } from "../../data/uvod2";
+import { rezervace } from "../../data/rezervace";
 ---
 <section class="rz-noc" id="rz-noc" data-hodina="22.6" aria-labelledby="rz-noc-nadpis">
   <div class="rz-noc-karta papir">
@@ -16,6 +18,13 @@ import { kontakt, mapa } from "../../data/uvod2";
       <p class="rz-posledni-nadpis">Naposledy odeslaná jízdenka</p>
       <p class="rz-posledni-text"></p>
       <p class="rz-posledni-pozn">Platí, až ji potvrdíme. Kdyby odpověď dlouho nepřicházela, ozvi se.</p>
+    </div>
+    <div class="rz-moje" hidden>
+      <p class="rz-posledni-nadpis">Tvoje jízdenky</p>
+      <ul class="rz-moje-seznam"></ul>
+      <p class="rz-moje-nic">Zatím žádnou nemáš.</p>
+      <p class="rz-posledni-pozn">Zrušit jde nejpozději {rezervace.zrusitHodinPredem} hodin předem, permanentku jen přes nás.</p>
+      <p class="rz-moje-stav" aria-live="polite"></p>
     </div>
     <p class="rz-noc-text">Radši zavoláš, nebo napíšeš rovnou? Taky dobře.</p>
     <div class="rz-noc-akce">
@@ -27,7 +36,7 @@ import { kontakt, mapa } from "../../data/uvod2";
       <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
     </p>
     <p class="rz-noc-dal">
-      <a href="/kurzy-2">Kurzy</a> · <a href="/dilna">Dílna</a> · <a href="/uvod-2">Úvod</a>
+      <a href="/kurzy-2">Kurzy</a> · <a href="/dilna">Dílna</a> · <a href="/">Úvod</a>
     </p>
   </div>
   <p class="rz-noc-popisek" aria-hidden="true">Vlak jezdí jen jedním směrem — do dílny.</p>

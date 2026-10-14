@@ -1,57 +1,42 @@
 ---
 /**
- * Jízdní řád — cedule pod odjezdovou tabulí. Tabule ukazuje jeden den;
- * řád celý měsíc najednou: řádky jsou hodiny, sloupce dny.
+ * Cedule pod odjezdovou tabulí. Ukazuje vždycky jen jednu věc — tu, kterou
+ * má člověk vlevo v pokladně vybranou — a podle ní se i jmenuje a vypadá:
  *
- * Jsou to dvě cedule pod sebou, orámované jako cedule stanice na obzoru
- * (tmavý okraj, tenká linka uvnitř, nahoře stříška). Spodní visí na dvou
- * táhlech pod horní:
+ *   hodina a půl   vybraný je běžný den (úterý, pátek). Papírová cedule
+ *                  stanice se zelenou hlavičkou: dva vozy a co se dá dělat.
+ *   permanentka    na jízdence je spoj permanentky. Červená průkazka
+ *                  s jemným podtiskem a kulatým razítkem platnosti.
+ *   zvláštní vlak  vybraný je kurz. Noční modrá se zlatem jako salon vlaku:
+ *                  nahoře obraz vlaku na moři za svítání, pod ním přímo ten
+ *                  kurz, který ten den jede (každý kurz má vlastní list),
+ *                  a trať dne se jmény zastávek.
  *
- *   řád          mřížka s tečkami a pod ní krátký klíč ke značkám
- *   vysvětlivky  čím se liší hodina a kurz: dva sloupce vedle sebe se
- *                stejnými řádky (co děláš, lektor, s kým, kdy, pro koho…),
- *                takže se dají číst proti sobě. Pod nimi permanentka —
- *                hodina, na kterou se jezdí pravidelně.
+ * Všechny listy jsou v HTML, vidět je jeden; který, přepíná
+ * scripts/rezervace/hlavni.ts podle data-vysvetlivka a s ním i jméno
+ * v hlavičce a vzhled celé cedule (data-druh). Bez skriptu zůstane první,
+ * hodina a půl. (Bývala tu mřížka jízdního řádu na celý měsíc — odtud
+ * jména tříd rz-rad-….)
  *
- * Řád se má číst na jeden pohled, takže v něm není nic než tečky — tečka je
- * místo, které se dá koupit:
+ * Co se píše, je z dat: kdy a za kolik z rezervace.ts, co se v dílně dělá,
+ * co je v ceně a jak je to s lektorem z dilna.ts — ať cedule říká totéž
+ * co Dílna.
  *
- *   plná zelená     volná hodina (hodina je celá vaše, proto jedna tečka)
- *   prázdný kroužek obsazeno, čárka = už odjel
- *   tři malé modré  místa na permanentku — první a poslední řádek, které
- *                   jsou podbarvené a mají to napsané u času
- *   tmavý pruh      den kurzu: jméno a tečka za každé místo ve vlaku
- *   červená v kroužku propiskou — to, co máš na jízdence; u permanentky
- *                   fajfky v dalších týdnech, na které platí
- *
- * Vybraný den má modrou hlavičku a podbarvený sloupec. Dá se do něj
- * klikat: buňka vybere den i hodinu naráz (totéž, co pokladna a tabule,
- * jen jedním klikem), pruh kurzu otevře jeho den. Mřížku kreslí skript
- * (scripts/rezervace/rad.ts), protože dny i obsazenost záleží na dnešku;
- * tady jsou cedule, hlavička, klíč, vysvětlivky a podpis výpravčího.
- *
- * Co se ve vysvětlivkách píše, je z dat: kdy a za kolik z rezervace.ts,
- * co se v dílně dělá, co je v ceně a jak je to s lektorem z dilna.ts —
- * ať řád říká totéž co Dílna.
- *
- * Kresby skládá vlak.ts ze stejných vozů, jaké jezdí po stránce. Všechny
- * mají stejně široký výřez, takže jsou ve stejném měřítku; y = 0 je
- * hladina, pod ní pás s tečkami tak, jak jsou v řádu, a pod ním to hlavní:
- * hodina má tři volby, které na sebe nenavazují, kurz trať se zastávkami.
- * Kdo ve vysvětlivkách ukáže na druh vlaku, tomu v řádu zůstane svítit jen
- * on (styles/rezervace.css).
+ * Kresby skládá vlak.ts ze stejných vozů, jaké jezdí po stránce; y = 0 je
+ * hladina. U hodiny a půl a permanentky je pod ní pás s tečkami (tečka je
+ * místo, které se dá koupit) a pod ním to hlavní: tři volby, které na sebe
+ * nenavazují, nebo týdny, na které permanentka platí.
  */
-import { rezervace, kurzy, permanentka } from "../../data/rezervace";
+import { rezervace, kurzy, permanentka, odjezdy, hhmm, cenaOdjezdu } from "../../data/rezervace";
 import { cinnosti, vCene } from "../../data/dilna";
 import { sklonuj } from "../../data/pocty";
 import { vlak, zvlastniVlak, oknaSalonu, VUZ, MEZERA, SEDADLA, VYSKA, VYSKA_ZVLASTNIHO } from "./vlak";
 import type { Misto } from "./vlak";
+import type { KurzVlak } from "../../data/rezervace";
+import { paleta } from "../../scripts/parta2/paleta";
 
 const kc = (n: number) => n.toLocaleString("cs-CZ");
-const cas = (h: number) => `${h}:00`;
-const cenyKurzu = [...new Set(kurzy.map((k) => k.cena))].sort((a, b) => a - b);
-const cenaKurzu = cenyKurzu.length > 1 ? `od ${kc(cenyKurzu[0])}` : kc(cenyKurzu[0] ?? 0);
-const mistaPermanentky = Array.from({ length: permanentka.mist }, (_, i) => i);
+const cas = hhmm;
 
 /* ——— Kresby do vysvětlivek ——— */
 const KX = -44;
@@ -63,11 +48,14 @@ const POD = 100;
 const Y_T = 58;
 /** Pod tečkami: volby hodiny, trať kurzu */
 const Y_TRAT = POD + 44;
-/** Hodina a kurz stojí vedle sebe, proto mají stejný výřez — vlaky jsou pak na jedné hladině */
-const VB_SROVNANI = `${KX} ${-(VYSKA_ZVLASTNIHO + 14)} ${KW} ${VYSKA_ZVLASTNIHO + 14 + Y_TRAT + 58}`;
+/** Výřez kresby hodiny a půl: nad hladinou vlak, pod ní tečky a to hlavní */
+const VB_HODINA = `${KX} ${-(VYSKA + 8)} ${KW} ${VYSKA + 8 + Y_TRAT + 58}`;
+/** Obraz zvláštního vlaku: vlak s kouřem nad hladinou a pod ní kus moře s odrazem */
+const MORE = 78;
+const VB_OBRAZ = `${KX} ${-(VYSKA_ZVLASTNIHO + 14)} ${KW} ${VYSKA_ZVLASTNIHO + 14 + MORE}`;
 /** Stejné barvy jako postavičky ve volbě „kolik vás pojede“ (scripts/rezervace/odjezdy.ts) */
 const BARVY_LIDI = ["#9C7860", "#D79A94", "#93B39B", "#E8B440"];
-/** Kroužek propiskou — stejný jako v mřížce (scripts/rezervace/rad.ts) */
+/** Kroužek propiskou kolem toho, co je tvoje — není to elipsa, konec přetáhne začátek */
 const PERO = "M24 4 C36 2 45 8 44 16 C43 25 31 30 19 28 C8 26 2 21 4 13 C6 6 15 3 28 5";
 
 const f1 = (n: number) => Math.round(n * 10) / 10;
@@ -79,16 +67,16 @@ const xVozu = (i: number) => i * (VUZ + MEZERA);
 const xSedadla = (i: number, s: number) => (i % 2 ? xVozu(i) + VUZ - SEDADLA[s] : xVozu(i) + SEDADLA[s]);
 
 const naPermanentku = new Set(permanentka.spoje.map((s) => s.h));
-const hodinove = Array.from({ length: rezervace.do - rezervace.od }, (_, k) => rezervace.od + k).filter((h) => !naPermanentku.has(h));
+const hodinove = odjezdy.filter((h) => !naPermanentku.has(h));
 const volby = cinnosti.map((c) => c.nazev.toLowerCase());
 
-/* Hodina: dva vozy, dvě hodiny. První si vzala skupina, druhý je volný — pod každým jedna tečka.
+/* Odjezd (hodina a půl): dva vozy, dva odjezdy. První si vzala skupina, druhý je volný — pod každým jedna tečka.
    Pod tím, co se dá dělat: tři volby, které na sebe nenavazují */
 const vase: Misto[] = SEDADLA.map(() => null);
 [2, 3, 1, 4].slice(0, rezervace.maxOsob).forEach((s, k) => (vase[s] = { kdo: "ty", barva: BARVY_LIDI[k % BARVY_LIDI.length] }));
 const hVozy = [
   { h: hodinove[0] ?? rezervace.od, mista: vase, moje: true, co: "vaše" },
-  { h: hodinove[1] ?? rezervace.od + 1, mista: [] as Misto[], moje: false, co: "volno" },
+  { h: hodinove[1] ?? rezervace.od + rezervace.blok, mista: [] as Misto[], moje: false, co: "volno" },
 ];
 const kresbaHodina =
   vlak(hVozy.map((v) => ({ mista: v.mista }))) +
@@ -113,37 +101,24 @@ const kresbaHodina =
     .join("");
 
 /* Kurz: salon má okno na každé místo, pod okny tmavý pruh se zlatými tečkami; pod tím trať dne */
-const K = kurzy[0];
 const ZX = 20;
-const okna = K ? oknaSalonu(K.mist) : [];
-const zObsazeno = new Set([0, 1, 4].filter((i) => i < okna.length - 1));
-const trat = (() => {
-  const zastavek = rezervace.do - rezervace.od;
-  const L = L2 - 28;
-  let out = `<path d="M14 ${Y_TRAT} H${14 + L}" class="rz-rad-k-trat"/>`;
-  for (let k = 0; k <= zastavek; k++) {
-    const x = f1(14 + (L * k) / zastavek);
-    out += k < zastavek ? `<circle cx="${x}" cy="${Y_TRAT}" r="11" class="rz-rad-k-zastavka"/>` : `<rect x="${f1(x - 5)}" y="${Y_TRAT - 15}" width="10" height="30" rx="3" class="rz-rad-k-konecna"/>`;
-    out += napis(x, Y_TRAT + 38, `${rezervace.od + k}`, "rz-rad-k-hod", "middle");
-  }
-  return out;
-})();
-const kresbaKurz = K
-  ? `<g transform="translate(${ZX} 0)">` +
-    zvlastniVlak({ mista: okna.map((_, i) => (zObsazeno.has(i) ? { kdo: "stin" } : null)), emblem: K.emblem, cedule: K.nazev }) +
-    `<rect x="${f1(okna[0].x - 16)}" y="30" width="${f1(okna[okna.length - 1].x + okna[okna.length - 1].w - okna[0].x + 32)}" height="56" rx="12" class="rz-rad-k-zvl-pruh"/>` +
-    okna
-      .map((o, i) => {
-        const x = f1(o.x + o.w / 2);
-        return `<path d="M${x} 6 V30" class="rz-rad-k-spoj"/>` + (zObsazeno.has(i) ? `<circle cx="${x}" cy="${Y_T}" r="12" class="rz-rad-k-zvl-obs"/>` : `<circle cx="${x}" cy="${Y_T}" r="14" class="rz-rad-k-zvl"/>`);
-      })
-      .join("") +
-    `</g>` +
-    hladina +
-    napis(ZX + okna[okna.length - 1].x + okna[okna.length - 1].w + 44, Y_T, `${cas(rezervace.od)}–${cas(rezervace.do)}`, "rz-rad-k-cas") +
-    napis(L2 - 8, Y_T, "celý den", "rz-rad-k-co", "end") +
-    trat
-  : "";
+/* Svítání nad mořem v hodinu odjezdu — barvy z oblohy stránky */
+const [RANO_A, RANO_B, RANO_C] = paleta(rezervace.od - 0.4).barvy;
+const kresbaKurzu = (K: KurzVlak) => {
+  const okna = oknaSalonu(K.mist);
+  const zObsazeno = new Set([0, 1, 4].filter((i) => i < okna.length - 1));
+  const vlakK = zvlastniVlak({ mista: okna.map((_, i) => (zObsazeno.has(i) ? { kdo: "stin" } : null)), emblem: K.emblem, cedule: K.nazev });
+  const nahore = -(VYSKA_ZVLASTNIHO + 14);
+  return (
+    `<defs><linearGradient id="rz-obraz-nebe-${K.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${RANO_A}"/><stop offset="0.55" stop-color="${RANO_B}"/><stop offset="1" stop-color="${RANO_C}"/></linearGradient>` +
+    `<linearGradient id="rz-obraz-more-${K.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FA6C4"/><stop offset="1" stop-color="#3B4C86"/></linearGradient></defs>` +
+    `<rect x="${KX}" y="${nahore}" width="${KW}" height="${-nahore}" fill="url(#rz-obraz-nebe-${K.id})"/>` +
+    `<circle cx="${KX + KW * 0.2}" cy="${f1(nahore * 0.62)}" r="34" class="rz-rad-k-slunce"/><circle cx="${KX + KW * 0.2}" cy="${f1(nahore * 0.62)}" r="62" class="rz-rad-k-slunce" opacity="0.35"/>` +
+    `<rect x="${KX}" y="0" width="${KW}" height="${MORE}" fill="url(#rz-obraz-more-${K.id})"/>` +
+    `<g transform="translate(${ZX} 0)"><g transform="scale(1 -0.5)" opacity="0.24">${vlakK}</g>${vlakK}</g>` +
+    `<path d="M${KX + 80} ${f1(MORE * 0.42)} h120 M${KX + 420} ${f1(MORE * 0.7)} h90 M${KX + 760} ${f1(MORE * 0.5)} h140" class="rz-rad-k-vlnka"/>`
+  );
+};
 
 /* Permanentka: ranní a večerní spoj, pod okny s místy tři tečky; pod tím týdny, na které platí */
 const KAZDY = ["každou neděli", "každé pondělí", "každé úterý", "každou středu", "každý čtvrtek", "každý pátek", "každou sobotu"];
@@ -155,13 +130,10 @@ const Y_TYDNY = POD + 46;
 const tydny = (() => {
   const mezera = 18;
   const w = (pVozy.length * VUZ + (pVozy.length - 1) * MEZERA - (TYDNU - 1) * mezera) / TYDNU;
-  /* Jeden týden uprostřed je výluka — přeškrtnutý, jako na průkazce */
-  const vyluka = Math.floor(TYDNU / 2);
-  let out = napis(0, POD + 20, `${KAZDY[rezervace.dny[0]]} · ${mesice} · v den kurzu výluka`, "rz-rad-k-co");
+  let out = napis(0, POD + 20, `${KAZDY[rezervace.dny[0]]} · ${mesice}`, "rz-rad-k-co");
   for (let k = 0; k < TYDNU; k++) {
     const x = f1(k * (w + mezera));
-    if (k === vyluka) out += `<rect x="${x}" y="${Y_TYDNY}" width="${f1(w)}" height="46" rx="7" class="rz-rad-k-tyden vyluka"/><path d="M${f1(x + 8)} ${Y_TYDNY + 38} L${f1(x + w - 8)} ${Y_TYDNY + 8}" class="rz-rad-k-skrt"/>`;
-    else out += `<rect x="${x}" y="${Y_TYDNY}" width="${f1(w)}" height="46" rx="7" class="rz-rad-k-tyden"/>`;
+    out += `<rect x="${x}" y="${Y_TYDNY}" width="${f1(w)}" height="46" rx="7" class="rz-rad-k-tyden"/>`;
     if (k < 3) out += `<path d="M${f1(x + w / 2 - 15)} ${Y_TYDNY + 24} l10 11 l20 -25" class="rz-rad-k-fajfka"/>`;
   }
   return out;
@@ -185,9 +157,10 @@ const kresbaPermanentka =
 
 /* ——— Co se píše do vysvětlivek ———
  *
- * Hodina a kurz mají stejné řádky ve stejném pořadí, ať se dají číst proti
- * sobě. Jen předposlední se liší: u hodiny je, co je v ceně, u kurzu jeho
- * zastávky (co je v ceně kurzu, v datech není).
+ * Hodina a půl a kurz mají stejné řádky ve stejném pořadí (co děláš,
+ * lektor, s kým, kdy, pro koho), ať se při přepnutí čtou stejně. Jen
+ * poslední se liší: u hodiny a půl je, co je v ceně, u kurzu jeho zastávky
+ * (co je v ceně kurzu, v datech není).
  */
 const V_DEN = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
 const V_POCTU: Record<number, string> = { 2: "ve dvou", 3: "ve třech", 4: "ve čtyřech", 5: "v pěti", 6: "v šesti" };
@@ -196,13 +169,22 @@ const spolu = (a: string[], spojka = "a") => (a.length > 1 ? `${a.slice(0, -1).j
 
 const kdyJede = spolu(rezervace.dny.map((d) => V_DEN[d]));
 const skupina = V_POCTU[rezervace.maxOsob] ?? `v ${rezervace.maxOsob}`;
-const mistKurzu = [...new Set(kurzy.map((k) => k.mist))].sort((a, b) => a - b);
-const vlakMa = mistKurzu.length > 1 ? `${mistKurzu[0]}–${mistKurzu[mistKurzu.length - 1]} míst` : sklonuj(mistKurzu[0] ?? 0, "místo", "místa", "míst");
-const lektori = spolu([...new Set(kurzy.map((k) => k.lektor))]);
 const spolusedici = S_DALSIMI[permanentka.mist - 1] ?? `s ${permanentka.mist - 1} dalšími`;
 
 interface Druh {
   id: "hodina" | "kurz" | "pas";
+  /** Podle čeho ho skript vybírá: hodina, pas, kurz-<id kurzu> */
+  klic: string;
+  /** Jak se cedule jmenuje, když je tenhle list vidět, a co stojí v hlavičce vedle */
+  titul: string;
+  pod: string;
+  /** Jméno přímo v listu — má ho jen kurz, ostatní stačí jméno cedule */
+  nadpis?: { jmeno: string; k: string };
+  /** Trať dne se jmény zastávek (kurz) */
+  linka?: { h: number; nazev: string }[];
+  kresba: string;
+  /** Výřez kresby */
+  vb: string;
   znacka: string;
   nazev: string;
   /** Jak se tomu říká na nádraží */
@@ -215,108 +197,108 @@ interface Druh {
 
 const hodina: Druh = {
   id: "hodina",
+  klic: "hodina",
+  titul: "Hodina a půl",
+  pod: "běžný spoj",
+  kresba: kresbaHodina,
+  vb: VB_HODINA,
   znacka: "H",
-  nazev: "Hodina",
-  vlak: "hodinový spoj",
-  heslo: "Dílna na hodinu. Děláš si, co chceš.",
+  nazev: "Hodina a půl",
+  vlak: "běžný spoj",
+  heslo: "Dílna na hodinu a půl. Děláš si, co chceš.",
   fakta: [
     { co: "co děláš", html: `<b>cokoli</b> — ${volby.join(", ")}. Žádný program, tempo je tvoje` },
     { co: "lektor", html: `<b>když chceš</b> — ukáže a poradí. Když ne, je dílna jen tvoje; na kruh bez lektora jen se základy` },
-    { co: "s kým", html: `sám, nebo až ${skupina}; hodina je celá vaše a nikdo další nepřistoupí` },
-    { co: "kdy", html: `${kdyJede}, odjezdy ${cas(hodinove[0])}–${cas(hodinove[hodinove.length - 1])}; hodin si můžeš vzít víc` },
+    { co: "s kým", html: `sám, nebo až ${skupina}; odjezd je celý váš a nikdo další nepřistoupí` },
+    { co: "kdy", html: `${kdyJede}, odjezdy ${cas(hodinove[0])}–${cas(hodinove[hodinove.length - 1])} po hodině a půl; můžeš si jich vzít víc` },
     { co: "pro koho", html: `pro začátečníka i pro toho, kdo ví, co chce, a chce na to klid` },
     { co: "v ceně", html: vCene.map((v) => v.co.toLowerCase()).join(", ") },
-    { co: "v řádu", html: `zelená tečka — jedna za celý vůz` },
   ],
-  cena: kc(rezervace.cena),
-  zaCo: "za člověka a hodinu",
+  cena: kc(cenaOdjezdu),
+  zaCo: "za člověka a hodinu a půl",
 };
 
-const kurz: Druh | null = K
-  ? {
-      id: "kurz",
-      znacka: "Zv",
-      nazev: "Kurz",
-      vlak: "zvláštní vlak",
-      heslo: "Celý den s lektorem a programem.",
-      fakta: [
-        { co: "co děláš", html: `<b>jedeš podle programu</b> — co hodina, to zastávka, od rána do večera` },
-        { co: "lektor", html: `<b>celý den u toho</b> — vede ${lektori}` },
-        { co: "s kým", html: `se skupinou: vlak má ${vlakMa} a každý si kupuje jen to své` },
-        { co: "kdy", html: `celý den, ${cas(rezervace.od)}–${cas(rezervace.do)}, jen ve dny vypsané v řádu; hodiny ani permanentky ten den nejedou` },
-        { co: "pro koho", html: kurzy.map((k) => `${k.nazev} — ${k.proKoho}`).join(". ") },
-        { co: "zastávky", html: `${kurzy.length > 1 ? "třeba " : ""}${K.nazev}: ${K.program.map((z) => z.nazev).join(" → ")}` },
-        { co: "v řádu", html: `tmavý pruh přes celý den — zlatá tečka je jedno volné sedadlo` },
-      ],
-      cena: cenaKurzu,
-      zaCo: "za člověka a celý den",
-    }
-  : null;
+/* Každý kurz má vlastní list — ukáže se ten, který je vybraný */
+const listyKurzu: Druh[] = kurzy.map((k) => {
+  const program = [...k.program].sort((a, b) => a.h - b.h);
+  return {
+    id: "kurz",
+    klic: `kurz-${k.id}`,
+    titul: "Zvláštní vlak",
+    pod: "kurz na celý den",
+    nadpis: { jmeno: k.nazev, k: `vlak „${k.vlak}“ — ${k.cteni} je japonsky ${k.vyznam}` },
+    linka: [...program.map((z) => ({ h: z.h, nazev: z.nazev })), { h: Math.max(...program.map((z) => z.h)) + rezervace.blok, nazev: "Cíl" }],
+    kresba: kresbaKurzu(k),
+    vb: VB_OBRAZ,
+    znacka: "Zv",
+    nazev: k.nazev,
+    vlak: "zvláštní vlak",
+    heslo: k.popis,
+    fakta: [
+      { co: "lektor", html: `<b>celý den u toho</b> — vede ${k.lektor}` },
+      { co: "s kým", html: `se skupinou: vlak má ${sklonuj(k.mist, "místo", "místa", "míst")} a každý si kupuje jen to své` },
+      { co: "kdy", html: `${V_DEN[rezervace.denKurzu]}, celý den ${cas(rezervace.od)}–${cas(rezervace.do)}; běžné spoje ten den nejedou` },
+      { co: "pro koho", html: k.proKoho },
+    ],
+    cena: kc(k.cena),
+    zaCo: "za člověka a celý den",
+  };
+});
 
 const pas: Druh = {
   id: "pas",
+  klic: "pas",
+  titul: "Permanentka",
+  pod: "stálé místo",
+  kresba: kresbaPermanentka,
+  vb: `${KX} ${-(VYSKA + 8)} ${KW} ${VYSKA + 8 + Y_TYDNY + 54}`,
   znacka: "P",
   nazev: "Permanentka",
   vlak: "stálé místo",
-  heslo: `Tvoje hodina každý týden, na ${mesice}.`,
+  heslo: `Tvoje hodina a půl každý týden, na ${mesice}.`,
   fakta: [
-    { co: "co děláš", html: `<b>totéž co na hodině</b> — tvoříš po svém, jen pravidelně` },
+    { co: "co děláš", html: `<b>totéž co na běžném spoji</b> — tvoříš po svém, jen pravidelně` },
     { co: "kdy", html: `první nebo poslední spoj dne (${spolu(permanentka.spoje.map((s) => cas(s.h)), "nebo")}), jeden den v týdnu — třeba ${KAZDY[rezervace.dny[0]]} v ${cas(permanentka.spoje[0].h)}` },
-    { co: "platí", html: `${mesice}; v den, kdy jede kurz, je výluka` },
+    { co: "platí", html: `${mesice} od první jízdy` },
     { co: "s kým", html: `máš jedno sedadlo; spoj má ${sklonuj(permanentka.mist, "místo", "místa", "míst")}, dílnu tak sdílíš nejvýš ${spolusedici}` },
-    { co: "v řádu", html: `malé modré tečky; fajfka značí další týdny, na které ti platí` },
   ],
   cena: kc(permanentka.cena),
   zaCo: `za člověka na ${mesice}`,
 };
 
-const srovnani = [
-  { ...hodina, kresba: kresbaHodina },
-  ...(kurz ? [{ ...kurz, kresba: kresbaKurz }] : []),
-];
+const listy = [hodina, pas, ...listyKurzu];
 ---
 <section class="rz-rad" id="rz-rad" aria-labelledby="rz-rad-nadpis">
-  <div class="rz-rad-cedule rz-rad-hlavni">
-    <header class="rz-rad-hlava">
-      <h2 id="rz-rad-nadpis">Jízdní řád</h2>
-      <p class="rz-rad-smer">
-        <span>Ořech</span>
-        <i aria-hidden="true"></i>
-        <span>Dílna</span>
-      </p>
+  {/* data-druh přebarví celou ceduli podle toho, který list je vidět — přepisuje ho skript */}
+  <div class="rz-rad-cedule rz-rad-hlavni" data-druh={listy[0].id}>
+    <header class="rz-rad-hlava" aria-live="polite">
+      <h2 id="rz-rad-nadpis">{listy[0].titul}</h2>
+      <p class="rz-rad-smer"><span class="rz-rad-ted">{listy[0].pod}</span></p>
     </header>
-    <p class="rz-rad-uvod">
-      Celý měsíc na jedné ceduli. Každá tečka je místo — klikni na plnou a máš ji na jízdence.
-      <span class="rz-rad-platnost"></span>
-    </p>
 
-    <div class="rz-rad-posuv">
-      <table class="rz-rad-tab">
-        <caption class="sr-only">Všechny odjezdy na měsíc dopředu. Řádky jsou hodiny, sloupce dny; kliknutím se den a odjezd vybere.</caption>
-        <colgroup></colgroup>
-        <thead></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    {/* Klíč ke značkám — jen jména; čím se hodina, kurz a permanentka liší, je na ceduli pod tím */}
-    <ul class="rz-rad-legenda">
-      <li><span class="rz-rad-vz"><i class="rz-rad-t"></i></span> volná hodina</li>
-      <li><span class="rz-rad-vz"><i class="rz-rad-t obs"></i></span> obsazeno</li>
-      <li><span class="rz-rad-vz"><i class="rz-rad-t pryc"></i></span> už odjel</li>
-      <li><span class="rz-rad-vz"><span class="rz-rad-mista">{mistaPermanentky.map((i) => <i class={i === 0 ? "obs" : undefined}></i>)}</span></span> místa na permanentku</li>
-      <li><span class="rz-rad-vz"><span class="rz-rad-vz-kurz"><i></i><i></i></span></span> kurz na celý den</li>
-      <li>
-        <span class="rz-rad-vz rz-rad-vz-moje">
-          <i class="rz-rad-t moje"></i>
-          <svg viewBox="0 0 48 32" aria-hidden="true"><path d={PERO} /></svg>
-        </span>
-        máš na jízdence
-      </li>
-    </ul>
+    {listy.map((d, i) => (
+      <article class={`rz-rad-druh rz-rad-druh-${d.id}`} data-vysvetlivka={d.klic} data-druh={d.id} data-titul={d.titul} data-pod={d.pod} hidden={i > 0}>
+        <svg class="rz-rad-kresba" viewBox={d.vb} aria-hidden="true"><g set:html={d.kresba} /></svg>
+        <div class="rz-rad-druh-text">
+          {d.nadpis && <h3>{d.nadpis.jmeno} <small>{d.nadpis.k}</small></h3>}
+          <p class="rz-rad-heslo">{d.heslo}</p>
+          {d.linka && (
+            <ol class="rz-rad-linka" style={`--n:${d.linka.length}`} aria-label="Trať dne — zastávky po hodině a půl">
+              {d.linka.map((z, k) => <li class={k === d.linka!.length - 1 ? "cil" : undefined}><i>{k === d.linka!.length - 1 ? "" : k + 1}</i><span><b>{cas(z.h)}</b> {z.nazev}</span></li>)}
+            </ol>
+          )}
+          <dl class="rz-rad-fakta">
+            {d.fakta.map((f) => <div><dt>{f.co}</dt><dd set:html={f.html} /></div>)}
+          </dl>
+          <p class="rz-rad-jizdne"><span>jízdné</span> <b>{d.cena}&nbsp;Kč</b> {d.zaCo}</p>
+          {/* Kulaté razítko platnosti — jen na průkazce */}
+          {d.id === "pas" && <span class="rz-rad-platnost" aria-hidden="true"><b>{permanentka.mesicu}</b><span>měs.</span></span>}
+        </div>
+      </article>
+    ))}
 
     <p class="rz-rad-pata">
-      <span>Změna jízdního řádu vyhrazena.</span>
+      <span>Změna programu vyhrazena.</span>
       <span class="rz-rad-podpis">
         Za správnost: Kachlík, výpravčí
         {/* Razítko výpravčího — Kachlík, jak jinak než přesně do čtverce */}
@@ -330,42 +312,5 @@ const srovnani = [
         </svg>
       </span>
     </p>
-  </div>
-
-  {/* Táhla, na kterých visí cedule s vysvětlivkami */}
-  <div class="rz-rad-zaves" aria-hidden="true"><i></i><i></i></div>
-
-  <div class="rz-rad-cedule rz-rad-vysv" role="group" aria-labelledby="rz-rad-vysv-nadpis">
-    <header class="rz-rad-vysv-hlava">
-      <h3 id="rz-rad-vysv-nadpis">Vysvětlivky</h3>
-      <p>hodina · kurz · permanentka</p>
-    </header>
-
-    {/* Hodina a kurz vedle sebe. Počet řádků jde do stylu, protože oba sloupce sdílejí jednu mřížku (subgrid) */}
-    <div class="rz-rad-srovnani">
-      {srovnani.map((d) => (
-        <article class={`rz-rad-druh rz-rad-druh-${d.id}`} style={`grid-row: span ${4 + d.fakta.length}`}>
-          <svg class="rz-rad-kresba" viewBox={VB_SROVNANI} aria-hidden="true"><g set:html={d.kresba} /></svg>
-          <h4><span class="rz-rad-znacka" aria-hidden="true">{d.znacka}</span><span>{d.nazev} <small>{d.vlak}</small></span></h4>
-          <p class="rz-rad-heslo">{d.heslo}</p>
-          <dl class="rz-rad-fakta" style={`grid-row: span ${d.fakta.length}`}>
-            {d.fakta.map((f) => <div><dt>{f.co}</dt><dd set:html={f.html} /></div>)}
-          </dl>
-          <p class="rz-rad-jizdne"><span>jízdné</span> <b>{d.cena}&nbsp;Kč</b> {d.zaCo}</p>
-        </article>
-      ))}
-    </div>
-
-    <article class="rz-rad-druh rz-rad-druh-pas">
-      <svg class="rz-rad-kresba" viewBox={`${KX} ${-(VYSKA + 8)} ${KW} ${VYSKA + 8 + Y_TYDNY + 54}`} aria-hidden="true"><g set:html={kresbaPermanentka} /></svg>
-      <div class="rz-rad-druh-text">
-        <h4><span class="rz-rad-znacka" aria-hidden="true">{pas.znacka}</span><span>{pas.nazev} <small>{pas.vlak}</small></span></h4>
-        <p class="rz-rad-heslo">{pas.heslo}</p>
-        <dl class="rz-rad-fakta">
-          {pas.fakta.map((f) => <div><dt>{f.co}</dt><dd set:html={f.html} /></div>)}
-        </dl>
-        <p class="rz-rad-jizdne"><span>jízdné</span> <b>{pas.cena}&nbsp;Kč</b> {pas.zaCo}</p>
-      </div>
-    </article>
   </div>
 </section>

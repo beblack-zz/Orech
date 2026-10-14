@@ -1,0 +1,128 @@
+---
+/**
+ * Obsazení — kdo je kdo, srdce /parta-3. Nahoře vršek chrámového jeviště
+ * (střecha a vlys z jeviste.ts) a z vlysu visí devět lampionů s erby;
+ * pod ním jeden list papíru s tím, čí lampion právě svítí. Klepnutí na jiný
+ * lampion list vymění (scripts/parta3/obsazeni.ts). Bez skriptu je vidět
+ * jen první list.
+ *
+ * Na listu:
+ *   scéna     podoba Kami z /marcel, tedy to, v čem je nahoře v chrámu —
+ *             živá, hýbe se a reaguje na myš i prst jako tam. Každá smí být
+ *             na stránce jen jednou (pevná id v kresbách), tady jsou všechny
+ *             právě jednou. Scény na schovaných listech spí: běh je budí,
+ *             až když jsou vidět (beh.js, IntersectionObserver)
+ *   text      popis z Party 2, jak stojí na kartách u cesty hlíny: stanoviště,
+ *             jméno, kým je, co hlídá, co má ráda a co říká (Zastaveni.astro).
+ *             Výzvy ke hrám ve scénách sem nepatří, proto jen `text` bez `pokyn`
+ *   miniatura původní malá kami, jaká stojí v trávě na konci Party 2 — takhle
+ *             vypadá dole v dílně. Je klikací a mluví stejně jako tam
+ *
+ * Pořadí lampionů i listů je cesta hlíny.
+ */
+import Kami from "../parta2/Kami.astro";
+import VazickaGejsa from "../characters/kami-buh/VazickaGejsa.astro";
+import KapkaHrom from "../characters/kami-buh/KapkaHrom.astro";
+import StripekZlato from "../characters/kami-buh/StripekZlato.astro";
+import PecinkaOhen from "../characters/kami-buh/PecinkaOhen.astro";
+import BublinkaStrasidlo from "../characters/kami-buh/BublinkaStrasidlo.astro";
+import HlinkaZeme from "../characters/kami-buh/HlinkaZeme.astro";
+import CedulkaEma from "../characters/kami-buh/CedulkaEma.astro";
+import KachlikRovina from "../characters/kami-buh/KachlikRovina.astro";
+import SamotkaNese from "../characters/kami-buh/SamotkaNese.astro";
+import { pecinkaSchovka } from "../characters/schovka/pecinka";
+import { bublinkaSchovka } from "../characters/schovka/bublinka";
+import { stripekSchovka } from "../characters/schovka/stripek";
+import { hlinkaSchovka } from "../characters/schovka/hlinka";
+import { cedulkaSchovka } from "../characters/schovka/cedulka";
+import { kachlikSchovka } from "../characters/schovka/kachlik";
+import { samotkaSchovka } from "../characters/schovka/samotka";
+import { vazickaSchovka } from "../characters/schovka/vazicka";
+import { kapkaSchovka } from "../characters/schovka/kapka";
+import { uid } from "../characters/dospele/uid";
+import { vrsekJeviste, lampion } from "./jeviste";
+import { ucinkujici } from "../../data/parta3";
+import { parta } from "../../data/parta";
+import { cesta, kamiInfo } from "../../data/kami";
+
+const Scena = {
+  hlinka: HlinkaZeme, bublinka: BublinkaStrasidlo, kapka: KapkaHrom, vazicka: VazickaGejsa, kachlik: KachlikRovina,
+  cedulka: CedulkaEma, samotka: SamotkaNese, pecinka: PecinkaOhen, stripek: StripekZlato,
+} as const;
+const erb = {
+  hlinka: hlinkaSchovka, bublinka: bublinkaSchovka, kapka: kapkaSchovka, vazicka: vazickaSchovka, kachlik: kachlikSchovka,
+  cedulka: cedulkaSchovka, samotka: samotkaSchovka, pecinka: pecinkaSchovka, stripek: stripekSchovka,
+} as const;
+---
+<section class="obsazeni" id="obsazeni" data-hodina="23" aria-labelledby="obsazeni-nadpis" data-obsazeni>
+  <div class="obsazeni-hlava">
+    <p class="stitek stitek-svetly">Kdo je kdo · <span lang="ja">顔ぶれ</span></p>
+    <h2 id="obsazeni-nadpis" class="nadpis-2 obsazeni-nadpis">Nahoře v plné parádě. <em>Dole každý něco hlídá.</em></h2>
+    <p class="obsazeni-perex">
+      Rozsviť lampion toho, koho chceš poznat. Tady v chrámu jsou v plné parádě a hýbou se —
+      zkus na ně sáhnout. Dole v dílně bys je skoro přehlédl: jsou malí, tiší a každý stojí
+      na svém místě u cesty hlíny. Klepni i na toho malého, něco ti řekne.
+    </p>
+  </div>
+
+  <div class="chram-vrsek">
+    <div class="chram-vrsek-stavba" set:html={vrsekJeviste()} />
+    <div class="lampiony" role="group" aria-label="Koho ukázat">
+      {cesta.map((z, i) => {
+        const p = parta.find((x) => x.id === z.id)!;
+        const u = ucinkujici.find((x) => x.id === z.id)!;
+        return (
+          <button type="button" class="lampion" data-kdo={z.id} aria-pressed={i === 0 ? "true" : "false"} aria-controls={`kdo-${z.id}`} aria-label={`${p.name} — ${u.obor}`} style={`--i:${i}`}>
+            <span class="lampion-houpe">
+              <Fragment set:html={lampion(`lp-${z.id}`)} />
+              <span class="lampion-erb lampion-erb-velky" set:html={erb[z.id]({ barva: "cerna", velikost: 30, id: uid() })} />
+              <span class="lampion-erb lampion-erb-maly" set:html={erb[z.id]({ barva: "cerna", velikost: 18, id: uid() })} />
+            </span>
+            <span class="lampion-jmeno">{p.name}</span>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+
+  <div class="obsazeni-listy">
+    {cesta.map((z, i) => {
+      const p = parta.find((x) => x.id === z.id)!;
+      const k = kamiInfo[z.id];
+      /* podoba Kami je první kus na repertoáru (01 na /marcel) */
+      const kus = ucinkujici.find((u) => u.id === z.id)!.kusy[0];
+      const S = Scena[z.id] as any;
+      return (
+        <article class="kdo papir" id={`kdo-${z.id}`} data-kdo-list={z.id} hidden={i !== 0} aria-labelledby={`kdo-${z.id}-jmeno`}>
+          <figure class="kdo-obraz">
+            <S varianta={kus.id} />
+            <figcaption>
+              <span class="kdo-kus"><span class="kdo-kus-kde">Nahoře v chrámu</span>{kus.nazev}</span>
+            </figcaption>
+          </figure>
+
+          <div class="kdo-text">
+            <p class="zast-poradi">
+              <span class="zast-cislo" lang="ja">{z.cislo}</span>
+              <span>{z.nazev}</span>
+              <span class="zast-cteni"><span lang="ja">{z.znak}</span> · <i lang="ja-Latn">{z.cteni}</i></span>
+            </p>
+            <div class="kdo-mini">
+              <Kami id={z.id} size={112} />
+              <span class="kdo-mini-popis" aria-hidden="true">dole v dílně</span>
+            </div>
+            <h3 class="zast-jmeno" id={`kdo-${z.id}-jmeno`}>{p.name}</h3>
+            <p class="zast-druh"><b>{k.druh}</b> · {k.kdo}</p>
+            <p class="zast-text">{z.text}</p>
+            <dl class="zast-fakta">
+              <div><dt>Hlídá</dt><dd>{p.hlida.replace(/^hlídá /, "")}</dd></div>
+              <div><dt>{p.muz ? "Má rád" : "Má ráda"}</dt><dd>{p.oblibene}</dd></div>
+            </dl>
+            <blockquote class="zast-replika">„{p.replika}“</blockquote>
+            <span class="hanko" lang="ja" aria-hidden="true">{z.znak}</span>
+          </div>
+        </article>
+      );
+    })}
+  </div>
+</section>

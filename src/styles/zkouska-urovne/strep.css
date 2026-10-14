@@ -1,0 +1,194 @@
+/*
+ * Úroveň 九 Kintsugi (components/zkouska/urovne/Strep.astro,
+ * scripts/zkouska/urovne/strep.ts). Stavy scény jsou třídy na kořeni:
+ *
+ *   ms9-tahne       člověk drží střep
+ *   ms9-faze-zlato  slepeno — spáry se zalijí lakem a ukazatel je štětec
+ *   ms9-maluje      štětec je na misce
+ *   ms9-hotovo      všechno zlaté: miska se rozzáří, po zlatě přeběhne lesk
+ *   ms9-prisel      vedle misky stojí Střípek
+ *
+ * Výchozí vzhled (bez tříd) nese kresba sama v atributech, aby vypadala
+ * dobře i pod úvodní kartou.
+ */
+
+.mu-strep .mu-kresba {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.mu-strep .ms9-pozadi,
+.mu-strep .ms9-nacini,
+.mu-strep .ms9-cil,
+.mu-strep .ms9-spary,
+.mu-strep .ms9-jiskry,
+.mu-strep .ms9-stetec,
+.mu-strep .ms9-zare-misky,
+.mu-strep .ms9-strep-stin,
+.mu-strep .ms9-strep-zare { pointer-events: none; }
+
+/* Svitek: znak štětcem jako ve zbytku hry */
+.mu-strep .ms9-svitek-znak { font-family: var(--f-kanji); }
+
+/* ——— Střepy ——— */
+
+.mu-strep.ms9-hraje .ms9-strep { cursor: grab; }
+.mu-strep.ms9-hraje .ms9-strep.ms9-pevny { cursor: default; }
+.mu-strep.ms9-tahne .mu-kresba,
+.mu-strep.ms9-tahne .ms9-strep { cursor: grabbing; }
+
+/* Vybraný střep dýchá zlatou září — je to i znamení fokusu z klávesnice */
+.mu-strep .ms9-vybrany .ms9-strep-zare,
+.mu-strep .ms9-hledej .ms9-strep-zare { display: inline; }
+.mu-strep .ms9-vybrany .ms9-strep-zare { animation: ms9-dech 1.8s ease-in-out infinite; }
+.mu-strep .ms9-hledej .ms9-strep-zare { animation: ms9-dech 0.6s ease-in-out 6; }
+@keyframes ms9-dech { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+/* Zacvaknutí: po lomu přeběhne lesk lakového spoje */
+.mu-strep .ms9-lesk .ms9-strep-lesk { animation: ms9-lesk 0.85s ease-out both; }
+@keyframes ms9-lesk {
+  0% { opacity: 0; stroke-dashoffset: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0; stroke-dashoffset: -100; }
+}
+
+/* Napověda: místo, kam zatoulaný střep patří */
+.mu-strep .ms9-napoveda path { opacity: 0; animation: ms9-napoveda 1.3s ease-in-out 3; }
+@keyframes ms9-napoveda { 50% { opacity: 0.5; } }
+
+/* Kulatá tlačítka otáčení u vybraného střepu */
+.mu-strep .ms9-otoc {
+  position: absolute;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: clamp(38px, 6.4%, 52px);
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--papir);
+  color: var(--inkoust);
+  box-shadow: 0 8px 18px -8px rgba(5, 8, 26, 0.85), 0 0 0 1.5px rgba(43, 36, 32, 0.18);
+  transform: translate(-50%, -50%);
+  touch-action: manipulation;
+  transition: transform 0.15s, background 0.15s;
+}
+.mu-strep .ms9-otoc svg { width: 58%; height: 58%; display: block; }
+.mu-strep .ms9-otoc:hover { background: var(--zlato-2); }
+.mu-strep .ms9-otoc:active { transform: translate(-50%, -50%) scale(0.9); }
+
+/* Zástupci střepů pro klávesnici: nejsou vidět, fokus ukazuje záře střepu */
+.mu-strep .ms9-fokusy {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ——— Zlato ——— */
+
+.mu-strep .ms9-urushi,
+.mu-strep .ms9-cil-obrys,
+.mu-strep .ms9-stetec-lezi,
+.mu-strep .ms9-strep-lom { transition: opacity 0.5s, stroke 0.6s; }
+.mu-strep.ms9-faze-zlato .ms9-urushi { opacity: 1; }
+.mu-strep.ms9-faze-zlato .ms9-urushi path { stroke-dasharray: 1 1; animation: ms9-lak 0.9s ease-out both; }
+@keyframes ms9-lak { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.mu-strep.ms9-faze-zlato .ms9-strep-lom { stroke: #4A2C1C; }
+.mu-strep.ms9-faze-zlato .ms9-cil-obrys { opacity: 0; }
+.mu-strep.ms9-faze-zlato .ms9-stetec-lezi { opacity: 0; }
+/* Ukazatel je štětec (kreslí ho skript), dokud není hotovo */
+.mu-strep.ms9-faze-zlato:not(.ms9-hotovo) .mu-kresba { cursor: none; }
+
+/* Klávesnice: další spára, kterou Enter obtáhne */
+.mu-strep .ms9-dalsi path {
+  stroke: #FFE7A6;
+  stroke-width: 7;
+  stroke-opacity: 0.4;
+  stroke-dasharray: 2 6;
+  animation: ms9-dalsi 0.9s linear infinite;
+}
+@keyframes ms9-dalsi { to { stroke-dashoffset: -16; } }
+
+.mu-strep .ms9-kapka-tvar {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ms9-kapka 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes ms9-kapka { from { transform: scale(0.15); } }
+
+.mu-strep .ms9-hvezda,
+.mu-strep .ms9-trpyt {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.mu-strep .ms9-hvezda { animation: ms9-hvezda 0.9s ease-out both; }
+@keyframes ms9-hvezda {
+  0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  30% { opacity: 1; transform: scale(1.25) rotate(30deg); }
+  100% { opacity: 0; transform: scale(0.5) rotate(90deg); }
+}
+.mu-strep .ms9-trpyt { animation: ms9-trpyt 2.2s ease-in-out infinite both; }
+@keyframes ms9-trpyt {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  45% { opacity: 1; transform: scale(1.1) rotate(25deg); }
+}
+
+/* ——— Hotovo ——— */
+
+.mu-strep .ms9-zare-misky,
+.mu-strep .ms9-svit { transition: opacity 1.6s ease; }
+.mu-strep.ms9-hotovo .ms9-zare-misky,
+.mu-strep.ms9-hotovo .ms9-svit { opacity: 1; }
+/* Štětec se vrátí na podložku */
+.mu-strep.ms9-hotovo .ms9-stetec-lezi { opacity: 1; }
+.mu-strep.ms9-hotovo .ms9-zlato-stopa { filter: url(#ms9-zlata-zare); }
+.mu-strep.ms9-hotovo .ms9-beh { display: inline; }
+.mu-strep.ms9-hotovo .ms9-beh path { opacity: 0; animation: ms9-beh 1.7s ease-in-out 0.25s both; }
+@keyframes ms9-beh {
+  0% { opacity: 0; stroke-dashoffset: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; stroke-dashoffset: -100; }
+}
+
+/* Střípek přijde k slepené misce */
+.mu-strep .ms9-kami {
+  position: absolute;
+  z-index: 3;
+  left: 66.5%;
+  top: 52%;
+  width: 19%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(26%) scale(0.55);
+  transform-origin: 50% 88%;
+  transition: opacity 0.3s ease, transform 0.65s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+.mu-strep.ms9-prisel .ms9-kami { opacity: 1; transform: none; }
+.mu-strep .ms9-kami svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+/* ——— Méně pohybu: hra jde hrát, jen bez ozdob ——— */
+
+@media (prefers-reduced-motion: reduce) {
+  .mu-strep .ms9-vybrany .ms9-strep-zare,
+  .mu-strep .ms9-hledej .ms9-strep-zare,
+  .mu-strep .ms9-napoveda path,
+  .mu-strep .ms9-dalsi path,
+  .mu-strep .ms9-kapka-tvar,
+  .mu-strep .ms9-hvezda,
+  .mu-strep .ms9-trpyt,
+  .mu-strep.ms9-faze-zlato .ms9-urushi path { animation: none; }
+  .mu-strep .ms9-napoveda path { opacity: 0.45; }
+  .mu-strep .ms9-lesk .ms9-strep-lesk { animation: none; opacity: 0; }
+  .mu-strep.ms9-faze-zlato .ms9-urushi path { stroke-dasharray: none; }
+  .mu-strep.ms9-hotovo .ms9-beh { display: none; }
+  .mu-strep .ms9-trpyt { opacity: 0; }
+  .mu-strep .ms9-kami { transform: none; transition: opacity 0.4s ease; }
+  .mu-strep .ms9-otoc,
+  .mu-strep .ms9-zare-misky,
+  .mu-strep .ms9-svit { transition: none; }
+}

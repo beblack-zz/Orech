@@ -1,0 +1,79 @@
+---
+/**
+ * Úvod /svatyne: noc v lese a malá svatyně Ořechu (胡桃神社) — otevřený
+ * rumělkový pavilon se svatyňkou uvnitř, strážní draci, nádržka a destičky ema.
+ * Devět kami je rozesetých po svatyni, každý tam, kam patří; kdo ještě není
+ * nalezený, je na svém místě jen stín. Dokud chybí, je přes cestu provaz
+ * s cedulkou 九 a svítí jen měsíc. Pak provaz spadne, otevřou se dvířka
+ * svatyňky, jeden po druhém se rozsvítí lampiony, okna i lucerny v lese,
+ * vyletí světlušky a dole se otevře losování (Losovani.astro).
+ *
+ * Přepíná to scripts/svatyne/svatyne.ts třídou .je-otevreno; bez skriptu
+ * zůstane zavřeno. Kresba je ve třech vrstvách (./kresba.ts) a postavičky
+ * leží mezi prostřední a přední; kde kdo je, říká data/svatyne.ts.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import { pozadi, svatyne, popredi, SCENA } from "./kresba";
+import { sezeni } from "../../data/svatyne";
+
+/* Světlušky: rozházené po scéně, každá jinou rychlostí (deterministicky, ať se stránka nemění mezi buildy) */
+const svetlusky = Array.from({ length: 26 }, (_, i) => {
+  const r = (n: number) => (Math.sin(i * 12.9898 + n * 78.233) * 43758.5453) % 1;
+  const a = Math.abs(r(1)), b = Math.abs(r(2)), c = Math.abs(r(3));
+  return { x: 4 + a * 92, y: 18 + b * 72, d: 5 + c * 6, z: -(a * 8), dx: (b - 0.5) * 60 };
+});
+---
+<section class="sv-brana" data-hodina="22" aria-labelledby="sv-nadpis">
+  <div class="sv-scena" aria-hidden="true">
+    <div class="sv-pozadi" set:html={pozadi()} />
+    <div class="sv-kresba" set:html={svatyne()} />
+    {sezeni.map((k, i) => (
+      <span
+        class="sv-kami"
+        data-sv-kami={k.id}
+        style={`left:${(k.x / SCENA.sirka) * 100}%;top:${(k.y / SCENA.vyska) * 100}%;width:${(k.w / SCENA.sirka) * 100}%;--i:${i}`}
+      >
+        <Postavicka id={k.id} size={72} varianta="kami" />
+      </span>
+    ))}
+    <div class="sv-popredi" set:html={popredi()} />
+    <div class="sv-svetlusky">
+      {svetlusky.map((s) => (
+        <span style={`left:${s.x.toFixed(1)}%;top:${s.y.toFixed(1)}%;--d:${s.d.toFixed(1)}s;--z:${s.z.toFixed(1)}s;--dx:${s.dx.toFixed(0)}px`} />
+      ))}
+    </div>
+  </div>
+
+  <div class="uvod-text sv-text">
+    <p class="stitek stitek-svetly"><span lang="ja">三</span> · svatyně Ořechu</p>
+    <h1 id="sv-nadpis" class="uvod-nadpis">
+      Za devět kami
+      <em>jeden poklad.</em>
+    </h1>
+    <div class="sv-zamceno">
+      <p class="uvod-perex">
+        Přes cestu ke svatyni je natažený provaz. Spadne, až najdeš všech
+        devět kami, kteří se schovávají po webu. Pak se rozsvítí lampiony
+        a parta tě pustí ke krabičce s omikuji — co je na lístku, se dozvíš
+        až uvnitř.
+      </p>
+      <p class="uvod-pokyn">Máš <b class="sv-pocet">0</b> z 9.<span class="sv-chybi"></span></p>
+      <div class="sv-akce">
+        <button type="button" class="tlacitko sv-omamori">Otevřít omamori</button>
+        <a class="tlacitko sv-tlacitko-svetle" href="/parta-2">Kde začít hledat</a>
+      </div>
+    </div>
+    <div class="sv-otevreno" hidden>
+      <p class="uvod-perex">
+        Provaz spadl a lampiony svítí. Všech devět je doma, každý na svém
+        místě. Uvnitř je krabička s jedinou věštbou — a ta je tvoje.
+      </p>
+      <a class="uvod-dolu" href="#losovani">
+        <span>Ke krabičce s omikuji</span>
+        <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </a>
+    </div>
+  </div>
+
+  <p class="uvod-tategaki sv-tategaki" lang="ja" aria-hidden="true">胡桃神社</p>
+</section>

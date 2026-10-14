@@ -1,0 +1,20 @@
+---
+/**
+ * Lucernička na tyčce, jakou nese malé kami v nočním průvodu (Úvod 2,
+ * /marcel). Patří do obalu vedle <Kami> — styly `.lucerna` a `.pruvod-kami`
+ * jsou v parta2.css: tyčka vyrůstá kami zpoza ramene a papírová lucerna
+ * se na ní houpe.
+ */
+---
+<svg class="lucerna" viewBox="0 0 60 96" aria-hidden="true">
+  <path d="M6 96 C10 60 22 30 44 14" stroke="#5E452E" stroke-width="3" fill="none" stroke-linecap="round" />
+  <g class="lucerna-telo">
+    <path d="M44 14 V22" stroke="#2B2420" stroke-width="1.6" />
+    <rect x="36" y="22" width="16" height="4" rx="1.4" fill="#2B2420" />
+    <ellipse cx="44" cy="41" rx="14" ry="16" fill="#FFB55A" />
+    <ellipse cx="44" cy="39" rx="8" ry="10" fill="#FFE7A8" opacity="0.8" />
+    <path d="M31 33 H57 M30 41 H58 M31 49 H57" stroke="#C4432B" stroke-width="1" opacity="0.45" />
+    <rect x="36" y="56" width="16" height="4" rx="1.4" fill="#2B2420" />
+    <path d="M44 60 V68" stroke="#C4432B" stroke-width="2.4" stroke-linecap="round" />
+  </g>
+</svg>

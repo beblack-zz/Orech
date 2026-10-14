@@ -207,6 +207,7 @@
   margin-top: -14px;
 }
 .o2k-hodiny {
+  position: relative;
   align-self: start;
   margin-top: 26px;
   transform: rotate(3deg);
@@ -214,6 +215,8 @@
 }
 .o2k-hodiny svg,
 .o2k-krabice svg { display: block; width: 100%; height: auto; }
+/* Bílý Střípek v ciferníku: spodek kresby leží na dolním okraji číselníku */
+.skryty.o2k-stripek { transform-origin: 50% 100%; }
 
 .o2k-karton-obal {
   justify-self: center;

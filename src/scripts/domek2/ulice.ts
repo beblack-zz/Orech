@@ -7,7 +7,7 @@
  *
  *   p 0 – 0,22     text odjede, kamera se rozjede k bráně
  *   p 0,26 – 0,5   brána odjíždí za zídku
- *   p 0,45 – 0,86  kamera jede po rampě k dveřím, ty se rozsvítí
+ *   p 0,45 – 0,86  kamera jede po rampě k dveřím, noren se rozhrne, dveře se rozsvítí
  *   p 0,8 – 1      světlo zaplaví obrazovku — a pod ním začíná prohlídka
  *
  * Amplion na lampě pustí hlášení obecního rozhlasu (znělka, bublina
@@ -113,6 +113,8 @@ export function ulice() {
     const s = omez((p - 0.6) / 0.24);
     if (svetloDilny) svetloDilny.style.opacity = s.toFixed(3);
     sekce.style.setProperty("--svetlo", s.toFixed(3));
+    // Noren ve dveřích se rozhrne, než světlo zaplaví obrazovku
+    sekce.style.setProperty("--rozhrnuti", hladce(omez((p - 0.55) / 0.27)).toFixed(3));
     sekce.style.setProperty("--text-pryc", omez((p - 0.02) / 0.2).toFixed(3));
     sekce.style.setProperty("--zar", hladce(omez((p - 0.8) / 0.2)).toFixed(3));
     sekce.classList.toggle("uvnitr", p > 0.18);

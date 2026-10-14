@@ -1,0 +1,142 @@
+---
+/**
+ * Rok dílny na O nás 2 — první rok měsíc po měsíci ve skutečné místnosti
+ * (dřív na Domku 2, tady místo svitku emaki). Milníky jsou stejné jako
+ * na Úvodu 2 (data/uvod2.ts — milniky), jen se dějí v suterénu zeleného
+ * domu: v únoru je tu garáž s vytaženými sekčními vraty, prasklou trubkou
+ * pod stropem, kaluží a příčkou; v březnu příčka padne, stěny dostanou
+ * bílou a taupe a místo vrat přijdou okna; v dubnu kruhy a stoly
+ * z kanceláře, v květnu linky s dřezem a kávovarem… Na konci fotka
+ * zvenku: kde bývala vrata, jsou okna.
+ *
+ * Kresba je z Domku 2 (domek2/kresba/dilna.ts, režim „rok“), měsíce
+ * přepíná scripts/uvod2/rok.ts — stejný skript jako na Úvodu 2.
+ * V každém měsíci se schovává jedna šupinka zlata na kintsugi (data
+ * v onas2.ts — sceny a zlato) a obloha nad rokem jde z noci do večera
+ * jako dřív nad svitkem.
+ *
+ * Od dubna, kdy přijdou stoly a židle, sedí na černém opěradle židle vedle
+ * kruhu schovaná Kapka — černá na černém a nehybná. Patří do hry na hledání kami
+ * (schovej v parta2/sber.ts, voláno z scripts/onas2/hlavni.ts).
+ */
+import { Image } from "astro:assets";
+import Kami from "../parta2/Kami.astro";
+import KapkaSchovka from "../characters/schovka/Kapka.astro";
+import { dilna, DILNA_W, DILNA_H } from "../domek2/kresba/dilna";
+import { milniky, sezonaMesice } from "../../data/uvod2";
+import { sceny } from "../../data/onas2";
+import { kurzy } from "../../data/kurzy";
+import { pocetKurzu } from "../../data/pocty";
+import foto6673 from "../../../images/Dilna/6673.jpg";
+
+const d = dilna("rok", "dr");
+const W = DILNA_W;
+const H = DILNA_H;
+const postava = (id: string, nasobek = 1.45) => {
+  const k = d.kami[id];
+  const w = k.w * nasobek;
+  return `left:${(((k.x - w / 2) / W) * 100).toFixed(3)}%;bottom:${(((H - k.pata - w * 0.12) / H) * 100).toFixed(3)}%;width:${((w / W) * 100).toFixed(3)}%`;
+};
+
+const k0 = kurzy[0];
+const ted = k0
+  ? `v kalendáři ${kurzy.length >= 2 && kurzy.length <= 4 ? "jsou" : "je"} ${pocetKurzu(kurzy.length)}, nejbližší ${k0.date.getDate()}. ${k0.date.getMonth() + 1}. — ${k0.title}`
+  : "chystáme další termíny";
+
+/* Kam se v každém měsíci dívá kamera: střed x, y a kolik ze scény (viewBox 1600 × 1000) */
+const kamery = [
+  "690,560,1200,620",
+  "800,500,1300,640",
+  "760,600,1000,420",
+  "430,500,980,520",
+  "800,520,860,440",
+  "1150,620,820,480",
+  "1180,560,760,520",
+  "760,620,1420,700",
+  d.kamery.prehled.join(","),
+];
+const kroky = [
+  ...milniky.map((m) => ({ m: m.m, mesic: m.mesic, text: m.text, sezona: sezonaMesice(m.m) })),
+  { m: 10, mesic: "Teď", text: ted, sezona: sezonaMesice(new Date().getMonth() + 1) },
+];
+const vsech = kroky.length + 1;
+
+/* Šupinka zlata v měsíci: střed v kresbě (1600 × 1000) a natočení.
+ * Kde přesně, říká nápověda v sešitě zlata (onas2.ts — zlato). */
+const zlatoMista: Record<number, [number, number, number]> = {
+  2: [930, 682, 18], // v kaluži, kde teklo
+  3: [1062, 656, -12], // v kbelíku s barvou
+  4: [700, 640, 8], // pod stolem z kanceláře
+  5: [450, 602, 0], // na skříňce linky
+  6: [1000, 458, -8], // v knihovně
+  7: [1352, 674, 14], // u zásuvky
+  8: [872, 392, 0], // mezi glazurami
+  9: [736, 716, -16], // mezi šlápotami
+  10: [1300, 398, 10], // na regálu s hotovými kusy
+};
+const ZLATO_W = 24;
+const zlatoStyl = ([x, y, u]: [number, number, number]) =>
+  `left:${(((x - ZLATO_W / 2) / W) * 100).toFixed(3)}%;top:${(((y - ZLATO_W / 2) / H) * 100).toFixed(3)}%;width:${((ZLATO_W / W) * 100).toFixed(3)}%;--u:${u}deg`;
+---
+<section class="rok dm-rok" id="rok" aria-labelledby="rok-nadpis" style={`--kroku:${vsech}`}>
+  {kroky.map((_, i) => (
+    <span class="rok-kotva" data-hodina={sceny[i]?.hodina ?? 18.3} style={`top:${(((i + 0.5) / vsech) * 100).toFixed(2)}%`} aria-hidden="true"></span>
+  ))}
+  <span class="rok-kotva" data-hodina="18.6" style="top:96%" aria-hidden="true"></span>
+
+  <div class="rok-scena" data-sezona={kroky[0].sezona}>
+    <div class="rok-ram">
+      <div class="rok-svet">
+        <div class="rez rez-rok dm-rez" data-rez="rok">
+          <svg class="rez-kresba" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={d.svg} />
+          <div class="rez-parta">
+            <span class="rok-kami" data-od="2" data-do="5"><Kami id="kapka" class="rez-kami" style={postava("kapka-kaluz", 1.6)} /></span>
+            <span class="rok-kami" data-od="5"><Kami id="kapka" class="rez-kami" style={postava("kapka")} /></span>
+            <span class="rok-kami" data-od="8"><Kami id="pecinka" class="rez-kami" style={postava("pecinka")} /></span>
+            <span class="rok-kami" data-od="8"><Kami id="hlinka" class="rez-kami" style={postava("hlinka")} /></span>
+            {/* Kapka na černém opěradle židle u kruhu: spodek kresby na spodní hraně opěradla (y 581) */}
+            <span class="rok-kami" data-od="4">
+              <button type="button" class="skryty rok-skryta-kapka" data-skryty="kapka" aria-label="Někdo se tu schovává" style={`left:${((575 / W) * 100).toFixed(3)}%;top:${((561 / H) * 100).toFixed(3)}%;width:${((30 / W) * 100).toFixed(3)}%;animation:none`}>
+                <KapkaSchovka barva="cerna" poza="vykukuje" size={30} class="schovka-staticka" />
+              </button>
+            </span>
+            {kroky.map((k, i) => {
+              const id = sceny[i]?.zlato;
+              const misto = zlatoMista[k.m];
+              if (!id || !misto) return null;
+              return (
+                <span class="rok-kami" data-od={k.m} data-do={k.m + 1}>
+                  <button type="button" class="skryty zlato-supinka" data-sbirka-cil={id} aria-label="Něco se tu třpytí" style={zlatoStyl(misto)}>
+                    <svg viewBox="0 0 40 40" aria-hidden="true">
+                      <path d="M5 15 L17 4 L33 9 L37 25 L23 36 L8 31 Z" fill="url(#zlato-plisek)" stroke="#B5862A" stroke-width="1.2" stroke-linejoin="round" />
+                      <path d="M12 15 L24 11 M15 24 L28 19" stroke="#FFF6D0" stroke-width="1.6" stroke-linecap="round" opacity="0.85" />
+                    </svg>
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rok-hlava">
+      <p class="stitek">2026 · tak jde čas</p>
+      <h2 id="rok-nadpis" class="nadpis-2">Začalo to vodovodní havárií.</h2>
+    </div>
+
+    <ol class="rok-kroky">
+      {kroky.map((k, i) => (
+        <li class="rok-krok" data-krok={i} data-m={k.m} data-sezona={k.sezona} data-kamera={kamery[i] ?? kamery[kamery.length - 1]}>
+          <button type="button" class="rok-mesic">{k.mesic}</button>
+          <p class="rok-text"><b>{k.mesic}</b> {k.text}</p>
+        </li>
+      ))}
+    </ol>
+
+    <figure class="rok-foto">
+      <Image src={foto6673} alt="Okna dílny zvenku: prosklené dveře a dvě pole s nadsvětlíky pod balkonem, před nimi truhlíky s vřesem na šikmé desce a dlažba" width={1100} widths={[480, 760, 1100]} sizes="(min-width: 861px) 30vw, 72vw" format="webp" />
+      <figcaption>Kde bývala vrata, jsou teď okna.</figcaption>
+    </figure>
+  </div>
+</section>

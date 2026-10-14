@@ -138,7 +138,7 @@ export const klice: Klic[] = [
   { id: "pec", nazev: "Od pece", cepicka: "#E2702E", napoveda: "Regulátor pece se zamyká. Klíček bývá na něm.", stitek: "Bez něj pec nepojede." },
   { id: "skrinka", nazev: "Od glazur", cepicka: "#E8B440", napoveda: "Na drátěné polici vedle skříňky s glazurami.", stitek: "Skříňka nad kávovarem." },
   { id: "dvere", nazev: "Od domu", cepicka: "#8A8F94", napoveda: "Na dřevěné desce zídky u šedých dveří.", stitek: "Ten nepůjčujeme. Tam se bydlí." },
-  { id: "garaz", nazev: "Od garáže", cepicka: "#7A5A3E", napoveda: "V únoru ležel v kaluži. Zkus rok dílny.", stitek: "Už nic neodemyká. Garáž je dílna." },
+  { id: "garaz", nazev: "Od garáže", cepicka: "#7A5A3E", napoveda: "Pořád ho to táhne k vodě. Zkus dřez.", stitek: "Už nic neodemyká. Garáž je dílna." },
 ];
 
 /* ——— Kresba a fotka ——— */

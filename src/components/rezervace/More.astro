@@ -16,7 +16,8 @@
  * scény je vidět, počítá skript podle šířky okna; výchozí výřez je pro
  * široké okno.
  */
-import { vlak, delka } from "./vlak";
+import { vlak, delka, SEDADLA, SKLO_Y, SKLO_H } from "./vlak";
+import { samotkaSchovka } from "../characters/schovka/samotka";
 import { NAPISY } from "./cedule-napisy";
 import { nahoda } from "../parta2/tvary";
 
@@ -43,7 +44,26 @@ const napis = (n: { sirka: number }, vyska: number, x: number, y: number, kde: "
 
 /* Ve vlaku sedí stíny — jako ve filmu, tiší a průsvitní */
 const mista = (i: number) => Array.from({ length: 6 }, (_, k) => (r() < 0.45 + (i + k) * 0.02 ? { kdo: "stin" as const } : null));
-const vlakNaPozadi = vlak([{ mista: mista(0) }, { mista: mista(1) }], { smer: 1, trida: "vl-pozadi" });
+/*
+ * V prvním voze se schovává černá Šamotka (hra na hledání kami, scripts/parta2/sber.ts):
+ * v okně, kde už sedí stín cestujícího (poslední obsazené místo vozu), vykukuje před ním přes
+ * žlutý spodní rám okna.
+ * Spodek vykukující kresby (mřížka 32 × 14) je spodní hrana skla. Klikat jde na celé sklo
+ * (more.ts); s vlakem jezdí i v odrazu.
+ */
+const prvniVuz = mista(0);
+const samotkaVOkne = (() => {
+  const w = 18, h = (w * 14) / 32;
+  const misto = prvniVuz.findLastIndex((m) => m);
+  if (misto < 0) throw new Error("More: v prvním voze nikdo nesedí, Šamotka nemá u koho se schovat");
+  /* SEDADLA jsou středy oken, sklo je 22 široké */
+  const okno = SEDADLA[misto] - 11;
+  const ram = SKLO_Y + SKLO_H;
+  const kresba = samotkaSchovka({ barva: "cerna", poza: "vykukuje", velikost: 40, id: "rzs" })
+    .replace(/ width="[^"]*" height="[^"]*"/, ` x="${okno + (22 - w) / 2}" y="${(ram - h).toFixed(2)}" width="${w}" height="${h.toFixed(2)}"`);
+  return `<g class="rz-samotka" data-skryty="samotka"><rect class="rz-samotka-zasah" x="${okno}" y="${SKLO_Y}" width="22" height="${SKLO_H}" fill="none"/>${kresba}</g>`;
+})();
+const vlakNaPozadi = vlak([{ mista: prvniVuz, navic: samotkaVOkne }, { mista: mista(1) }], { smer: 1, trida: "vl-pozadi" });
 
 /* Vlnky: hustší u obzoru, k divákovi řidší a tlustší. Délky čárek jsou v pixelech. */
 const vlnky: { y: number; w: number; d: string; o: number; svetla: boolean; t: number }[] = [];

@@ -1,11 +1,15 @@
 ---
 /**
- * Závěr /parta-3: svítání. Lampiony zhasly a parta je zpátky dole na louce
- * před dílnou — tam, kde Parta 2 ráno začíná. Stojí tu malé podoby Na
- * schovávanou; kdo na některou klepne, uslyší, co říká po představení.
+ * Závěr /parta-3: svítání. Lampiony zhasly a parta je zpátky dole pod
+ * ořechem — na tom samém obrázku, kterým Parta 2 ráno začíná (kopce, pole,
+ * velký ořech s provazem a louka, parta2/Krajina.astro). Jen dům na stráni
+ * je ten skutečný: zelený dům z Luční, miniatura z Domku 2. V dílně pod
+ * balkony se už svítí.
+ *
+ * V trávě stojí malé podoby Na schovávanou; kdo na některou klepne, uslyší,
+ * co říká po představení.
  */
-import Louka from "../parta2/Louka.astro";
-import Dilna from "../parta2/Dilna.astro";
+import Krajina from "../parta2/Krajina.astro";
 import { more } from "./chram";
 import { pecinkaSchovka } from "../characters/schovka/pecinka";
 import { bublinkaSchovka } from "../characters/schovka/bublinka";
@@ -38,32 +42,32 @@ const rada: { id: PostavaId; v: number; dole: number }[] = [
   { id: "samotka", v: 1.1, dole: 0 },
 ];
 ---
-<section class="p3-zaver" id="rano" data-hodina="5.5" aria-labelledby="zaver-nadpis">
+<section class="p3-zaver" id="rano" data-hodina="29.6" aria-labelledby="zaver-nadpis">
   <div class="p3-zaver-oblaka" aria-hidden="true" set:html={more("mo-zaver", 14, { rad: 2 })} />
 
-  <div class="p3-zaver-text papir">
-    <p class="stitek">Svítání · <span lang="ja">夜明け</span></p>
-    <h2 id="zaver-nadpis" class="nadpis-2">Ráno jsou zpátky dole.</h2>
-    <p>
-      Až se rozední, lampiony zhasnou a parta sejde po schodech do dílny. Přes den
-      zase hlídá hlínu, vodu a oheň, jako by se nic nedělo. Jen Hlínka je ospalejší
-      než jindy a Kapka má na geta ještě trochu oblaku.
-    </p>
-    <div class="p3-zaver-akce">
-      <a class="tlacitko" href="/parta-2">Parta přes den</a>
-      <a class="tlacitko tlacitko-obrys" href="/rezervace">Přijít do dílny</a>
-    </div>
-  </div>
+  <div class="p3-zaver-obraz">
+    <Krajina dum="domek" seed={4} id="zaver" />
 
-  <div class="p3-zaver-scena">
-    <Dilna class="p3-zaver-dilna" />
-    <Louka class="p3-zaver-louka" seed={4} />
-    <div class="p3-zaver-parta" role="group" aria-label="Parta po představení — klepni na kohokoli">
+    <div class="p3-zaver-parta" role="group" aria-label="Parta ráno pod ořechem — klepni na kohokoli">
       {rada.map((k, i) => (
-        <button type="button" class="p3-mala" data-mala={k.id} style={`--v:${k.v};--dole:${k.dole}px;--sp-z:${(-i * 0.7).toFixed(1)}s`} aria-label={`${jmeno(k.id)} — co říká po představení`}>
+        <button type="button" class="p3-mala" data-mala={k.id} style={`--v:${k.v};--dole:${k.dole}px;--sp-z:${(-i * 0.7).toFixed(1)}s`} aria-label={`${jmeno(k.id)} — co říká ráno`}>
           <Fragment set:html={mala[k.id]({ barva: "logo", velikost: 56, id: uid() })} />
         </button>
       ))}
+    </div>
+
+    <div class="p3-zaver-text papir">
+      <p class="stitek">Svítání · <span lang="ja">夜明け</span></p>
+      <h2 id="zaver-nadpis" class="nadpis-2">Ráno jsou zpátky dole.</h2>
+      <p>
+        Až se rozední, lampiony zhasnou a parta sejde po schodech do dílny. Přes den
+        zase hlídá hlínu, vodu a oheň, jako by se nic nedělo. Jen Hlínka je ospalejší
+        než jindy a Kapka má na geta ještě trochu oblaku.
+      </p>
+      <div class="p3-zaver-akce">
+        <a class="tlacitko" href="/parta-2">Parta přes den</a>
+        <a class="tlacitko tlacitko-obrys" href="/rezervace">Přijít do dílny</a>
+      </div>
     </div>
   </div>
 </section>

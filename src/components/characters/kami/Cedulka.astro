@@ -35,6 +35,8 @@ const tvar = "M56 66 L90 46 L124 66 L124 134 Q124 140 118 140 L62 140 Q56 140 56
   <ellipse cx="90" cy="154" rx="26" ry="5" fill="#3A2E28" opacity="0.12" />
   <g class="cedulka-telo">
     <g filter={`url(#${u}-tah)`}>
+      {/* kroucená šňůrka kōhaku s tmavým lemem, jako na podobě Kami */}
+      <path d="M90 22 Q80 40 90 60" stroke="#5E160B" stroke-width="3.8" fill="none" stroke-linecap="round" />
       <path d="M90 22 Q80 40 90 60" stroke="#B84A2B" stroke-width="2.6" fill="none" stroke-linecap="round" />
       <path d="M90 22 Q80 40 90 60" stroke="#FBF7EE" stroke-width="2.6" fill="none" stroke-dasharray="3 3" />
       <path d={tvar} fill={`url(#${u}-drevo)`} stroke="#8A6A48" stroke-width="1.6" stroke-linejoin="round" />

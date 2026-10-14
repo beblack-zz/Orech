@@ -6,9 +6,12 @@
  *
  * Patička je na každé stránce nového vzhledu, proto se spouští na
  * astro:page-load (i po přechodu bez načtení) a ne přes stranka().
+ *
+ * Za trilobitem vykukuje schovaná Hlínka (hra na hledání, schovej v sber.ts).
  */
 import * as zvuk from "./zvuk";
 import { klid } from "./stav";
+import { schovej } from "./sber";
 import { vrstvy, poznamkyKopani } from "../../data/paticka";
 
 export function initPaticka() {
@@ -25,6 +28,8 @@ export function initPaticka() {
   const li = [...pata.querySelectorAll<HTMLElement>(".vrstva")];
   akce.hidden = false;
   let odkryto = 0;
+
+  pata.querySelectorAll<HTMLElement>("[data-skryty]").forEach(schovej);
 
   const drobky = (barva: string) => {
     if (klid) return;

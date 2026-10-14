@@ -5,50 +5,116 @@ import { uid } from "../dospele/uid";
 interface Props { class?: string; size?: number; }
 const { class: cls = "", size = 64 } = Astro.props;
 const u = uid();
+
+/*
+ * Klobouk kasa je z podoby Kami (scripts/bublinka-strasidlo, bubKlobouk):
+ * stejný obrys, jen místo šesti pásů pletení tři a třepení řidší.
+ */
+const KASA = "M30 71 C52 63 71 51 80 42.4 Q90 33.6 100 42.4 C109 51 128 63 150 71 Q90 84 30 71 Z";
+const PASY = ["M76.2 48.3 Q90 54.5 103.8 48.3", "M60.9 56.7 Q90 69.7 119.1 56.7", "M44 65.2 Q90 85.7 136 65.2"];
+const ZEBRA = "M90 38.6 Q63.6 53.8 42 73.3 M90 38.6 Q70.2 54.7 54 75.2 M90 38.6 Q76.8 55.3 66 76.5 M90 38.6 Q83.4 55.7 78 77.2 M90 38.6 Q90 55.9 90 77.5 M90 38.6 Q96.6 55.7 102 77.2 M90 38.6 Q103.2 55.3 114 76.5 M90 38.6 Q109.8 54.7 126 75.2 M90 38.6 Q116.4 53.8 138 73.3";
+const TREPENI = "M30 69.5 L21.3 72.4 L30.3 71.4ZM32.4 70.2 L27.2 75.3 L33.4 71.8ZM37.3 71.1 L31.5 75.8 L38.2 72.8ZM41.9 72.1 L38.2 77.2 L43.2 73.6ZM46.2 72.9 L42.9 78 L47.5 74.2ZM50.4 73.5 L47.7 78.3 L51.7 74.8ZM51.9 74.1 L50.8 80.1 L53.7 74.7ZM57.5 74.9 L57.3 80 L59.3 75.3ZM60.3 75.3 L60.7 80 L62.2 75.5ZM65.4 75.6 L65.4 79.1 L67.2 76.2ZM68.4 75.8 L68.2 79.3 L70.2 76.5ZM73.8 76.5 L74.8 79.8 L75.7 76.4ZM76 76.3 L76.4 78.9 L77.8 76.8ZM82 76.5 L82.1 79.3 L83.8 77.2ZM85.7 76.6 L86.1 79 L87.5 77.2ZM89.6 77 L90.8 79.3 L91.5 76.8ZM94.1 76.9 L95.1 78.7 L96 76.8ZM98.2 76.5 L98.8 78.9 L100 77ZM101.7 76.7 L102.8 79.5 L103.6 76.6ZM105.8 76.7 L107.4 79.1 L107.6 76.1ZM109.3 76.1 L110.2 79.1 L111.2 76.2ZM112.6 75.9 L113.6 79.3 L114.5 75.9ZM118.1 76 L120.7 78.4 L119.6 74.8ZM120.3 75.3 L121.8 78.5 L122.1 74.9ZM126.1 75.2 L129.8 77.3 L127.3 73.7ZM129.1 74.6 L131.9 77.5 L130.7 73.5ZM133.3 74.2 L136.8 76.3 L134.5 72.7ZM136.8 73.7 L141.6 75.5 L137.7 72ZM141.3 72.7 L146.9 78 L142.7 71.4ZM145.9 72.2 L151 72.4 L146.1 70.3ZM149.3 71.3 L154.7 73.7 L150.2 69.6Z";
+/** Svěšená dlaň ducha, kolem zápěstí; prsty jen naznačené. */
+const DLAN = "M-3.2 -1 C-4.6 6.5 -2.6 13 0 13.6 C2.6 13 4.6 6.5 3.2 -1 Z";
+/* duhová blána: kde na kouli prosvítá která barva */
+const BLANA: [string, number, number, number, number][] = [["#F4B6CB", 68, 114, 24, 17], ["#B9E6D4", 116, 100, 17, 27], ["#CBC3F0", 94, 134, 27, 10]];
 ---
 {/*
-  YŌKAI, ne kami. Jediná raubířka v partě, takže jako jediná nemá nic
-  svatého — místo toho kolem ní plavou dvě bludičky onibi. Tělo je napůl
-  průhledné, je to přece vzduch. Oči jsou přivřené shora: ví něco, co ty ne.
+  YŌKAI, ne kami — jako na podobě Kami je z ní strašidlo. Koule vzduchu
+  s duhovou blánou, na hlavě černý slaměný klobouk kasa (šňůrky má pod
+  pusou na mašli) a ručky svěšené jako duch na starých svitcích. Kolem ní
+  plavou dvě bludičky hitodama. Oči přivřené shora: ví něco, co ty ne.
 */}
 <svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={cls} aria-hidden="true">
   <defs>
-    <Kresba id={u} />
+    <Kresba id={u} zrno={false} />
     <radialGradient id={`${u}-telo`} cx="0.38" cy="0.32" r="0.75">
-      <stop offset="0" stop-color="#FBF6EE" stop-opacity="0.75" />
-      <stop offset="0.7" stop-color="#EFE3D0" stop-opacity="0.85" />
-      <stop offset="1" stop-color="#D9C9B2" stop-opacity="0.95" />
+      <stop offset="0" stop-color="#FBF6EE" stop-opacity="0.55" />
+      <stop offset="0.62" stop-color="#F2E8D8" stop-opacity="0.72" />
+      <stop offset="0.9" stop-color="#E2D3BC" stop-opacity="0.9" />
+      <stop offset="1" stop-color="#D2C1A6" stop-opacity="0.96" />
     </radialGradient>
+    {BLANA.map(([barva], i) => (
+      <radialGradient id={`${u}-blana-${i}`}>
+        <stop offset="0" stop-color={barva} stop-opacity="0.75" />
+        <stop offset="1" stop-color={barva} stop-opacity="0" />
+      </radialGradient>
+    ))}
+    <radialGradient id={`${u}-zare`}>
+      <stop offset="0" stop-color="#B6DCEE" stop-opacity="0.75" />
+      <stop offset="0.45" stop-color="#8CC0DA" stop-opacity="0.24" />
+      <stop offset="1" stop-color="#8CC0DA" stop-opacity="0" />
+    </radialGradient>
+    <clipPath id={`${u}-bublina`}><circle cx="90" cy="96" r="45.4" /></clipPath>
   </defs>
 
   <ellipse class="bublinka-stin" cx="90" cy="156" rx="20" ry="5" fill="#6B5D4F" opacity="0.18" />
 
-  {/* Bludičky — záře pod, světlé jádro navrch */}
-  <g class="kami-onibi">
-    <path d="M36 72 C30 64 32 54 38 46 C38 54 44 58 44 66 C44 72 40 76 36 72 Z" fill="#8C949B" opacity="0.55" filter={`url(#${u}-mlha)`} />
-    <path d="M37 70 C33 64 34 57 38 51 C39 57 42 60 42 65 C42 69 40 72 37 70 Z" fill="#E6EBED" />
-  </g>
-  <g class="kami-onibi kami-onibi-2">
-    <path d="M146 58 C141 51 142 43 147 37 C147 43 152 47 152 53 C152 58 149 61 146 58 Z" fill="#8C949B" opacity="0.55" filter={`url(#${u}-mlha)`} />
-    <path d="M147 57 C144 52 144 47 147 42 C148 47 150 49 150 53 C150 56 149 58 147 57 Z" fill="#E6EBED" />
-  </g>
+  {/* Bludičky hitodama — kulatá hlavička, ocásek vlaje vzhůru; záře, modrý lem a světlé jádro */}
+  {[[0, -18, 1], [112, 66, -1]].map(([dx, dy, smer], i) => (
+    <g class={`kami-onibi ${i ? "kami-onibi-2" : ""}`} transform={`translate(${dx} ${dy})`}>
+      <circle cx="38" cy="64" r="14" fill={`url(#${u}-zare)`} />
+      <g transform={`translate(38 0) scale(${smer} 1) translate(-38 0)`}>
+        <path d="M33.4 64 C32.6 58 35.6 54.4 37 50 C38.2 46.4 37.2 43.2 35.2 40 C40.4 42.4 42.6 46.8 41.6 51.6 C40.8 55.6 42.6 59.4 42.6 64 A4.6 4.6 0 0 1 33.4 64 Z" fill="#58A9C4" opacity="0.6" />
+        <path d="M34.8 64.2 C34.4 59.4 36.8 56.2 38 52.4 C38.8 49.8 38.6 47.4 37.6 45.4 C40.2 47.4 40.8 50.4 40.2 53.2 C39.6 56.4 41.2 60 41.2 64.2 A3.2 3.2 0 0 1 34.8 64.2 Z" fill="#DDF6F0" />
+      </g>
+      <circle cx="37.6" cy="64.4" r="1.8" fill="#FFFFFF" />
+    </g>
+  ))}
 
   <g class="bublinka-telo">
+    {/* Ručky ducha: paže za koulí, dlaně svěšené */}
+    <g filter={`url(#${u}-tah)`}>
+      <path d="M47.6 112 Q46.9 98.5 35 105 M132.4 112 Q133.1 98.5 145 105" stroke="#6B5D4F" stroke-width="6" stroke-linecap="round" />
+      <path d="M47.6 112 Q46.9 98.5 35 105 M132.4 112 Q133.1 98.5 145 105" stroke="#F1E7D7" stroke-width="4.4" stroke-linecap="round" />
+      <path d={DLAN} transform="translate(35 105) rotate(8)" fill="#F1E7D7" stroke="#6B5D4F" stroke-width="0.9" stroke-linejoin="round" />
+      <path d={DLAN} transform="translate(145 105) rotate(-8)" fill="#F1E7D7" stroke="#6B5D4F" stroke-width="0.9" stroke-linejoin="round" />
+    </g>
+
     <g filter={`url(#${u}-tah)`}>
       <circle cx="90" cy="96" r="46" fill={`url(#${u}-telo)`} stroke="#6B5D4F" stroke-width="1.6" />
-      <path d="M126 112 A40 40 0 0 1 98 136" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
-      <ellipse cx="71" cy="76" rx="13" ry="8" fill="#FFFFFF" opacity="0.85" transform="rotate(-35 71 76)" />
     </g>
+    <g clip-path={`url(#${u}-bublina)`}>
+      {BLANA.map(([, x, y, rx, ry], i) => <ellipse cx={x} cy={y} rx={rx} ry={ry} fill={`url(#${u}-blana-${i})`} />)}
+      {/* stín krempy na čele */}
+      <path d="M30 71 Q90 84 150 71 L150 77 Q90 99 30 77 Z" fill="#17121C" opacity="0.22" />
+    </g>
+    <path d="M126 112 A40 40 0 0 1 98 136" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.72" />
+    <ellipse cx="62" cy="96" rx="5" ry="2.6" fill="#FFFFFF" opacity="0.7" transform="rotate(-60 62 96)" />
+
+    {/* Šňůrky klobouku pod bradu a mašle */}
+    <g stroke="#1C1918" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M57 77 C49.6 98 60 122 86.6 130.6 M123 77 C130.4 98 120 122 93.4 130.6" />
+      <path d="M90 131 c-5 -4.8 -9.4 -1 -6.6 2.6 c1.7 2 4.8 0.4 6.6 -2.6 c5 -4.8 9.4 -1 6.6 2.6 c-1.7 2 -4.8 0.4 -6.6 -2.6 Z M89 132 l-2.8 6.4 M91 132 l2.8 6.4" />
+    </g>
+    <circle cx="90" cy="131.4" r="1.5" fill="#1C1918" />
+
+    {/* Kasa: pletený kužel s roztřepenou krempou */}
+    <g filter={`url(#${u}-tah)`}>
+      <path d={TREPENI} fill="#1C1918" stroke="#0D0B0A" stroke-width="0.3" stroke-linejoin="round" />
+      <path d={KASA} fill="#1C1918" stroke="#0D0B0A" stroke-width="1.3" stroke-linejoin="round" />
+      <path d={ZEBRA} stroke="#3A3531" stroke-width="0.7" />
+      {PASY.map((d) => (
+        <g>
+          <path d={d} stroke="#0D0B0A" stroke-width="1.6" />
+          <path d={d} stroke="#5C564E" stroke-width="1.1" stroke-dasharray="2.3 1.5" />
+        </g>
+      ))}
+      <path d="M30 71 Q90 84 150 71" stroke="#0D0B0A" stroke-width="2.4" stroke-linecap="round" />
+      <ellipse cx="90" cy="41.6" rx="6.4" ry="2.4" fill="#0D0B0A" />
+      <path d="M45 65.6 C60 59 73 50.6 81.6 43.4" stroke="#9A9388" stroke-width="2.8" stroke-linecap="round" opacity="0.3" />
+    </g>
+
     <g class="tvar">
-      <g filter={`url(#${u}-mlha)`} fill="#C87E4E" opacity="0.4">
-        <ellipse cx="69" cy="108" rx="6" ry="4" />
-        <ellipse cx="111" cy="108" rx="6" ry="4" />
+      <g filter={`url(#${u}-mlha)`} fill="#D98A62" opacity="0.45">
+        <ellipse cx="69" cy="108" rx="6.4" ry="4.2" />
+        <ellipse cx="111" cy="108" rx="6.4" ry="4.2" />
       </g>
       <path d="M73 92 h10 a5 5 0 0 1 -10 0 Z" fill="#3A2E28" />
       <path d="M97 92 h10 a5 5 0 0 1 -10 0 Z" fill="#3A2E28" />
       <circle cx="80" cy="94.6" r="1.2" fill="#FFF8F2" />
       <circle cx="104" cy="94.6" r="1.2" fill="#FFF8F2" />
-      <path d="M71 89 L84 91 M96 91 L109 89" stroke="#3A2E28" stroke-width="1.4" stroke-linecap="round" />
+      <path d="M71 89 L84 91 M96 91 L109 89" stroke="#3A2E28" stroke-width="1.5" stroke-linecap="round" />
       <path d="M79 110 Q85 116 90 110 Q95 104 101 110" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none" />
     </g>
   </g>

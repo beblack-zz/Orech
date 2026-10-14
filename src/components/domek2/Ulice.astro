@@ -1,10 +1,11 @@
 ---
 /**
- * Ulice — první obrazovka Domku 2. Zelený dům v Luční tak, jak ho člověk
+ * Ulice — druhá obrazovka Domku 2 (první je svítání v Uvod.astro). Zelený dům v Luční tak, jak ho člověk
  * vidí z protějšího chodníku (kresba obkreslená z fotky 6670). Sekce je
  * vyšší než okno a scéna v ní stojí: scrollem kamera dojede k bráně,
  * brána odjede doleva za zídku, kamera sjede po rampě k prosklenými
- * dveřím dílny a ty se rozsvítí — a pod tím začíná prohlídka.
+ * dveřím dílny, noren v nich se rozhrne a dveře se rozsvítí — a pod tím
+ * začíná prohlídka. Noren je ten z Úvodu 2, večer (Vecer.astro) je uklizený.
  * Řídí scripts/domek2/ulice.ts.
  *
  * Na lampě visí amplion obecního rozhlasu — kliknutím zahraje znělku
@@ -13,6 +14,7 @@
  */
 import Kami from "../parta2/Kami.astro";
 import Klic from "./Klic.astro";
+import Noren from "../uvod2/Noren.astro";
 import { ulice, ULICE, ULICE_MISTA } from "./kresba/ulice";
 import { body } from "../parta2/tvary";
 import { mapa, kontakt } from "../../data/uvod2";
@@ -34,7 +36,9 @@ const postava = (x: number, pata: number, w: number) =>
   `left:${procX(x - w / 2)}%;bottom:${(((V.y + V.h - pata - w * 0.12) / V.h) * 100).toFixed(3)}%;width:${((w / V.w) * 100).toFixed(3)}%`;
 
 const M = ULICE_MISTA;
-const kresba = ulice({ id: "ul", brana: true });
+// Noren visí ve dveřích za bránou: kresba je ve dvou vrstvách a on mezi nimi
+const kresbaVzadu = ulice({ id: "ul", brana: true, vrstva: "vzadu" });
+const kresbaVpredu = ulice({ id: "ul", brana: true, vrstva: "vpredu" });
 const castice = body(12, 518, 100, 100);
 /** Cíle kamery pro skript: brána a dveře v podílech rámu kresby */
 const cile = JSON.stringify({
@@ -45,8 +49,10 @@ const cile = JSON.stringify({
 <section class="ulice" id="ulice" data-hodina="8.4" data-sezona={sezona} data-cile={cile} aria-labelledby="ulice-nadpis">
   <div class="ulice-scena">
     <div class="ulice-svet">
-      <svg class="ulice-kresba" viewBox={`${V.x} ${V.y} ${V.w} ${V.h}`} aria-hidden="true" set:html={kresba} />
+      <svg class="ulice-kresba" viewBox={`${V.x} ${V.y} ${V.w} ${V.h}`} aria-hidden="true" set:html={kresbaVzadu} />
       <span class="ulice-svetlo" style={misto(557, 870, 627, 1038)} aria-hidden="true"></span>
+      <Noren href={null} barvy="logo" class="ulice-noren" style={misto(557, 869, 627, 948)} />
+      <svg class="ulice-kresba" viewBox={`${V.x} ${V.y} ${V.w} ${V.h}`} aria-hidden="true" set:html={kresbaVpredu} />
 
       <a class="ulice-dvere" href="#prohlidka" style={misto(553, 866, 630, 1040)} aria-label="Dveře dílny — jít dovnitř"></a>
       <button type="button" class="ulice-rozhlas" style={misto(326, -6, 420, 62)} aria-label="Obecní rozhlas — pustit hlášení" aria-controls="rozhlas-hlaseni" aria-expanded="false"></button>
@@ -66,7 +72,7 @@ const cile = JSON.stringify({
 
     <div class="ulice-text">
       <p class="stitek">{kontakt.ulice} · {kontakt.obec} · dům se zeleným štítem</p>
-      <h1 id="ulice-nadpis" class="ulice-nadpis">Dílna je v zeleném domě. <em>Dole, kde bývala garáž.</em></h1>
+      <h2 id="ulice-nadpis" class="ulice-nadpis">Dílna je v zeleném domě. <em>Dole, kde bývala garáž.</em></h2>
       <p class="ulice-perex">
         Z ulice projdeš posuvnou bránou a sejdeš po rampě dolů. Na jejím konci
         jsou velká bílá okna — a za nimi kruhy, stoly a pec.

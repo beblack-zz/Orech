@@ -89,5 +89,7 @@ export function initZvonkohra(kresba: SVGSVGElement) {
     },
     /** Tah štětce v hlavičce (tah.ts) zavadil o závěs */
     cukni: (sila: number) => zk.cukni(sila),
+    /** Vítr zleva doprava (px/s) pro závěs s kami (zaves.ts) */
+    vitrX: () => zk.vitrX,
   };
 }

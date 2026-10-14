@@ -62,7 +62,7 @@ const scroll = delka > 1;
       </p>
       <h2 class="zast-jmeno" id={`${z.id}-jmeno`}>{p.name}</h2>
       <p class="zast-druh"><b>{k.druh}</b> · {k.kdo}</p>
-      <p class="zast-text">{z.text}</p>
+      <p class="zast-text">{z.text}{z.pokyn && ` ${z.pokyn}`}</p>
       <slot name="ovladani" />
       <dl class="zast-fakta">
         <div><dt>Hlídá</dt><dd>{p.hlida.replace(/^hlídá /, "")}</dd></div>

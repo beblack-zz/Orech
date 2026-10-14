@@ -2,9 +2,7 @@
  * Vstup pro /o-nas-2. Obloha, hlavička, zvuky a klikací kami jsou
  * společné s ostatními stránkami nového vzhledu; zlato obsluhuje obecná
  * sbírka (parta2/sbirka.ts), zbytek je vlastní O nás.
- *
- * Svitek si měří výšku sekce dřív než obloha své kotvy — proto je
- * svitek() před initNebe().
+ * Rok dílny jede na stejném skriptu jako na Úvodu 2 (uvod2/rok.ts).
  */
 import { stranka } from "../parta2/prechody";
 import { spust } from "../parta2/stav";
@@ -13,7 +11,8 @@ import { initKami } from "../parta2/kami";
 import { hlavicka } from "../parta2/hlavicka";
 import { initSbirka } from "../parta2/sbirka";
 import { zlato } from "../../data/onas2";
-import { svitek } from "./svitek";
+import { rok } from "../uvod2/rok";
+import { schovej } from "../parta2/sber";
 import { pocatek } from "./pocatek";
 import { rukopisy } from "./rukopisy";
 import { enso } from "./enso";
@@ -24,8 +23,10 @@ import { foto } from "./foto";
 stranka("o-nas-2", () => {
   hlavicka();
   initKami();
-  svitek();
   initNebe();
+  rok();
+  /* Kapka schovaná na opěradle židle v roce dílny — hra na hledání kami */
+  document.querySelectorAll<HTMLElement>(".rez-rok [data-skryty]").forEach(schovej);
   const prekresliMisku = kintsugi();
   initSbirka({
     klic: "onas2-zlato",
@@ -47,8 +48,8 @@ stranka("o-nas-2", () => {
       text: "Střípek má zlata dost. Dole u misky můžeš spáry zalít — prasklina se neschovává, stane se tou nejhezčí částí.",
     },
   });
-  /* „Ke svitku“ v sešitě zlata: zavřít dialog, odkaz pak dojede sám */
-  document.querySelector("[data-zlato-ke-svitku]")?.addEventListener("click", () => {
+  /* „K roku dílny“ v sešitě zlata: zavřít dialog, odkaz pak dojede sám */
+  document.querySelector("[data-zlato-k-roku]")?.addEventListener("click", () => {
     document.querySelector<HTMLDialogElement>("[data-sbirka-dialog]")?.close();
   });
   pocatek();

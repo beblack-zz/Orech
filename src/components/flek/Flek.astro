@@ -1,0 +1,194 @@
+---
+/**
+ * Tušový flek — malá kaňka rozpité tuše, která sedí někde na stránce,
+ * pokaždé jinde. Je to táž skvrna, ve které hrají scény „Tušový lem“
+ * z /marcel, jen prázdná a malá. Když na ni člověk klepne, rozlije se,
+ * někdo z party v ní odehraje svůj kus (choreografie z divadla na
+ * /parta-3) a flek zase zmizí. Dřív ho zavře křížek, klepnutí do scény
+ * nebo Esc.
+ *
+ * Tady je jen kaňka a seznam kusů, ze kterých se losuje (v data/parta3.ts
+ * mají `tus`). Scéna sama se na stránku nedává — skript
+ * (scripts/flek/flek.ts) si ji i s choreografií stáhne až po kliknutí,
+ * takže stránka kvůli fleku neztěžkne. Bez skriptu není vidět nic.
+ *
+ * `mimo` je selektor míst, kam flek nesmí: na odkazy, tlačítka a text si
+ * dává pozor sám a vyhne se i nočním sekcím (data-hodina), kde by černá
+ * tuš na tmavém nebi nebyla vidět; stránka mu k tomu přidá své panely
+ * a jiné tmavé kusy. Na stránku ho dává patička (parta2/Paticka.astro,
+ * prop flekMimo) a spouští hlavička (initFlek v parta2/hlavicka.ts).
+ *
+ * Id filtrů mají prefix `flek-`; na stránce smí být jen jeden.
+ */
+import { tusLem } from "../../scripts/stripek-zlato/spolecne.js";
+import { ucinkujici } from "../../data/parta3";
+import { parta } from "../../data/parta";
+
+interface Props { mimo?: string; }
+const { mimo = "" } = Astro.props;
+
+const BARVA = "#101229";
+const T = tusLem("flek", { seed: 9, barva: BARVA, lem: "#2B2E55" });
+/* pár kapek, které odlétly vedle — podle nich je i takhle malá skvrna poznat jako kaňka, ne jako tečka */
+const kapky = `<g fill="${BARVA}" filter="url(#flek-tus)">${[[171, 30, 9], [186, 52, 4.5], [16, 163, 6.5], [-2, 148, 3.2]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g>`;
+/* Titulek pod scénou je tah štětcem stejnou tuší: tělo tahu, světlejší rozpitý lem a suchý konec
+   s vlákny vpravo. Roztáhne se pod text (preserveAspectRatio none) — vodorovně natažený šum
+   filtru pak vypadá jako stopa suchého štětce, ne jako chyba. */
+const tah = `<defs>
+  <filter id="flek-tah" x="-6%" y="-40%" width="112%" height="180%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.16" numOctaves="3" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feGaussianBlur in="d" stdDeviation="0.35"/>
+  </filter>
+  <filter id="flek-tah-lem" x="-8%" y="-60%" width="116%" height="220%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.1" numOctaves="2" seed="12" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feGaussianBlur in="d" stdDeviation="2.2"/>
+  </filter>
+</defs>
+<path d="M4 31 C30 12 110 9 210 10 C300 11 370 9 397 22 C401 33 392 46 368 50 C290 56 190 55 100 54 C50 53 14 49 4 31 Z" fill="#2B2E55" opacity="0.5" filter="url(#flek-tah-lem)"/>
+<path d="M9 31 C34 16 112 13 208 14 C296 15 360 13 386 23 C392 31 384 42 362 45 C288 51 192 50 104 49 C56 48 20 45 9 31 Z" fill="${BARVA}" filter="url(#flek-tah)"/>
+<g stroke="${BARVA}" stroke-linecap="round" fill="none" filter="url(#flek-tah)" opacity="0.85">
+  <path d="M352 19 C372 18 388 20 398 23" stroke-width="2.2"/>
+  <path d="M356 47 C374 46 388 43 397 39" stroke-width="1.6"/>
+  <path d="M340 33 C366 32 384 33 399 32" stroke-width="1.2"/>
+</g>
+<g fill="${BARVA}" filter="url(#flek-tah)"><circle cx="16" cy="51" r="2.4"/><circle cx="6" cy="45" r="1.3"/><circle cx="394" cy="50" r="1.6"/></g>`;
+const kusy = ucinkujici.flatMap((u) =>
+  u.kusy.filter((k) => k.tus).map((k) => ({ kdo: u.id, kus: k.id, jmeno: parta.find((p) => p.id === u.id)!.name, nazev: k.nazev })),
+);
+---
+<div class="flek-vrstva" data-flek data-mimo={mimo} data-kusy={JSON.stringify(kusy)}>
+  <div class="flek" data-stav="ceka" hidden>
+    <span class="flek-dech"><svg class="flek-tus" viewBox="0 0 180 180" aria-hidden="true" focusable="false" set:html={`<defs>${T.defs}</defs>${T.skvrna}${kapky}`} /></span>
+    <div class="flek-plocha" aria-hidden="true"></div>
+    {/* Jedno tlačítko na všechno: malý flek rozlije, rozlitý zavře. Zároveň kryje scénu před myší, ať se neplete do choreografie */}
+    <button type="button" class="flek-tlacitko" aria-label="Tušový flek. Klepni a někdo z party v něm zahraje."></button>
+    {/* Křížek pro jistotu: holý černý v rohu vedle kaňky — flek nesedí v noci, takže je na obloze i na moři vidět */}
+    <button type="button" class="flek-krizek" aria-label="Zavřít představení" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /></svg>
+    </button>
+    <p class="flek-titulek" aria-live="polite"><span class="flek-titulek-obal"><span class="flek-titulek-text"></span><svg class="flek-titulek-tah" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true" focusable="false" set:html={tah} /></span></p>
+  </div>
+</div>
+
+<style is:global>
+  /* Scénu a její vrstvy vyrábí skript, proto globálně */
+  .flek-vrstva { position: absolute; left: 0; top: 0; width: 100%; height: 0; z-index: 40; pointer-events: none; }
+  .flek { position: absolute; pointer-events: auto; }
+  .flek[hidden] { display: none; }
+  .flek[data-stav="mizi"] { opacity: 0; scale: 0.12; pointer-events: none; transition: opacity 0.8s ease-in, scale 0.9s cubic-bezier(0.6, 0, 0.9, 0.4); }
+
+  .flek-dech, .flek-plocha, .flek-tus { position: absolute; inset: 0; }
+  .flek-dech { animation: flek-dech 5.6s ease-in-out infinite; transition: opacity 0.5s 0.5s; }
+  .flek-tus { width: 100%; height: 100%; overflow: visible; pointer-events: none; rotate: var(--flek-uhel, 0deg); transition: scale 0.45s cubic-bezier(0.3, 1.5, 0.5, 1); }
+  @keyframes flek-dech {
+    0%, 100% { scale: 1; }
+    50% { scale: 1.06 0.95; }
+  }
+  .flek[data-stav="ceka"]:hover .flek-tus,
+  .flek[data-stav="ceka"]:has(:focus-visible) .flek-tus { scale: 1.16; }
+  /* rozlitá kaňka už nedýchá (roste jen transformací, tu jí dává skript); jakmile v ní hraje scéna, je schovaná — scéna má tuš vlastní */
+  .flek:not([data-stav="ceka"]) .flek-dech { animation: none; }
+  .flek:not([data-stav="ceka"]) .flek-tus { transition: none; }
+  .flek[data-stav="hraje"] .flek-dech { opacity: 0; }
+
+  .flek-plocha { opacity: 0; transition: opacity 0.55s; }
+  .flek[data-stav="hraje"] .flek-plocha, .flek[data-stav="mizi"] .flek-plocha { opacity: 1; }
+  .flek-scena { position: absolute; inset: 0; user-select: none; -webkit-user-select: none; }
+  .flek-scena > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .flek-scena > svg[width="0"] { width: 0; height: 0; overflow: hidden; }
+
+  .flek-tlacitko {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .flek-tlacitko:focus-visible { outline: 2px solid #C4432B; outline-offset: 6px; }
+
+  .flek-krizek {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: #111111;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    animation: flek-krizek 0.35s 0.5s both;
+  }
+  .flek-krizek[hidden] { display: none; }
+  .flek-krizek svg { width: 22px; height: 22px; }
+  .flek-krizek:focus-visible { outline: 2px solid #C4432B; outline-offset: 3px; }
+  @keyframes flek-krizek {
+    from { opacity: 0; scale: 0.6; }
+  }
+
+  /* Titulek: tah štětcem tuší pod textem a za ním malá rumělková pečeť, jako na obrazu tuší */
+  .flek-titulek { position: absolute; left: 0; right: 0; top: 100%; display: flex; justify-content: center; margin: 14px 0 0; pointer-events: none; opacity: 0; transition: opacity 0.45s; }
+  .flek-titulek.je-videt { opacity: 1; }
+  .flek-titulek-obal { position: relative; display: inline-block; max-width: 100%; }
+  .flek-titulek-text {
+    position: relative;
+    z-index: 1;
+    display: block;
+    padding: 9px 34px 11px 30px;
+    color: #F3EBDC;
+    font-family: var(--f-ruka, "Caveat", cursive);
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.12;
+    letter-spacing: 0.01em;
+    text-align: center;
+    text-wrap: balance;
+    text-shadow: 0 0 6px rgba(16, 18, 41, 0.6);
+  }
+  .flek-titulek-text::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    bottom: 9px;
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    background: #C4432B;
+    box-shadow: inset 0 0 0 1.5px rgba(243, 235, 220, 0.55);
+    opacity: 0.92;
+    transform: rotate(-6deg);
+  }
+  /* tah je roztažený přes celý rámeček s textem a při ukázání se dotáhne zleva doprava */
+  .flek-titulek-tah {
+    position: absolute;
+    z-index: 0;
+    left: -4px;
+    right: -4px;
+    top: -4px;
+    bottom: -6px;
+    width: calc(100% + 8px);
+    height: calc(100% + 10px);
+    overflow: visible;
+    clip-path: inset(-30% 100% -30% -10%);
+    transition: clip-path 0.6s cubic-bezier(0.3, 0.8, 0.3, 1);
+  }
+  .flek-titulek.je-videt .flek-titulek-tah { clip-path: inset(-30% -10% -30% -10%); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flek, .flek-tus, .flek-plocha, .flek-dech, .flek-titulek, .flek-titulek-tah { transition: none !important; }
+    .flek-dech, .flek-krizek { animation: none; }
+  }
+</style>

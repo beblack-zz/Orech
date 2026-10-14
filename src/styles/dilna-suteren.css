@@ -1,0 +1,44 @@
+/*
+ * ——— Dílna v suterénu ———
+ *
+ * Kresba skutečné dílny z components/domek2/kresba/dilna.ts: prohlídka
+ * na Domku 2 a rok dílny na O nás 2. Staví na dilna-rez.css (třídy .rez,
+ * roční období, animace pec-horko a kafe-para).
+ */
+
+.dm-rez .rez-misto:hover,
+.dm-rez .rez-misto:focus-visible { background: rgba(255, 246, 220, 0.1); }
+.dl-pec-viko-otevrene,
+.dl-pec-uvnitr { opacity: 0; transition: opacity 0.4s 0.15s; }
+.dl-pec-viko { transition: opacity 0.3s; }
+.rez[data-pec="otevrena"] .dl-pec-viko { opacity: 0; }
+.rez[data-pec="otevrena"] .dl-pec-viko-otevrene,
+.rez[data-pec="otevrena"] .dl-pec-uvnitr { opacity: 1; }
+.dl-pec-zar { opacity: var(--zar, 0); transition: opacity 0.3s; }
+.dl-pec-horko { opacity: calc(var(--zar, 0) * 0.95); }
+.dl-pec-horko path { animation: pec-horko 1.6s ease-in-out infinite; }
+.dl-pec-horko path:nth-child(2) { animation-delay: -0.5s; }
+.dl-pec-horko path:nth-child(3) { animation-delay: -1s; }
+.dl-pec.tres { animation: pec-tres 0.5s ease-in-out; transform-box: fill-box; transform-origin: 50% 100%; }
+.dl-para { opacity: 0; }
+.dl-kavovar.vari .dl-para { opacity: 1; }
+.dl-kavovar.vari .dl-para path { animation: kafe-para 1.4s ease-out infinite; }
+.dl-kavovar.vari .dl-para path:nth-child(2) { animation-delay: 0.3s; }
+.dl-kavovar.vari .dl-para path:nth-child(3) { animation-delay: 0.6s; }
+.dl-voda { transition: opacity 0.15s; }
+.rez.voda-tece .dl-voda { opacity: 1; }
+.rez.voda-tece .dl-voda path { animation: voda-tece 0.35s linear infinite; }
+@keyframes voda-tece { to { stroke-dashoffset: -6; } }
+.dl-lampa-kuzel { transition: opacity 0.25s; }
+.dl-lampa.sviti .dl-lampa-kuzel { opacity: 0.42; }
+.dl-lampa.sviti .dl-lampa-svetlo { fill: #FFF3C8; }
+.dl-slunce { mix-blend-mode: soft-light; }
+
+/* Rok dílny: nad garáží je světlo z vrat */
+.dm-rok .rok-ram { background: linear-gradient(#CBD6E4, #E4E1D8 60%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dl-pec-horko path,
+  .dl-kavovar.vari .dl-para path,
+  .rez.voda-tece .dl-voda path { animation: none !important; }
+}

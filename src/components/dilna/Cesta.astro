@@ -7,7 +7,6 @@
  * jednotlivých kroků schválně nepíšu — dílna slibuje jen celek, 2–3 týdny.
  */
 import Postavicka from "../characters/Postavicka.astro";
-import Zkouska from "./Zkouska.astro";
 import { kroky } from "../../data/dilna";
 import { kusSvg, vychoziKus } from "./kus";
 
@@ -42,7 +41,6 @@ const vychozi = kusSvg(vychoziKus(), "hrouda", { id: "cesta-kus" });
               <p>{k.text}</p>
               {k.odkaz && <a class="d-odkaz" href={k.odkaz.href}>{k.odkaz.text} <span aria-hidden="true">→</span></a>}
             </div>
-            {k.stav === "prezah" && <Zkouska id="železitá hnědá" class="d-krok-zkouska" />}
           </li>
         ))}
       </ol>

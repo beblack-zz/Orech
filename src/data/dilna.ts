@@ -195,26 +195,8 @@ export const syrova: Record<string, string> = {
 export const matne = new Set(["matná bílá", "popelová šedá"]);
 
 /**
- * Tajná glazura za celou desku zkoušek. V dílně ji nemáme — je jen tady,
- * jako odměna, a jmenuje se po stromu, po kterém má jméno vesnice.
+ * Ořechová glazura byla odměna za hru se zkouškami glazur, která už na
+ * Dílně není. Zůstává jen kvůli kusům, které si s ní někdo dřív uložil
+ * do prohlížeče — aby se pořád vykreslily.
  */
 export const orechova = { nazev: "ořechová", svetlo: "#C8925A", stred: "#7A4E2C", stin: "#3E2616", skvrny: "#E8C35A" };
-
-/* ——— Zkoušky glazur (sbírka) ———
- *
- * Šest zkušebních střípků, jeden od každé glazury, schovaných po stránce.
- * Kdo najde všechny, má celou desku zkoušek — a v kbelících přibude
- * ořechová glazura. Pamatuje si to prohlížeč (klíč dilna-zkousky).
- */
-export const zkousky: { id: string; skrys: string }[] = [
-  { id: "celadon", skrys: "Leží na parapetu výlohy. Tam, kde je nejvíc světla." },
-  { id: "shino", skrys: "Na stole, kde se placá. Zapadla pod plátno." },
-  { id: "popelová šedá", skrys: "U kruhu, hned vedle kyblíku s vodou." },
-  { id: "tenmoku", skrys: "Za kbelíky s glazurou. Kapka ví, za kterým." },
-  { id: "železitá hnědá", skrys: "Na cestě kusu — tam, kde se pálí přežah." },
-  { id: "matná bílá", skrys: "V kuchyňce. Někdo ji opřel o kávovar." },
-];
-
-/** Glazura podle názvu i s ořechovou — pro kreslení kusu */
-export const glazuraPodleNazvu = (nazev: string) =>
-  nazev === orechova.nazev ? orechova : glazury.find((g) => g.nazev === nazev);

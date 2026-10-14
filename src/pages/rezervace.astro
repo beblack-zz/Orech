@@ -1,6 +1,6 @@
 ---
 /**
- * Rezervace v novém vzhledu: hodina v dílně se kupuje jako jízdenka na
+ * Rezervace v novém vzhledu: čas v dílně se kupuje jako jízdenka na
  * vlak po vodě. Celá stránka stojí na moři pod oblohou (More.astro);
  * na obzoru je stanice Ořech a vlak, který ráno přijede, odjede,
  * když člověk sjede k výběru, a v noci se vrátí rozsvícený.
@@ -9,22 +9,32 @@
  *   dopoledne   pokladna: kolik vás pojede a den (lepenkové jízdenky)
  *               a vedle klapková tabule s odjezdy toho dne — obloha
  *               ukazuje světlo hodiny, na kterou člověk ukazuje; pod
- *               tabulí je jízdní řád: cedule s celým měsícem naráz
- *               a pod ní vysvětlivky
+ *               tabulí je cedule s vysvětlivkami k tomu, co je
+ *               v pokladně vybrané
  *   večer       jízdenka: z vybraných hodin se složí vláček, napíšeš
  *               jméno a průvodčí jízdenku označí — odejde mailem
+ *   za soumraku dárkové jízdenky: tři hodiny, permanentka a zvláštní vlak
+ *               jako tři svislé nabídky — tentýž luxusní lístek v zelené,
+ *               červené a modré desce; jméno a vzkaz se píšou rovnou na
+ *               jízdenku, zabalí se a objednávka odejde mailem
  *   v noci      vlak se vrací, poslední odeslaná jízdenka, kontakt
  *
- * Pravidla jsou z data/rezervace.ts: úterý a pátek po hodinách od 9 do
- * 18, cena za člověka a hodinu. Hodina je buď volná, nebo obsazená
- * a zamlouvá se celá — sám nebo skupina do čtyř lidí. Stránka sama nic
- * neukládá na server: odeslání otevře e-mail s vyplněnými údaji.
- * Obsazenost je zatím simulovaná (scripts/rezervace/simulace.ts).
+ * Pravidla jsou z data/rezervace.ts: úterý a pátek od 9 do 18, odjezdy
+ * po hodině a půl, cena za člověka a odjezd. Odjezd je buď volný, nebo obsazený
+ * a zamlouvá se celá — sám nebo skupina do čtyř lidí.
+ *
+ * Rezervovat rovnou smí jen lidi, které dílna zapsala do tabulky členů
+ * v Supabase: přijde jim mail s osobním odkazem (/k/<token>) a s ním
+ * jízdenku označí a mají zamluveno. Ostatním odeslání otevře e-mail
+ * s vyplněnými údaji a domluví se s dílnou. Server je v src/pages/api
+ * a src/lib/rezervace, databáze v supabase/schema.sql. Dokud nejsou
+ * klíče k Supabase nastavené (.env.example), je obsazenost simulovaná
+ * (scripts/rezervace/simulace.ts) a všechno odchází mailem.
  *
  * Vedle hodin se tu kupují dvě věci, u kterých se počítají místa:
  *
- *   kurz         zabere celý den — hodinové spoje mají výluku a jede
- *                jeden zvláštní vlak: parní lokomotiva se
+ *   kurz         jezdí v sobotu a zabere celý den — hodinové spoje ten
+ *                den nejedou a jede jeden zvláštní vlak: parní lokomotiva se
  *                salonem, v pokladně tmavá jízdenka, na tabuli cedule
  *                s místy a řádky jako zastávky programu, na jízdence
  *                mapa trasy
@@ -33,7 +43,7 @@
  *                pár míst; v pokladně má vlastní přepážku a jízdenka
  *                z ní udělá průkazku se všemi jízdami
  *
- * Termíny kurzů i prodané permanentky jsou taky zatím jen ukázkové.
+ * Termíny kurzů i prodané permanentky jsou bez Supabase taky jen ukázkové.
  *
  * Japonské znaky jsou na stránce jen jednou: svislý nápis 胡桃行き
  * („směr Ořech“) na první obrazovce. Všechno ostatní je česky.
@@ -49,6 +59,7 @@ import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/rezervace.css";
+import "../styles/rezervace-darky.css";
 import { ClientRouter } from "astro:transitions";
 
 import Nebe from "../components/parta2/Nebe.astro";
@@ -61,12 +72,13 @@ import Pokladna from "../components/rezervace/Pokladna.astro";
 import Odjezdy from "../components/rezervace/Odjezdy.astro";
 import Rad from "../components/rezervace/Rad.astro";
 import Jizdenka from "../components/rezervace/Jizdenka.astro";
+import Darky from "../components/rezervace/Darky.astro";
 import Noc from "../components/rezervace/Noc.astro";
 
-import { rezervace } from "../data/rezervace";
+import { rezervace, cenaOdjezdu } from "../data/rezervace";
 import { kontakt } from "../data/uvod2";
 
-const cena = rezervace.cena.toLocaleString("cs-CZ");
+const cena = cenaOdjezdu.toLocaleString("cs-CZ");
 
 /* Štětcové písmo jen pro svislý nápis na první obrazovce (Nadrazi.astro) — jiné japonské znaky tu nejsou */
 const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("胡桃行き")}`;
@@ -77,7 +89,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Rezervace · JIRO saku</title>
-    <meta name="description" content={`Rezervuj si hodinu v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, ${cena} Kč za člověka a hodinu.`} />
+    <meta name="description" content={`Rezervuj si čas v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, odjezdy po hodině a půl, ${cena} Kč za člověka. Jízdenku jde i darovat.`} />
     <meta name="theme-color" content="#6F8FC8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -93,7 +105,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <VlakKresby />
     <Hlavicka sber="zadny" />
 
-    <main data-rezervace data-cena={rezervace.cena} data-email={kontakt.email}>
+    <main data-rezervace data-cena={cenaOdjezdu} data-email={kontakt.email}>
       <Nadrazi />
 
       <section class="rz-sekce rz-hala" id="rz-pokladna" aria-labelledby="rz-pokladna-nadpis">
@@ -110,6 +122,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
       </section>
 
       <Jizdenka />
+      <Darky />
       <Noc />
     </main>
 
@@ -122,7 +135,8 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
       <a class="rz-displej-tlacitko" href="#rz-jizdenka">Pokračovat <span aria-hidden="true">→</span></a>
     </div>
 
-    <Paticka poznamka="Rezervace je návrh v novém vzhledu webu. Obsazenost odjezdů, termíny kurzů i prodané permanentky jsou zatím jen simulované." />
+    {/* Tušový flek (s patičkou): sedí na obloze nebo na moři, ne na panelech a ne v noci, kde by nebyl vidět */}
+    <Paticka flekMimo=".papir, .rz-tabule, .rz-rad, #rz-noc" poznamka="Rezervace je návrh v novém vzhledu webu. Obsazenost odjezdů, termíny kurzů i prodané permanentky jsou zatím jen simulované." />
 
     <script>
       import "../scripts/rezervace/hlavni.ts";

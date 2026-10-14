@@ -1,0 +1,27 @@
+---
+/**
+ * 五 Rovina — Sušárna. Kout sušárny s regálem, na kterém přes týden schne
+ * pět kusů; nad každým vodováha, vlevo okno (Bublinka ho dvakrát otevře)
+ * a dole Kachlík, který dohlíží a na požádání poradí.
+ *
+ * Kresbu skládá rovina-kresba.ts (čisté funkce, i pro testy), sem patří
+ * jen skutečné kresby postaviček mezi její části. Hru obsluhuje
+ * scripts/zkouska/urovne/rovina.ts.
+ */
+import "../../../styles/zkouska-urovne/rovina.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { kresba, tlacitka, ovladani, obalStyl, KACHLIK_BOX, BUBLINKA_BOX, POPIS_OKNA, POPIS_KACHLIKA } from "./rovina-kresba";
+---
+<div class="mu-scena mu-rovina" data-uroven-scena="rovina" hidden>
+  <div class="mu-okno mr5-okno" role="application" aria-label={POPIS_OKNA}>
+    <Fragment set:html={kresba()} />
+    <div class="mr5-bublinka" style={obalStyl(BUBLINKA_BOX)} aria-hidden="true">
+      <Postavicka id="bublinka" size={180} varianta="kami" />
+    </div>
+    <button type="button" class="mr5-kachlik" style={obalStyl(KACHLIK_BOX)} aria-label={POPIS_KACHLIKA}>
+      <Postavicka id="kachlik" size={180} varianta="kami" />
+    </button>
+    <Fragment set:html={tlacitka()} />
+  </div>
+  <Fragment set:html={ovladani()} />
+</div>

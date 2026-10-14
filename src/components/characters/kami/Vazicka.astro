@@ -1,99 +1,244 @@
 ---
 import Kresba from "./Kresba.astro";
 import { uid } from "../dospele/uid";
+import { VAZ, OBI, E, polomer, hladka } from "../../../scripts/vazicka-gejsa/spolecne.js";
 
 interface Props { class?: string; size?: number; }
 const { class: cls = "", size = 64 } = Astro.props;
 const u = uid();
 
-const kvet = "#B84A2B";
-const kvetPata = "#9E4025";
-const kvetSpicka = "#CF846F";
-const odsun = 1.7;
-const obrys = "M71 44 Q75 47 76 54 C66 61 56 78 55 106 C54 130 68 150 82 150 L98 150 C112 150 126 130 125 106 C124 78 114 61 104 54 Q105 47 109 44 Q90 40 71 44 Z";
+/*
+ * Tvary jsou z podoby Kami (scripts/vazicka-gejsa): stejný profil vázy,
+ * hranice vlasů, zkřížený límec i obi, jen zepředu a z menšího počtu bodů.
+ * bod() posadí výšku na boku na přední stranu vázy — vepředu je každý
+ * vodorovný pás o kus níž než na bocích, díváme se na ni trochu shora.
+ */
+type Bod = [number, number];
+const bod = (az: number, y: number): Bod => {
+  const w = (az * Math.PI) / 180;
+  const r = polomer(y);
+  return [VAZ.cx + r * Math.sin(w), y + r * E * Math.cos(w)];
+};
+const pt = ([x, y]: Bod) => `${Math.round(x * 10) / 10} ${Math.round(y * 10) / 10}`;
+/** Hladká čára po přední straně vázy: výška jako funkce azimutu, n úseků. */
+const po = (vyska: (az: number) => number, a1: number, a2: number, n = 6): string =>
+  hladka(Array.from({ length: n + 1 }, (_, i) => {
+    const az = a1 + ((a2 - a1) * i) / n;
+    return bod(az, vyska(az));
+  })).replace(/-?\d+\.\d+/g, (c: string) => String(Math.round(+c * 10) / 10));
+/** Pokračování rozdělané cesty (bez úvodního M). */
+const dal = (d: string) => d.replace(/^M[^C]*/, "");
+/**
+ * Obrys vázy jako TELO_D z Kami, jen z výšek profilu místo hustých vzorků:
+ * okraj hrdla a dno jsou elipsy (díváme se shora), boky jdou přes profil.
+ * Kreslí se jednou a dál se na něj jen odkazuje přes <use>.
+ */
+const VYSKY = [59.4, 62, 66, 70.5, 75, 80, 86.5, 95, 106, 117, 128, 137.5, 144];
+const okraj = (r: number) => Math.round(r * 10) / 10;
+const rH = polomer(VAZ.hrdlo), rP = polomer(VAZ.zakl);
+const bok = (s: number) => [VAZ.hrdlo, ...VYSKY, VAZ.zakl].map((y): Bod => [VAZ.cx + s * polomer(y), y]);
+const obrys =
+  `M${pt([VAZ.cx - rH, VAZ.hrdlo])} A${okraj(rH)} ${okraj(rH * E + 0.9)} 0 0 1 ${pt([VAZ.cx + rH, VAZ.hrdlo])}` +
+  dal(hladka(bok(1))) +
+  ` A${okraj(rP)} ${okraj(rP * E + 0.6)} 0 0 1 ${pt([VAZ.cx - rP, VAZ.zakl])}` +
+  dal(hladka(bok(-1).reverse())) +
+  " Z";
+const obrysD = obrys.replace(/-?\d+\.\d+/g, (c: string) => String(Math.round(+c * 10) / 10));
+
+/* hranice vlasů: vysoké čelo vepředu, na spáncích níž */
+const hladke = (x: number) => x * x * (3 - 2 * x);
+const yVlasy = (az: number) => 76.4 + 7.4 * hladke(Math.min(1, Math.abs(az) / 78));
+/* kimono se zavírá levou stranou přes pravou: divák vidí písmeno y */
+const yLimecL = (az: number) => 101 + (az + 105) * 0.1339;
+const yLimecP = (az: number) => 118.5 - (az + 12) * 0.1496;
+const KRIZ = 5.8;
+
+const vlasy = `${po(yVlasy, -90, 90, 8)} L160 86 V20 H20 V86 Z`;
+const limecSpodni = `${po((a) => yLimecL(a) - 3, -90, KRIZ + 2)} L${pt(bod(KRIZ + 2, yLimecL(KRIZ + 2)))} ${dal(po(yLimecL, KRIZ + 2, -90))} L20 101 V98 Z`;
+const kimono = `${po(yLimecL, -90, KRIZ)} ${dal(po(yLimecP, KRIZ, 90, 5))} L160 103 V170 H20 V101 Z`;
+const limecSvrchni = `${po((a) => yLimecP(a) - 3, -12, 90)} L160 100 V103 L${pt(bod(90, yLimecP(90)))} ${dal(po(yLimecP, 90, -12))} Z`;
+const lem = `${po(() => 145.6, -90, 90, 4)} L160 146 V170 H20 V146 Z`;
+const obi = `${po(() => OBI.od, -90, 90)} L160 ${OBI.od} V${OBI.po} L${pt(bod(90, OBI.po))} ${dal(po(() => OBI.po, 90, -90))} L20 ${OBI.po} V${OBI.od} Z`;
+const obiHrany = `${po(() => OBI.od, -90, 90)} ${po(() => OBI.po, -90, 90)}`;
+const snura = po(() => OBI.snura, -90, 90);
+/* kosočtverečné kvítky na obi ve dvou řadách a lístky u lemu */
+const kvitky = ([[-66, 122], [-22, 122], [22, 122], [66, 122], [-44, 131.2], [44, 131.2]] as Bod[]).map(([az, y]) => bod(az, y));
+const lemListky: [number, number, number, string][] = [[-58, 139.6, 40, "#FBE9B7"], [-22, 142.4, 200, "#F2B8C0"], [18, 140, 120, "#FBE9B7"], [54, 142.6, 300, "#F2B8C0"]];
+const PLATEK = "M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z";
+const HANABISHI = "M0 -2.6 Q0.8 -0.8 2.6 0 Q0.8 0.8 0 2.6 Q-0.8 0.8 -2.6 0 Q-0.8 -0.8 0 -2.6 Z";
 ---
 {/*
-  TSUKUMOGAMI — předmět, který po sto letech služby dostane duši. Vázička
-  je nejstarší kus v dílně, tak je to na ní vidět: glazura popraskala
-  jemnou sítí (kannyū, tak stárne každá stará glazura) a hrdlo má
-  převázané červenou šňůrkou, jakou se v Japonsku vážou vzácné kusy.
-  Oči nechávají zavřené — kdo je tu nejdéle, nemusí nic sledovat.
+  TSUKUMOGAMI — nejstarší kus v dílně, a tak se z ní stala gejša, jako na
+  podobě Kami. Je to pořád váza: hrdlo je černá glazura a zároveň účes,
+  tělo bílý porcelán jako líčení, kimono a obi má namalované na břiše.
+  Ve vlasech kanzashi se sakurou a jehlice s korálky, z hrdla jí roste
+  větvička, stojí na okobo. Oči nechává sklopené — kdo je tu nejdéle,
+  nemusí nic sledovat.
 */}
 <svg width={size} height={size} viewBox="0 0 180 180" fill="none" class={`char-sway ${cls}`} aria-hidden="true">
   <defs>
-    <Kresba id={u} />
-    <radialGradient id={`${u}-glazura`} cx="0.36" cy="0.35" r="0.8">
-      <stop offset="0" stop-color="#FBF4E8" />
-      <stop offset="0.6" stop-color="#EFE3D0" />
-      <stop offset="1" stop-color="#DCCBB0" />
-    </radialGradient>
-    <clipPath id={`${u}-telo`}><path d={obrys} /></clipPath>
-    <linearGradient id={`${u}-stin`} gradientUnits="userSpaceOnUse" x1="0" y1="0.5" x2="0" y2="-12.6">
-      <stop offset="0" stop-color={kvetPata} />
-      <stop offset="0.45" stop-color={kvet} />
-      <stop offset="1" stop-color={kvetSpicka} />
+    <Kresba id={u} posun={2} zrno={false} />
+    <linearGradient id={`${u}-bila`} gradientUnits="userSpaceOnUse" x1="58" y1="0" x2="124" y2="0">
+      <stop offset="0" stop-color="#FAF5EC" />
+      <stop offset="0.3" stop-color="#FFFFFF" />
+      <stop offset="0.62" stop-color="#FAF5EC" />
+      <stop offset="1" stop-color="#E6DBCB" />
     </linearGradient>
-    <path id={`${u}-listek`} fill={`url(#${u}-stin)`} d="M0 0 C-2.5 -1.5 -4.1 -3.9 -4.2 -6.6 C-4.3 -9.4 -3.1 -11.5 -1.9 -12.6 L0 -9.5 L1.9 -12.6 C3.1 -11.5 4.3 -9.4 4.2 -6.6 C4.1 -3.9 2.5 -1.5 0 0 Z" />
+    <linearGradient id={`${u}-vlasy`} gradientUnits="userSpaceOnUse" x1="72" y1="0" x2="108" y2="0">
+      <stop offset="0" stop-color="#211C22" />
+      <stop offset="0.3" stop-color="#3A3442" />
+      <stop offset="0.55" stop-color="#211C22" />
+      <stop offset="1" stop-color="#141114" />
+    </linearGradient>
+    <linearGradient id={`${u}-kimono`} gradientUnits="userSpaceOnUse" x1="0" y1="98" x2="0" y2="150">
+      <stop offset="0" stop-color="#2A2C5E" />
+      <stop offset="0.55" stop-color="#3E3C78" />
+      <stop offset="1" stop-color="#6A5A92" />
+    </linearGradient>
+    <linearGradient id={`${u}-obi`} gradientUnits="userSpaceOnUse" x1="0" y1="116" x2="0" y2="142">
+      <stop offset="0" stop-color="#D4573C" />
+      <stop offset="1" stop-color="#B63A25" />
+    </linearGradient>
+    {/* objem: světlo zleva, stín vpravo a u paty — leží přes všechno, co je na váze namalované */}
+    <linearGradient id={`${u}-objem`} gradientUnits="userSpaceOnUse" x1="56" y1="0" x2="124" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0" />
+      <stop offset="0.24" stop-color="#FFFFFF" stop-opacity="0.2" />
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0" />
+      <stop offset="0.74" stop-color="#1E1626" stop-opacity="0.05" />
+      <stop offset="1" stop-color="#1E1626" stop-opacity="0.3" />
+    </linearGradient>
+    <linearGradient id={`${u}-pata`} gradientUnits="userSpaceOnUse" x1="0" y1="128" x2="0" y2="150">
+      <stop offset="0" stop-color="#1E1626" stop-opacity="0" />
+      <stop offset="1" stop-color="#1E1626" stop-opacity="0.22" />
+    </linearGradient>
+    <linearGradient id={`${u}-rukav`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A2C5E" />
+      <stop offset="0.6" stop-color="#3E3C78" />
+      <stop offset="1" stop-color="#6A5A92" />
+    </linearGradient>
+    <linearGradient id={`${u}-drevo`} x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#D9B07C" />
+      <stop offset="0.6" stop-color="#B88A58" />
+      <stop offset="1" stop-color="#8C6444" />
+    </linearGradient>
+    <path id={`${u}-vaza`} d={obrysD} />
+    <path id={`${u}-platek`} d={PLATEK} />
+    <clipPath id={`${u}-telo`}><use href={`#${u}-vaza`} /></clipPath>
+    {/* květ sakury ze značky */}
     <g id={`${u}-kvet`}>
       {[0, 72, 144, 216, 288].map((uhel) => (
-        <use href={`#${u}-listek`} transform={`rotate(${uhel}) translate(0 -${odsun})`} />
+        <use href={`#${u}-platek`} transform={`rotate(${uhel}) translate(0 -1.7) scale(0.46)`} fill="#F2A9B8" />
       ))}
+      <circle r="1.1" fill="#C4432B" />
     </g>
   </defs>
 
-  <g transform="translate(90 150) scale(0.82) translate(-90 -150)">
+  <g transform="translate(90 152) scale(0.92) translate(-90 -158.6)">
+    <ellipse cx="90" cy="159.2" rx="30" ry="4.2" fill="#3A2E3A" opacity="0.2" />
+
+    {/* Okobo: vysoké dřeváky s bílými tabi a červeným páskem */}
     <g filter={`url(#${u}-tah)`}>
-      <path d={obrys} fill={`url(#${u}-glazura)`} stroke="#6B5D4F" stroke-width="1.7" />
-      <g clip-path={`url(#${u}-telo)`} stroke="#6B5D4F" stroke-linecap="round" fill="none">
-        <path d="M84 55 C62 84 62 122 85 150" stroke-width="5" opacity="0.09" />
-        <path d="M69 62 C58 88 58 118 67 143" stroke-width="4.5" opacity="0.08" />
-        <path d="M96 55 C118 84 118 122 95 150" stroke-width="5" opacity="0.09" />
-        <path d="M111 62 C122 88 122 118 113 143" stroke-width="4.5" opacity="0.08" />
-        {/* Kannyū — síť jemných prasklinek v glazuře, hustší ke dnu */}
-        <g stroke-width="0.6" opacity="0.32">
-          <path d="M58 118 L70 112 L78 122 L92 116 L104 124 L116 116 L126 120" />
-          <path d="M60 134 L72 128 L84 138 L98 132 L110 140 L122 132" />
-          <path d="M70 112 L66 98 M78 122 L82 136 M92 116 L90 104 M104 124 L100 136 M116 116 L120 102" />
-          <path d="M66 98 L58 92 M66 98 L76 96 M120 102 L112 96 M90 104 L98 100" />
-          <path d="M72 128 L68 146 M98 132 L94 150 M110 140 L118 148" />
+      {[81.4, 98.6].map((x) => (
+        <g transform={`translate(${x} 158.6)`}>
+          <path d="M-5.6 -9.6 H5.6 L4.8 0 H-4.7 Z" fill={`url(#${u}-drevo)`} stroke="#6B5D4F" stroke-width="1" stroke-linejoin="round" />
+          <ellipse cy="-10.5" rx="4.4" ry="2.3" fill="#FFFFFF" stroke="#6B5D4F" stroke-width="0.8" />
+          <path d="M-3.6 -9.8 Q0 -14.2 3.6 -9.8" stroke="#D2452C" stroke-width="1.6" stroke-linecap="round" />
         </g>
-      </g>
-      {/* Šňůrka kolem hrdla s mašlí a dvěma volnými konci */}
-      <path d="M75 55 Q90 60 105 55" stroke="#B84A2B" stroke-width="2.6" stroke-linecap="round" />
-      <path d="M96 58 C102 64 104 70 101 76 M98 58 C97 66 93 72 94 79" stroke="#B84A2B" stroke-width="1.5" stroke-linecap="round" />
-      <path d="M97 58 C92 52 86 54 90 59 C93 61 95 60 97 58 C102 52 108 54 104 59 C101 61 99 60 97 58 Z" fill="#B84A2B" />
+      ))}
     </g>
+
+    {/* Větvička z hrdla: kmínek mizí v černém otvoru */}
+    <g filter={`url(#${u}-tah)`}>
+      <path d="M90 58 C90 48 92 39 98 31 C100.6 27.6 103 25.6 105.4 24.4" stroke="#5E4A3C" stroke-width="2" stroke-linecap="round" />
+      <path d="M92 44.4 C90.4 41 87.6 37 84.6 34.6 M96.4 34.6 C100 33.8 104.4 34.6 107.4 36" stroke="#5E4A3C" stroke-width="1.1" stroke-linecap="round" />
+    </g>
+    <use href={`#${u}-kvet`} transform="translate(105.8 23.4) rotate(14) scale(1.25)" />
+    <use href={`#${u}-kvet`} transform="translate(84 33.4) rotate(-22) scale(1.02)" />
+    <use href={`#${u}-kvet`} transform="translate(108.2 36.6) rotate(38) scale(0.86)" />
+    <use href={`#${u}-kvet`} transform="translate(96 29.6) rotate(4) scale(0.72)" />
+
+    {/* Jehlice kōgai napříč drdolem — prostředek je za hrdlem */}
+    <path d="M68.5 64.6 H111.5" stroke="#6B5D4F" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M68.5 64.6 H111.5" stroke="#F6DA8C" stroke-width="1.2" stroke-linecap="round" />
+
+    <g filter={`url(#${u}-tah)`}>
+      <use href={`#${u}-vaza`} fill={`url(#${u}-bila)`} />
+      <g clip-path={`url(#${u}-telo)`}>
+        <path d={vlasy} fill={`url(#${u}-vlasy)`} />
+        <path d={limecSpodni} fill="#D2452C" />
+        <path d={kimono} fill={`url(#${u}-kimono)`} />
+        <path d={limecSvrchni} fill="#D2452C" />
+        <path d={`M${pt(bod(-8, OBI.po))} L${pt(bod(-20, 150))}`} stroke="#6A5A92" stroke-width="0.8" />
+        <path d={lem} fill="#D2452C" opacity="0.9" />
+        {lemListky.map(([az, y, uhel, barva]) => (
+          <use href={`#${u}-platek`} transform={`translate(${pt(bod(az, y))}) rotate(${uhel}) scale(0.3)`} fill={barva} opacity="0.9" />
+        ))}
+        <path d={obi} fill={`url(#${u}-obi)`} />
+        {kvitky.map((p) => <path d={HANABISHI} transform={`translate(${pt(p)})`} fill="#E8B440" />)}
+        <path d={obiHrany} stroke="#6B5D4F" stroke-width="1" />
+        <path d={snura} stroke="#F6DA8C" stroke-width="2.2" />
+        <use href={`#${u}-vaza`} fill={`url(#${u}-objem)`} />
+        <use href={`#${u}-vaza`} fill={`url(#${u}-pata)`} />
+        <path d="M66.4 97 C63.4 106 63.4 118 66.8 127" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" opacity="0.32" />
+        <path d="M82.4 62.6 C81 66 81 71 82.2 75.4" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" opacity="0.32" />
+      </g>
+      <use href={`#${u}-vaza`} stroke="#6B5D4F" stroke-width="1.6" stroke-linejoin="round" />
+      <ellipse cx="90" cy="57" rx="12.8" ry="2.1" fill="#0E0C10" />
+    </g>
+
+    {/* Hřeben kushi nad čelem a spona obidome se zeleným kamenem */}
+    <path d="M83.4 71 Q90 66.4 96.6 71 L95.8 73.8 Q90 70 84.2 73.8 Z" fill="#F6DA8C" stroke="#6B5D4F" stroke-width="0.7" stroke-linejoin="round" />
+    <ellipse cx="90" cy="130.2" rx="4.6" ry="3.5" fill="#F6DA8C" stroke="#6B5D4F" stroke-width="0.8" />
+    <ellipse cx="90" cy="130.2" rx="2.9" ry="2.1" fill="#5FA89A" />
+    <ellipse cx="89" cy="129.5" rx="1" ry="0.6" fill="#FFFFFF" opacity="0.8" />
+
+    {/* Kanzashi: kytička sakury na spánku, z ní visí dvě šňůrky s lístky */}
+    <g stroke="#E8B440" stroke-width="0.6">
+      <path d="M72 72 V92" />
+      <path d="M76.2 72.6 V87" />
+    </g>
+    {([[72, 79, 0], [72, 85.4, 1], [72, 91.6, 0], [76.2, 80.6, 1], [76.2, 86.6, 0]] as const).map(([x, y, i]) => (
+      <use href={`#${u}-platek`} transform={`translate(${x} ${y}) rotate(180) scale(0.36)`} fill={i ? "#FBD9DE" : "#F2A9B8"} />
+    ))}
+    <use href={`#${u}-kvet`} transform="translate(70.4 70.6) rotate(40) scale(0.62)" />
+    <use href={`#${u}-kvet`} transform="translate(78.6 66.4) rotate(80) scale(0.6)" />
+    <use href={`#${u}-kvet`} transform="translate(74.8 68.6) rotate(-10) scale(0.98)" />
+    {[68.5, 111.5].map((x) => (
+      <g>
+        <circle cx={x} cy="64.6" r="2.6" fill="#C4432B" stroke="#6B5D4F" stroke-width="0.7" />
+        <circle cx={x - 0.8} cy="63.8" r="0.7" fill="#FFFFFF" opacity="0.7" />
+      </g>
+    ))}
+
+    {/* Rukávy furisode: vak visí pod zápěstím, u otevřené hrany svítí podšívka */}
+    <g filter={`url(#${u}-tah)`}>
+      <path d="M57.7 101 Q51.7 106.9 50 117 L50 143 Q50 146 53.7 146 L61.8 144.5 Q65.5 144.5 63.6 138.2 L56.2 113 Z" fill={`url(#${u}-rukav)`} stroke="#6B5D4F" stroke-width="1.1" stroke-linejoin="round" />
+      <path d="M122.3 101 Q128.3 106.9 130 117 L130 143 Q130 146 126.3 146 L118.2 144.5 Q114.5 144.5 116.4 138.2 L123.8 113 Z" fill={`url(#${u}-rukav)`} stroke="#6B5D4F" stroke-width="1.1" stroke-linejoin="round" />
+      <path d="M51.3 120 V142.6 M128.7 120 V142.6" stroke="#D2452C" stroke-width="1.8" stroke-linecap="round" />
+      <ellipse cx="50" cy="117" rx="4.4" ry="3.6" fill="#FFFFFF" stroke="#6B5D4F" stroke-width="1" />
+      <ellipse cx="130" cy="117" rx="4.4" ry="3.6" fill="#FFFFFF" stroke="#6B5D4F" stroke-width="1" />
+    </g>
+    <use href={`#${u}-platek`} transform="translate(57 140.9) rotate(20) scale(0.32)" fill="#FBE9B7" opacity="0.9" />
+    <use href={`#${u}-platek`} transform="translate(123 140.9) rotate(-20) scale(0.32)" fill="#FBE9B7" opacity="0.9" />
+
     <g class="tvar">
-      <g filter={`url(#${u}-mlha)`} fill="#CF846F" opacity="0.4">
-        <ellipse cx="77" cy="98" rx="5.5" ry="3.5" />
-        <ellipse cx="105" cy="98" rx="5.5" ry="3.5" />
+      <g filter={`url(#${u}-mlha)`} fill="#F2A9A9" opacity="0.7">
+        <ellipse cx="76.6" cy="103.4" rx="5.2" ry="3.2" />
+        <ellipse cx="103.4" cy="103.4" rx="5.2" ry="3.2" />
       </g>
-      <path d="M80 90 Q83 86 86 90" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none" />
-      <path d="M96 90 Q99 86 102 90" stroke="#3A2E28" stroke-width="2" stroke-linecap="round" fill="none" />
-      <path d="M85 102 Q90 107 95 102" stroke="#3A2E28" stroke-width="1.8" stroke-linecap="round" fill="none" />
+      <g stroke-linecap="round" stroke-linejoin="round">
+        <path d="M76.8 90.4 Q80.4 88.3 84 89.4 M96 89.4 Q99.6 88.3 103.2 90.4" stroke="#2B2420" stroke-width="1.6" opacity="0.82" />
+        <path d="M75.6 97.2 Q74.2 96.4 73.6 94.6 M104.4 97.2 Q105.8 96.4 106.4 94.6" stroke="#C4432B" stroke-width="1.4" />
+        <path d="M76.6 96.2 Q80.4 99.6 84.2 96.2 M95.8 96.2 Q99.6 99.6 103.4 96.2" stroke="#2B2420" stroke-width="2" />
+      </g>
+      <path d="M87.6 107.6 Q88.9 106.4 90 107.3 Q91.1 106.4 92.4 107.6 Q90 111.2 87.6 107.6 Z" fill="#C4432B" />
     </g>
   </g>
 
-  <g transform="rotate(10 89 63)" filter={`url(#${u}-tah)`}>
-    <path d="M89 63 C91 54 95 45 103 38" stroke="#6B5D4F" stroke-width="1.3" stroke-linecap="round" fill="none" />
-    <path d="M93 50 C91 48 89 46 87 44" stroke="#6B5D4F" stroke-width="1" stroke-linecap="round" fill="none" />
-    <path d="M91 57 C93 56 96 55 99 53" stroke="#6B5D4F" stroke-width="0.9" stroke-linecap="round" fill="none" />
-    <use href={`#${u}-kvet`} transform="translate(85 42) rotate(-24) scale(0.42)" />
-    <use href={`#${u}-kvet`} transform="translate(102 51) rotate(46) scale(0.34)" />
-    <use href={`#${u}-kvet`} transform="translate(105 35) rotate(26) scale(0.56)" />
-  </g>
-
-  <g transform="translate(59 57)">
+  <g transform="translate(46 48)">
     <path class="jiskra jiskra-1" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#E8B440" />
   </g>
-  <g transform="translate(55 74) scale(0.62)">
-    <path class="jiskra jiskra-3" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#C87E4E" />
+  <g transform="translate(140 84) scale(0.7)">
+    <path class="jiskra jiskra-2" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#C87E4E" />
   </g>
-  <g transform="translate(133 122) scale(0.9)">
-    <path class="jiskra jiskra-2" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#E8B440" />
-  </g>
-  <g transform="translate(122 139) scale(0.6)">
-    <path class="jiskra jiskra-4" d="M0,-7 Q1.8,-1.8 7,0 Q1.8,1.8 0,7 Q-1.8,1.8 -7,0 Q-1.8,-1.8 0,-7 Z" fill="#C87E4E" />
-  </g>
-  <ellipse cx="90" cy="154" rx="19" ry="4" fill="#6B5D4F" opacity="0.2" />
 </svg>
