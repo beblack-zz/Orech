@@ -112,35 +112,6 @@ export const zastavky: Zastavka[] = [
   },
 ];
 
-/* ——— Klíče: sbírka Domku 2 ———
- *
- * Po stránce leží sedm klíčů — od brány, od lodžie, od dílny, od pece…
- * Na klíčích jsou barevné čepičky, jak to doma bývá, ať se nepletou.
- * Obsluhuje je obecná sbírka (scripts/parta2/sbirka.ts).
- */
-export type KlicId = "brana" | "balkon" | "dilna" | "pec" | "skrinka" | "dvere" | "garaz";
-
-export interface Klic {
-  id: KlicId;
-  nazev: string;
-  /** Barva čepičky */
-  cepicka: string;
-  /** Kde hledat, dokud chybí */
-  napoveda: string;
-  /** Co je na štítku, když už visí na háčku */
-  stitek: string;
-}
-
-export const klice: Klic[] = [
-  { id: "brana", nazev: "Od brány", cepicka: "#3F7FB8", napoveda: "Visí u zámku brány, hned vedle čísla domu.", stitek: "Brána se posouvá doleva, za zídku." },
-  { id: "balkon", nazev: "Od lodžie", cepicka: "#6E9A4B", napoveda: "Někdo ho schoval do květináče na balkoně.", stitek: "Lodžie nad dílnou — tam se nechodí." },
-  { id: "dilna", nazev: "Od dílny", cepicka: "#C4432B", napoveda: "Pod truhlíkem s vřesem. Kde jinde.", stitek: "Prosklené dveře vlevo od oken." },
-  { id: "pec", nazev: "Od pece", cepicka: "#E2702E", napoveda: "Regulátor pece se zamyká. Klíček bývá na něm.", stitek: "Bez něj pec nepojede." },
-  { id: "skrinka", nazev: "Od glazur", cepicka: "#E8B440", napoveda: "Na drátěné polici vedle skříňky s glazurami.", stitek: "Skříňka nad kávovarem." },
-  { id: "dvere", nazev: "Od domu", cepicka: "#8A8F94", napoveda: "Na dřevěné desce zídky u šedých dveří.", stitek: "Ten nepůjčujeme. Tam se bydlí." },
-  { id: "garaz", nazev: "Od garáže", cepicka: "#7A5A3E", napoveda: "Pořád ho to táhne k vodě. Zkus dřez.", stitek: "Už nic neodemyká. Garáž je dílna." },
-];
-
 /* ——— Kresba a fotka ——— */
 
 export const porovnani = {

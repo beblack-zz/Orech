@@ -9,7 +9,9 @@
  *   dilna   vesnické stavení s kůlnou a kouřícím komínem (Dilna.astro)
  *   domek   zelený dům z Luční — miniatura z Domku 2 (domek2/kresba/domek.ts)
  *
- * Do slotu `za-kmenem` se dá schovat kami za kmen ořechu.
+ * Do slotu `za-kmenem` se dá schovat kami za kmen ořechu. Dům je ve vlastním
+ * <svg> nad kopci (stejné plátno), aby se za něj dalo schovat i v letu —
+ * úvod Domku 2 (scripts/domek2/let-kami.ts).
  */
 import { chomac } from "./tvary";
 import Dilna from "./Dilna.astro";
@@ -23,8 +25,10 @@ interface Props {
   seed?: number;
   /** Id přechodu v kresbě; na jedné stránce smí být krajina se stejným jen jednou */
   id?: string;
+  /** Shimenawa kolem kmene ořechu (výchozí ano) */
+  lano?: boolean;
 }
-const { dum = "dilna", seed = 1, id = "uvod" } = Astro.props;
+const { dum = "dilna", seed = 1, id = "uvod", lano = true } = Astro.props;
 
 /**
  * Kde dům stojí a jak je široký; obě kresby mají plátno 480 × 320. Stavení
@@ -92,7 +96,9 @@ const pesina = dum === "domek"
         <path d={chomac(x - s * 0.15, y - s * 0.2, s * 0.42, s * 0.45, 8, 780 + i, 1, 0.7)} fill="#6E9A4B" />
       </g>
     ))}
+  </svg>
 
+  <svg class="uvod-kopce uvod-kopce-dum" viewBox="0 0 1600 560" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
     <g class="krajina-dum">
       {dum === "domek" ? (
         <svg x={DUM.x} y={DUM.y} width={DUM.sirka} height={(DUM.sirka * 320) / 480} viewBox="0 0 480 320" class="krajina-domek" set:html={domek()} />
@@ -102,7 +108,7 @@ const pesina = dum === "domek"
     </g>
   </svg>
 
-  <Orech class="uvod-orech" id={`${id}-orech`}>
+  <Orech class="uvod-orech" id={`${id}-orech`} lano={lano}>
     <slot name="za-kmenem" slot="za-kmenem" />
   </Orech>
 

@@ -1,0 +1,26 @@
+---
+/**
+ * 七 Otevření pece — ráno po výpalu. Víko je nahoře, z pece ještě jde
+ * teplo a na stole stojí, co z ní vyšlo: kus v každé glazuře dílny
+ * a stranou miska slepená zlatem (kresba/pec.ts — ranoSvg). U pece
+ * stojí Pecinka, u kintsugi misky Střípek.
+ */
+import Kapitola from "./Kapitola.astro";
+import Kami from "../parta2/Kami.astro";
+import { kapitoly } from "../../data/dilna";
+import { ranoSvg, MISTA_RANO } from "./kresba/pec";
+import { mista } from "./misto";
+
+const k = kapitoly.find((x) => x.id === "hotovo")!;
+const m = mista(1200, 700);
+---
+<Kapitola kapitola={k} strana="siroka" trida="d-kap-hotovo">
+  <figure class="d-obraz d-rano">
+    <div class="d-obraz-kresba">
+      <div class="d-kresba" set:html={ranoSvg()} />
+      <Kami id="pecinka" class="d-kami-nad" style={m.kami(MISTA_RANO.pecinka)} />
+      <Kami id="stripek" class="d-kami-nad" style={m.kami(MISTA_RANO.stripek)} />
+    </div>
+    <figcaption>Ráno po výpalu: co vyšlo z pece, v každé glazuře dílny jeden kus. Stranou miska, které se praskla spára zalila zlatem.</figcaption>
+  </figure>
+</Kapitola>

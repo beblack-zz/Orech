@@ -13,7 +13,6 @@
  *             — kudy k nám: Ořech z kopce s domem mezi sousedy
  *   večer     — lampa svítí, parta jde s lucerničkami, kontakt
  *
- * Po stránce je sedm klíčů (sbírka v hlavičce, klíčovnice v dialogu).
  * Rok dílny (z garáže po havárii až do teď) se přestěhoval na O nás 2.
  * Kresby jsou generátory v components/domek2/kresba, styly
  * v styles/domek2.css nad parta2.css, dilna-rez.css, dilna-suteren.css
@@ -32,6 +31,7 @@ import "../styles/dilna-rez.css";
 import "../styles/dilna-suteren.css";
 import "../styles/uvod2.css";
 import "../styles/domek2.css";
+import "../styles/uvod-zivot.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
@@ -42,7 +42,6 @@ import Prohlidka from "../components/domek2/Prohlidka.astro";
 import Porovnani from "../components/domek2/Porovnani.astro";
 import Kudy from "../components/domek2/Kudy.astro";
 import Vecer from "../components/domek2/Vecer.astro";
-import KliceDialog from "../components/domek2/KliceDialog.astro";
 
 import { zastavky } from "../data/domek2";
 import { sezonaMesice } from "../data/uvod2";
@@ -77,7 +76,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
   <body class="p2 u2 dm2" data-stranka="domek-2">
     <a class="preskocit" href="#prohlidka">Přeskočit na prohlídku dílny</a>
     <Nebe />
-    <Hlavicka sber="klice" />
+    <Hlavicka sber="zadny" />
 
     <main>
       <Uvod />
@@ -88,8 +87,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
       <Vecer />
     </main>
 
-    <Paticka poznamka="Domek 2 je návrh v novém vzhledu webu. Dům, zahrada i dílna jsou nakreslené podle skutečných fotek a kreslí se přímo v prohlížeči — vymyšlení jsou jen sousedé, parta a klíče." />
-    <KliceDialog />
+    <Paticka poznamka="Domek 2 je návrh v novém vzhledu webu. Dům, zahrada i dílna jsou nakreslené podle skutečných fotek a kreslí se přímo v prohlížeči — vymyšlení jsou jen sousedé a parta." />
     <div class="oznameni" role="status" aria-live="polite"></div>
 
     <script>

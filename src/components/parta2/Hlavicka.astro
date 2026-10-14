@@ -6,8 +6,8 @@
  * scripts/parta2/tah.ts) a cestou zavadí o zvonkohru. Vpravo
  * sbírka schovaných věcí (na Kurzech bedýnka
  * s nářadím, na Úvodu 2 sešit razítek, v O nás 2 zlato na kintsugi,
- * na archivní /rezervace-ema přání party na destičkách ema, na Domku 2
- * kroužek s klíči; Rezervace a Dílna sbírku nemají), přepínač den / noc,
+ * na archivní /rezervace-ema přání party na destičkách ema; Domek 2,
+ * Rezervace a Dílna sbírku nemají), přepínač den / noc,
  * který přebarví bublinu do noční modré, a zvonkohra — visí z tlačítka,
  * přečnívá přes spodní okraj pruhu a kliknutím se jí zvuk ztlumí.
  *
@@ -20,14 +20,12 @@
  * scripts/parta2/sbirka.ts — proto mají tlačítka data-sbirka-tlacitko
  * a počty data-sbirka-pocet.
  *
- * V komnatě U mistra (/zkouska) je místo sbírky sešit razítek z učení u mistra
- * (scripts/zkouska/sesit.ts). A kdo převzal mistrovský list, má vedle značky
+ * Kdo v komnatě U mistra (/zkouska) převzal mistrovský list, má vedle značky
  * pečeť 名人 — na všech stránkách (scripts/parta2/mistr.ts).
  */
 import { razitka } from "../../data/uvod2";
 import { zlato } from "../../data/onas2";
 import { prani } from "../../data/rezervace";
-import { klice } from "../../data/domek2";
 import HlavickaEnso from "./HlavickaEnso.astro";
 import HlavickaNebe from "./HlavickaNebe.astro";
 import Zvonkohra from "./Zvonkohra.astro";
@@ -40,7 +38,7 @@ import RezervaceKalendar from "./RezervaceKalendar.astro";
 
 interface Props {
   /** zadny — stránka bez sbírky; omamori — Parta 2, její sbírku ukazuje závěs pod pruhem */
-  sber?: "omamori" | "naradi" | "razitka" | "zlato" | "ema" | "klice" | "sesit" | "zadny";
+  sber?: "omamori" | "naradi" | "razitka" | "zlato" | "ema" | "zadny";
 }
 const { sber = "omamori" } = Astro.props;
 /** `skrtnuto` je pracovní značka — položka je na odpis, ale zatím visí v menu (jako v Header.astro). */
@@ -127,20 +125,6 @@ const zvId = noveId("hlava-stranka");
       </svg>
       <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{zlato.length}</span>
     </button>
-    ) : sber === "klice" ? (
-    <button type="button" class="sbirka-tlacitko klice-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Klíčovnice">
-      {/* Kroužek s klíči: každý nalezený klíč na něm přibude se svou barevnou čepičkou */}
-      <svg viewBox="0 0 40 40" aria-hidden="true">
-        {klice.map((k, i) => (
-          <g data-krouzek-klic={k.id} transform={`rotate(${25 + i * 22} 16 13)`}>
-            <rect x="22" y="11" width="6" height="4.4" rx="1.6" fill={k.cepicka} />
-            <path d="M28 13.2 H36 M33 13.2 V15.4 M35 13.2 V15" stroke="#8D959B" stroke-width="1.6" stroke-linecap="round" />
-          </g>
-        ))}
-        <circle cx="16" cy="13" r="6.5" class="klice-krouzek" />
-      </svg>
-      <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{klice.length}</span>
-    </button>
     ) : sber === "ema" ? (
     <button type="button" class="sbirka-tlacitko ema-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Přání party">
       <svg viewBox="0 0 40 44" aria-hidden="true">
@@ -151,18 +135,6 @@ const zvId = noveId("hlava-stranka");
         <text x="20" y="34" text-anchor="middle" font-size="12" font-family="Yuji Syuku, Yu Mincho, serif" fill="#3A2E28">願</text>
       </svg>
       <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{prani.length}</span>
-    </button>
-    ) : sber === "sesit" ? (
-    <button type="button" class="sbirka-tlacitko mss-tlacitko" aria-haspopup="dialog" aria-label="Sešit razítek">
-      {/* Knížka goshuin: brokátové desky, bílý štítek a na něm pečeť */}
-      <svg viewBox="0 0 40 44" aria-hidden="true">
-        <rect x="7" y="3" width="27" height="38" rx="2.5" class="mss-ikona-desky" />
-        <path d="M7 11 H34 M7 19 H34 M7 27 H34 M7 35 H34" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="1.2" />
-        <rect x="21" y="6.5" width="9" height="21" rx="1" fill="#FBF6EA" />
-        <path d="M23.6 10.5 H27.4 M23.6 14 H27.4 M23.6 17.5 H27.4" stroke="#2B2420" stroke-width="1.1" stroke-linecap="round" />
-        <rect x="22.4" y="20.6" width="6.2" height="5.4" rx="0.8" fill="#C4432B" />
-      </svg>
-      <span class="omamori-pocet"><b data-sesit-pocet>0</b>/9</span>
     </button>
     ) : sber === "razitka" ? (
     <button type="button" class="razitka-tlacitko" aria-haspopup="dialog" aria-label="Sešit razítek">

@@ -8,12 +8,11 @@
  * Pod tím přepínač ročních období: sakura na trávníku kvete, zelená,
  * rudne a opadá, v ulici zežloutne strom u souseda a v zimě napadne
  * sníh. Na zahradě bydlí Hlínka (v kypré hlíně u kmínku) a Kapka
- * (u truhlíků) a pod truhlíkem leží klíč od dílny.
+ * (u truhlíků).
  * Obsluha: scripts/domek2/porovnani.ts.
  */
 import { Image } from "astro:assets";
 import Kami from "../parta2/Kami.astro";
-import Klic from "./Klic.astro";
 import { ulice, ULICE } from "./kresba/ulice";
 import { zahrada, ZAHRADA, ZAHRADA_MISTA } from "./kresba/zahrada";
 import { porovnani, sezonySakury } from "../../data/domek2";
@@ -73,7 +72,6 @@ const dvojice = [
                 <Kami id="kapka" class="srovnani-kami" style={postava(M.kapka.x, M.kapka.pata, M.kapka.w)} />
                 <button type="button" class="srovnani-misto" data-akce="visacka" style={misto(M.visacka.box)} aria-label="Visačka na stromku"></button>
                 <button type="button" class="srovnani-misto" data-akce="sakura" style={misto([20, 640, 200, 860])} aria-label="Zatřást sakurou"></button>
-                <Klic id="dilna" class="srovnani-klic" style={misto(M.klic.box)} uhel={-16} />
               </div>
             )}
           </div>

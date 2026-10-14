@@ -224,6 +224,8 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       b.dataset.den = String(i);
       b.setAttribute("aria-pressed", String(vybrany));
       b.disabled = !jdeVybrat(d);
+      /* Každý otevírací den má svůj sloupec: úterý vlevo, pátek vpravo */
+      b.style.gridColumn = String(R.dny.indexOf(dt) + 1);
 
       if (d.kurz) {
         /* Den kurzu: tmavá jízdenka na zvláštní vlak, místa se počítají */

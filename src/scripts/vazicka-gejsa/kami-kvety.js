@@ -162,7 +162,8 @@ const poza = (d, t) => {
   const u = t - d.zmena;
   const toci = u >= 0 && u < TOC;
   const q = toci ? u / TOC : 0;
-  const yaw = toci ? 360 * q * q * (3 - 2 * q) : 0;
+  /* `otoc` je natočení zvenku — v letu po úvodu (domek2/let-kami.ts) se dívá, kam letí */
+  const yaw = (toci ? 360 * q * q * (3 - 2 * q) : 0) + (d.otoc || 0);
   const vzlet = toci ? Math.sin(Math.PI * q) : 0;
   const v = u - TOC;
   const ukaz = v < 0 || v > POZA + 0.6 ? 0 : smooth(v / 0.2) * (1 - smooth((v - POZA) / 0.5));
@@ -197,6 +198,8 @@ const krok = (dyn, t, dt, vstup) => {
   /* mávnutí myší je vítr */
   let vm = 0;
   if (vstup.mys && dyn.mx != null && dt > 0) vm = clamp((vstup.mys.x - dyn.mx) / dt / 90, -3, 3);
+  /* v letu ji ofukuje protivítr */
+  if (vstup.vitr) vm = clamp(vm + vstup.vitr, -3, 3);
   dyn.mx = vstup.mys ? vstup.mys.x : null;
   dyn.vitr = kCili(dyn.vitr, vm, dt, 0.1);
   /* kurzor na tváři: schová se za vějíř */
@@ -241,7 +244,7 @@ const krok = (dyn, t, dt, vstup) => {
   }
   dyn.listky = dyn.listky.filter((l) => l.vek < l.zivot && l.y < ZEM + 3);
   /* pohled za kurzorem */
-  const kam = vstup.mys && !p.toci ? [clamp((vstup.mys.x - TVAR0[0]) / 34, -1, 1) * 1.9, clamp((vstup.mys.y - TVAR0[1]) / 34, -1, 1) * 1.3] : [0, 0];
+  const kam = vstup.mys && !p.toci ? [clamp((vstup.mys.x - TVAR0[0]) / 34, -1, 1) * 1.9, clamp((vstup.mys.y - TVAR0[1]) / 34, -1, 1) * 1.3] : vstup.pohled && !p.toci ? vstup.pohled : [0, 0];
   dyn.pohled = dyn.pohled.map((v, i) => kCili(v, kam[i], dt, 0.12));
 };
 const stav = (t, vstup = {}, dyn) => {
@@ -305,3 +308,13 @@ export const kamiKvety = {
     { id: "listky", kresli: vrstvaListky, klic: (st) => (st.listky.length ? snimek(st) : -1) },
   ],
 };
+
+/*
+ * Kami v letu — tatáž Vázička bez kruhu, záře a stínu na zemi. Létá po úvodu
+ * Domku 2 a schovává se za strom, dům a do trávy (scripts/domek2/let-kami.ts);
+ * natočení (`dyn.otoc`), protivítr (`vstup.vitr`) a pohled (`vstup.pohled`)
+ * jí dává let. Id jsou stejná jako u 01 Kami (vg1-), takže obě podoby nesmí
+ * stát na jedné stránce.
+ */
+const BEZ_KRUHU = new Set(["zare", "kruh", "kruh-zivy", "kvet-roku", "stin"]);
+export const kamiLet = { ...kamiKvety, id: "let", vrstvy: kamiKvety.vrstvy.filter((v) => !BEZ_KRUHU.has(v.id)) };

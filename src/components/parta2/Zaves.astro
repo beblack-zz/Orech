@@ -88,6 +88,7 @@ const pismo = "Yuji Syuku, Yu Mincho, serif";
         <stop offset="0" stop-color="#D9573A" />
         <stop offset="1" stop-color="#A93522" />
       </linearGradient>
+      <filter id="zv-brana-rozmaz" x="-50%" y="-150%" width="200%" height="400%"><feGaussianBlur stdDeviation="2.6" /></filter>
     </defs>
 
     {/* Závěs v okapu hlavičky a kroužek — stejné jako u zvonkohry */}
@@ -132,6 +133,8 @@ const pismo = "Yuji Syuku, Yu Mincho, serif";
 
     {/* Břevno torii: černý hřeben s vyhnutými konci, pod ním rumělkový trám, dva sloupky a příčka, ze které visí šňůrky */}
     <g data-zv="tram" {...a("tram")}>
+      {/* Záře za bránou — rozsvítí ji Vázička z úvodu, když říká, ať se na ni klepne (parta2.css, .zaves-brana) */}
+      <ellipse class="zv-brana-svit" cx="0" cy="9.6" rx="30" ry="8.5" fill="#FFE2A2" filter="url(#zv-brana-rozmaz)" />
       <line x1="0" y1={KROUZEK_R} x2="0" y2="6.6" stroke="#5C5047" stroke-width="0.8" stroke-linecap="round" />
       <path d="M-14.6 9 V16 M14.6 9 V16" stroke="url(#zv-lak)" stroke-width="3" />
       <rect x="-3" y="9.6" width="6" height="4.6" rx="0.6" fill="#F1E8D6" stroke="#8E2C1C" stroke-width="0.6" />

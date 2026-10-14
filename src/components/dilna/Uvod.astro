@@ -1,83 +1,68 @@
 ---
 /**
  * Úvod Dílny: devět ráno, dílna se otevírá. Vlevo papír s tím
- * podstatným (kdy, za kolik, lektor v ceně, kafe), vpravo dílna v řezu
- * z Úvodu 2 za dřevěným rámem. „Co chceš dělat?“ přiveze kameru k místu,
- * kde se to v dílně dělá (scripts/dilna/uvod.ts, kamera z Úvodu 2);
- * kliknout se dá i rovnou do kresby.
- *
- * Cíle kamery jsou ve viewBoxu dílny 1600 × 1000: střed x, y a kolik ze
- * scény má být vidět. „vnitrek“ je výchozí záběr na mobilu, kde by celý
- * dům byl moc malý.
+ * podstatným (kdy, za kolik, s kým, kdy je kus hotový), vpravo okno do
+ * dílny s regálem, na kterém stojí tentýž hrnek ve všech stavech — od
+ * hroudy po vypálený kus (kresba/regal.ts). Štítky pod kusy vedou na
+ * kapitoly druhé části. Na regálu spí Hlínka (začátek) a na konci stojí
+ * Vázička, nejstarší kus v dílně.
  */
-import DilnaRez from "../uvod2/DilnaRez.astro";
-import { kdy } from "../../data/dilna";
-import type { Sezona } from "../../data/uvod2";
+import Kami from "../parta2/Kami.astro";
+import { regalSvg, KUSY, stitek, MISTA_REGAL, REGAL_W, REGAL_H } from "./kresba/regal";
+import { mista } from "./misto";
+import { kdy, celkem, kapitoly } from "../../data/dilna";
 
-interface Props {
-  sezona: Sezona;
-}
-const { sezona } = Astro.props;
-
-const volby = [
-  { id: "placat", znak: "手", nazev: "Placat", kamera: "772,752,430,290", text: "Dva stoly. Tady se placá — plát, válečky, mačkaná miska.", kam: "#placat" },
-  { id: "tocit", znak: "轆", nazev: "Točit", kamera: "437,770,480,300", text: "Tři kruhy. Hlína, voda a ty.", kam: "#tocit" },
-  { id: "glazovat", znak: "釉", nazev: "Glazovat", kamera: "1236,742,300,220", text: "Kbelíky s glazurou pod nástěnkou. Namočit, otřít dno, do pece.", kam: "#glazovat" },
-  { id: "kafe", znak: "茶", nazev: "Kafe", kamera: "1356,664,300,250", text: "Kuchyňka. Kafe je samozřejmost.", kam: "#cena" },
-];
+const m = mista(REGAL_W, REGAL_H);
+const kapitola = (kam: string) => kapitoly.find((k) => `#${k.id}` === kam)?.nazev ?? "";
 ---
-<section class="d-uvod" id="dilna-uvod" data-hodina="9" data-sezona={sezona} aria-labelledby="d-nadpis">
+<section class="d-uvod" id="dilna-uvod" data-hodina="9" aria-labelledby="d-nadpis">
   <p class="d-tategaki" lang="ja" aria-hidden="true">工房</p>
   <div class="d-uvod-mriz">
     <div class="d-uvod-karta papir">
       <p class="stitek"><span lang="ja">工房</span> · dílna v Ořechu</p>
-      <h1 id="d-nadpis" class="d-nadpis">Hodina v dílně. <em>Co z ní uděláš, je na tobě.</em></h1>
+      <h1 id="d-nadpis" class="d-nadpis">Jak to v dílně chodí <em>a jak se z hroudy stane hrnek</em></h1>
       <p class="d-perex">
-        Každé {kdy.dny} od {kdy.hodiny.replace("–", " do ")} hodin. Zamluvíš si hodinu — {kdy.cena} za člověka —
-        a celá dílna je ta hodina vaše. Placat, točit, glazovat. Lektor je v ceně, a když ho nepotřebuješ,
-        je to open studio. Kafe je samozřejmost.
+        Dílna je v suterénu zeleného domu v Ořechu. Každé {kdy.dny} od {kdy.hodiny.replace("–", " do ")} hodin si
+        tu zamluvíš hodinu — {kdy.cena} za člověka — a celá dílna je ta hodina vaše. Lektor je v ceně, a když ho
+        nepotřebuješ, je to open studio. Kafe je samozřejmost.
       </p>
-
-      <p class="d-volba-nadpis" id="d-volba-nadpis">Co chceš dělat?</p>
-      <div class="d-volba" role="group" aria-labelledby="d-volba-nadpis">
-        {volby.map((v) => (
-          <button type="button" class="d-volba-tlacitko" data-volba={v.id} data-kamera={v.kamera} aria-pressed="false" aria-controls="d-volba-popis">
-            <span lang="ja" aria-hidden="true">{v.znak}</span>{v.nazev}
-          </button>
-        ))}
-      </div>
-      <p class="d-volba-popis" id="d-volba-popis" aria-live="polite">
-        <span class="d-volba-text">Vyber, nebo klikni rovnou do dílny.</span>
-        {volby.map((v) => (
-          <a class="d-volba-odkaz" data-pro={v.id} href={v.kam} hidden>Víc <span aria-hidden="true">↓</span></a>
-        ))}
-      </p>
-      {volby.map((v) => <template data-text={v.id}>{v.text}</template>)}
-
-      <div class="d-cta">
-        <a class="tlacitko" href="/rezervace">Vybrat hodinu</a>
-        <a class="tlacitko tlacitko-obrys" href="#jak">Jak to chodí</a>
-      </div>
+      <dl class="d-zaklad">
+        <div><dt>Kdy</dt><dd>{kdy.dny}, {kdy.hodiny}</dd></div>
+        <div><dt>Za kolik</dt><dd>{kdy.cena} {kdy.zaCo} <small>hodina u nás trvá {kdy.minut} minut</small></dd></div>
+        <div><dt>S kým</dt><dd>{kdy.skupina}</dd></div>
+        <div><dt>Hotový kus</dt><dd>za {celkem}</dd></div>
+      </dl>
+      <nav class="d-obsah" aria-label="Co je na stránce">
+        <a href="#jak-to-chodi"><span lang="ja" aria-hidden="true">一</span><b>Jak to tu chodí</b><small>hodina, lektor, cesta kusu, cena</small></a>
+        <a href="#keramika"><span lang="ja" aria-hidden="true">二</span><b>Jak se dělá keramika</b><small>od hlíny po otevření pece</small></a>
+      </nav>
     </div>
 
-    <div class="d-uvod-scena">
-      <div class="d-okno" role="group" aria-label="Dílna v řezu. Na kruhy, hroudu na stole, kbelíky s glazurou, pec a kávovar se dá kliknout.">
-        <div class="d-okno-svet" data-kamera-svet>
-          <DilnaRez rezim="dilna" />
-        </div>
-        <button type="button" class="d-okno-zpet" hidden>
-          <span aria-hidden="true">←</span> Celá dílna
-        </button>
+    <figure class="d-uvod-scena">
+      <div class="d-okno">
+        <div class="d-regal" set:html={regalSvg()} />
+        {KUSY.map((k) => {
+          const s = stitek(k);
+          return (
+            <a class="d-stitek" href={k.kam} style={m.bod(s.x, s.y)} aria-label={`${k.nazev} — kapitola ${kapitola(k.kam)}`}>
+              <span class="d-stitek-provazek" aria-hidden="true"></span>
+              <span class="d-stitek-papir">{k.nazev}</span>
+            </a>
+          );
+        })}
+        <Kami id="hlinka" class="d-kami-nad" style={m.kami(MISTA_REGAL.hlinka)} />
+        <Kami id="vazicka" class="d-kami-nad" style={m.kami(MISTA_REGAL.vazicka)} />
       </div>
       <div class="d-okno-cedule" aria-hidden="true">
         <span class="d-cedule-provaz"></span>
         <span class="d-cedule-deska"><span lang="ja">工房</span></span>
       </div>
-    </div>
+      <figcaption class="d-uvod-popis">Tentýž hrnek od hroudy po hotový kus. Cestou mění barvu, lesk — a zmenšuje se.</figcaption>
+    </figure>
   </div>
 
-  <a class="d-dolu" href="#placat">
-    <span>Co se tu dělá</span>
+  <a class="d-dolu" href="#jak-to-chodi">
+    <span>Jak to tu chodí</span>
     <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
   </a>
 </section>

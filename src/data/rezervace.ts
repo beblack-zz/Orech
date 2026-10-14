@@ -7,7 +7,7 @@ import type { PostavaId } from "./parta";
  * rozdělený na odjezdy po hodině a půl (`blok`): 9:00, 10:30, 12:00…
  * Odjezd je buď volný, nebo obsazený: zamlouvá se celý, pro jednoho
  * člověka nebo skupinu až čtyř lidí — žádná místa se nepočítají.
- * Cena je za člověka a hodinu; jeden odjezd stojí `cenaOdjezdu`.
+ * Cena je za člověka a „hodinu“ — tou je jeden odjezd, 90 minut (`cenaOdjezdu`).
  *
  * Vedle hodin jsou tu dvě věci, kde se místa počítají: kurz, který zabere
  * celý den (`kurzy`), a permanentka na první a poslední spoj dne
@@ -27,7 +27,7 @@ export const rezervace = {
   do: 18,
   /** Jak dlouho trvá jeden odjezd, v hodinách. Stejně dlouhé jsou i úseky mezi zastávkami zvláštního vlaku (kurzu). */
   blok: 1.5,
-  /** Cena za jednoho člověka a hodinu (tu říká i Dílna); jeden odjezd stojí cenaOdjezdu */
+  /** Cena za jednoho člověka a „hodinu“ — jeden odjezd, 90 minut (tu říká i Dílna) */
   cena: 400,
   /** Největší skupina, která si může hodinu zamluvit */
   maxOsob: 4,
@@ -45,8 +45,12 @@ export const rezervace = {
 export const odjezdy = Array.from({ length: Math.round((rezervace.do - rezervace.od) / rezervace.blok) }, (_, i) => rezervace.od + i * rezervace.blok);
 /** Hodina s půlkou jako čas: 10.5 → „10:30“ */
 export const hhmm = (h: number) => `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, "0")}`;
-/** Cena jednoho odjezdu za člověka. ODHAD: hodinová cena krát délka odjezdu — čeká na potvrzení. */
-export const cenaOdjezdu = rezervace.cena * rezervace.blok;
+/**
+ * Cena jednoho odjezdu za člověka. Odjezd je „hodina“ v dílně — ta u nás
+ * trvá 90 minut („tam, kde má hlína čas“, viz Dílna), takže stojí tolik
+ * co hodina. Rozhodnuto 14. 10. 2026.
+ */
+export const cenaOdjezdu = rezervace.cena;
 
 /* ——— Kurzy: zvláštní vlaky ———
  *

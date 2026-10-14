@@ -1,0 +1,60 @@
+---
+/**
+ * Jedna kapitola „Jak se dělá keramika“: papír s textem a vedle obraz,
+ * který si stránka pošle do slotu. Kapitoly se střídají vpravo a vlevo,
+ * ať se stránka nečte jako katalog; `siroka` dá obraz pod text přes celou
+ * šířku. Velký znak štětcem stojí za papírem.
+ *
+ * Nahoře je, kdo krok dělá — ty (na hodině), nebo dílna (mezi tvými
+ * hodinami). Dole pár čísel, která stojí za zapamatování, a rada od
+ * toho z party, kdo nad krokem bdí.
+ *
+ * Sloty: výchozí = obraz, `text` = něco navíc pod odstavce (kartičky),
+ * `pod` = pás pod celou kapitolou (sekvence snímků).
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import type { Kapitola } from "../../data/dilna";
+import { parta } from "../../data/parta";
+
+interface Props {
+  kapitola: Kapitola;
+  strana?: "vpravo" | "vlevo" | "siroka";
+  /** Třída navíc — kapitola si podle ní ladí vlastní věci */
+  trida?: string;
+}
+const { kapitola: k, strana = "vpravo", trida = "" } = Astro.props;
+const jmeno = parta.find((p) => p.id === k.tip.kdo)?.name ?? k.tip.kdo;
+---
+<section class={`d-sekce d-kap d-kap-${strana} ${trida}`} id={k.id} data-hodina={k.hodina} aria-labelledby={`${k.id}-nadpis`}>
+  <p class="d-kap-znak" lang="ja" aria-hidden="true">{k.znak}</p>
+  <div class="d-kap-mriz">
+    <div class="d-kap-text papir">
+      <p class="stitek"><span class="d-kap-cislo" lang="ja">{k.cislo}</span> <span lang="ja">{k.japonsky}</span> · {k.cteni}</p>
+      <h3 class="d-kap-nazev" id={`${k.id}-nadpis`}>{k.nazev}</h3>
+      <p class="d-kap-podtitul">{k.podtitul}</p>
+      {(k.kdo.ty || k.kdo.dilna) && (
+        <ul class="d-kdo" aria-label="Kdo to dělá">
+          {k.kdo.ty && <li data-kdo="ty"><span lang="ja" aria-hidden="true">手</span><b>ty</b> {k.kdo.ty}</li>}
+          {k.kdo.dilna && <li data-kdo="dilna"><span lang="ja" aria-hidden="true">窯</span><b>dílna</b> {k.kdo.dilna}</li>}
+        </ul>
+      )}
+      <div class="d-kap-telo">
+        {k.odstavce.map((o) => <p>{o}</p>)}
+      </div>
+      <slot name="text" />
+      <dl class="d-fakta">
+        {k.fakta.map((x) => (
+          <div><dt>{x.hodnota}</dt><dd>{x.popis}</dd></div>
+        ))}
+      </dl>
+      <div class="d-tip">
+        <span class="d-tip-kami" aria-hidden="true"><Postavicka id={k.tip.kdo} size={64} varianta="kami" /></span>
+        <p><b>{jmeno} radí</b>{k.tip.text}</p>
+      </div>
+    </div>
+    <div class="d-kap-obraz">
+      <slot />
+    </div>
+  </div>
+  <slot name="pod" />
+</section>

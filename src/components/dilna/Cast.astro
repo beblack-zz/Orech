@@ -1,0 +1,53 @@
+---
+/**
+ * Předěl mezi částmi stránky — noren, závěs, jaký visí u vchodu do
+ * japonských krámků a dílen: barvená látka rozstřižená zespodu na pruhy,
+ * na ní velká číslice a jméno části. Visí na obloze, takže je čitelný
+ * v kteroukoli denní dobu. Druhá část má pod závěsem řadu odkazů na
+ * svých sedm kapitol, u každé malý kus v tom stavu, ve kterém v ní je.
+ */
+import { nadobaSvg, hroudaSvg } from "./kresba/nadoba";
+import type { Stav } from "./kresba/nadoba";
+
+interface Props {
+  id: string;
+  hodina: number;
+  cislo: string;
+  /** Japonsky malým písmem ve štítku */
+  japonsky: string;
+  stitek: string;
+  nazev: string;
+  perex: string;
+  /** Barva látky: indigo, nebo do hlíny */
+  latka?: "indigo" | "hlina";
+  kapitoly?: { id: string; cislo: string; nazev: string; stav: Stav | "hrouda" }[];
+}
+const { id, hodina, cislo, japonsky, stitek, nazev, perex, latka = "indigo", kapitoly = [] } = Astro.props;
+---
+<section class="d-cast" id={id} data-hodina={hodina} aria-labelledby={`${id}-nadpis`}>
+  <div class={`d-noren d-noren-${latka}`}>
+    <span class="d-noren-tyc" aria-hidden="true"></span>
+    <div class="d-noren-latka">
+      <p class="d-noren-cislo" lang="ja" aria-hidden="true">{cislo}</p>
+      <p class="d-noren-stitek">{stitek} · <span lang="ja">{japonsky}</span></p>
+      <h2 class="d-noren-nazev" id={`${id}-nadpis`}>{nazev}</h2>
+      <p class="d-noren-perex">{perex}</p>
+      <span class="d-noren-rozstrih" aria-hidden="true"><i></i><i></i></span>
+    </div>
+  </div>
+  {kapitoly.length > 0 && (
+    <ol class="d-cast-kapitoly" aria-label="Kapitoly">
+      {kapitoly.map((k, i) => (
+        <li>
+          <a href={`#${k.id}`}>
+            <span class="d-cast-kus" set:html={k.stav === "hrouda"
+              ? hroudaSvg(`dcs${i}`, 90, 90, false)
+              : nadobaSvg({ id: `dcs${i}`, tvar: k.stav === "mokry" ? "valec" : "hrnek", stav: k.stav, glazura: "celadon", stin: false }, 90, 90)} />
+            <span class="d-cast-k-cislo" lang="ja" aria-hidden="true">{k.cislo}</span>
+            <span class="d-cast-k-nazev">{k.nazev}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  )}
+</section>

@@ -1,43 +1,33 @@
 ---
 /**
- * První obrazovka Domku 2 — svítání nad Ořechem jako na Partě 2 (kopce,
- * pole, posvátný ořech, v trávě celá parta), jen na stráni stojí zelený
- * dům z Luční (Krajina s `dum="domek"`) a text je z Úvodu 2 (Brana.astro).
+ * První obrazovka webu (úvod Domku 2) — svítání nad Ořechem. Vpravo jako
+ * rám stojí starý ořešák s veverkou v dutině, uprostřed na pahorku zelený
+ * dům z Luční, za ním pole a vesnička v ranní mlze, vpředu louka. Strom,
+ * pole i louka se mění s ročním obdobím (UvodKrajina, kresby v kresba/).
+ * Text je z Úvodu 2 (Brana.astro). Nad loukou létá Vázička (01 Kami
+ * z /marcel) a schovává se za dům, strom a do trávy
+ * (scripts/domek2/let-kami.ts).
  * Pod ní začíná ulice: dojde se k bráně a rampou dolů do dílny.
  *
- * Styly jsou z parta2.css (.uvod…), tady přibyla jen tlačítka.
+ * Styly jsou z parta2.css (.uvod…), rozložení krajiny, tlačítka a pořadí
+ * vrstev pro schovávání jsou v domek2.css.
  */
-import Krajina from "../parta2/Krajina.astro";
-import Kami from "../parta2/Kami.astro";
-import { kontakt } from "../../data/uvod2";
+import UvodKrajina from "./UvodKrajina.astro";
+import VazickaGejsa from "../characters/kami-buh/VazickaGejsa.astro";
+import { kontakt, sezonaMesice } from "../../data/uvod2";
 import { parta } from "../../data/parta";
-import type { PostavaId } from "../../data/parta";
+
+/** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška (hlavni.ts) */
+const sezona = sezonaMesice(new Date().getMonth() + 1);
 
 /** Kolik stupňů umí pec — číslo je jen v Pecinčině profilu, tak se vytáhne odtud (jako na Úvodu 2) */
 const pecinka = parta.find((p) => p.id === "pecinka");
 const stupne = pecinka?.bio.match(/(\d[\d\s]*\d)\s*stup/)?.[1]?.replace(/\s/g, " ");
-
-/** Pořadí v trávě a o kolik je kdo větší — stejně jako na Partě 2 */
-const skupina: { id: PostavaId; v: number; dole: number }[] = [
-  { id: "kachlik", v: 0.92, dole: 10 },
-  { id: "vazicka", v: 1.0, dole: 4 },
-  { id: "kapka", v: 0.86, dole: 14 },
-  { id: "pecinka", v: 1.16, dole: 2 },
-  { id: "hlinka", v: 0.95, dole: 8 },
-  { id: "stripek", v: 0.9, dole: 13 },
-  { id: "cedulka", v: 0.98, dole: 5 },
-  { id: "bublinka", v: 0.86, dole: 12 },
-  { id: "samotka", v: 1.06, dole: 3 },
-];
 ---
-<section class="uvod dm-uvod" id="uvod" data-hodina="6.2" aria-labelledby="uvod-nadpis">
-  <Krajina dum="domek" seed={4} id="dmu" />
+<section class="uvod dm-uvod" id="uvod" data-hodina="6.2" data-sezona={sezona} aria-labelledby="uvod-nadpis">
+  <UvodKrajina />
 
-  <div class="uvod-parta">
-    {skupina.map((k) => (
-      <Kami id={k.id} class="uvod-kami" style={`--v:${k.v};--dole:${k.dole}px`} />
-    ))}
-  </div>
+  <div class="let-kami"><VazickaGejsa varianta="let" /></div>
 
   <div class="uvod-text">
     <p class="stitek stitek-svetly">Keramická dílna · {kontakt.obec} · od 2026</p>

@@ -1,0 +1,81 @@
+---
+/**
+ * Hodina v dílně: co to je (zamlouvá se celá, ne místo), co se v ní dá
+ * dělat — placat, točit, glazovat — a vedle lektor, nebo open studio.
+ * Cena je v obou případech stejná. Jiřík a Renča jako dvě instantní
+ * fotky; přes open studio je přilepený lísteček, že jsou u kafe.
+ *
+ * Podrobně (jak se placá, točí a glazuje) je to v druhé části stránky,
+ * tady jen tolik, aby si člověk vybral.
+ */
+import { Image } from "astro:assets";
+import jirik from "../../../fotoorech/jirik.jpg";
+import renca from "../../../fotoorech/ren.jpg";
+import { cinnosti, lektor, kdy } from "../../data/dilna";
+import { lide } from "../../data/uvod2";
+
+/** Kde na fotce je to podstatné — stejné body jako na Úvodu 2 */
+const fotky: Record<string, { src: ImageMetadata; alt: string; kde: string }> = {
+  "Jiřík": { src: jirik, alt: "Jiřík u hrnčířského kruhu obrábí hrnek", kde: "60% 36%" },
+  "Renča": { src: renca, alt: "Renča u velké pece z cihel", kde: "40% 48%" },
+};
+---
+<section class="d-sekce d-hodina" id="hodina" data-hodina="10.4" aria-labelledby="hodina-nadpis">
+  <div class="d-hodina-mriz">
+    <div class="d-hodina-papir papir">
+      <p class="stitek"><span lang="ja">一時間</span> · hodina v dílně</p>
+      <h3 id="hodina-nadpis" class="nadpis-2">Zamluvíš si hodinu. <em>Ne místo.</em></h3>
+      <p class="d-hodina-perex">
+        Hodina se zamlouvá celá: přijdeš {kdy.skupina} a dílna je ta hodina vaše — stoly, kruhy, glazury
+        i kafe. Platí se za každého, {kdy.cena} za člověka. Zástěru, hlínu a nástroje máme; vezmi si
+        oblečení, které se může ušpinit.
+      </p>
+      <p class="d-mezititulek">Co v ní můžeš dělat</p>
+      <ul class="d-cinnosti">
+        {cinnosti.map((c) => (
+          <li class="d-cinnost">
+            <span class="d-cinnost-znak" lang="ja" aria-hidden="true">{c.znak}</span>
+            <div class="d-cinnost-text">
+              <h4>{c.nazev} <small>{c.podtitul}</small></h4>
+              <p>{c.text}</p>
+              <p class="d-cinnost-vysledek"><b>Co z toho bývá</b> {c.vysledek}</p>
+              <a class="d-odkaz" href={c.kam}>Jak se to dělá <span aria-hidden="true">↓</span></a>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="d-lektor papir" id="lektor">
+      <p class="stitek"><span lang="ja">先生</span> · lektor</p>
+      <h3 class="nadpis-2">Lektor je v ceně. <em>Nemusí být.</em></h3>
+      <p class="d-lektor-perex">
+        Hodina stojí stejně s lektorem i bez něj. Když začínáš, je u tebe a ukáže ti, jak na to.
+        Když víš, co děláš, je to open studio: dílna je tvoje a lektor tu nemusí být vůbec.
+      </p>
+      <div class="d-lektor-seznamy">
+        <div class="d-lektor-rezim" data-pro="s">
+          <h4><span lang="ja" aria-hidden="true">先生</span> S lektorem</h4>
+          <ul>{lektor.s.map((t) => <li>{t}</li>)}</ul>
+        </div>
+        <div class="d-lektor-rezim" data-pro="bez">
+          <h4><span lang="ja" aria-hidden="true">一人</span> Open studio</h4>
+          <ul>{lektor.bez.map((t) => <li>{t}</li>)}</ul>
+        </div>
+      </div>
+      <div class="d-lektor-fotky">
+        {lide.map((l, i) => fotky[l.jmeno] && (
+          <figure class={`d-foto d-foto-${i}`}>
+            <span class="d-foto-paska" aria-hidden="true"></span>
+            <span class="d-foto-obraz">
+              <Image src={fotky[l.jmeno].src} alt={fotky[l.jmeno].alt} width={520} widths={[260, 400, 520]} sizes="(min-width: 1100px) 210px, 40vw" format="webp" style={`object-position:${fotky[l.jmeno].kde}`} />
+            </span>
+            <figcaption>{l.jmeno} {l.kde}</figcaption>
+          </figure>
+        ))}
+        <p class="d-listecek" aria-hidden="true">V open studiu<br />jsme u kafe.<br />Kdyby něco, zavolej.</p>
+      </div>
+      <p class="d-lektor-cena"><b>{kdy.cena}</b> {kdy.zaCo} — <span>v obou případech</span></p>
+    </div>
+  </div>
+</section>

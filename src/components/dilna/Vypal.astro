@@ -1,0 +1,89 @@
+---
+/**
+ * 六 Ostrý výpal — noc, jediné světlo je pec. Nahoře úvod, pod ním
+ * vlevo pálicí křivka (kresba/krivka.ts) a pec v řezu při ostrém výpalu
+ * se žároměrkami (kresba/pec.ts), vpravo devět proměn, kterými hlína
+ * cestou nahoru projde — stejné jako na Partě 2 (kami.ts — milniky).
+ *
+ * Když se čte proměna, kurzor na křivce dojede na její teplotu, pec
+ * svítí podle ní a žároměrky se ohnou (scripts/dilna/vypal.ts). Bez
+ * skriptu je všechno vidět najednou: křivka s tečkami a pec v plném žáru.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import { kapitoly } from "../../data/dilna";
+import { milniky } from "../../data/kami";
+import { parta } from "../../data/parta";
+import { krivkaSvg, barvaZaru } from "./kresba/krivka";
+import { pecRez, zaromerky } from "./kresba/pec";
+
+const k = kapitoly.find((x) => x.id === "vypal")!;
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+const tip = jmeno(k.tip.kdo);
+const cislo = (n: number) => n.toLocaleString("cs-CZ");
+---
+<section class="d-sekce d-vypal" id="vypal" data-hodina={k.hodina} aria-labelledby="vypal-nadpis" data-vypal>
+  <p class="d-kap-znak d-vypal-znak" lang="ja" aria-hidden="true">{k.znak}</p>
+  <div class="d-vypal-noc">
+    <header class="d-vypal-hlava">
+      <p class="stitek stitek-svetly"><span class="d-kap-cislo" lang="ja">{k.cislo}</span> <span lang="ja">{k.japonsky}</span> · {k.cteni}</p>
+      <h3 class="d-kap-nazev" id="vypal-nadpis">{k.nazev}</h3>
+      <p class="d-kap-podtitul">{k.podtitul}</p>
+      {k.kdo.dilna && (
+        <ul class="d-kdo" aria-label="Kdo to dělá">
+          <li data-kdo="dilna"><span lang="ja" aria-hidden="true">窯</span><b>dílna</b> {k.kdo.dilna}</li>
+        </ul>
+      )}
+      <div class="d-vypal-uvod">
+        {k.odstavce.slice(0, 2).map((o) => <p>{o}</p>)}
+      </div>
+    </header>
+
+    <div class="d-vypal-mriz">
+      <div class="d-vypal-obraz">
+        <figure class="d-vypal-graf">
+          <div class="d-kresba" set:html={krivkaSvg()} />
+          <p class="d-vypal-odecet" aria-hidden="true"><b data-teplota>1 280</b><span>°C</span></p>
+          <figcaption class="sr-only">Pálicí křivka: teplota stoupá skoro celý den až na 1 280 °C, chvíli se drží a pak pec celou noc chladne.</figcaption>
+        </figure>
+        <figure class="d-vypal-pec" style="--zar:1">
+          <div class="d-kresba" set:html={pecRez("ostry", "dpo")} />
+          <div class="d-zaromerky" data-ohnuti="2" aria-hidden="true">
+            <div class="d-kresba" data-ohnuti="0" set:html={zaromerky(0, "dz0")} />
+            <div class="d-kresba" data-ohnuti="1" set:html={zaromerky(0.5, "dz1")} />
+            <div class="d-kresba" data-ohnuti="2" set:html={zaromerky(1, "dz2")} />
+            <p>žároměrky</p>
+          </div>
+          <figcaption class="sr-only">Pec v řezu při ostrém výpalu: kusy s glazurou stojí od sebe, spirály žhnou a u průhledového otvoru se ohýbají žároměrky.</figcaption>
+        </figure>
+      </div>
+
+      <ol class="d-milniky" aria-label="Co se děje v peci cestou nahoru">
+        {milniky.map((m, i) => (
+          <li class="d-milnik" data-teplota={m.teplota} data-i={i} style={`--barva:${barvaZaru(Math.max(m.teplota, 560))}`}>
+            <p class="d-milnik-teplota"><b>{cislo(m.teplota)}</b> °C</p>
+            <p class="d-milnik-text">{m.text}</p>
+            <p class="d-milnik-replika">
+              <span class="d-milnik-kami" aria-hidden="true"><Postavicka id={m.kdo} size={48} varianta="kami" /></span>
+              <span><b>{jmeno(m.kdo)}</b> {m.replika}</span>
+            </p>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <footer class="d-vypal-pata">
+      <div class="d-vypal-dopis">
+        {k.odstavce.slice(2).map((o) => <p>{o}</p>)}
+      </div>
+      <dl class="d-fakta">
+        {k.fakta.map((x) => (
+          <div><dt>{x.hodnota}</dt><dd>{x.popis}</dd></div>
+        ))}
+      </dl>
+      <div class="d-tip">
+        <span class="d-tip-kami" aria-hidden="true"><Postavicka id={k.tip.kdo} size={64} varianta="kami" /></span>
+        <p><b>{tip} radí</b>{k.tip.text}</p>
+      </div>
+    </footer>
+  </div>
+</section>

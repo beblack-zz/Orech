@@ -1,0 +1,51 @@
+---
+/**
+ * Od rezervace po vyzvednutí — časová osa se dvěma drahami. Nad osou
+ * je, co děláš ty (přijdeš), pod ní, co se mezitím děje v dílně (sušení,
+ * dva výpaly). U každého kroku je kus v tom stavu, ve kterém zrovna je.
+ * Pod osou závorka s celkem, 2–3 týdny — délky jednotlivých kroků
+ * schválně nikde nejsou, dílna slibuje jen celek.
+ *
+ * Na užším okně je osa svislá vlevo a kroky pod sebou; dráhu pak
+ * ukazuje barva kartičky a značka 手 / 窯.
+ */
+import { nadobaSvg, hroudaSvg } from "./kresba/nadoba";
+import { navsteva, celkem } from "../../data/dilna";
+---
+<section class="d-sekce d-navsteva" id="cesta" data-hodina="11.6" aria-labelledby="cesta-nadpis">
+  <div class="d-navsteva-papir papir">
+    <div class="d-navsteva-hlava">
+      <p class="stitek"><span lang="ja">工程</span> · od rezervace po vyzvednutí</p>
+      <h3 id="cesta-nadpis" class="nadpis-2">Tvůj kus jde dílnou {celkem}. <em>Ty přijdeš dvakrát, třikrát.</em></h3>
+      <p class="d-navsteva-perex">
+        Na první hodině kus uděláš. Pak se o něj stará dílna — suší ho a pálí — a mezitím přijdeš glazovat
+        (a kusy z kruhu ještě obrobit). Jak dlouho který krok trvá, se liší: sušení záleží na počasí i na tom,
+        jak je kus velký. Celé to trvá {celkem} a dáme vědět, až bude hotovo.
+      </p>
+      <ul class="d-drahy" aria-label="Dvě dráhy">
+        <li data-kdo="ty"><span lang="ja" aria-hidden="true">手</span><b>ty</b> přijdeš do dílny</li>
+        <li data-kdo="dilna"><span lang="ja" aria-hidden="true">窯</span><b>dílna</b> mezi tvými hodinami</li>
+      </ul>
+    </div>
+
+    <ol class="d-osa" style={`--pocet:${navsteva.length}`}>
+      {navsteva.map((k, i) => (
+        <li class="d-osa-krok" data-kdo={k.kdo} style={`--i:${i + 1}`}>
+          <span class="d-osa-bod" aria-hidden="true">{i + 1}</span>
+          <div class="d-osa-karta">
+            <span class="d-osa-kus" set:html={k.stav === "hrouda"
+              ? hroudaSvg(`dnv${i}`, 100, 100)
+              : nadobaSvg({ id: `dnv${i}`, tvar: k.stav === "mokry" ? "valec" : "hrnek", stav: k.stav, glazura: "celadon" }, 100, 100)} />
+            <div class="d-osa-text">
+              <p class="d-osa-kdo"><span lang="ja" aria-hidden="true">{k.kdo === "ty" ? "手" : "窯"}</span>{k.kdo === "ty" ? "ty" : "dílna"}{k.jenNekdy && <em> · {k.jenNekdy}</em>}</p>
+              <h4>{k.nazev}</h4>
+              <p>{k.text}</p>
+              {k.odkaz && <a class="d-odkaz" href={k.odkaz.href}>{k.odkaz.text} <span aria-hidden="true">→</span></a>}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="d-osa-celkem"><span class="d-osa-zavorka" aria-hidden="true"></span><span><b>{celkem}</b> od hroudy po hotový kus</span></p>
+  </div>
+</section>

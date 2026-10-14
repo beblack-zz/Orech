@@ -16,6 +16,136 @@
 .dm-uvod .tlacitko-obrys { border-color: rgba(255, 251, 242, 0.85); color: #FFFBF2 !important; }
 .dm-uvod .tlacitko-obrys:hover { background: #FFFBF2; color: var(--inkoust) !important; }
 
+/*
+ * Vázička létá po úvodu a schovává se (let-kami.ts): vrstvy krajiny dostanou
+ * pořadí s mezerami a ona si bere číslo mezi nimi — za domem 2, za kmenem 5,
+ * v koruně 7, v trávě 9, volně 12. Kopce a dům propouštějí klepnutí, ať jde
+ * najít, i když jen vykukuje.
+ */
+.dm-uvod .uvod-kopce { z-index: 1; pointer-events: none; }
+.dm-uvod .uvod-kopce-dum { z-index: 3; }
+.dm-uvod .orech-koruna-zadni { z-index: 4; }
+.dm-uvod .orech-kmen { z-index: 6; }
+.dm-uvod .orech-koruna-predni { z-index: 8; }
+.dm-uvod .uvod-louka { z-index: 10; }
+.dm-uvod .uvod-text,
+.dm-uvod .uvod-tategaki { z-index: 20; }
+.let-kami {
+  position: absolute;
+  z-index: 12;
+  left: 0;
+  top: 0;
+  width: 90px;
+  height: 90px;
+  visibility: hidden;
+  will-change: transform;
+}
+.let-kami.pripravena { visibility: visible; }
+.let-kami .vazicka-gejsa { width: 100%; height: 100%; }
+
+/*
+ * Krajina úvodu (UvodKrajina.astro). Třídy .uvod-orech a .uvod-louka
+ * z parta2.css tu neplatí — .orech a .louka jsou v parta2.css až za nimi
+ * a jejich position: relative by vrstvy vrátilo do toku stránky. Proto
+ * vlastní třídy s .dm-uvod.
+ */
+.dm-uvod .uvod-kopce { height: 70%; }
+/* mlha pluje sem a tam; vrstva je širší než obraz, kraje se neukážou */
+.dm-uvod .dmu-mlha { overflow: visible; animation: dmu-mlha 38s ease-in-out infinite alternate; will-change: transform; }
+.dm-uvod .dmu-mlha-2 { animation-duration: 27s; animation-delay: -9s; }
+@keyframes dmu-mlha { from { transform: translateX(-2.2%); } to { transform: translateX(2.2%); } }
+/* paprsky ranního slunce zpoza kopců — slunce je na obloze (Nebe) a jde za ním */
+.dm-uvod .dmu-paprsky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-conic-gradient(from 0deg at var(--slunce-x, 11%) var(--slunce-y, 76%), rgba(255, 238, 214, 0.2) 0deg 2.5deg, transparent 2.5deg 9deg);
+  -webkit-mask-image: radial-gradient(circle at var(--slunce-x, 11%) var(--slunce-y, 76%), #000 0, rgba(0, 0, 0, 0.55) 26%, transparent 72%);
+  mask-image: radial-gradient(circle at var(--slunce-x, 11%) var(--slunce-y, 76%), #000 0, rgba(0, 0, 0, 0.55) 26%, transparent 72%);
+  opacity: calc(var(--slunce-op, 0.7) * 0.9);
+  transform-origin: var(--slunce-x, 11%) var(--slunce-y, 76%);
+  animation: dmu-paprsky 14s ease-in-out infinite alternate;
+}
+/* paprsky dýchají — rostou od slunce a zase se stáhnou */
+@keyframes dmu-paprsky { from { transform: scale(1) rotate(-0.6deg); } to { transform: scale(1.06) rotate(0.6deg); } }
+/*
+ * Ořech: výška podle obrazovky, osa kmene (x 1170 z 1800) na 80 % šířky,
+ * kořeny v louce. Koruna se kolébá kolem vidlice.
+ *
+ * Posun k ose kmene se počítá z výšky sekce (--uvod-h je totéž co výška
+ * .uvod v parta2.css), ne přes transform: transformace by z obalu udělala
+ * vlastní kontext vrstvení a Vázička by se pak nevešla mezi kmen a korunu.
+ */
+.dm-uvod { --uvod-h: max(100svh, 640px); }
+.dm-uvod .dmu-orech {
+  --vyska: calc(var(--uvod-h) * 1.12);
+  --sirka: calc(var(--vyska) * 1800 / 1400);
+  position: absolute;
+  left: calc(80% - var(--sirka) * 0.65);
+  bottom: 6%;
+  width: var(--sirka);
+  height: var(--vyska);
+  pointer-events: none;
+}
+/* koruna se kolébá jen málo — větve jsou ve vrstvě kmene a stojí, listí by od nich jinak odjíždělo */
+.dm-uvod .dmu-orech .orech-koruna { transform-origin: 65% 66%; }
+.dm-uvod .dmu-orech .orech-koruna-zadni { animation: dmu-koruna 11s ease-in-out infinite; }
+.dm-uvod .dmu-orech .orech-koruna-predni { animation: dmu-koruna 8s ease-in-out infinite reverse; }
+@keyframes dmu-koruna { 0%, 100% { transform: rotate(-0.22deg); } 50% { transform: rotate(0.26deg); } }
+/* na užších obrazovkách (4 : 3) uhne strom víc doprava, ať nevleze do nadpisu */
+@media (max-aspect-ratio: 29 / 20) and (min-width: 861px) {
+  .dm-uvod .dmu-orech { left: calc(86% - var(--sirka) * 0.65); }
+}
+.dmu-symboly { position: absolute; width: 0; height: 0; overflow: hidden; }
+/* veverka vykoukne z dutiny, rozhlédne se a zase zmizí */
+.dm-uvod .ou-veverka {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: translateY(56px);
+  animation: dmu-veverka 17s ease-in-out infinite;
+  animation-delay: 3s;
+}
+@keyframes dmu-veverka {
+  0%, 52% { transform: translateY(56px); }
+  56% { transform: translateY(0); }
+  62% { transform: translateY(0) rotate(-9deg); }
+  70% { transform: translateY(-2px) rotate(8deg); }
+  76% { transform: translateY(0); }
+  80%, 100% { transform: translateY(56px); }
+}
+/* louka v popředí: pruh u spodního okraje, tráva v něm má celé vršky */
+.dm-uvod .dmu-louka { position: absolute; left: 0; right: 0; bottom: 0; height: clamp(110px, 18vh, 200px); }
+/* padající listí, ořechy a sníh (uvod-zivot.ts) */
+.dm-uvod .dmu-zivot { position: absolute; inset: 0; z-index: 11; pointer-events: none; overflow: hidden; }
+/* sakura na trávníku u domku kvete jen na jaře, jinak bere barvy období (dilna-rez.css) */
+.dm-uvod .krajina-domek .sak-1 { fill: var(--sak-1); }
+.dm-uvod .krajina-domek .sak-2 { fill: var(--sak-2); }
+@media (max-width: 860px) {
+  .dm-uvod .uvod-kopce { height: 62%; }
+  /*
+   * Na telefonu stojí text nahoře přes celou šířku a je vysoký pořád
+   * zhruba stejně (v pixelech). Koruna proto začíná až pod ním a strom je
+   * tak velký, aby kořeny došly do louky (zem v 1300/1400 jeho výšky = 93 %).
+   */
+  .dm-uvod { --uvod-h: max(100svh, 720px); }
+  .dm-uvod .dmu-orech {
+    --vyska: calc((var(--uvod-h) * 0.93 - max(395px, var(--uvod-h) * 0.4)) * 1.0769);
+    left: calc(90% - var(--sirka) * 0.65);
+    top: max(395px, 40%);
+    bottom: auto;
+  }
+  /* domek s pěšinou blíž ke středu výřezu a o kus menší (střed paty domku 800 × 434) */
+  .dm-uvod .krajina-dum { transform-origin: 800px 434px; transform: translate(-62px, 6px) scale(0.84); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dm-uvod .dmu-mlha,
+  .dm-uvod .dmu-paprsky,
+  .dm-uvod .dmu-orech .orech-koruna,
+  .dm-uvod .ou-veverka { animation: none; }
+  .dm-uvod .ou-veverka { transform: none; }
+}
+
 /* ——— Ulice ——— */
 
 .ulice { position: relative; z-index: 2; height: 260vh; height: 260svh; }
@@ -244,72 +374,6 @@
 .stanice.aktivni .dm-polaroid img { filter: none; }
 .dm-polaroid figcaption { padding: 8px 4px 11px; text-align: center; font-family: var(--f-ruka); font-size: 21px; line-height: 1.1; color: var(--inkoust-2); }
 
-.rez-klic { position: absolute; z-index: 5; pointer-events: auto; }
-
-/* ——— Klíče ——— */
-
-.dm-klic {
-  position: absolute;
-  z-index: 6;
-  display: block;
-  padding: 0;
-  pointer-events: auto;
-  transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.5, 1), filter 0.3s, opacity 0.4s;
-  -webkit-tap-highlight-color: transparent;
-}
-.dm-klic::before { content: ""; position: absolute; inset: -10px; }
-.dm-klic svg { position: relative; width: 100%; height: 100%; display: block; overflow: visible; }
-.dm-klic:hover,
-.dm-klic:focus-visible { filter: drop-shadow(0 0 5px rgba(255, 236, 190, 0.95)); transform: translateY(-2px) scale(1.12); }
-/* Nalezený klíč visí na háčku v klíčovnici — z kresby zmizí */
-.dm-klic.nalezen { opacity: 0; pointer-events: none; transform: translateY(-30px) scale(0.6); }
-.dm-klic.nalezen-ted { opacity: 1; animation: klic-pryc 0.8s cubic-bezier(0.3, 1.2, 0.5, 1) forwards; }
-@keyframes klic-pryc { 40% { transform: translateY(-8px) scale(1.6) rotate(-14deg); opacity: 1; } 100% { transform: translateY(-40px) scale(0.5); opacity: 0; } }
-.dm-klic-obr { display: block; }
-.dm-klic-obr svg { width: 100%; height: auto; display: block; }
-
-/* Tlačítko v hlavičce: kroužek s klíči */
-.klice-tlacitko svg { width: 30px; height: 30px; }
-.klice-krouzek { fill: none; stroke: #8A8F94; stroke-width: 2.2; }
-.klice-tlacitko [data-krouzek-klic] { opacity: 0.16; transition: opacity 0.4s, transform 0.4s cubic-bezier(0.3, 1.5, 0.5, 1); transform-box: fill-box; transform-origin: 50% 0; }
-.klice-tlacitko [data-krouzek-klic].je { opacity: 1; }
-.je-vse-klice .klice-krouzek { stroke: var(--zlato); }
-
-/* Klíčovnice v dialogu */
-.dm-klicovnice {
-  list-style: none;
-  margin: 22px 0;
-  padding: 28px 18px 18px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px 12px;
-  border-radius: 14px;
-  background: linear-gradient(#B98E62, #A27A50);
-  box-shadow: inset 0 0 0 3px #8A6440, inset 0 10px 18px -12px rgba(0, 0, 0, 0.5);
-}
-.dm-hacek { position: relative; display: grid; justify-items: center; align-content: start; gap: 3px; padding: 18px 8px 12px; border-radius: 10px; background: #F4EBDA; text-align: center; box-shadow: 0 6px 12px -8px rgba(40, 25, 10, 0.6); }
-.dm-hacek-kolik {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  width: 14px;
-  height: 18px;
-  margin-left: -7px;
-  border: 3px solid #6E7378;
-  border-top: 0;
-  border-radius: 0 0 8px 8px;
-}
-.dm-hacek-klic { width: 64px; transform: rotate(90deg) translateX(10px); opacity: 0.16; filter: grayscale(1); transition: opacity 0.5s, filter 0.5s; }
-.dm-hacek.je .dm-hacek-klic { opacity: 1; filter: none; animation: klic-houpe 2.4s ease-in-out infinite; }
-@keyframes klic-houpe { 0%, 100% { transform: rotate(84deg) translateX(10px); } 50% { transform: rotate(96deg) translateX(10px); } }
-.dm-hacek-nazev { margin-top: 24px; font-family: var(--f-display); font-weight: 600; font-size: 15.5px; }
-.dm-hacek-napoveda { font-size: 12.5px; line-height: 1.35; color: var(--inkoust-3); }
-.dm-hacek-stitek { display: none; font-family: var(--f-ruka); font-size: 18px; line-height: 1.1; color: var(--rumelka); }
-.dm-hacek.je .dm-hacek-napoveda { display: none; }
-.dm-hacek.je .dm-hacek-stitek { display: block; }
-@media (max-width: 640px) {
-  .dm-klicovnice { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 
 /* ——— Kresba a fotka ——— */
 
@@ -360,7 +424,6 @@
 .srovnani-misto { position: absolute; z-index: 2; border-radius: 10px; cursor: pointer; }
 .srovnani-misto:hover,
 .srovnani-misto:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(255, 252, 240, 0.9), 0 0 18px 3px rgba(255, 210, 130, 0.7); }
-.srovnani-klic { position: absolute; z-index: 4; }
 .srovnani-stitek {
   position: absolute;
   z-index: 4;
@@ -531,7 +594,6 @@
 }
 .dm-pruvod-kresba { width: 100%; margin-bottom: -12%; }
 .dm-vecer .noc-karta { margin-top: 0; }
-.dm-klice-stav { font-size: 15px; color: var(--inkoust-2); }
 @media (max-width: 860px) {
   .dm-vecer-dum { --w: calc(100vw * 3100 / 1180); right: auto; left: calc(50% - var(--w) * 0.645); }
 }
@@ -545,11 +607,8 @@
   .u-rozhlas-vlny.hraje path,
   .z-sakura.trese,
   .kudy-tady,
-  .dm-hacek.je .dm-hacek-klic,
-  .dm-klic.nalezen-ted,
   .rozhlas-bublina { animation: none !important; }
   .dm-pruvod-clen { left: calc(1vw + var(--i) * 14vw); animation: none; }
   .u-brana-kridla,
-  .dm-klic,
   .dm-polaroid img { transition: none; }
 }

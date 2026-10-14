@@ -18,8 +18,7 @@ let dialog: HTMLDialogElement | null = null;
 function ukaz() {
   nactiPostup();
   const n = proslych();
-  document.querySelectorAll(".mss-pocet, [data-sesit-pocet]").forEach((b) => (b.textContent = String(n)));
-  document.querySelector(".mss-tlacitko")?.setAttribute("aria-label", `Sešit razítek: ${n} z ${urovne.length}`);
+  document.querySelectorAll(".mss-pocet").forEach((b) => (b.textContent = String(n)));
   document.documentElement.classList.toggle("je-cely-sesit", n === urovne.length);
   if (!dialog) return;
   for (const u of urovne) {
@@ -53,7 +52,6 @@ export function initSesit() {
   dialog = document.querySelector<HTMLDialogElement>(".mss-dialog");
   ukaz();
   document.addEventListener(ZMENA, ukaz);
-  document.querySelector(".mss-tlacitko")?.addEventListener("click", otevriSesit);
   if (!dialog) return;
   const d = dialog;
   d.querySelector(".omamori-zavrit")?.addEventListener("click", () => d.close());

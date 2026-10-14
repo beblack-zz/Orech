@@ -20,6 +20,8 @@ export interface KamiInfo {
   skrys: string;
   /** Jak těžké je ho najít — podle toho stojí v omamori v první, druhé, nebo třetí řadě */
   narocnost: 1 | 2 | 3;
+  /** Nejtěžší ze všech — v omamori má červenou kartu se štítkem */
+  nejtezsi?: true;
 }
 
 export const kamiInfo: Record<PostavaId, KamiInfo> = {
@@ -74,6 +76,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
     ],
     skrys: "Leží na zemi pod ponkem. Tam, kam nikdo nezametá.",
     narocnost: 3,
+    nejtezsi: true,
   },
   vazicka: {
     druh: "tsukumogami",
@@ -99,7 +102,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Kami? Kdepak. Yōkai. To je ta zábavnější strana.",
     ],
     skrys: "Bydlí v trubičce s vodou. Kachlík ji tam nesnáší.",
-    narocnost: 3,
+    narocnost: 2,
   },
   kachlik: {
     druh: "tsukumogami",
@@ -138,7 +141,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Nikdo mi nikdy nepoděkoval. To je v pořádku. Fakt.",
     ],
     skrys: "Je uvnitř rozpálené pece. Stačí nakouknout.",
-    narocnost: 2,
+    narocnost: 3,
   },
 };
 

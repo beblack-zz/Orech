@@ -1698,7 +1698,7 @@
 @media (max-width: 1180px) {
   .rz-hala-mriz { grid-template-columns: minmax(0, 1fr); width: min(900px, 100%); }
   .rz-pokladna { transform: none; }
-  .rz-dny { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .rz-dny { grid-template-columns: repeat(2, minmax(0, 260px)); }
 }
 
 @media (max-width: 899px), (max-aspect-ratio: 11/10) {

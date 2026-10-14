@@ -1,0 +1,41 @@
+---
+/**
+ * 二 Tvar — v ruce (mačkaná miska, válečky, pláty) jako tři vinětky
+ * vedle textu a pod kapitolou šest snímků z kruhu: centrování,
+ * otevření, vytažení, tvarování, odříznutí a obrábění druhý den.
+ * Kreslí kresba/tvar.ts, popisky jsou z dilna.ts.
+ */
+import Kapitola from "./Kapitola.astro";
+import { kapitoly, naKruhu, vRuce } from "../../data/dilna";
+import { kruhKrok, vRuce as vRuceSvg } from "./kresba/tvar";
+
+const k = kapitoly.find((x) => x.id === "tvar")!;
+const kroky = naKruhu.map((x, i) => ({ ...x, svg: kruhKrok(i as 0 | 1 | 2 | 3 | 4 | 5) }));
+---
+<Kapitola kapitola={k} strana="vlevo" trida="d-kap-tvar">
+  <figure class="d-obraz d-vruce">
+    <p class="d-obraz-nadpis"><span lang="ja">手びねり</span> V ruce</p>
+    <ul class="d-vruce-seznam">
+      {vRuce.map((v) => (
+        <li>
+          <span class="d-kresba" set:html={vRuceSvg(v.id)} />
+          <b>{v.nazev}</b>
+          <small>{v.text}</small>
+        </li>
+      ))}
+    </ul>
+  </figure>
+
+  <div slot="pod" class="d-kruh">
+    <p class="d-obraz-nadpis d-kruh-nadpis"><span lang="ja">轆轤</span> Na kruhu, krok za krokem</p>
+    <ol class="d-kruh-kroky">
+      {kroky.map((x, i) => (
+        <li>
+          <span class="d-kresba" set:html={x.svg} />
+          <b><span class="d-kruh-cislo" aria-hidden="true">{i + 1}</span>{x.nazev}</b>
+          <small>{x.text}</small>
+        </li>
+      ))}
+    </ol>
+  </div>
+</Kapitola>

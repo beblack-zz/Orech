@@ -21,12 +21,11 @@ export interface ZahradaVolby {
 
 export const ZAHRADA = { x: 0, y: 0, w: 1200, h: 1600 };
 
-/** Kde stojí kami a schovaný klíč (souřadnice kresby) */
+/** Kde stojí kami (souřadnice kresby) */
 export const ZAHRADA_MISTA = {
   hlinka: { x: 336, pata: 1302, w: 92 },
   kapka: { x: 902, pata: 1014, w: 70 },
   bublinka: { x: 612, pata: 262, w: 44 },
-  klic: { box: [900, 1088, 960, 1122] as [number, number, number, number] },
   visacka: { box: [205, 790, 255, 880] as [number, number, number, number] },
   sakura: { box: [0, 620, 470, 1340] as [number, number, number, number] },
   truhliky: { box: [620, 930, 960, 1130] as [number, number, number, number] },

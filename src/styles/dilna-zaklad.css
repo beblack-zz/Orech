@@ -1,0 +1,71 @@
+/*
+ * ——— Základ stránek s třídou .d2 ———
+ *
+ * Kousky, které má Dílna i komnata U mistra (/zkouska): přeskakovací
+ * odkaz, skrytý text pro čtečky, světlá tlačítka, odkaz s šipkou
+ * a přepínač. Zbytek Dílny je v dilna.css.
+ *
+ * Tlačítka mají předponu .d2 — parta2.css nuluje všem tlačítkům pozadí
+ * a odsazení selektorem .p2 button a ten by jinak vyhrál.
+ */
+
+.d2 .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.d2 .preskocit {
+  position: fixed;
+  left: 12px;
+  top: -80px;
+  z-index: 100;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--inkoust);
+  color: var(--papir) !important;
+  font-family: var(--f-display);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.d2 .preskocit:focus { top: 12px; }
+
+.d2 .nadpis-2 em { color: var(--rumelka); font-weight: 300; }
+.d-svetly { color: #FFFBF2; text-shadow: 0 2px 18px rgba(20, 16, 50, 0.45); }
+.d-svetly em { color: #FFE2C4 !important; }
+.d2 .tlacitko:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.d2 .tlacitko-svetle { background: #FFFBF2; border-color: #FFFBF2; color: var(--inkoust) !important; }
+.d2 .tlacitko-svetle:hover { background: #FFFFFF; }
+.d2 .tlacitko-svetle-obrys { background: transparent; border-color: #FFFBF2; color: #FFFBF2 !important; }
+.d2 .tlacitko-svetle-obrys:hover { background: #FFFBF2; color: var(--inkoust) !important; }
+.d-odkaz {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--rumelka) !important;
+  text-decoration: none;
+}
+.d-odkaz:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.d-prepinac { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--papir-2); }
+.d2 .d-prepinac button {
+  padding: 6px 15px;
+  border-radius: 999px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--inkoust-2);
+  transition: background 0.2s, color 0.2s;
+}
+.d2 .d-prepinac button[aria-pressed="true"] { background: var(--inkoust); color: var(--papir); }
+.d2 .d-prepinac button:disabled { opacity: 0.5; cursor: not-allowed; }

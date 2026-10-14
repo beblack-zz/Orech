@@ -524,11 +524,6 @@ export function rozhlas(zaver = false) {
   });
 }
 
-/** Svazek klíčů */
-export const klice = () => {
-  for (let i = 0; i < 4; i++) window.setTimeout(() => ton(3200 + Math.random() * 1800, 2800 + Math.random() * 1500, 0.09, "triangle", 0.05), i * 55 + Math.random() * 30);
-};
-
 /** Voda z kohoutku */
 export const kohoutek = () => sumik(1.6, 2400, 0.5, 0.09);
 

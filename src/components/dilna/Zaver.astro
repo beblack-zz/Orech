@@ -1,0 +1,40 @@
+---
+/**
+ * Konec stránky — druhý den v devět, dílna se znovu otevírá. Pálení je
+ * za námi, na prkně stojí hotové kusy a jedno místo je volné: čárkovaný
+ * obrys hrnku a pod ním štítek. Dole kontakt a cesta na Rezervaci.
+ * Ráno je obloha světlá, proto je všechno na papíře.
+ */
+import { polickaSvg, VOLNE, POLICKA_W, POLICKA_H } from "./kresba/regal";
+import { mista } from "./misto";
+import { kontakt, mapa } from "../../data/uvod2";
+import { kdy } from "../../data/dilna";
+
+const m = mista(POLICKA_W, POLICKA_H);
+---
+<section class="d-sekce d-zaver" id="kontakt" data-hodina="33" aria-labelledby="zaver-nadpis">
+  <div class="d-zaver-papir papir">
+    <div class="d-policka">
+      <div class="d-kresba" set:html={polickaSvg()} />
+      <p class="d-stitek d-stitek-volny" style={m.bod(VOLNE.x, VOLNE.y)} aria-hidden="true">
+        <span class="d-stitek-provazek"></span>
+        <span class="d-stitek-papir">tvůj kus</span>
+      </p>
+    </div>
+    <p class="stitek"><span lang="ja">開店</span> · devět ráno, dílna se otevírá</p>
+    <h2 id="zaver-nadpis" class="nadpis-2">Na prkně je pro tebe místo.</h2>
+    <p class="d-zaver-text">
+      Hodinu si zamluvíš na Rezervaci — každé {kdy.dny}, {kdy.hodiny} hodin. Radši píšeš, nebo voláš? Taky dobře.
+    </p>
+    <div class="d-cta d-zaver-akce">
+      <a class="tlacitko" href="/rezervace">Vybrat hodinu</a>
+      <a class="tlacitko tlacitko-obrys" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+      <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+    </div>
+    <p class="d-zaver-adresa">
+      Dílna · {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
+      <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a> ·
+      <a href="/#prohlidka">prohlédnout si dílnu</a>
+    </p>
+  </div>
+</section>

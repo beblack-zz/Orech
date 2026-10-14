@@ -2,7 +2,7 @@
  * Úroveň 四 Tvar — počty bez DOM: obrys z nakreslené čáry, shoda
  * s předlohou a výsledek hry.
  *
- * Fyzika je ta samá jako na kruhu v Dílně (scripts/dilna/tocit.ts):
+ * Fyzika je ta samá, jako mívala Dílna (components/dilna/kus.ts):
  * z bodů čáry se obrys skládá funkcí zBodu() a co by spadlo, říká
  * spadne(). Navíc se tu jen nepočítá kus čáry, který jede po hlavě
  * kruhu — kdo začne u osy a táhne ven k patce, teprve patku hledá.
@@ -16,9 +16,8 @@
  * Body hry = 100 × vážený průměr S tří kol (váza váží 1,2), prošlo
  * od 40 bodů, a jen když nespadl víc než jeden kus.
  */
-import { spadne, zBodu } from "../../dilna/tocit";
 import { omez } from "../../parta2/stav";
-import { poznejDruh, nazevDruhu } from "../../../components/dilna/kus";
+import { poznejDruh, nazevDruhu, spadne, zBodu } from "../../../components/dilna/kus";
 import type { Kus } from "../../../components/dilna/kus";
 import type { Profil, Predloha } from "../../../components/zkouska/urovne/tvar-tvary";
 import type { Vysledek } from "../hra";

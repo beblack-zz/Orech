@@ -6,20 +6,21 @@
  *
  * Lístek je svislý jako skutečné omikuji: nahoře jméno svatyně a 大吉
  * v rámečku, pod tím věštba, rubriky a rudé razítko svatyně. Dole je přes
- * perforaci ústřižek s odměnou (data/svatyne.ts, odmena) a heslem. Papír je
- * den (slunce, mráčky, sakura, krajina se svatyní), ústřižek noc. Při
+ * perforaci ústřižek s odměnou (data/svatyne.ts, odmena) a heslem. Celý lístek
+ * je noc jako brána nahoře: papír má měsíc, hvězdy, noční sakuru a krajinu
+ * se svítící svatyní, ústřižek pokračuje stejnou oblohou. Při
  * vytažení se rozvine shora dolů, dopadne razítko a vyjede ústřižek
  * (styles/svatyne.css, třída .je-novy). Plní ho scripts/svatyne/svatyne.ts;
  * dokud není všech devět nalezeno, je sekce skrytá.
  */
 import { odmena } from "../../data/svatyne";
 
-/* Paprsky slunce a padající lístky sakury na papíře (pevně, ať se stránka mezi buildy nemění) */
-const paprsky = Array.from({ length: 12 }, (_, i) => {
-  const a = (i * Math.PI) / 6, b = 0.13;
-  const bod = (r: number, u: number) => `${(Math.cos(u) * r).toFixed(1)} ${(Math.sin(u) * r).toFixed(1)}`;
-  return `M${bod(24, a - b)} L${bod(i % 2 ? 36 : 44, a)} L${bod(24, a + b)} Z`;
-}).join(" ");
+/* Hvězdy a padající lístky sakury na papíře (pevně, ať se stránka mezi buildy nemění) */
+const hvezdy = [
+  { x: 30, y: 4, r: 2, z: -0.4 }, { x: 62, y: 3, r: 1.6, z: -1.9 }, { x: 90, y: 13, r: 2.2, z: -0.9 }, { x: 6, y: 24, r: 1.6, z: -2.6 },
+  { x: 95, y: 34, r: 1.8, z: -1.3 }, { x: 4, y: 47, r: 2, z: -0.2 }, { x: 94, y: 58, r: 1.6, z: -2.2 }, { x: 5, y: 71, r: 1.8, z: -1.6 },
+  { x: 92, y: 80, r: 2, z: -0.7 },
+];
 const platky = [
   { x: 8, d: 13, z: -2, dx: 26 }, { x: 22, d: 17, z: -9, dx: -20 }, { x: 37, d: 15, z: -5, dx: 30 }, { x: 51, d: 19, z: -13, dx: -26 },
   { x: 64, d: 14, z: -7, dx: 22 }, { x: 77, d: 18, z: -1, dx: -30 }, { x: 88, d: 16, z: -11, dx: 24 }, { x: 95, d: 20, z: -16, dx: -18 },
@@ -68,39 +69,41 @@ const platky = [
       <p class="vestba-prazdno">Tady se rozbalí tvůj lístek.</p>
       <article class="sv-listek" hidden aria-label="Tvůj lístek omikuji">
         <div class="sv-papir">
-          <div class="sv-den" aria-hidden="true">
-            <svg class="sv-slunce" viewBox="-50 -50 100 100">
+          <div class="sv-nebe" aria-hidden="true">
+            <svg class="sv-mesic" viewBox="-30 -30 60 60">
               <defs>
-                <radialGradient id="sv-den-slunce" cx="0.4" cy="0.38" r="0.65">
-                  <stop offset="0" stop-color="#FFF7D6" />
-                  <stop offset="0.55" stop-color="#FFD66E" />
-                  <stop offset="1" stop-color="#F2A93A" />
+                <radialGradient id="sv-nebe-mesic" cx="0.4" cy="0.38" r="0.7">
+                  <stop offset="0" stop-color="#FFFBEA" />
+                  <stop offset="0.6" stop-color="#FCE9B4" />
+                  <stop offset="1" stop-color="#E9C77A" />
                 </radialGradient>
               </defs>
-              <path class="sv-slunce-paprsky" d={paprsky} fill="#FFC94F" />
-              <circle r="21" fill="url(#sv-den-slunce)" />
+              <circle r="21" fill="url(#sv-nebe-mesic)" />
+              <circle cx="-7" cy="5" r="4" fill="#E2BE74" opacity="0.45" />
+              <circle cx="6" cy="-8" r="2.6" fill="#E2BE74" opacity="0.4" />
+              <circle cx="8" cy="9" r="2" fill="#E2BE74" opacity="0.35" />
             </svg>
-            {[1, 2, 3].map((n) => (
-              <svg class={`sv-mrak sv-mrak-${n}`} viewBox="0 0 120 48">
-                <path d="M16 42 C2 42 2 26 16 26 C16 13 32 9 40 18 C44 5 66 3 72 17 C80 9 98 13 96 28 C110 28 112 42 98 42 Z" fill="#FFFFFF" />
-                <path d="M16 42 C8 42 5 37 6 33 C14 38 90 38 110 34 C110 39 105 42 98 42 Z" fill="#D7E9F2" />
-              </svg>
+            {hvezdy.map((h) => (
+              <span class="sv-hvezda" style={`--x:${h.x}%;--y:${h.y}%;--r:${h.r}px;--z:${h.z}s`} />
             ))}
             {platky.map((p) => (
               <span class="sv-platek" style={`--x:${p.x}%;--d:${p.d}s;--z:${p.z}s;--dx:${p.dx}px`} />
             ))}
-            {/* dole denní krajina: kopce, cedry a rumělková svatyně */}
-            <svg class="sv-den-krajina" viewBox="0 0 380 62" preserveAspectRatio="xMidYMax slice">
-              <path d="M0 62 V36 C40 26 84 28 124 34 C164 40 206 30 246 32 C292 34 334 26 380 32 V62 Z" fill="#BFDDB0" />
-              <path d="M0 62 V44 L10 30 L20 44 L28 34 L38 46 L50 24 L62 46 L70 38 L80 48 L92 32 L104 48 L116 38 L126 50 L136 42 V62 Z M244 62 V42 L254 50 L264 38 L276 48 L288 32 L300 48 L310 38 L318 46 L330 24 L342 46 L352 34 L360 44 L370 30 L380 44 V62 Z" fill="#76A886" />
-              <path d="M0 62 V54 C60 50 120 52 190 54 C260 56 320 50 380 54 V62 Z" fill="#9CC79A" />
-              <rect x="164" y="44" width="52" height="14" fill="#C4432B" />
-              <rect x="172" y="47" width="12" height="11" fill="#FFE3A0" />
-              <rect x="196" y="47" width="12" height="11" fill="#FFE3A0" />
-              <path d="M152 46 Q172 42 190 26 Q208 42 228 46 L225 50 Q208 46 190 32 Q172 46 155 50 Z" fill="#4E2A2E" />
+            {/* dole noční krajina: kopce, cedry a rumělková svatyně se svítícími okny a lampiony */}
+            <svg class="sv-nebe-krajina" viewBox="0 0 380 62" preserveAspectRatio="xMidYMax slice">
+              <path d="M0 62 V36 C40 26 84 28 124 34 C164 40 206 30 246 32 C292 34 334 26 380 32 V62 Z" fill="#283058" />
+              <path d="M0 62 V44 L10 30 L20 44 L28 34 L38 46 L50 24 L62 46 L70 38 L80 48 L92 32 L104 48 L116 38 L126 50 L136 42 V62 Z M244 62 V42 L254 50 L264 38 L276 48 L288 32 L300 48 L310 38 L318 46 L330 24 L342 46 L352 34 L360 44 L370 30 L380 44 V62 Z" fill="#161A38" />
+              <path d="M0 62 V54 C60 50 120 52 190 54 C260 56 320 50 380 54 V62 Z" fill="#1E2448" />
+              <ellipse class="sv-lampionek" cx="190" cy="50" rx="46" ry="14" fill="#FFB866" fill-opacity="0.16" />
+              <rect x="164" y="44" width="52" height="14" fill="#8E2F22" />
+              <rect x="172" y="47" width="12" height="11" fill="#FFD27A" />
+              <rect x="196" y="47" width="12" height="11" fill="#FFD27A" />
+              <path d="M152 46 Q172 42 190 26 Q208 42 228 46 L225 50 Q208 46 190 32 Q172 46 155 50 Z" fill="#2E1A24" />
               <path d="M155 49 Q172 45 190 31 Q208 45 225 49" fill="none" stroke="#E2B24A" stroke-width="1.4" />
               <circle cx="190" cy="25" r="2.6" fill="#E2B24A" />
-              <path d="M150 62 V56 H230 V62 Z" fill="#E4D8C2" />
+              <ellipse cx="158" cy="53" rx="2.4" ry="3" fill="#FFB866" />
+              <ellipse cx="222" cy="53" rx="2.4" ry="3" fill="#FFB866" />
+              <path d="M150 62 V56 H230 V62 Z" fill="#3A3A5C" />
             </svg>
           </div>
           <header class="sv-hlava">

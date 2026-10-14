@@ -1,0 +1,44 @@
+---
+/**
+ * 五 Glazura — vzorník šesti glazur dílny: nahoře syrové (křída), dole
+ * tytéž po výpalu (kresba/glazura.ts, barvy z kurzy2.ts a dilna.ts).
+ * Pod textem čtyři způsoby, jak se glazuje, a vinětka s namáčením
+ * a otíráním dna; u kbelíku sedí Kapka.
+ */
+import Kapitola from "./Kapitola.astro";
+import Kami from "../parta2/Kami.astro";
+import { kapitoly, glazovani, glazuraJaponsky } from "../../data/dilna";
+import { glazury } from "../../data/kurzy2";
+import { vzornikSvg, namaceniSvg, MISTA_GLAZURA } from "./kresba/glazura";
+import { mista } from "./misto";
+
+const k = kapitoly.find((x) => x.id === "glazura")!;
+const m = mista(800, 640);
+---
+<Kapitola kapitola={k} strana="vpravo" trida="d-kap-glazura">
+  <ul slot="text" class="d-karticky" aria-label="Jak se glazuje">
+    {glazovani.map((g) => (
+      <li><b>{g.nazev}</b> {g.text}</li>
+    ))}
+  </ul>
+
+  <figure class="d-obraz d-vzornik">
+    <div class="d-kresba" set:html={vzornikSvg()} />
+    <figcaption>
+      Vzorník: nahoře syrová glazura, dole tatáž po výpalu —
+      {glazury.map((g, i) => (
+        <>
+          {i > 0 && (i === glazury.length - 1 ? " a " : ", ")}
+          <span class="d-glazura-jmeno">{g.nazev}{glazuraJaponsky[g.nazev] && <span lang="ja"> {glazuraJaponsky[g.nazev].znak}</span>}</span>
+        </>
+      ))}.
+    </figcaption>
+  </figure>
+  <figure class="d-obraz d-namaceni">
+    <div class="d-obraz-kresba">
+      <div class="d-kresba" set:html={namaceniSvg("dgn")} />
+      <Kami id="kapka" class="d-kami-nad" style={m.kami(MISTA_GLAZURA.kapka)} />
+    </div>
+    <figcaption>Tři vteřiny ve kbelíku, pak houbičkou dočista otřít dno.</figcaption>
+  </figure>
+</Kapitola>

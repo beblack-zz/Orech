@@ -1,0 +1,31 @@
+---
+/**
+ * Slovníček — slova, která v dílně padají, ve třech skupinách podle
+ * cesty hlíny. Japonské tvary jsou tam, kde se tak věci opravdu říkají.
+ */
+import { slovnicek } from "../../data/dilna";
+---
+<section class="d-sekce d-slovnicek" id="slovnicek" data-hodina="30.6" aria-labelledby="slovnicek-nadpis">
+  <div class="d-slovnicek-papir papir">
+    <div class="d-slovnicek-hlava">
+      <p class="stitek"><span lang="ja">用語</span> · slovníček</p>
+      <h2 id="slovnicek-nadpis" class="nadpis-2">Co se v dílně říká</h2>
+      <p class="d-slovnicek-perex">Slova, která uslyšíš u stolu, u kruhu i u pece — ať víš, o čem je řeč.</p>
+    </div>
+    <div class="d-slovnicek-skupiny">
+      {slovnicek.map((s) => (
+        <div class="d-slovnicek-skupina">
+          <h3>{s.skupina}</h3>
+          <dl>
+            {s.hesla.map((h) => (
+              <div class="d-heslo">
+                <dt>{h.heslo}{h.japonsky && <span lang="ja"> {h.japonsky}</span>}</dt>
+                <dd>{h.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

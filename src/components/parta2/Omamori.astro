@@ -13,7 +13,7 @@ import type { PostavaId } from "../../data/parta";
 import { kamiInfo, komnaty } from "../../data/kami";
 
 /** Pořadí v omamori — řadu určuje náročnost (data/kami.ts), tohle jen pořadí v ní */
-const PORADI: PostavaId[] = ["pecinka", "kapka", "vazicka", "hlinka", "samotka", "kachlik", "stripek", "bublinka", "cedulka"];
+const PORADI: PostavaId[] = ["pecinka", "kapka", "vazicka", "hlinka", "bublinka", "kachlik", "stripek", "samotka", "cedulka"];
 const poradi = (id: PostavaId) => PORADI.indexOf(id);
 
 const rady = [
@@ -53,7 +53,8 @@ const rady = [
           <div class="omamori-rada-telo">
             <ul class="omamori-seznam">
               {r.kami.map((p) => (
-                <li class="omamori-polozka" data-omamori={p.id}>
+                <li class={`omamori-polozka${kamiInfo[p.id].nejtezsi ? " omamori-nejtezsi" : ""}`} data-omamori={p.id}>
+                  {kamiInfo[p.id].nejtezsi && <span class="omamori-stitek">nejtěžší</span>}
                   <span class="omamori-obr"><Postavicka id={p.id} size={72} varianta="kami" /></span>
                   <span class="omamori-jmeno">{p.name}</span>
                   <span class="omamori-napoveda">{kamiInfo[p.id].skrys}</span>

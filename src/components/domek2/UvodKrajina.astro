@@ -1,0 +1,54 @@
+---
+/**
+ * Krajina první obrazovky webu (úvod Domku 2): svítání nad Ořechem.
+ * Vpravo jako rám starý ořešák (kresba/orech.ts), uprostřed na pahorku
+ * zelený dům z Luční, za ním pole, vesnička a hřebeny v oparu, vpředu
+ * louka (kresba/svitani.ts). Strom i krajina se mění s ročním obdobím
+ * podle data-sezona na sekci — barvy a co je vidět řeší CSS, které kresby
+ * samy vygenerují (orechStyly, svitaniStyly).
+ *
+ * Vrstvy jdou zezadu dopředu a mají pořadí s mezerami, aby se mezi ně
+ * mohla schovat Vázička (let-kami.ts, z-index v domek2.css):
+ *   paprsky slunce · hřebeny · mlha · kopce s poli · mlha       1
+ *   pahorek s domkem                                           3
+ *   zadní koruna 4 · kmen a větve 6 · přední koruna 8
+ *   louka 10 · padající listí, ořechy, sníh 11
+ * Kopce, mlha i dům mají stejné plátno (1600 × 600, „slice“ ke spodnímu
+ * okraji), takže sedí na sebe na každé šířce. Strom má vlastní plátno
+ * a CSS ho staví podle výšky obrazovky s osou kmene na daném místě.
+ *
+ * Místa ve stromě (koruny, kmen, dutina, ořechy) jsou v data-mista —
+ * podle nich se schovává Vázička a padá listí (souřadnice plátna stromu).
+ */
+import { orech, orechStyly } from "./kresba/orech";
+import { svitani, svitaniStyly } from "./kresba/svitani";
+
+const strom = orech();
+const kraj = svitani();
+const styly = `${orechStyly(".dm-uvod")}\n${svitaniStyly(".dm-uvod")}`;
+const kopce = "0 0 1600 600";
+---
+<Fragment set:html={`<style>${styly}</style>`} />
+<div class="uvod-krajina dmu-krajina" aria-hidden="true">
+  <div class="dmu-paprsky"></div>
+  <svg class="uvod-kopce dmu-daleko" viewBox={kopce} preserveAspectRatio="xMidYMax slice" set:html={kraj.daleko} />
+  <svg class="uvod-kopce dmu-mlha dmu-mlha-1" viewBox={kopce} preserveAspectRatio="xMidYMax slice" set:html={kraj.mlha1} />
+  <svg class="uvod-kopce dmu-blizko" viewBox={kopce} preserveAspectRatio="xMidYMax slice" set:html={kraj.blizko} />
+  <svg class="uvod-kopce dmu-mlha dmu-mlha-2" viewBox={kopce} preserveAspectRatio="xMidYMax slice" set:html={kraj.mlha2} />
+  <svg class="uvod-kopce uvod-kopce-dum" viewBox={kopce} preserveAspectRatio="xMidYMax slice" set:html={kraj.dum} />
+
+  <svg class="dmu-symboly" width="0" height="0" focusable="false"><defs set:html={strom.defs} /></svg>
+  <div class="dmu-orech" data-mista={JSON.stringify(strom.mista)}>
+    <svg class="orech-vrstva orech-koruna orech-koruna-zadni" viewBox="0 0 1800 1400" set:html={strom.zadni} />
+    <svg class="orech-vrstva orech-kmen" viewBox="0 0 1800 1400" set:html={strom.kmen} />
+    <svg class="orech-vrstva orech-koruna orech-koruna-predni" viewBox="0 0 1800 1400" set:html={strom.predni} />
+  </div>
+
+  <div class="louka uvod-louka dmu-louka">
+    <svg class="louka-zem" viewBox="0 0 3600 240" preserveAspectRatio="xMidYMax slice" set:html={kraj.louka} />
+    <svg class="louka-trava louka-trava-1" viewBox="0 0 3600 240" preserveAspectRatio="xMidYMax slice" set:html={kraj.trava[0]} />
+    <svg class="louka-trava louka-trava-2" viewBox="0 0 3600 240" preserveAspectRatio="xMidYMax slice" set:html={kraj.trava[1]} />
+  </div>
+
+  <div class="dmu-zivot"></div>
+</div>

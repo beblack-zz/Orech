@@ -16,8 +16,10 @@ interface Props {
   class?: string;
   /** Předpona id přechodů — víc ořechů na jedné stránce (Domek 2: krajina a Kudy k nám) */
   id?: string;
+  /** Shimenawa se shide kolem kmene; úvod Domku 2 ji nemá */
+  lano?: boolean;
 }
-const { class: cls = "", id = "orech" } = Astro.props;
+const { class: cls = "", id = "orech", lano = true } = Astro.props;
 
 type Chomac = [number, number, number, number, number];
 
@@ -128,13 +130,17 @@ const vetve: [string, number][] = [
     </g>
 
     {/* Shimenawa kolem kmene */}
-    <path d="M424 808 Q501 852 580 808" stroke="#B59C6E" stroke-width="24" stroke-linecap="round" fill="none" />
-    <path d="M424 808 Q501 852 580 808" stroke="#E8D7AE" stroke-width="18" stroke-linecap="round" fill="none" />
-    <path d="M424 808 Q501 852 580 808" stroke="#BFA676" stroke-width="18" stroke-dasharray="4 11" fill="none" />
-    <path d="M440 806 Q501 836 566 806" stroke="#FFF6DD" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6" />
-    <Shide x={458} y={834} scale={2.2} />
-    <Shide x={502} y={844} scale={2.4} zpozdeni />
-    <Shide x={546} y={834} scale={2.2} />
+    {lano && (
+      <>
+        <path d="M424 808 Q501 852 580 808" stroke="#B59C6E" stroke-width="24" stroke-linecap="round" fill="none" />
+        <path d="M424 808 Q501 852 580 808" stroke="#E8D7AE" stroke-width="18" stroke-linecap="round" fill="none" />
+        <path d="M424 808 Q501 852 580 808" stroke="#BFA676" stroke-width="18" stroke-dasharray="4 11" fill="none" />
+        <path d="M440 806 Q501 836 566 806" stroke="#FFF6DD" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6" />
+        <Shide x={458} y={834} scale={2.2} />
+        <Shide x={502} y={844} scale={2.4} zpozdeni />
+        <Shide x={546} y={834} scale={2.2} />
+      </>
+    )}
   </svg>
 
   <svg class="orech-vrstva orech-koruna orech-koruna-predni" viewBox="0 0 1000 1100" aria-hidden="true">

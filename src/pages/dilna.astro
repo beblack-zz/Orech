@@ -1,24 +1,22 @@
 ---
 /**
- * Dílna — hodina v keramické dílně v Ořechu. Nahrazuje stránku Open
- * studio: hodina v dílně se platí stejně, ať je u toho lektor, nebo ne,
- * a když lektor není, je to open studio. Stejný svět jako ostatní stránky
- * nového vzhledu (obloha, papír, písmo, parta), tady jako jeden den
- * v dílně od otevření do zhasnutí:
+ * Dílna — jak to v keramické dílně v Ořechu chodí a jak se dělá keramika.
+ * Informační stránka, žádné hry (ty jsou U mistra). Stejný svět jako
+ * ostatní stránky nového vzhledu (obloha, papír, písmo, parta), tady
+ * jako jedno pálení: od otevření v devět ráno přes den a noc u pece až
+ * k ránu, kdy se pec otevře a dílna se zase otvírá.
  *
- *   9:00    otevírá se — dílna v řezu z Úvodu 2 a „co chceš dělat?“
- *   dopoledne  placat: plácnout hroudu, vyválet plát, vykrojit šablonu
- *   poledne    točit: nakresli obrys a kruh ho vytočí
- *   odpoledne  glazovat: namočit, otřít dno, vypálit
- *              lektor, nebo open studio · jak to chodí od hroudy po
- *              hotový kus · co je v ceně a kafe
- *   večer      pravidla a otázky
- *   noc        dílna zhasíná, tvůj kus čeká na polici, kontakt
+ *   9:00       úvod — regál s hrnkem ve všech stavech
+ *   dopoledne  část první, jak to tu chodí: hodina a lektor, cesta kusu
+ *              od rezervace po vyzvednutí, cena a pravidla
+ *   odpoledne  část druhá, jak se dělá keramika: hlína, tvar, sušení,
+ *              přežah, glazura
+ *   noc        ostrý výpal — pálicí křivka a pec v plném žáru
+ *   ráno       otevření pece, slovníček, otázky
+ *   9:00       dílna se otvírá, na prkně je pro tebe místo
  *
- * Co si člověk vyrobí, je „tvůj kus“ (components/dilna/kus.ts): jde s ním
- * po stránce dál — glazuje se, pálí, stojí na polici v dílně i v noci.
- *
- * Kdy a za kolik je z data/rezervace.ts, zbytek z data/dilna.ts.
+ * Kdy a za kolik je z data/rezervace.ts, zbytek z data/dilna.ts, teploty
+ * z data/kami.ts. Kresby jsou generátory v components/dilna/kresba.
  */
 import "@fontsource-variable/fraunces/full.css";
 import { ClientRouter } from "astro:transitions";
@@ -29,27 +27,41 @@ import "@fontsource/caveat/400.css";
 import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
-import "../styles/dilna-rez.css";
+import "../styles/dilna-zaklad.css";
 import "../styles/dilna.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
 import Uvod from "../components/dilna/Uvod.astro";
-import Placat from "../components/dilna/Placat.astro";
-import Tocit from "../components/dilna/Tocit.astro";
-import Glazovat from "../components/dilna/Glazovat.astro";
-import Lektor from "../components/dilna/Lektor.astro";
-import Cesta from "../components/dilna/Cesta.astro";
+import Cast from "../components/dilna/Cast.astro";
+import Hodina from "../components/dilna/Hodina.astro";
+import Navsteva from "../components/dilna/Navsteva.astro";
 import Cena from "../components/dilna/Cena.astro";
+import Hlina from "../components/dilna/Hlina.astro";
+import Tvar from "../components/dilna/Tvar.astro";
+import Suseni from "../components/dilna/Suseni.astro";
+import Prezah from "../components/dilna/Prezah.astro";
+import Glazura from "../components/dilna/Glazura.astro";
+import Vypal from "../components/dilna/Vypal.astro";
+import Hotovo from "../components/dilna/Hotovo.astro";
+import Slovnicek from "../components/dilna/Slovnicek.astro";
 import Otazky from "../components/dilna/Otazky.astro";
-import Noc from "../components/dilna/Noc.astro";
+import Zaver from "../components/dilna/Zaver.astro";
 
-import { cinnosti, kdy } from "../data/dilna";
-import { sezonaMesice } from "../data/uvod2";
+import { cinnosti, kapitoly, kdy, slovnicek, glazuraJaponsky } from "../data/dilna";
 
-/** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška */
-const sezona = sezonaMesice(new Date().getMonth() + 1);
+/** Kapitoly druhé části i se stavem kusu — do řady odkazů v předělu */
+const STAV: Record<string, "hrouda" | "mokry" | "suchy" | "prezah" | "syrova" | "hotovy"> = {
+  hlina: "hrouda",
+  tvar: "mokry",
+  suseni: "suchy",
+  prezah: "prezah",
+  glazura: "syrova",
+  vypal: "hotovy",
+  hotovo: "hotovy",
+};
+const obsah = kapitoly.map((k) => ({ id: k.id, cislo: k.cislo, nazev: k.nazev, stav: STAV[k.id] }));
 
 /* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
 const znaky = new Set<string>();
@@ -60,7 +72,14 @@ cinnosti.forEach((c) => {
   pridej(c.znak);
   pridej(c.japonsky);
 });
-pridej("工房工程茶先生一人釉見本一時間値段閉店規則質問");
+kapitoly.forEach((k) => {
+  pridej(k.znak);
+  pridej(k.cislo);
+  pridej(k.japonsky);
+});
+slovnicek.forEach((s) => s.hesla.forEach((h) => pridej(h.japonsky ?? "")));
+Object.values(glazuraJaponsky).forEach((g) => pridej(g.znak));
+pridej("工房工程一二案内土から器へ手窯先生一人時間値段規則質問用語開店");
 const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
 ---
 <!doctype html>
@@ -68,8 +87,8 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dílna — hodina v keramické dílně · JIRO saku</title>
-    <meta name="description" content={`Hodina v keramické dílně v Ořechu: placat, točit na kruhu, glazovat. Každé ${kdy.dny} ${kdy.hodiny}, ${kdy.cena} ${kdy.zaCo}. Lektor je v ceně — a když ho nepotřebuješ, je to open studio. Kafe je samozřejmost.`} />
+    <title>Dílna — jak to chodí a jak se dělá keramika · JIRO saku</title>
+    <meta name="description" content={`Jak to v keramické dílně v Ořechu chodí a jak se dělá keramika: hodina v dílně (${kdy.cena} ${kdy.zaCo}, každé ${kdy.dny} ${kdy.hodiny}), lektor, nebo open studio, a cesta hlíny od hroudy přes sušení, přežah a glazuru až po ostrý výpal na 1 280 °C.`} />
     <meta name="theme-color" content="#6F8FC8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -79,23 +98,51 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <ClientRouter />
   </head>
   <body class="p2 d2" data-stranka="dilna">
-    <a class="preskocit" href="#placat">Přeskočit na to, co se v dílně dělá</a>
+    <a class="preskocit" href="#jak-to-chodi">Přeskočit na to, jak to v dílně chodí</a>
     <Nebe />
     <Hlavicka sber="zadny" />
 
     <main>
-      <Uvod sezona={sezona} />
-      <Placat />
-      <Tocit />
-      <Glazovat />
-      <Lektor />
-      <Cesta />
+      <Uvod />
+
+      <Cast
+        id="jak-to-chodi"
+        hodina={9.8}
+        cislo="一"
+        japonsky="案内"
+        stitek="Část první"
+        nazev="Jak to tu chodí"
+        perex="Co je hodina v dílně, kdy je u toho lektor, kolikrát přijdeš, než si kus odneseš, a za kolik."
+      />
+      <Hodina />
+      <Navsteva />
       <Cena />
+
+      <Cast
+        id="keramika"
+        hodina={13}
+        cislo="二"
+        japonsky="土から器へ"
+        stitek="Část druhá · od hlíny k nádobě"
+        nazev="Jak se dělá keramika"
+        latka="hlina"
+        perex={`Sedm zastavení od hroudy po hotový kus. Tvar a glazuru děláš ty, sušení a oba výpaly hlídá dílna — mezi tvými hodinami. Jen cestou do 1 280 °C projde hlína devíti proměnami.`}
+        kapitoly={obsah}
+      />
+      <Hlina />
+      <Tvar />
+      <Suseni />
+      <Prezah />
+      <Glazura />
+      <Vypal />
+      <Hotovo />
+
+      <Slovnicek />
       <Otazky />
-      <Noc />
+      <Zaver />
     </main>
 
-    <Paticka poznamka="Dílna je návrh v novém vzhledu webu. Dílna v řezu, stůl, kruh i pec se kreslí přímo v prohlížeči — skutečné jsou jen fotky lektorů." />
+    <Paticka poznamka="Dílna je návrh v novém vzhledu webu. Regál, pec, kruh i vzorník glazur se kreslí přímo v prohlížeči — skutečné jsou jen fotky lektorů." flekMimo="#vypal" />
     <div class="oznameni" role="status" aria-live="polite"></div>
 
     <script>

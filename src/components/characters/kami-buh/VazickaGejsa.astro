@@ -13,6 +13,9 @@
               a trochu z boku — kráčí na místě, po cestě ji posouvá stránka
               jako průvod na Domku 2
 
+    let       01 Kami v letu: tatáž Vázička bez kruhu, létá po úvodu Domku 2
+              a schovává se za strom, dům a do trávy (scripts/domek2/let-kami.ts)
+
   Čtvrtá podoba, Na schovávanou, je VazickaSchovka.astro.
 
   Vázička je tsukumogami: nejstarší kus v dílně. Jako gejša je pořád váza —
@@ -28,10 +31,11 @@
 */
 import { kresby, celeSvg, pretoc } from "../../../scripts/vazicka-gejsa/kresby.js";
 
-interface Props { varianta: "kvety" | "tycinka" | "destnik" | "lampion"; class?: string; }
+interface Props { varianta: "kvety" | "let" | "tycinka" | "destnik" | "lampion"; class?: string; }
 const { varianta, class: cls = "" } = Astro.props;
 const popisy = {
   kvety: "Vázička jako gejša: bílá váza s černým hrdlem místo účesu, v kimonu s červeným pásem obi, ve vlasech a v hrdle má květy sakury; za ní stojí kruh ensó namalovaný jedním tahem štětce v barvách soumraku",
+  let: "Vázička jako gejša, bílá váza s černým hrdlem místo účesu a s květy ve vlasech, létá nad loukou a schovává se za strom, za dům a do trávy",
   tycinka: "Noc v rozpité tuši: Vázička jako gejša tančí s vějířem, dole na papíře hoří vonná tyčinka a její kouř, jediné, co svítí, se za vějířem stáčí do tvarů",
   destnik: "Noční déšť v rozpité tuši: Vázička jako gejša stojí zády na obloukovém můstku pod papírovým deštníkem, jehož světlý kruh svítí do tmy",
   lampion: "Vázička jako gejša jde v dřevácích okobo a nese papírovou lucernu se znakem sakury; rukávy a šňůry ve vlasech se jí houpou do kroku",

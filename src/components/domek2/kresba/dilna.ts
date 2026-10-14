@@ -22,7 +22,7 @@
  *   rok        totéž v roce 2026 po měsících — věci mají data-od/data-do
  *              a navíc je tu garáž: vrata, kaluž, prasklá trubka, příčka
  *
- * Vrací SVG a místa pro HTML vrstvu nad kresbou (tlačítka, kami, klíče)
+ * Vrací SVG a místa pro HTML vrstvu nad kresbou (tlačítka, kami)
  * ve stejných souřadnicích (viewBox 1600 × 1000).
  */
 import { B, f, mnohouhelnik, obdelnik, elipsa, nahoda, chomac } from "./zaklad";
@@ -925,11 +925,6 @@ export function dilna(rezim: DilnaRezim = "prohlidka", p = "dl") {
   postav("kapka", -2.3, 0.92, 2.36, 0.17);
   postav("kachlik", -2.25, 1.1, 6.58, 0.26);
   postav("kapka-kaluz", -0.6, 0.005, 2.9, 0.22);
-  // Klíč od garáže: v únoru ležel v kaluži, teď leží na lince u dřezu
-  mista.klicGaraz = { box: boxKolem([[292, 528], [324, 538]], 4) };
-  mista.klicPec = { box: boxKolem([P(1.6, 1.0, 0.66), P(1.74, 1.1, 0.66)], 6) };
-  mista.klicSkrinka = { box: boxKolem([P(-0.98, 1.72, 7.55), P(-0.84, 1.82, 7.55)], 6) };
-  mista.klicDvere = { box: boxKolem([P(-1.98, 1.1, 6.55), P(-1.8, 1.16, 6.55)], 6) };
 
   const kusy = produkty.slice(0, 4).map((k, i) => {
     const z = [3.3, 3.55, 4.75, 5.0][i];

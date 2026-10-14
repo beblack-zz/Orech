@@ -5,7 +5,7 @@
  * kresba (tvar-kresba.ts, při buildu) i skript úrovně za běhu
  * (scripts/zkouska/urovne/tvar.ts), takže se obrázek po spuštění nezmění.
  *
- * Kus je rotační těleso jako na kruhu v Dílně (scripts/dilna/tocit.ts):
+ * Kus je rotační těleso jako v components/dilna/kus.ts:
  * 24 poloměrů v mm odspodu nahoru, stejně daleko od sebe, a výška v mm.
  * Ve scéně je 1 mm = 2,25 jednotky (víc než v Dílně, ať se i na telefonu
  * dá trefit), osa kruhu je na x = 540 a hlava kruhu na y = 470.

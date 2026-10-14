@@ -27,9 +27,11 @@ const TONY = [587.33, 659.26, 880];
 /** Kdo je na Partě 2 nalezený (pole id v pořadí nálezů) — zapisuje sber.ts */
 export const KLIC_NALEZENI = "parta2-nalezeni";
 
-let zivy: { ukaz: (nalezeni: string[], novy?: string) => void } | null = null;
+let zivy: { ukaz: (nalezeni: string[], novy?: string) => void; rozhoupej: () => void } | null = null;
 /** Navlékne nalezené na šňůrky; `novy` je ten, kdo přibyl právě teď */
 export const ukazZaves = (nalezeni: string[], novy?: string) => zivy?.ukaz(nalezeni, novy);
+/** Cukne postupně všemi třemi šňůrkami — když na závěs někdo ukazuje (Vázička na úvodu, domek2/let-kami.ts) */
+export const rozhoupejZaves = () => zivy?.rozhoupej();
 
 /** Volá se jednou a jako trvalé (prechody.ts) — smyčka i posluchače mají přežít přechod mezi stránkami */
 export function initZaves(vitr: () => number) {
@@ -90,6 +92,10 @@ export function initZaves(vitr: () => number) {
   }
 
   zivy = {
+    rozhoupej() {
+      if (klid) return;
+      for (let i = 0; i < SNUR; i++) window.setTimeout(() => zv.cukni(i, MIST - 1, 0.8), i * 140);
+    },
     /**
      * Navlékne nalezené na šňůrky v pořadí, v jakém je člověk našel, a ostatní
      * vrátí do skladu. `novy` je ten, kdo přibyl právě teď: přiskočí, šňůrka

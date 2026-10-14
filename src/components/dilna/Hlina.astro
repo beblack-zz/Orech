@@ -1,0 +1,39 @@
+---
+/**
+ * 一 Hlína — kvádr z pytle, hrouda vyhnětená do chryzantémy (kiku-neri)
+ * a rozříznutá hrouda s bublinou, ze které vykukuje Bublinka. Pod tím
+ * tři vypálené destičky: hrnčířská hlína, kamenina, porcelán.
+ */
+import Kapitola from "./Kapitola.astro";
+import Kami from "../parta2/Kami.astro";
+import { kapitoly, druhyHliny } from "../../data/dilna";
+import { hlinaSvg, hlinyDruhy, MISTA_HLINA } from "./kresba/hlina";
+import { mista } from "./misto";
+
+const k = kapitoly.find((x) => x.id === "hlina")!;
+/* Kresba je vinětka s prázdným papírem nad deskou — ten se tu ořízne */
+const OREZ = 96;
+const H = 620 - OREZ;
+const kresba = hlinaSvg().replace('viewBox="0 0 900 620"', `viewBox="0 ${OREZ} 900 ${H}"`);
+const m = mista(900, H);
+const bublinka = { ...MISTA_HLINA.bublinka, y: MISTA_HLINA.bublinka.y - OREZ };
+---
+<Kapitola kapitola={k} strana="vpravo" trida="d-kap-hlina">
+  <figure class="d-obraz">
+    <div class="d-obraz-kresba">
+      <div class="d-kresba" set:html={kresba} />
+      <Kami id="bublinka" class="d-kami-nad" style={m.kami(bublinka)} />
+    </div>
+    <figcaption>Kvádr z pytle, hrouda vyhnětená do květu chryzantémy a rozříznutá hrouda. V té je bublina — v peci by bouchla.</figcaption>
+  </figure>
+  <figure class="d-obraz d-hliny">
+    <div class="d-kresba" set:html={hlinyDruhy()} />
+    <figcaption>
+      <ul class="d-hliny-popis">
+        {druhyHliny.map((d) => (
+          <li><b>{d.nazev}</b> <span>{d.teplota}</span> <small>{d.text}</small></li>
+        ))}
+      </ul>
+    </figcaption>
+  </figure>
+</Kapitola>

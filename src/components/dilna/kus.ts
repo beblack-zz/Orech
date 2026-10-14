@@ -1,8 +1,9 @@
 /**
- * Tvůj kus — to, co si člověk na stránce Dílna udělá: vyválí z plátu,
- * vytočí na kruhu, namočí do glazury a vypálí. Tady je jen model a kresba
- * do SVG (čistá funkce, bez DOM), takže ho kreslí stejně komponenty při
- * buildu (výchozí miska) i skripty v prohlížeči (vlastní kus).
+ * Tvůj kus — to, co si člověk vytočí, namočí do glazury a vypálí v komnatě
+ * U mistra (dřív na stránce Dílna, ta je teď jen informační a kreslí si
+ * nádoby po svém v dilna/kresba). Tady je jen model a kresba do SVG
+ * (čistá funkce, bez DOM), takže ho kreslí stejně komponenty při buildu
+ * i skripty v prohlížeči.
  *
  * Kus je rotační těleso: obrys je řada poloměrů v milimetrech odspodu
  * nahoru, stejně daleko od sebe. Kachel je výjimka — čtverec na hraně.
@@ -384,9 +385,58 @@ export function kusSvg(kus: Kus, stav: StavKusu, o: Volby): string {
   return `<svg viewBox="0 0 ${W} ${H}" ${aria}><defs>${defs.join("")}</defs>${telo.join("")}</svg>`;
 }
 
-/* ——— Paměť ——— */
+/* ——— Kruh: z čáry obrys a co by spadlo ———
+ *
+ * Kus se na kruhu kreslí obrysem: čára se převede na poloměr v každé
+ * výšce (body se rozdělí do pásů, prázdné pásy se dopočítají, celé se to
+ * vyhladí). Co by na skutečném kruhu spadlo, spadne i tady: moc široké
+ * nahoře na vysoké nádobě, převis, vysoké a tenké. Bývalo to na Dílně,
+ * teď to používá úroveň Tvar v komnatě U mistra
+ * (scripts/zkouska/urovne/tvar-model.ts).
+ */
 
-export const KLIC_KUS = "dilna-kus";
+const R_MIN = 12;
+const R_MAX = 150;
+const H_MAX = 300;
+const omez = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/** Spadlo by to? Vrátí důvod (siroke, previs, tenke), nebo null */
+export function spadne(r: number[], v: number): string | null {
+  const n = r.length;
+  const dh = v / (n - 1);
+  const rmax = Math.max(...r);
+  if (rmax > 2.8 * r[0] && v > 70) return "siroke";
+  for (let i = 1; i < n; i++) {
+    if (i * dh > 35 && (r[i] - r[i - 1]) / dh > 1.9) return "previs";
+  }
+  if (v > 220 && Math.min(...r.slice(Math.floor(n / 3))) < 16) return "tenke";
+  return null;
+}
+
+/** Z bodů čáry obrys: poloměr v každém z N pásů výšky */
+export function zBodu(body: { r: number; h: number }[]) {
+  const v = omez(Math.max(...body.map((b) => b.h)), 20, H_MAX);
+  const pasy: number[][] = Array.from({ length: N }, () => []);
+  for (const b of body) pasy[Math.round(omez(b.h / v) * (N - 1))].push(b.r);
+  const r: number[] = pasy.map((p) => (p.length ? p.reduce((s, x) => s + x, 0) / p.length : NaN));
+  const plne = r.map((x, i) => (Number.isNaN(x) ? -1 : i)).filter((i) => i >= 0);
+  for (let i = 0; i < N; i++) {
+    if (!Number.isNaN(r[i])) continue;
+    const pred = [...plne].reverse().find((j) => j < i);
+    const po = plne.find((j) => j > i);
+    if (pred === undefined && po !== undefined) r[i] = r[po];
+    else if (po === undefined && pred !== undefined) r[i] = r[pred];
+    else if (pred !== undefined && po !== undefined) r[i] = mix(r[pred], r[po], (i - pred) / (po - pred));
+  }
+  let h = r.map((x) => (Number.isNaN(x) ? 40 : x));
+  for (let k = 0; k < 2; k++) h = h.map((x, i) => (i === 0 || i === N - 1 ? x : (h[i - 1] + 2 * x + h[i + 1]) / 4));
+  h = h.map((x) => omez(x, R_MIN, R_MAX));
+  h[0] = Math.max(h[0], 18);
+  return { r: h, v };
+}
+
+/* ——— Kontrola ——— */
 
 /** Je to kus, se kterým se dá pracovat? (localStorage může obsahovat cokoli) */
 export function platnyKus(x: unknown): x is Kus {

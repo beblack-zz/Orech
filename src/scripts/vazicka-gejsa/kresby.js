@@ -8,6 +8,7 @@
  * běh: ./beh.js, společné kusy: ./spolecne.js.
  *
  *   kvety     01 Kami — dvanáct květů: před kruhem ze značky, klik ji zatočí a vymění jí květy za další měsíc (id vg1-)
+ *   let       01 Kami v letu — bez kruhu, létá po úvodu Domku 2 a schovává se (id vg1-, nesmí vedle kvety)
  *   tycinka   02 Tušový lem — dokud hoří tyčinka: tančí s vějířem a kouř se za ním stáčí do tvarů (id vg2-)
  *   destnik   02 Tušový lem — hadí oko: v dešti na můstku pod deštníkem janome, zezadu (id vg3-)
  *   lampion   03 Lampion — jde na večer s papírovou lucernou (id vgl-)
@@ -28,7 +29,7 @@
  * posune přes krok(). Zvuky, které má běh zahrát, krok přidá do dyn.zvuk.
  */
 import { f } from "./spolecne.js";
-import { kamiKvety } from "./kami-kvety.js";
+import { kamiKvety, kamiLet } from "./kami-kvety.js";
 import { lemTycinka } from "./lem-tycinka.js";
 import { lemDestnik } from "./lem-destnik.js";
 import { lampion } from "./lampion.js";
@@ -73,4 +74,4 @@ export const pretoc = (V, t, vstup = {}, krokS = 1 / 60) => {
   return dyn;
 };
 
-export const kresby = { kvety: kamiKvety, tycinka: lemTycinka, destnik: lemDestnik, lampion };
+export const kresby = { kvety: kamiKvety, let: kamiLet, tycinka: lemTycinka, destnik: lemDestnik, lampion };
