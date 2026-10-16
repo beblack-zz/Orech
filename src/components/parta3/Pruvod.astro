@@ -67,7 +67,8 @@ const pas = `<path d="${kopce}" fill="#E4D6B8" opacity="0.55"/><g fill="#E9D9B2"
     </p>
   </div>
 
-  <div class="svitek">
+  {/* data-sceny-spolu: motory postaviček se stáhnou, až se k oknu přiblíží celý svitek (parta2/lina-scena.ts) — na úzkém okně by scéna mimo výřez svitku čekala až na posunutí */}
+  <div class="svitek" data-sceny-spolu>
     <span class="svitek-valec svitek-valec-l" aria-hidden="true"></span>
     <button type="button" class="skryty" data-skryty="pecinka" aria-label="Někdo se tu schovává" style="top:auto;bottom:100%;left:calc(clamp(16px, 2vw, 26px) + 14px);width:46px;transform-origin:50% 100%">
       <PecinkaSchovka barva="cerna" poza="vykukuje" size={46} />

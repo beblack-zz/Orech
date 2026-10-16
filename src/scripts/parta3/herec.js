@@ -1,5 +1,5 @@
 /*
- * Herec — přehrávač choreografií pro divadlo na /parta-3.
+ * Herec — přehrávač choreografií pro divadlo na /parta.
  *
  * Scény z Marcela (scripts/<postava>-<téma>) jsou hračky: reagují na myš
  * a na kliknutí, a to nejlepší v nich člověk najde, až když ví kam sáhnout.

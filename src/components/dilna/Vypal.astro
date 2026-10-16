@@ -15,6 +15,7 @@ import { milniky } from "../../data/kami";
 import { parta } from "../../data/parta";
 import { krivkaSvg, barvaZaru } from "./kresba/krivka";
 import { pecRez, zaromerky } from "./kresba/pec";
+import { odloz } from "../../scripts/parta2/pozdeji";
 
 const k = kapitoly.find((x) => x.id === "vypal")!;
 const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
@@ -46,11 +47,11 @@ const cislo = (n: number) => n.toLocaleString("cs-CZ");
           <figcaption class="sr-only">Pálicí křivka: teplota stoupá skoro celý den až na 1 280 °C, chvíli se drží a pak pec celou noc chladne.</figcaption>
         </figure>
         <figure class="d-vypal-pec" style="--zar:1">
-          <div class="d-kresba" set:html={pecRez("ostry", "dpo")} />
+          <div class="d-kresba" set:html={odloz(pecRez("ostry", "dpo"))} />
           <div class="d-zaromerky" data-ohnuti="2" aria-hidden="true">
-            <div class="d-kresba" data-ohnuti="0" set:html={zaromerky(0, "dz0")} />
-            <div class="d-kresba" data-ohnuti="1" set:html={zaromerky(0.5, "dz1")} />
-            <div class="d-kresba" data-ohnuti="2" set:html={zaromerky(1, "dz2")} />
+            <div class="d-kresba" data-ohnuti="0" set:html={odloz(zaromerky(0, "dz0"))} />
+            <div class="d-kresba" data-ohnuti="1" set:html={odloz(zaromerky(0.5, "dz1"))} />
+            <div class="d-kresba" data-ohnuti="2" set:html={odloz(zaromerky(1, "dz2"))} />
             <p>žároměrky</p>
           </div>
           <figcaption class="sr-only">Pec v řezu při ostrém výpalu: kusy s glazurou stojí od sebe, spirály žhnou a u průhledového otvoru se ohýbají žároměrky.</figcaption>

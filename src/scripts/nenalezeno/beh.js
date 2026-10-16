@@ -18,7 +18,7 @@
  * jen když je zvuk webu zapnutý.
  */
 import { scena as V, pretoc, obsahVrstvy } from "./kresby.js";
-import { jeZapnuto } from "../parta2/zvuk";
+import { hraZapnuta as jeZapnuto } from "../parta2/zvuk";
 import { vyzadej } from "../parta2/stav";
 
 const NS = "http://www.w3.org/2000/svg";

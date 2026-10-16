@@ -1,5 +1,5 @@
 /*
- * Repertoár divadla na /parta-3: choreografie všech kusů, podle postavičky
+ * Repertoár divadla na /parta: choreografie všech kusů, podle postavičky
  * a varianty scény (stejné klíče jako `ucinkujici[].kusy[].id` v data/parta3.ts).
  * Jak se zapisují, je v ../herec.js.
  *

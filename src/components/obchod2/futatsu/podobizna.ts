@@ -1,7 +1,7 @@
 /**
  * Futatsu namalovaný — podobizna hrnku v libovolném natočení.
  *
- * Stojí v tokonomě v krámku, je hlavní obraz stránky /obchod-2/futatsu
+ * Stojí v tokonomě v krámku, je hlavní obraz stránky /obchod/futatsu
  * a hoří v peci v kapitole Oheň. Kreslí se jako rotační těleso z profilu
  * v kresba.ts (Rout, výstupky NUBS), takže výkres i podobizna sedí na
  * stejné míry. Pohled je pravoúhlý (bez perspektivy), trochu shora:

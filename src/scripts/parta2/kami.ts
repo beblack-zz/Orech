@@ -72,21 +72,38 @@ interface Volby {
   kontrast?: boolean;
   /** Vždycky černá — Vázička-průvodce (černá glazura jejích vlasů), na každém pozadí stejná */
   cerna?: boolean;
+  /**
+   * Píše štětcem: text naskakuje po znacích a u interpunkce se zastaví
+   * (zbytek zabírá místo neviditelně, ať bublina neroste). Dostane každý
+   * napsaný znak — průvodce na slabiky brnká. Bublina pak visí o dobu psaní déle.
+   */
+  pise?: (i: number, znak: string) => void;
 }
+
+/** Kolik ms se po znaku čeká, když bublina píše: u výpustky, pomlčky, tečky a čárky se zastaví */
+const prodleva = (z: string) => (z === "…" ? 380 : z === "—" ? 260 : /[.?!]/.test(z) ? 240 : z === "," ? 130 : z === " " ? 22 : 32);
+/** Jak dlouho bude bublina text psát (ms) */
+export const dobaPsani = (text: string) => [...text].slice(0, -1).reduce((s, z) => s + prodleva(z), 0);
 
 /**
  * Bublina s replikou nad prvkem (nebo pod ním, když nahoře není místo).
  * Vrací funkci, která ji znovu postaví k prvku — vrátí false, když už
  * bublina zmizela (s `pevne` ji volající volá každý snímek).
  */
-export function rekni(el: Element, kdo: PostavaId, text: string, { pevne = false, kontrast = false, cerna = false }: Volby = {}) {
+export function rekni(el: Element, kdo: PostavaId, text: string, { pevne = false, kontrast = false, cerna = false, pise }: Volby = {}) {
   zavri();
   const b = document.createElement("div");
   b.className = `bublina${pevne ? " pevna" : ""}${cerna ? " cerna" : ""}`;
   const j = document.createElement("span");
   j.className = "bublina-jmeno";
   j.textContent = jmeno(kdo);
-  b.append(j, document.createTextNode(text));
+  const napsano = document.createElement("span");
+  const zbytek = document.createElement("span");
+  if (pise) {
+    zbytek.className = "bublina-zbytek";
+    zbytek.textContent = text;
+    b.append(j, napsano, zbytek);
+  } else b.append(j, document.createTextNode(text));
   document.body.append(b);
 
   const sirka = b.offsetWidth;
@@ -126,7 +143,20 @@ export function rekni(el: Element, kdo: PostavaId, text: string, { pevne = false
   };
   bublina = b;
   umisti();
-  casovac = window.setTimeout(zavri, 3600 + text.length * 30);
+  if (pise) {
+    const znaky = [...text];
+    let i = 0;
+    const dalsi = () => {
+      if (bublina !== b) return;
+      napsano.textContent += znaky[i];
+      zbytek.textContent = znaky.slice(i + 1).join("");
+      pise(i, znaky[i]);
+      i++;
+      if (i < znaky.length) window.setTimeout(dalsi, prodleva(znaky[i - 1]));
+    };
+    dalsi();
+  }
+  casovac = window.setTimeout(zavri, 3600 + text.length * 30 + (pise ? dobaPsani(text) : 0));
   return umisti;
 }
 

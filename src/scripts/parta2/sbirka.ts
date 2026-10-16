@@ -21,7 +21,7 @@ import { nacti, uloz } from "./stav";
 import * as zvuk from "./zvuk";
 
 export interface SbirkaNastaveni {
-  /** Klíč v localStorage — stejný zná Úvod 2 (data/uvod2.ts, jineSbirky) */
+  /** Klíč v localStorage */
   klic: string;
   ids: string[];
   nazev: (id: string) => string;

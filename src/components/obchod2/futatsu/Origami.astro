@@ -17,7 +17,7 @@ import * as K from "./kresba";
 import { washi, pecet } from "./origami";
 import { podpisove, cenovka } from "../../../data/kramek";
 
-const kus = podpisove.find((k) => k.podpis === "/obchod-2/futatsu")!;
+const kus = podpisove.find((k) => k.podpis === "/obchod/futatsu")!;
 const { castka, mena } = cenovka(kus.cena);
 const { objem, napln, hmotnost } = K.V;
 ---

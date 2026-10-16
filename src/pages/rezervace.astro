@@ -50,12 +50,8 @@
  *
  * Předchozí varianta s destičkami ema je odložená na /rezervace-ema.
  */
-import "@fontsource-variable/fraunces/full.css";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/newsreader";
-import "@fontsource-variable/newsreader/opsz-italic.css";
-import "@fontsource/caveat/400.css";
-import "@fontsource/caveat/600.css";
+import "../styles/pisma.css";
+import Hlava from "../components/Hlava.astro";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/rezervace.css";
@@ -80,26 +76,16 @@ import { kontakt } from "../data/uvod2";
 
 const cena = `${rozpetiJizdneho.od}–${rozpetiJizdneho.do}`;
 
-/* Štětcové písmo jen pro svislý nápis na první obrazovce (Nadrazi.astro) — jiné japonské znaky tu nejsou */
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("胡桃行き")}`;
+
 ---
 <!doctype html>
 <html lang="cs">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Rezervace · JIRO saku</title>
-    <meta name="description" content={`Rezervuj si čas v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, odjezdy po hodině a půl, ${cena} Kč za člověka podle velikosti skupiny. Jízdenku jde i darovat.`} />
-    <meta name="theme-color" content="#6F8FC8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href={pismoZnaku} />
+    <Hlava titulek="Rezervace · JIRO saku" popis={`Rezervuj si čas v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, hodina v dílně trvá 90 minut, ${cena} Kč za člověka podle velikosti skupiny. Jízdenku jde i darovat.`} barva="#6F8FC8" />
     <ClientRouter />
   </head>
   <body class="p2 rz" data-stranka="rezervace">
-    <a class="preskocit" href="#rz-pokladna">Přeskočit na výběr odjezdu</a>
+    <a class="preskocit" href="#rz-pokladna">Přeskočit na výběr hodiny</a>
     <Nebe />
     <More />
     <VlakKresby />
@@ -110,7 +96,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
 
       <section class="rz-sekce rz-hala" id="rz-pokladna" aria-labelledby="rz-pokladna-nadpis">
         <noscript>
-          <p class="rz-noscript papir">Výběr odjezdu potřebuje JavaScript. Napiš nám na <a href={`mailto:${kontakt.email}`}>{kontakt.email}</a> a domluvíme se.</p>
+          <p class="rz-noscript papir">Výběr hodiny potřebuje JavaScript. Napiš nám na <a href={`mailto:${kontakt.email}`}>{kontakt.email}</a> a domluvíme se.</p>
         </noscript>
         <div class="rz-hala-mriz">
           <Pokladna />
@@ -136,7 +122,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     </div>
 
     {/* Tušový flek (s patičkou): sedí na obloze nebo na moři, ne na panelech a ne v noci, kde by nebyl vidět */}
-    <Paticka flekMimo=".papir, .rz-tabule, .rz-rad, #rz-noc" poznamka="Rezervace je návrh v novém vzhledu webu. Obsazenost odjezdů, termíny kurzů i prodané permanentky jsou zatím jen simulované." />
+    <Paticka flekMimo=".papir, .rz-tabule, .rz-rad, #rz-noc" />
 
     <script>
       import "../scripts/rezervace/hlavni.ts";

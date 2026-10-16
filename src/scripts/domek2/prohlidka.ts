@@ -16,6 +16,7 @@ import * as zvuk from "../parta2/zvuk";
 import { kamiInfo, krivka } from "../../data/kami";
 import type { PostavaId } from "../../data/parta";
 import { kamera, cil } from "../uvod2/kamera";
+import { UDALOST } from "../parta2/pozdeji";
 
 const T_MAX = krivka[krivka.length - 1][1];
 const T_NULA = krivka[0][1];
@@ -33,6 +34,11 @@ export function prohlidka() {
   const cile = karty.map((el) => cil(el.dataset.kamera) ?? { x: 800, y: 500, w: 1480, h: 700 });
   let kotvy: number[] = [];
   let aktivni = "";
+  /* Kresba dílny se do .rez-kresba vloží až cestou k prohlídce (parta2/pozdeji.ts),
+     proto se v ní hledá až ve chvíli, kdy je potřeba, a po vložení se do ní
+     přenese, co se mezitím změnilo (displej pece, vzatý kus, lampa) */
+  const vKresbe = <T extends Element>(sel: string) => rez.querySelector<T>(sel);
+  const vseVKresbe = <T extends Element>(sel: string) => [...rez.querySelectorAll<T>(sel)];
 
   /* ——— Repliky party ——— */
   const kamiEl = (id: PostavaId) =>
@@ -112,9 +118,9 @@ export function prohlidka() {
   });
 
   /* ——— Kruhy ——— */
-  const kruhy = [...rez.querySelectorAll<SVGGElement>(".kruh")];
   const kruhCas: (number | undefined)[] = [];
   const roztoc = (i: number) => {
+    const kruhy = vseVKresbe<SVGGElement>(".kruh");
     const kr = kruhy.find((x) => Number(x.dataset.kruh) === i);
     if (!kr) return;
     window.clearTimeout(kruhCas[i]);
@@ -135,9 +141,9 @@ export function prohlidka() {
   };
 
   /* ——— Hrouda ——— */
-  const hrouda = rez.querySelector<SVGGElement>(".hrouda");
   let hnuti = 0;
   const hnet = () => {
+    const hrouda = vKresbe<SVGGElement>(".hrouda");
     if (hrouda) {
       hrouda.classList.remove("hnete");
       void hrouda.getBoundingClientRect();
@@ -156,8 +162,8 @@ export function prohlidka() {
   /* ——— Pec ——— */
   type StavPece = "studena" | "topi" | "chladne" | "hotova" | "otevrena";
   let stavPece: StavPece = "studena";
-  const displej = rez.querySelector<SVGTextElement>(".dl-pec-displej");
-  const pecG = rez.querySelector<SVGGElement>(".dl-pec");
+  /** Co ukazuje displej pece (null = jak ho nakreslil build) */
+  let naDispleji: string | null = null;
   const pecTlacitko = sekce.querySelector<HTMLButtonElement>(".pec-tlacitko");
   const pecStav = sekce.querySelector<HTMLElement>(".pec-stav");
   const pecKarta = sekce.querySelector<HTMLElement>("#stanice-pec");
@@ -166,7 +172,9 @@ export function prohlidka() {
     const zar = omez((T - T_NULA) / (T_MAX - T_NULA));
     rez.style.setProperty("--zar", zar.toFixed(3));
     pecKarta?.style.setProperty("--zar", zar.toFixed(3));
-    if (displej) displej.textContent = String(Math.round(T));
+    naDispleji = String(Math.round(T));
+    const displej = vKresbe<SVGTextElement>(".dl-pec-displej");
+    if (displej) displej.textContent = naDispleji;
     zvuk.nastavPec(zar);
   };
   const pecNastav = (s: StavPece, text: string, tlacitko: string, zakazat = false) => {
@@ -205,6 +213,7 @@ export function prohlidka() {
         });
       });
     } else if (stavPece === "topi" || stavPece === "chladne") {
+      const pecG = vKresbe<SVGGElement>(".dl-pec");
       pecG?.classList.remove("tres");
       void pecG?.getBoundingClientRect();
       pecG?.classList.add("tres");
@@ -221,13 +230,12 @@ export function prohlidka() {
   };
 
   /* ——— Kusy z regálu ——— */
-  const kusy = [...rez.querySelectorAll<SVGGElement>(".kus")];
   const cedulky = [...rez.querySelectorAll<HTMLElement>(".kus-cedulka")];
   const kusTlacitka = [...sekce.querySelectorAll<HTMLButtonElement>(".kus-vzit")];
   let vzaty = -1;
   const vezmi = (i: number) => {
     vzaty = vzaty === i ? -1 : i;
-    kusy.forEach((x, j) => x.classList.toggle("vzaty", j === vzaty));
+    vseVKresbe<SVGGElement>(".kus").forEach((x, j) => x.classList.toggle("vzaty", j === vzaty));
     cedulky.forEach((x, j) => x.classList.toggle("je", j === vzaty));
     kusTlacitka.forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.kus) === vzaty)));
     if (vzaty >= 0) {
@@ -247,9 +255,9 @@ export function prohlidka() {
   };
 
   /* ——— Kafe ——— */
-  const kavovar = rez.querySelector<SVGGElement>(".dl-kavovar");
   let kafeCas: number | undefined;
   const kafe = () => {
+    const kavovar = vKresbe<SVGGElement>(".dl-kavovar");
     kavovar?.classList.add("vari");
     zvuk.para();
     window.clearTimeout(kafeCas);
@@ -258,11 +266,20 @@ export function prohlidka() {
   };
 
   /* ——— Lampa, dveře, knihy, glazury ——— */
-  const lampa = rez.querySelector<SVGGElement>(".dl-lampa");
+  let lampaSviti = false;
   const sviti = () => {
-    lampa?.classList.toggle("sviti");
+    lampaSviti = !lampaSviti;
+    vKresbe<SVGGElement>(".dl-lampa")?.classList.toggle("sviti", lampaSviti);
     zvuk.cvak();
   };
+
+  /* Kresba právě dorazila: přenést do ní, co se stihlo změnit předtím */
+  rez.addEventListener(UDALOST, () => {
+    const displej = vKresbe<SVGTextElement>(".dl-pec-displej");
+    if (displej && naDispleji !== null) displej.textContent = naDispleji;
+    vseVKresbe<SVGGElement>(".kus").forEach((x, j) => x.classList.toggle("vzaty", j === vzaty));
+    vKresbe<SVGGElement>(".dl-lampa")?.classList.toggle("sviti", lampaSviti);
+  });
 
   sekce.addEventListener("click", (e) => {
     const el = (e.target as Element).closest<HTMLElement>("[data-akce]");

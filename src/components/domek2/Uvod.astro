@@ -15,9 +15,13 @@
 import UvodKrajina from "./UvodKrajina.astro";
 import { kontakt, sezonaMesice } from "../../data/uvod2";
 import { parta } from "../../data/parta";
+import { rezervace, jizdne, dnySlovy as kdy } from "../../data/rezervace";
 
 /** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška (hlavni.ts) */
 const sezona = sezonaMesice(new Date().getMonth() + 1);
+
+/** Řádek pod tlačítky: kdy je otevřeno a od kolika — z Rezervace, ať se nerozejde s ní */
+const odKc = Math.min(...jizdne.skupina).toLocaleString("cs-CZ");
 
 /** Kolik stupňů umí pec — číslo je jen v Pecinčině profilu, tak se vytáhne odtud (jako na Úvodu 2) */
 const pecinka = parta.find((p) => p.id === "pecinka");
@@ -37,9 +41,10 @@ const stupne = pecinka?.bio.match(/(\d[\d\s]*\d)\s*stup/)?.[1]?.replace(/\s/g, "
       Malá dílna v Ořechu — pojď dál.
     </p>
     <div class="dm-uvod-akce">
-      <a class="tlacitko" href="/kurzy-2#hledac">Najít svůj kurz</a>
-      <a class="tlacitko tlacitko-obrys" href="/#odjezdy">Nejbližší termíny</a>
+      <a class="tlacitko" href="/rezervace#rz-pokladna">Rezervovat hodinu</a>
+      <a class="tlacitko tlacitko-obrys" href="/rezervace#rz-darky">Darovat jízdenku</a>
     </div>
+    <p class="dm-uvod-kdy">{kdy} {rezervace.od}–{rezervace.do} · od {odKc}&nbsp;Kč</p>
     <a class="uvod-dolu" href="#ulice">
       <span>Sejdi k zelenému domu</span>
       <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>

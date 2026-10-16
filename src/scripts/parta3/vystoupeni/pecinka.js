@@ -1,5 +1,5 @@
 /*
- * Vystoupení Pecinky na /parta-3 — choreografie pro scény ze scripts/pecinka-ohen.
+ * Vystoupení Pecinky na /parta — choreografie pro scény ze scripts/pecinka-ohen.
  * Jak se zapisují, je v ../herec.js; hraje je režisér (../reziser.ts).
  */
 import { cekej, mys, klik, pryc, az, titulek, ohlas } from "../herec.js";

@@ -1,7 +1,7 @@
 import type { PostavaId } from "./parta";
 
 /**
- * Parta jako japonští kami — data pro /parta-2.
+ * Parta jako japonští kami — data pro hru na hledání (omamori, komnaty) a KAMI partu.
  *
  * Profilové texty (bio, hlídá, oblíbené) zůstávají v parta.ts. Tady je jen
  * to, co přibylo s kami: kým postavička v japonské tradici je, co říká,
@@ -35,7 +35,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Mokré ruce, prosím. Suché škrábou.",
       "Kami země. Zní to vznešeně, ale většinou spím.",
     ],
-    skrys: "Spí někde u kořenů velkého stromu.",
+    skrys: "Spí v patičce úplně na dně. Musíš se prokopat až ke kameni.",
     narocnost: 2,
   },
   kapka: {
@@ -48,7 +48,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Louže je jezero, když jsi dost malá.",
       "V peci mě uvidíš do sta stupňů. Pak už jen páru.",
     ],
-    skrys: "Visí na kraji police s miskami. Ještě neskápla.",
+    skrys: "Sedí na židli u kruhu v roce dílny. Od dubna se nehnula.",
     narocnost: 1,
   },
   pecinka: {
@@ -61,7 +61,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Tisíc tři sta dvacet stupňů. A pořád se usmívám.",
       "Přes noc podřimuju. Ale jedním okem.",
     ],
-    skrys: "Kouká z okna dílny. Ráno, když už je po výpalu.",
+    skrys: "Veze se na svitku s průvodem. Vlevo, u válečku.",
     narocnost: 1,
   },
   stripek: {
@@ -74,7 +74,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Spadl jsem ze stolu. Doporučuju. Teda ne.",
       "Kdo se nebojí chyb, točí rychleji.",
     ],
-    skrys: "Leží na zemi pod ponkem. Tam, kam nikdo nezametá.",
+    skrys: "Schoval se v hodinách krámku. Mezi šestou a sedmou.",
     narocnost: 3,
     nejtezsi: true,
   },
@@ -88,7 +88,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Lokty k tělu.",
       "Čerstvé sakury, každý den. Člověk má mít standardy.",
     ],
-    skrys: "Schovala se mezi hrnky v peci. Ráda se dívá, jak se skládá.",
+    skrys: "Kouká zpoza dárkové jízdenky na zvláštní vlak.",
     narocnost: 1,
   },
   bublinka: {
@@ -101,7 +101,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Nejsem zlá. Jen jsem v peci hlasitá.",
       "Kami? Kdepak. Yōkai. To je ta zábavnější strana.",
     ],
-    skrys: "Bydlí v trubičce s vodou. Kachlík ji tam nesnáší.",
+    skrys: "Bydlí ve vodě. U mistra, kde se středí hlína.",
     narocnost: 2,
   },
   kachlik: {
@@ -114,7 +114,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Kroutit se při sušení je pod mou úroveň.",
       "Vodováha je můj nejlepší kamarád. Má bublinku. To jediné jí vyčítám.",
     ],
-    skrys: "Leží na dně kádě s vodou. Prý se tam chladí.",
+    skrys: "Vykukuje nad cedulkou s příští volnou hodinou.",
     narocnost: 2,
   },
   cedulka: {
@@ -127,7 +127,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Piš čitelně. Já to pak budu muset přečíst.",
       "Pamatuju si všechno. Hlavně to, čí je ta křivá.",
     ],
-    skrys: "Visí na provaze mezi věštbami. Vypadá skoro stejně jako ony.",
+    skrys: "Visí z okapu síně mistra. Tam se dostaneš až po šesti.",
     narocnost: 3,
   },
   samotka: {
@@ -140,7 +140,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Kdyby glazura stekla až na mě… ne, nebudu na to myslet.",
       "Nikdo mi nikdy nepoděkoval. To je v pořádku. Fakt.",
     ],
-    skrys: "Je uvnitř rozpálené pece. Stačí nakouknout.",
+    skrys: "Jede vlakem po moři. V prvním voze, u okna s cestujícím.",
     narocnost: 3,
   },
 };
@@ -175,7 +175,7 @@ export interface Zastaveni {
    * jedním směrem a nevracela se.
    */
   hodina: number;
-  /** Co se na stanovišti děje a kdo ho hlídá — tenhle text jde i mimo Partu 2 (obsazení na /parta-3) */
+  /** Co se na stanovišti děje a kdo ho hlídá — tenhle text jde i mimo Partu 2 (obsazení na /parta) */
   text: string;
   /** Výzva ke hře ve scéně stanoviště; patří jen tam, kde ta scéna je */
   pokyn?: string;

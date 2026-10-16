@@ -18,13 +18,9 @@
  * Kdy a za kolik je z data/rezervace.ts, zbytek z data/dilna.ts, teploty
  * z data/kami.ts. Kresby jsou generátory v components/dilna/kresba.
  */
-import "@fontsource-variable/fraunces/full.css";
+import "../styles/pisma.css";
+import Hlava from "../components/Hlava.astro";
 import { ClientRouter } from "astro:transitions";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/newsreader";
-import "@fontsource-variable/newsreader/opsz-italic.css";
-import "@fontsource/caveat/400.css";
-import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/dilna-zaklad.css";
@@ -48,7 +44,7 @@ import Hotovo from "../components/dilna/Hotovo.astro";
 import Slovnicek from "../components/dilna/Slovnicek.astro";
 import Zaver from "../components/dilna/Zaver.astro";
 
-import { cinnosti, kapitoly, kdy, slovnicek, glazuraJaponsky } from "../data/dilna";
+import { kapitoly, kdy } from "../data/dilna";
 
 /** Kapitoly druhé části i se stavem kusu — do řady odkazů v předělu */
 const STAV: Record<string, "hrouda" | "mokry" | "suchy" | "prezah" | "syrova" | "hotovy"> = {
@@ -62,38 +58,12 @@ const STAV: Record<string, "hrouda" | "mokry" | "suchy" | "prezah" | "syrova" | 
 };
 const obsah = kapitoly.map((k) => ({ id: k.id, cislo: k.cislo, nazev: k.nazev, stav: STAV[k.id] }));
 
-/* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
-const znaky = new Set<string>();
-const pridej = (s: string) => {
-  for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
-};
-cinnosti.forEach((c) => {
-  pridej(c.znak);
-  pridej(c.japonsky);
-});
-kapitoly.forEach((k) => {
-  pridej(k.znak);
-  pridej(k.cislo);
-  pridej(k.japonsky);
-});
-slovnicek.forEach((s) => s.hesla.forEach((h) => pridej(h.japonsky ?? "")));
-Object.values(glazuraJaponsky).forEach((g) => pridej(g.znak));
-pridej("工房工程一二案内土から器へ手窯先生一人時間値段規則用語開店");
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+
 ---
 <!doctype html>
 <html lang="cs">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dílna — jak to chodí a jak se dělá keramika · JIRO saku</title>
-    <meta name="description" content={`Jak to v keramické dílně v Ořechu chodí a jak se dělá keramika: hodina v dílně (${kdy.cena} ${kdy.zaCo}, každé ${kdy.dny} ${kdy.hodiny}), lektor, nebo open studio, a cesta hlíny od hroudy přes sušení, přežah a glazuru až po ostrý výpal na 1 280 °C.`} />
-    <meta name="theme-color" content="#6F8FC8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href={pismoZnaku} />
+    <Hlava titulek="Dílna — jak to chodí a jak se dělá keramika · JIRO saku" popis={`Jak to v keramické dílně v Ořechu chodí a jak se dělá keramika: hodina v dílně (${kdy.cena} ${kdy.zaCo}, každé ${kdy.dny} ${kdy.hodiny}), lektor, nebo open studio, a cesta hlíny od hroudy přes sušení, přežah a glazuru až po ostrý výpal na 1 280 °C.`} barva="#6F8FC8" />
     <ClientRouter />
   </head>
   <body class="p2 d2" data-stranka="dilna">
@@ -140,7 +110,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
       <Zaver />
     </main>
 
-    <Paticka poznamka="Dílna je návrh v novém vzhledu webu. Regál, pec, kruh i vzorník glazur se kreslí přímo v prohlížeči — skutečné jsou jen fotky lektorů." flekMimo="#vypal" />
+    <Paticka flekMimo="#vypal" />
     <div class="oznameni" role="status" aria-live="polite"></div>
 
     <script>

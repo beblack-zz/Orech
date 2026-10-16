@@ -1,5 +1,5 @@
 /*
- * Vystoupení Střípka na /parta-3 — choreografie pro scény ze scripts/stripek-zlato.
+ * Vystoupení Střípka na /parta — choreografie pro scény ze scripts/stripek-zlato.
  * Jak se zapisují, je v ../herec.js; hraje je režisér (../reziser.ts).
  *
  * Obě scény startují v čase 0 (nemají `zacatek`), takže časové značky v dyn

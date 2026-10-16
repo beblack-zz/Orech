@@ -38,15 +38,16 @@ const kc = (n: number) => n.toLocaleString("cs-CZ");
 const V_DEN = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
 const DNY = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
 const HODIN = ["", "Hodina", "Dvě hodiny", "Tři hodiny", "Čtyři hodiny", "Pět hodin", "Šest hodin"];
-const ODJEZDU = ["", "jeden odjezd", "dva odjezdy", "tři odjezdy", "čtyři odjezdy"];
+const HODIN_KOHO = ["", "jednu hodinu", "dvě hodiny", "tři hodiny", "čtyři hodiny"];
 const KRAT = ["", "Jednou", "Dvakrát", "Třikrát", "Čtyřikrát"];
 const spolu = (a: string[], spojka = "a") => (a.length > 1 ? `${a.slice(0, -1).join(", ")} ${spojka} ${a[a.length - 1]}` : (a[0] ?? ""));
 const velke = (s: string) => s.toLocaleUpperCase("cs-CZ");
 
 const n = odjezduDarku;
-const blok = String(rezervace.blok).replace(".", ",");
-const hodin = HODIN[darky.hodin] ?? `${darky.hodin} hodin`;
-const odjezduText = ODJEZDU[n] ?? `${n} odjezdů`;
+/* Hodina v dílně trvá 90 minut — dárek na `darky.hodin` hodin času jsou `n` hodin v dílně */
+const hodin = HODIN[n] ?? `${n} hodin`;
+const hodinKoho = HODIN_KOHO[n] ?? `${n} hodin`;
+const delkaHodiny = `${Math.round(rezervace.blok * 60)} min`;
 const mesice = sklonuj(permanentka.mesicu, "měsíc", "měsíce", "měsíců");
 const platnost = sklonuj(darky.platnostMesicu, "měsíc", "měsíce", "měsíců");
 const tydnu = Math.round((permanentka.mesicu * 52) / 12);
@@ -83,12 +84,12 @@ const nabidky: Nabidka[] = [
   {
     id: "hodiny",
     nazev: `${hodin} v dílně`,
-    vlak: odjezduText,
-    heslo: `${KRAT[n] ?? `${n}×`} hodina a půl v dílně. Dělá si, co chce.`,
+    vlak: `${n} × ${delkaHodiny}`,
+    heslo: `${KRAT[n] ?? `${n}×`} hodina v dílně (${delkaHodiny}). Dělá si, co chce.`,
     fakta: [
       { co: "co dělá", html: `<b>cokoli</b> — ${volby.join(", ")}; lektor ukáže a poradí, když o něj stojí` },
-      { co: "kdy", html: `${spolu(rezervace.dny.map((d) => V_DEN[d]), "nebo")} ${rezervace.od}–${rezervace.do}; odjezdy si vybere sám — po sobě, nebo každý jindy` },
-      { co: "s kým", html: `má jedno místo; odjezd jich má ${rezervace.mist}, takže tvoří s dalšími — a kdo přijde s ním, koupí si své` },
+      { co: "kdy", html: `${spolu(rezervace.dny.map((d) => V_DEN[d]), "nebo")} ${rezervace.od}–${rezervace.do}; hodiny si vybere sám — po sobě, nebo každou jindy` },
+      { co: "s kým", html: `má jedno místo; hodina jich má ${rezervace.mist}, takže tvoří s dalšími — a kdo přijde s ním, koupí si své` },
     ],
     cena: kc(n * cenaOdjezdu(1)),
     lic: lic({
@@ -97,25 +98,25 @@ const nabidky: Nabidka[] = [
       cislo: "№ —",
       hodina: 18.4,
       vlak: { obsah: vlakHodiny(n), delka: delkaHodin(n), okraj: VYHLED - delkaHodin(n) },
-      nominal: { cislo: String(darky.hodin), jednotka: "h", vedle: true },
-      radek: `${velke(hodin)} · ${velke(odjezduText)}`,
+      nominal: { cislo: String(n), jednotka: "h", vedle: true },
+      radek: `${velke(hodin)} · ${n} × ${velke(delkaHodiny)}`,
       udaje: [
-        { co: "ODJEZDY", hodnota: `${n} × ${blok} h` },
+        { co: "ODJEZDY", hodnota: `${n} × ${delkaHodiny}` },
         { co: "CESTUJÍCÍ", hodnota: "1" },
         { co: "PLATÍ", hodnota: `${darky.platnostMesicu} měs.` },
       ],
-      ustrizek: { druh: "kupony", kuponu: n, delka: `${blok} h` },
+      ustrizek: { druh: "kupony", kuponu: n, delka: delkaHodiny },
     }),
     rub: rub({
       druh: "hodiny",
       cislo: "—",
       vlak: delkaHodin(n),
-      kroky: [`Vyber si ${odjezduText} v rezervaci na webu — po sobě, nebo každý jindy.`, "Do poznámky napiš číslo jízdenky.", "Na místě ji ukaž, průvodčí cvakne kupon."],
+      kroky: [`Vyber si ${hodinKoho} v rezervaci na webu — po sobě, nebo každou jindy.`, "Do poznámky napiš číslo jízdenky.", "Na místě ji ukaž, průvodčí cvakne kupon."],
       panel: {
         druh: "odjezdy",
         titul: `ODJEZDY · ${velke(spolu(rezervace.dny.map((d) => DNY[d])))}`,
         casy: odjezdy.map(hhmm),
-        pozn: `každý odjezd je hodina a půl, ${rezervace.od}–${rezervace.do}`,
+        pozn: `každá hodina trvá ${delkaHodiny}, ${rezervace.od}–${rezervace.do}`,
       },
       pata: [`Platí ${platnost} od vystavení.`, kontaktem],
     }),
@@ -124,14 +125,14 @@ const nabidky: Nabidka[] = [
     id: "pas",
     nazev: "Permanentka",
     vlak: "stálé místo",
-    heslo: `Hodina a půl každý týden, ${mesice}.`,
+    heslo: `Hodina v dílně každý týden, ${mesice}.`,
     fakta: [
       { co: "co dělá", html: `<b>totéž co na hodině</b> — tvoří po svém, jen pravidelně` },
       {
         co: "kdy",
-        html: `jeden den v týdnu (${spolu(rezervace.dny.map((d) => DNY[d]), "nebo")}), pokaždé stejný spoj — ${spolu(permanentka.spoje.map((s) => `${s.nazev} ${hhmm(s.h)}`), "nebo")}; platí ${mesice} od první jízdy`,
+        html: `jeden den v týdnu (${spolu(rezervace.dny.map((d) => DNY[d]), "nebo")}), pokaždé stejná hodina — ${spolu(permanentka.spoje.map((s) => `${s.nazev} ${hhmm(s.h)}`), "nebo")}; platí ${mesice} od první hodiny`,
       },
-      { co: "s kým", html: `má své místo; na spoji jsou ${sklonuj(permanentka.mist, "místo", "místa", "míst")} a den i spoj si vybere tam, kde je volno` },
+      { co: "s kým", html: `má své místo; na hodině jsou ${sklonuj(permanentka.mist, "místo", "místa", "míst")} a den i hodinu si vybere tam, kde je volno` },
     ],
     cena: kc(cenaPermanentky()),
     lic: lic({
@@ -154,13 +155,13 @@ const nabidky: Nabidka[] = [
       druh: "pas",
       cislo: "—",
       vlak: DELKA_PASU,
-      kroky: ["Den a spoj si vyber v rezervaci — tam, kde je volno.", "Do poznámky napiš číslo průkazky.", `Uplatni do ${platnost}; pak platí ${mesice}.`],
+      kroky: ["Den a hodinu si vyber v rezervaci — tam, kde je volno.", "Do poznámky napiš číslo průkazky.", `Uplatni do ${platnost}; pak platí ${mesice}.`],
       panel: {
         druh: "spoje",
         titul: `SPOJE · ${velke(spolu(rezervace.dny.map((d) => DNY[d]), "nebo"))}`,
         spoje,
         tydnu,
-        pozn: `${tydnu} týdnů od první jízdy, každý týden jedna`,
+        pozn: `${tydnu} týdnů od první hodiny, každý týden jedna`,
       },
       pata: [`Platí ${platnost} od vystavení.`, kontaktem],
     }),
@@ -173,7 +174,7 @@ const nabidky: Nabidka[] = [
     fakta: [
       { co: "co dělá", html: `<b>celý den podle programu</b> — lektor je u toho od rána do večera` },
       { co: "kdy", html: `${V_DEN[rezervace.denKurzu]} ${hhmm(denOd)}–${hhmm(denDo)}; termín si vybere z vypsaných` },
-      { co: "s kým", html: `se skupinou — vlak má ${sklonuj(mistKurzu, "místo", "místa", "míst")}` },
+      { co: "s kým", html: `se skupinou — kurz má ${sklonuj(mistKurzu, "místo", "místa", "míst")}` },
       { co: "pro koho", html: kurzy.map((k) => `<b>${k.nazev}</b> ${k.proKoho}`).join("; ") },
     ],
     cena: kc(cenaKurzu),
@@ -324,11 +325,17 @@ const mailBezSkriptu = (nazev: string) =>
         <label class="rz-darky-volba"><input type="radio" name="forma" value="pdf" checked /><span>v PDF mailem</span></label>
         <label class="rz-darky-volba"><input type="radio" name="forma" value="papir" /><span>vytištěnou</span></label>
       </fieldset>
-      <p class="rz-pozn">Zabalit a darovat otevře e-mail s objednávkou. Domluvíme se na placení a jízdenku pošleme, jak si vybereš.</p>
+      <div class="rz-darky-kupujici">
+        <label class="rz-darky-pole">Tvoje jméno <input type="text" name="kupujici-jmeno" autocomplete="name" maxlength="60" required /></label>
+        <label class="rz-darky-pole">Tvůj e-mail <input type="email" name="kupujici-email" autocomplete="email" maxlength="120" required /></label>
+        {/* Past na roboty: člověk pole nevidí, robot ho vyplní */}
+        <label class="pasticka" aria-hidden="true">Web <input type="text" name="web" tabindex="-1" autocomplete="off" /></label>
+      </div>
+      <p class="rz-pozn">Zabalit a darovat nám pošle objednávku a tobě přijde kopie. Domluvíme se na placení a jízdenku pošleme, jak si vybereš.</p>
     </div>
     <p class="rz-darky-pata">
       Dárková jízdenka nic nezamlouvá. Až ji obdarovaný bude chtít uplatnit, vybere si termín nahoře v pokladně
-      a do poznámky napíše číslo jízdenky — u zvláštního vlaku z vypsaných termínů, u permanentky tam, kde je na spoji volno.
+      a do poznámky napíše číslo jízdenky — u zvláštního vlaku z vypsaných termínů, u permanentky tam, kde je volno.
     </p>
   </form>
 </section>

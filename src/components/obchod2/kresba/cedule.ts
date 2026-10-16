@@ -1,5 +1,5 @@
 /**
- * Cedule a světla krámku na /obchod-2 — všechno napsané a všechno, co svítí.
+ * Cedule a světla krámku na /obchod — všechno napsané a všechno, co svítí.
  *
  *   zadni   velký štít うつわ屋 pod spodní střechou: tmavý dřevěný rám
  *           s mosaznými rohovníky, krémová tvář, vlevo JIRO saku, vpravo

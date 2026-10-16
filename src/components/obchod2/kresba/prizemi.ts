@@ -1055,7 +1055,7 @@ interface Letak {
 
 /** Tři letáky, přes které stránka položí odkazy */
 const LETAKY_ODKAZY: (Letak & { odkaz: string; popis: string; kresba: (l: Letak) => string })[] = [
-  { x: 567, y: 1399, w: 70, h: 90, uhel: -2.2, odkaz: "/kurzy-2", popis: "Leták: Kurzy u kruhu", kresba: letakKurzy },
+  { x: 567, y: 1399, w: 70, h: 90, uhel: -2.2, odkaz: "/rezervace#rz-rad", popis: "Leták: Kurzy u kruhu", kresba: letakKurzy },
   { x: 648, y: 1401, w: 70, h: 88, uhel: 1.6, odkaz: "/rezervace", popis: "Leták: Rezervace", kresba: letakRezervace },
   { x: 606, y: 1497, w: 72, h: 90, uhel: -1, odkaz: "/dilna", popis: "Leták: Jak to chodí v dílně", kresba: letakDilna },
 ];

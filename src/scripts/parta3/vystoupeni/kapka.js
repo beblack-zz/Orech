@@ -1,5 +1,5 @@
 /*
- * Vystoupení Kapky na /parta-3 — choreografie pro scény ze scripts/kapka-hrom.
+ * Vystoupení Kapky na /parta — choreografie pro scény ze scripts/kapka-hrom.
  * Jak se zapisují, je v ../herec.js; hraje je režisér (../reziser.ts).
  *
  * Obě scény si hrají samy, když se na ně nesahá, a tím by si vrchol spustily

@@ -1,5 +1,5 @@
 /**
- * Hlavička nového vzhledu: mobilní menu, zvonkohra, kterou se zvuk ztlumí,
+ * Hlavička nového vzhledu: mobilní menu, zvonkohra s nabídkou zvuků,
  * přepínač den / noc (bublina v noční modré), tah štětce po okraji
  * bubliny (tah.ts) a závěs s nalezenými kami pod pruhem (zaves.ts), který
  * otevírá omamori (omamori.ts). Sdílí
@@ -24,6 +24,8 @@ import { initFlek } from "../flek/flek";
 import { pruvodce } from "./pruvodce";
 
 const KLIC_ZTLUMENO = "zvuk-ztlumeno";
+/** Které skupiny zvuků host v nabídce u zvonkohry vypnul */
+const KLIC_SKUPINY = "zvuk-skupiny";
 /** Den, nebo noc v hlavičce — čte ho i skript hned za hlavičkou (Hlavicka.astro), ať noc neproblikne */
 const KLIC_TEMA = "hlava-tema";
 /** V téhle záložce už zvuk jednou hrál */
@@ -99,17 +101,30 @@ function zvonkohraAZvuk() {
   /*
    * Zvuk je ve výchozím stavu zapnutý. Prohlížeč ho ale pustí až po prvním
    * gestu, takže se rozezní při prvním kliknutí nebo klávese kdekoli na
-   * stránce. Kliknutí na zvonkohru zvuk ztlumí a ztlumení si web pamatuje.
+   * stránce. Kliknutí na zvonkohru otevře nabídku — vypnout jde celý zvuk
+   * i jednotlivé skupiny (zvuk.ts) a web si volbu pamatuje.
    */
-  const zv = document.querySelector<HTMLButtonElement>(".zvuk-tlacitko");
+  const obal = document.querySelector<HTMLElement>(".zvuk");
+  const zv = obal?.querySelector<HTMLButtonElement>(".zvuk-tlacitko");
   const kresba = zv?.querySelector<SVGSVGElement>(".zvonkohra svg");
   zk = kresba ? initZvonkohra(kresba) : null;
-  if (!zv) return;
+  if (!obal || !zv) return;
+  const nabidka = obal.querySelector<HTMLElement>(".zvuk-nabidka")!;
+  const vse = nabidka.querySelector<HTMLInputElement>("[data-zvuk-vse]")!;
+  const skupinyPole = nabidka.querySelector<HTMLFieldSetElement>(".zvuk-skupiny")!;
+  const volby = [...nabidka.querySelectorAll<HTMLInputElement>("[data-zvuk-skupina]")];
   let chci = !nacti(KLIC_ZTLUMENO, false);
+  const ulozene = nacti<Partial<Record<zvuk.Skupina, boolean>>>(KLIC_SKUPINY, {});
+  for (const s of zvuk.SKUPINY) zvuk.nastavSkupinu(s, ulozene[s] ?? true);
   const ukaz = () => {
-    zv.setAttribute("aria-pressed", String(chci));
-    zv.setAttribute("aria-label", chci ? "Ztlumit zvuk" : "Zapnout zvuk");
-    zv.title = chci ? "Ztlumit zvuk" : "Zapnout zvuk";
+    zv.classList.toggle("je-ticho", !chci);
+    vse.checked = chci;
+    skupinyPole.disabled = !chci;
+    for (const v of volby) v.checked = zvuk.skupinaZapnuta(v.dataset.zvukSkupina as zvuk.Skupina);
+  };
+  const otevri = (ano: boolean) => {
+    nabidka.hidden = !ano;
+    zv.setAttribute("aria-expanded", String(ano));
   };
   const rozezni = async () => {
     if (!zvuk.jeZapnuto()) {
@@ -128,7 +143,8 @@ function zvonkohraAZvuk() {
       GESTA.forEach((g) => document.removeEventListener(g, prvniGesto, true));
       return;
     }
-    if (!chci || zv.contains(e.target as Node)) return;
+    /* V nabídce se o zvuku teprve rozhoduje — tam ho spustí až volba */
+    if (!chci || obal.contains(e.target as Node)) return;
     if (zvuk.jeZapnuto()) zvuk.odemkni();
     else rozezni();
   };
@@ -141,12 +157,40 @@ function zvonkohraAZvuk() {
     hralo = sessionStorage.getItem(KLIC_HRALO) === "1";
   } catch {}
   if (chci && hralo) rozezni();
-  zv.addEventListener("click", () => {
-    chci = !chci;
+  /* Kliknutí na zvonkohru otevře nabídku: celý zvuk, nebo jen některé skupiny */
+  zv.addEventListener("click", () => otevri(nabidka.hidden));
+  vse.addEventListener("change", () => {
+    chci = vse.checked;
     uloz(KLIC_ZTLUMENO, !chci);
     ukaz();
     if (chci) rozezni();
     else if (zvuk.jeZapnuto()) zvuk.prepni();
   });
+  for (const v of volby) {
+    v.addEventListener("change", () => {
+      const s = v.dataset.zvukSkupina as zvuk.Skupina;
+      zvuk.nastavSkupinu(s, v.checked);
+      const vsechny = Object.fromEntries(zvuk.SKUPINY.map((k) => [k, zvuk.skupinaZapnuta(k)]));
+      uloz(KLIC_SKUPINY, vsechny);
+      if (!chci) return;
+      /* Volba je gesto — když zvuk ještě nehrál, rozezní se teď */
+      if (!zvuk.jeZapnuto()) rozezni();
+      else {
+        zvuk.odemkni();
+        // Zapnutá zvonkohra se ozve, ať je slyšet, že zase zvoní
+        if (s === "zvonkohra" && v.checked) zk?.rozhoupej();
+      }
+    });
+  }
+  /* Zavře se klávesou Esc, kliknutím jinam a přechodem na jinou stránku */
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || nabidka.hidden) return;
+    otevri(false);
+    zv.focus();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if (!nabidka.hidden && !obal.contains(e.target as Node)) otevri(false);
+  });
+  document.addEventListener("astro:before-swap", () => otevri(false));
   ukaz();
 }

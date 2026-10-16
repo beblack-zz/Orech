@@ -69,8 +69,8 @@ const MESICE_2 = ["ledna", "února", "března", "dubna", "května", "června", "
 
 const kc = (n: number) => `${n.toLocaleString("cs-CZ")} Kč`;
 const lidi = (n: number) => (n === 1 ? "1 člověk" : `${n} lidi`);
-const odjezdu = (n: number) => sklonuj(n, "odjezd", "odjezdy", "odjezdů");
-const jizd = (n: number) => sklonuj(n, "jízda", "jízdy", "jízd");
+const odjezdu = (n: number) => sklonuj(n, "hodina", "hodiny", "hodin");
+const jizd = (n: number) => sklonuj(n, "týden", "týdny", "týdnů");
 const dvoj = (x: number) => String(x).padStart(2, "0");
 const datumKratce = (d: Date) => `${d.getDate()}. ${d.getMonth() + 1}.`;
 const datumDlouze = (d: Date) => `${d.getDate()}. ${MESICE_2[d.getMonth()]}`;
@@ -279,7 +279,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       const text = mam ? "na jízdence" : volna === 0 ? "rozebráno" : volna < osob ? jenMist(volna) : `${volnaMista(volna)} ${zPoctu(P.mist)}`;
       if (stav) stav.textContent = text;
       const spoj = spojPermanentky(h);
-      b.setAttribute("aria-label", `Permanentka ${d && R.dny.includes(d.datum.getDay()) ? `${NA_DNY[d.datum.getDay()]} ` : ""}na ${spoj?.nazev ?? ""} spoj ${hhmm(h)} až ${hhmm(h + R.blok)}, ${text}`);
+      b.setAttribute("aria-label", `Permanentka ${d && R.dny.includes(d.datum.getDay()) ? `${NA_DNY[d.datum.getDay()]} ` : ""}na ${spoj?.nazev ?? ""} hodinu ${hhmm(h)} až ${hhmm(h + R.blok)}, ${text}`);
     });
     /* Na který den v týdnu permanentka je, říká vybraný den — jiný se vybere o krok výš */
     const denPasu = !!d && R.dny.includes(d.datum.getDay());
@@ -403,7 +403,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
         const stare = [...pasy];
         pasy.clear();
         stare.forEach((x) => tabule?.radek(d, x, vyber()));
-        tabule?.hlas("Permanentku jsem z jízdenky vyndal — na jedné jízdence jsou buď odjezdy, nebo permanentka.");
+        tabule?.hlas("Permanentku jsem z jízdenky vyndal — na jedné jízdence jsou buď hodiny v dílně, nebo permanentka.");
       }
       vybrane.add(h);
       posledniVybrana = h;
@@ -428,7 +428,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
         const stare = [...vybrane];
         vybrane.clear();
         stare.forEach((x) => tabule?.radek(d, x, vyber()));
-        tabule?.hlas("Odjezdy jsem z jízdenky vyndal — na jedné jízdence jsou buď odjezdy, nebo permanentka.");
+        tabule?.hlas("Hodiny jsem z jízdenky vyndal — na jedné jízdence jsou buď hodiny v dílně, nebo permanentka.");
       }
       pasy.add(h);
       posledniVybrana = h;
@@ -494,7 +494,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       const celkem = spoje.length * osob * zaSpoj;
       return {
         celkem,
-        vypocet: `${spoje.length > 1 ? `${spoje.length} spoje × ` : ""}${lidi(osob)} × ${jizd(pocet)} po ${kc(P.cenaJizdy)}`,
+        vypocet: `${spoje.length > 1 ? `${spoje.length} hodiny × ` : ""}${lidi(osob)} × ${jizd(pocet)} po ${kc(P.cenaJizdy)}`,
         kratce: `Permanentka ${NA_DNY[d.datum.getDay()]} · ${spojeSlovy(spoje)} · od ${datumKratce(d.datum)} · ${lidi(osob)} · ${kc(celkem)}`,
       };
     }
@@ -522,7 +522,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     cenaEl.textContent = kc(s?.celkem ?? 0);
     if (cenaStitek) cenaStitek.textContent = s && "klesne" in s && s.klesne ? "Teď nejvýš" : "Celkem";
     if (vypocetEl) {
-      vypocetEl.textContent = s?.vypocet ?? (d?.kurz ? `${kc(d.kurz.kurz.cena)} za člověka a celý den` : `Od ${kc(cenaZaCloveka(1))} za člověka, když jsi na odjezdu sám, po ${kc(cenaZaCloveka(R.mist))}, když je plno — platí se na místě.`);
+      vypocetEl.textContent = s?.vypocet ?? (d?.kurz ? `${kc(d.kurz.kurz.cena)} za člověka a celý den` : `Od ${kc(cenaZaCloveka(1))} za člověka, když jsi v dílně sám, po ${kc(cenaZaCloveka(R.mist))}, když je plno — platí se na místě.`);
     }
     if (odeslatPozn) {
       odeslatPozn.textContent = clen()
@@ -547,10 +547,10 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   /* ——— Člen: kdo přišel přes svůj odkaz, rezervuje rovnou ——— */
 
   const PROC: Partial<Record<Chyba, string>> = {
-    obsazeno: "Tenhle odjezd si mezitím zamluvil někdo jiný. Tabule je načtená znovu — vyber jiný.",
+    obsazeno: "Tuhle hodinu si mezitím zamluvil někdo jiný. Tabule je načtená znovu — vyber jinou.",
     plno: "Mezitím se zaplnilo a všichni už se nevejdete. Tabule je načtená znovu.",
-    zavreno: "Ten den nebo odjezd je nově zavřený. Tabule je načtená znovu — vyber jiný.",
-    vyluka: "Ten den nově jede kurz a hodinové spoje mají výluku. Tabule je načtená znovu.",
+    zavreno: "Ten den nebo hodina je nově zavřená. Tabule je načtená znovu — vyber jinou.",
+    vyluka: "Ten den nově jede kurz, takže běžné hodiny nejsou. Tabule je načtená znovu.",
     nejede: "Kurz ten den už vypsaný není. Tabule je načtená znovu.",
     spatne: "Tohle už zamluvit nejde — nejspíš mezitím odjelo. Tabule je načtená znovu.",
     neznamy: "Tvůj odkaz už neplatí. Napiš nám, pošleme ti nový.",
@@ -571,9 +571,9 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       const jm = clenEl.querySelector(".rz-clen-jmeno");
       if (jm) jm.textContent = c?.jmeno ?? "";
     }
-    /* Poznámka v patičce, že je obsazenost jen simulovaná, platí jen pro ukázku */
-    const pata = document.querySelector<HTMLElement>(".pata-poznamka");
-    if (pata && kal.zive) pata.hidden = true;
+    /* Věta pod odjezdy, že je obsazenost jen ukázková, platí jen pro ukázku */
+    const ukazka = document.querySelector<HTMLElement>(".rz-simulace");
+    if (ukazka && kal.zive) ukazka.hidden = true;
     /* Člena známe jménem z tabulky — na jízdenku se nepíše znovu. Poznámku k jízdence posílá jen on, host nic neposílá */
     if (c) jmenoEl.value = c.jmeno;
     jmenoEl.readOnly = !!c;
@@ -711,7 +711,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     const d = dny[den];
     const s = sepis();
     if (odeslat.getAttribute("aria-disabled") === "true" || !d || !s) {
-      if (chybi) chybi.textContent = !d ? "Nejdřív vyber den." : d.kurz ? "Nejdřív nastup na tabuli do zvláštního vlaku." : "Nejdřív vyber aspoň jeden odjezd na tabuli.";
+      if (chybi) chybi.textContent = !d ? "Nejdřív vyber den." : d.kurz ? "Nejdřív nastup na tabuli do zvláštního vlaku." : "Nejdřív vyber aspoň jednu hodinu na tabuli.";
       return;
     }
     if (!jmenoEl.value.trim()) {
@@ -743,7 +743,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       if (nevejdou.length) {
         nevejdou.forEach((h) => vybrane.delete(h));
         posledniVybrana = vybrane.size ? Math.max(...vybrane) : null;
-        hlaseni = `${nevejdou.length === 1 ? `Na odjezd v ${hhmm(nevejdou[0])}` : `Na odjezdy v ${nevejdou.map(hhmm).join(" a ")}`} se všichni nevejdete — vyndal jsem ${nevejdou.length === 1 ? "ho" : "je"} z jízdenky.`;
+        hlaseni = `${nevejdou.length === 1 ? `Na hodinu v ${hhmm(nevejdou[0])}` : `Na hodiny v ${nevejdou.map(hhmm).join(" a ")}`} se všichni nevejdete — vyndal jsem ${nevejdou.length === 1 ? "ji" : "je"} z jízdenky.`;
       }
       if (kurzVybran && d?.kurz && volnoVKurzu(d.kurz) < osob) {
         kurzVybran = false;
@@ -752,7 +752,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       for (const h of [...pasy]) {
         if (volnoNaSpoji({ pasObsazeno: pasDne(d) }, h) >= osob) continue;
         pasy.delete(h);
-        hlaseni = `Na ${spojPermanentky(h)?.nazev ?? ""} spoj už není dost permanentek pro všechny — vyndal jsem ji z jízdenky.`;
+        hlaseni = `Na ${spojPermanentky(h)?.nazev ?? ""} hodinu už není dost permanentek pro všechny — vyndal jsem ji z jízdenky.`;
       }
       if (!pasy.size && !vybrane.size) posledniVybrana = null;
       /* Dny ukazují, kolik odjezdů je volných pro vás všechny */
@@ -806,7 +806,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     const dnesniKurz = dny.find((d) => d.klic === iso(ted))?.kurz;
     let veta: string;
     if (dnesniKurz) {
-      veta = `Dnes je ${DNY[dd]} a jede zvláštní vlak: ${dnesniKurz.kurz.nazev}.${R.dny.includes(dd) ? " Hodinové spoje mají výluku." : ""}`;
+      veta = `Dnes je ${DNY[dd]} a jede zvláštní vlak: ${dnesniKurz.kurz.nazev}.${R.dny.includes(dd) ? " Běžné hodiny dnes nejsou." : ""}`;
     } else if (R.dny.includes(dd) && hod < R.do) {
       veta = hod < R.od ? `Dnes je ${DNY[dd]} — dílna otevírá v ${R.od}:00.` : `Dnes je ${DNY[dd]} — dílna má otevřeno do ${R.do}:00.`;
     } else {
@@ -838,7 +838,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     if (!n) return;
     const d = dny[n.i].datum;
     if (pristiPopis) pristiPopis.textContent = `: ${V_DEN[d.getDay()]} ${datumDlouze(d)} v ${hhmm(n.h)} — vybrat a přejít k tabuli`;
-    pristiEl.setAttribute("aria-label", `Příští volný odjezd ${V_DEN[d.getDay()]} ${datumDlouze(d)} v ${hhmm(n.h)}. Nastoupit — vybrat ho a přejít k tabuli`);
+    pristiEl.setAttribute("aria-label", `Příští volná hodina ${V_DEN[d.getDay()]} ${datumDlouze(d)} v ${hhmm(n.h)}. Nastoupit — vybrat ji a přejít k tabuli`);
     if (!klapky) return;
     const hodnoty = [ZKR[d.getDay()], ...`${dvoj(d.getDate())}${dvoj(d.getMonth() + 1)}${dvoj(Math.floor(n.h))}${dvoj(Math.round((n.h % 1) * 60))}`.split("")];
     pristiKlapky.forEach((kl, i) => {

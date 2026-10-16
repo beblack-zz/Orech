@@ -1,5 +1,5 @@
 /**
- * Vstup pro /o-nas-2. Obloha, hlavička, zvuky a klikací kami jsou
+ * Vstup pro /o-nas. Obloha, hlavička, zvuky a klikací kami jsou
  * společné s ostatními stránkami nového vzhledu; zlato obsluhuje obecná
  * sbírka (parta2/sbirka.ts), zbytek je vlastní O nás.
  * Rok dílny jede na stejném skriptu jako na Úvodu 2 (uvod2/rok.ts).

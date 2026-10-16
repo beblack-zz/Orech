@@ -1,0 +1,104 @@
+---
+/**
+ * Společná hlavička <head> všech stránek: titulek, popis, canonical,
+ * náhled pro sdílení (Open Graph a Twitter), barva lišty, favicony
+ * a japonské štětcové písmo Yuji Syuku z vlastních souborů.
+ *
+ * Písmo: každá stránka má jen svoje znaky (scripts/pisma/yuji.py vyrobí
+ * public/fonts/web/yuji/<stránka>.woff2 a rozsahy v data/yuji.json). Znaky,
+ * které jsou na všech stránkách (hlavička, patička, omamori), jsou ve společném
+ * souboru, který si prohlížeč stáhne jednou. Klíč stránky je z adresy:
+ * / → index, /obchod/futatsu → obchod-2-futatsu.
+ *
+ * `data` přidá strukturovaná data o dílně (adresa, otevírací doba) pro Google —
+ * patří na úvod a Kontakt. Telefon v nich zatím není, dokud není skutečný.
+ *
+ * Písma webu (pisma.css), ClientRouter a vlastní styly si stránka přidává sama.
+ */
+import yuji from "../data/yuji.json";
+import { kontakt } from "../data/uvod2";
+import { rezervace, hhmm, jizdne } from "../data/rezervace";
+
+interface Props {
+  titulek: string;
+  popis: string;
+  /** Barva lišty prohlížeče na telefonu — podle oblohy první obrazovky */
+  barva?: string;
+  /** Stránka nemá jít do vyhledávačů */
+  noindex?: boolean;
+  /** Strukturovaná data o dílně (úvod, Kontakt) */
+  data?: boolean;
+  /** Obrázek pro sdílení, 1200 × 630, z public/ */
+  obrazek?: string;
+  obrazekPopis?: string;
+}
+const {
+  titulek,
+  popis,
+  barva = "#6F8FC8",
+  noindex = false,
+  data = false,
+  obrazek = "/og-kresba.jpg",
+  obrazekPopis = "Kreslený zelený dům v Luční 235 v Ořechu, v suterénu keramická dílna JIRO saku",
+} = Astro.props;
+
+const cesta = Astro.url.pathname.replace(/\/$/, "") || "/";
+const web = Astro.site ?? new URL("https://orechovahlina.cz");
+const kanonicka = new URL(cesta, web).href;
+const obrazekUrl = new URL(obrazek, web).href;
+
+/* Japonské písmo: společné znaky + znaky této stránky */
+const klic = cesta === "/" ? "index" : cesta.slice(1).replace(/\//g, "-");
+const rozsahy = yuji as Record<string, string>;
+const tvar = (soubor: string, rozsah: string) =>
+  `@font-face{font-family:"Yuji Syuku";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/web/yuji/${soubor}.woff2) format("woff2");unicode-range:${rozsah}}`;
+const pismoZnaku = [rozsahy.spolecne && tvar("spolecne", rozsahy.spolecne), rozsahy[klic] && tvar(klic, rozsahy[klic])].filter(Boolean).join("");
+
+/* Strukturovaná data — dílna jako místní podnik */
+const DNY_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dvoj = (h: number) => hhmm(h).padStart(5, "0");
+const dilna = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  name: "JIRO saku",
+  description: "Keramická dílna v Ořechu u Prahy: hodiny v dílně s lektorem i bez něj, sobotní kurzy, dárkové jízdenky a ručně dělaná keramika.",
+  url: new URL("/", web).href,
+  image: obrazekUrl,
+  email: kontakt.email,
+  priceRange: `${Math.min(...jizdne.skupina)}–${Math.max(...jizdne.skupina)} Kč`,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: kontakt.ulice,
+    postalCode: kontakt.psc,
+    addressLocality: kontakt.obec,
+    addressCountry: "CZ",
+  },
+  openingHoursSpecification: [
+    { "@type": "OpeningHoursSpecification", dayOfWeek: rezervace.dny.map((d) => DNY_EN[d]), opens: dvoj(rezervace.od), closes: dvoj(rezervace.do) },
+  ],
+};
+---
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{titulek}</title>
+<meta name="description" content={popis} />
+{noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={kanonicka} />}
+<meta name="theme-color" content={barva} />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="cs_CZ" />
+<meta property="og:site_name" content="JIRO saku" />
+<meta property="og:title" content={titulek} />
+<meta property="og:description" content={popis} />
+<meta property="og:url" content={kanonicka} />
+<meta property="og:image" content={obrazekUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={obrazekPopis} />
+<meta name="twitter:card" content="summary_large_image" />
+
+{pismoZnaku && <Fragment set:html={`<style>${pismoZnaku}</style>`} />}
+{data && <script type="application/ld+json" set:html={JSON.stringify(dilna)} />}

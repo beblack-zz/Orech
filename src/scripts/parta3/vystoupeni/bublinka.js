@@ -1,5 +1,5 @@
 /*
- * Vystoupení Bublinky na /parta-3 — choreografie pro scény ze scripts/bublinka-strasidlo.
+ * Vystoupení Bublinky na /parta — choreografie pro scény ze scripts/bublinka-strasidlo.
  * Jak se zapisují, je v ../herec.js; hraje je režisér (../reziser.ts).
  */
 import { cekej, mys, klik, pryc, az, titulek, ohlas } from "../herec.js";

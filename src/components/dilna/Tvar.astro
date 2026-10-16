@@ -8,6 +8,7 @@
 import Kapitola from "./Kapitola.astro";
 import { kapitoly, naKruhu, vRuce } from "../../data/dilna";
 import { kruhKrok, vRuce as vRuceSvg } from "./kresba/tvar";
+import { odloz } from "../../scripts/parta2/pozdeji";
 
 const k = kapitoly.find((x) => x.id === "tvar")!;
 const kroky = naKruhu.map((x, i) => ({ ...x, svg: kruhKrok(i as 0 | 1 | 2 | 3 | 4 | 5) }));
@@ -18,7 +19,7 @@ const kroky = naKruhu.map((x, i) => ({ ...x, svg: kruhKrok(i as 0 | 1 | 2 | 3 | 
     <ul class="d-vruce-seznam">
       {vRuce.map((v) => (
         <li>
-          <span class="d-kresba" set:html={vRuceSvg(v.id)} />
+          <span class="d-kresba" set:html={odloz(vRuceSvg(v.id))} />
           <b>{v.nazev}</b>
           <small>{v.text}</small>
         </li>
@@ -31,7 +32,7 @@ const kroky = naKruhu.map((x, i) => ({ ...x, svg: kruhKrok(i as 0 | 1 | 2 | 3 | 
     <ol class="d-kruh-kroky">
       {kroky.map((x, i) => (
         <li>
-          <span class="d-kresba" set:html={x.svg} />
+          <span class="d-kresba" set:html={odloz(x.svg)} />
           <b><span class="d-kruh-cislo" aria-hidden="true">{i + 1}</span>{x.nazev}</b>
           <small>{x.text}</small>
         </li>

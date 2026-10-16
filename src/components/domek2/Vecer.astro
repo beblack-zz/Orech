@@ -3,25 +3,22 @@
  * Večer v Luční. Tentýž dům jako ráno, jen se setmělo: kresba projde
  * barevnou maticí do modra a přes ni se rozsvítí, co doopravdy svítí —
  * lampa nad chodníkem, okna v podkroví, okna dílny dole za bránou. Po
- * chodníku jde průvod s lampiony — přehnané podoby „Lampion“ z /marcel
- * (každá je kresba bez pozadí s vlastním skriptem a chodí na místě, dopředu
- * je posouvá CSS). Kachlík a Šamotka lampion nemají, zůstali u pece.
+ * chodníku jde průvod s lucerničkami — malá kami z party, každé s lucerničkou
+ * na tyčce (jako na /marcel). Lehká verze: žádné motory scén, klik na kami
+ * obsluhuje initKami, který na úvodu běží tak jako tak. Bohatý průvod
+ * s podobami „Lampion“ je na KAMI partě. Kachlík a Šamotka zůstali u pece.
  * Vedle je kontakt.
  */
-import VazickaGejsa from "../characters/kami-buh/VazickaGejsa.astro";
-import KapkaHrom from "../characters/kami-buh/KapkaHrom.astro";
-import StripekZlato from "../characters/kami-buh/StripekZlato.astro";
-import PecinkaOhen from "../characters/kami-buh/PecinkaOhen.astro";
-import BublinkaStrasidlo from "../characters/kami-buh/BublinkaStrasidlo.astro";
-import HlinkaZeme from "../characters/kami-buh/HlinkaZeme.astro";
-import CedulkaEma from "../characters/kami-buh/CedulkaEma.astro";
+import Kami from "../parta2/Kami.astro";
+import Lucernicka from "../parta2/Lucernicka.astro";
 import { ulice, ULICE } from "./kresba/ulice";
 import { kontakt, mapa, oDilne } from "../../data/uvod2";
+import type { PostavaId } from "../../data/parta";
 
 const V = ULICE.hero;
 const kresba = ulice({ id: "uln", noc: true });
-/** Pořadí v průvodu; každá podoba má na stránce pevná id, smí tu být jen jednou */
-const pruvod = [VazickaGejsa, KapkaHrom, PecinkaOhen, HlinkaZeme, StripekZlato, CedulkaEma, BublinkaStrasidlo];
+/** Pořadí v průvodu */
+const pruvod: PostavaId[] = ["vazicka", "kapka", "pecinka", "hlinka", "stripek", "cedulka", "bublinka"];
 ---
 <section class="noc dm-vecer" id="kontakt" data-hodina="22.6" aria-labelledby="vecer-nadpis">
   <div class="noc-scena dm-vecer-scena">
@@ -29,10 +26,11 @@ const pruvod = [VazickaGejsa, KapkaHrom, PecinkaOhen, HlinkaZeme, StripekZlato, 
       <svg class="dm-vecer-kresba" viewBox={`${V.x} ${V.y} ${V.w} ${V.h}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true" set:html={kresba} />
     </div>
 
-    <div class="pruvod dm-pruvod" role="group" aria-label="Večerní průvod s lampiony" style={`--clenu:${pruvod.length}`}>
-      {pruvod.map((Podoba, i) => (
-        <div class="pruvod-clen dm-pruvod-clen" style={`--i:${i}`}>
-          <Podoba varianta="lampion" class="dm-pruvod-kresba" />
+    <div class="pruvod" role="group" aria-label="Večerní průvod s lucerničkami — klikni na kohokoli">
+      {pruvod.map((id, i) => (
+        <div class="pruvod-clen" style={`--i:${i}`}>
+          <Lucernicka />
+          <Kami id={id} class="pruvod-kami" />
         </div>
       ))}
     </div>
@@ -50,7 +48,6 @@ const pruvod = [VazickaGejsa, KapkaHrom, PecinkaOhen, HlinkaZeme, StripekZlato, 
       {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·
       <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
     </p>
-    <p class="noc-parta">Ti s lampiony? Kami z dílny — sedm z devíti, Kachlík a Šamotka hlídají pec. <a href="/parta-2">Seznam se s partou <span aria-hidden="true">→</span></a></p>
-    <p class="noc-parta">Stejný dům, jen kreslený jinak: <a href="/uvod-2">Úvod 2</a> · <a href="/parta-2">Parta 2</a></p>
+    <p class="noc-parta">Ti s lucerničkami? Kami z dílny — sedm z devíti, Kachlík a Šamotka hlídají pec. <a href="/parta#pruvod">Celý průvod s lampiony je na KAMI partě <span aria-hidden="true">→</span></a></p>
   </div>
 </section>

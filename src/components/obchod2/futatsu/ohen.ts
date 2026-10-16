@@ -1,5 +1,5 @@
 /**
- * 三 Oheň — Futatsu v peci. Kresby kapitoly Oheň na stránce /obchod-2/futatsu.
+ * 三 Oheň — Futatsu v peci. Kresby kapitoly Oheň na stránce /obchod/futatsu.
  *
  * Díváme se do komory elektrické pece, jako by přední stěna byla pryč.
  * Futatsu stojí na šamotové desce, za ním je zadní stěna z izolačních

@@ -1,5 +1,5 @@
 /**
- * Zboží v krámku na /obchod-2 jedním seznamem: keramika z Japonska
+ * Zboží v krámku na /obchod jedním seznamem: keramika z Japonska
  * (zdaleka.ts, s fotkami) a kusy z dílny na přání (obchod.ts). Kus bez
  * fotek stojí v bedně zabalený v novinách; jakmile dostane `fotky`
  * v obchod.ts, ukáže se v krámku fotka.

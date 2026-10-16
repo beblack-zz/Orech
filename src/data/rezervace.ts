@@ -51,6 +51,16 @@ export const odjezdy = Array.from({ length: Math.round((rezervace.do - rezervace
 /** Hodina s půlkou jako čas: 10.5 → „10:30“ */
 export const hhmm = (h: number) => `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, "0")}`;
 
+/* Otevírací doba slovy — patička, O nás a úvod ji berou odsud, ať se nerozejdou s rezervacemi */
+const DEN = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
+const VE_DNI = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
+/** „úterý a pátek“ */
+export const dnySlovy = rezervace.dny.map((d) => DEN[d]).join(" a ");
+/** „v úterý a v pátek“ */
+export const veDnySlovy = rezervace.dny.map((d) => VE_DNI[d]).join(" a ");
+/** „9:00–18:00“ */
+export const otevrenoSlovy = `${hhmm(rezervace.od)}–${hhmm(rezervace.do)}`;
+
 /* ——— Jízdné: skupinové ———
  *
  * Odjezd je „hodina“ v dílně — ta u nás trvá 90 minut („tam, kde má hlína
@@ -166,7 +176,7 @@ export const kurzy: KurzVlak[] = [
     popis: "Celý den u kruhu pro ty, kdo na něm ještě neseděli: příprava hlíny, středění, vytahování a tvarování. Jede se pomalu a lektor je u toho celou cestu.",
     proKoho: "pro ty, kdo na kruhu ještě neseděli",
     cena: 2400,
-    mist: 7,
+    mist: 4,
     program: [
       { h: 9, nazev: "Nástup", popis: "Zástěra, kafe a kdo je kdo. Pak hnětení: hlína se musí probudit, ruce taky." },
       { h: 10.5, nazev: "Středění", popis: "Nejtěžší zastávka trati: dostat hroudu doprostřed." },
@@ -187,7 +197,7 @@ export const kurzy: KurzVlak[] = [
     popis: "Teorie i praxe glazur — oxidace, redukce, vrstvení. Pro ty, kdo už mají za sebou pár výpalů.",
     proKoho: "pro ty, kdo už mají za sebou pár výpalů",
     cena: 2400,
-    mist: 7,
+    mist: 4,
     program: [
       { h: 9, nazev: "Nástup", popis: "Zástěra, kafe a kdo je kdo. Pak vzorník: deska se zkouškami, co která glazura udělá." },
       { h: 10.5, nazev: "Teorie", popis: "Oxidace, redukce a proč to z pece vyleze jinak." },
@@ -218,8 +228,8 @@ export const permanentka = {
     { h: 9, nazev: "ranní" },
     { h: 16.5, nazev: "večerní" },
   ],
-  /** Kolik permanentek se prodá na jeden spoj jednoho dne v týdnu */
-  mist: 3,
+  /** Kolik permanentek se prodá na jeden spoj jednoho dne v týdnu — tolik, kolik má dílna míst (rozhodnuto 17. 10. 2026) */
+  mist: 4,
   mesicu: 3,
   /** Cena za člověka a jednu jízdu (hodinu a půl) — permanentka stojí tolikrát, kolik má jízd */
   cenaJizdy: 400,
@@ -255,41 +265,3 @@ export const darky = {
 };
 /** Kolik odjezdů jsou ty tři hodiny — tolik kuponů má jízdenka a tolik vozů vlak na ní */
 export const odjezduDarku = Math.max(1, Math.round(darky.hodin / rezervace.blok));
-
-/* ——— Přání party (jen archivní /rezervace-ema) ———
- *
- * Na archivní tabuli s destičkami ema visely za obsazená místa destičky
- * party a na každé bylo přání — kdo přečetl všech devět, měl celou sbírku
- * (klíč rezervace-prani). Platná rezervace míst nepočítá, a tak ani
- * sbírku nemá.
- *
- * Nápověda v sešitě musí sedět s tím, kdy kami chodí — simulace archivu
- * ho jinam než do jeho hodin nepověsí (scripts/rezervace/ema-simulace.ts).
- */
-export interface Prani {
-  kdo: PostavaId;
-  text: string;
-  napoveda: string;
-  chodi: {
-    /** Dny podle Date.getDay() */
-    dny?: number[];
-    /** Hodiny [od, do) — začátky termínů */
-    hodiny?: [number, number];
-    /** Jen do hodin, které jsou úplně plné */
-    plno?: boolean;
-    /** Jen do hodin, kde jsou ještě aspoň tři místa */
-    klid?: boolean;
-  };
-}
-
-export const prani: Prani[] = [
-  { kdo: "kachlik", text: "Ať všechny destičky visí rovně. Tahle visí.", napoveda: "Kachlík chodí přesně na devátou. Ani o minutu později.", chodi: { hodiny: [9, 10] } },
-  { kdo: "hlinka", text: "Ať mě někdo vezme do ruky. Ráno, dokud jsem měkká.", napoveda: "Hlínka chodí hned ráno — pak zase usne.", chodi: { hodiny: [9, 11] } },
-  { kdo: "samotka", text: "Jednou bych chtěla, aby mi někdo poděkoval. Ale nespěchá to.", napoveda: "Šamotka chodí kolem poledne. Nese, co se dá.", chodi: { hodiny: [11, 13] } },
-  { kdo: "vazicka", text: "Rovná záda všem. A čerstvé kytky na stůl.", napoveda: "Vázička chodí přesně v jednu. Po obědě se točí nejlíp.", chodi: { hodiny: [13, 14] } },
-  { kdo: "pecinka", text: "Ať mě nikdo neotvírá dřív, než vychladnu.", napoveda: "Pecinka chodí v úterý odpoledne. Úterý je v japonštině den ohně.", chodi: { dny: [2], hodiny: [13, 18] } },
-  { kdo: "kapka", text: "Ať se v pátek všechno leskne.", napoveda: "Kapka chodí v pátek. Pátek je v japonštině den zlata a ona má ráda, co se leskne.", chodi: { dny: [5] } },
-  { kdo: "cedulka", text: "Ať se každý podepíše. Čitelně, prosím.", napoveda: "Cedulka chodí na poslední hodinu — podepsat, co se za den udělalo.", chodi: { hodiny: [17, 18] } },
-  { kdo: "stripek", text: "Ať se tu nikdo nebojí rozbít první hrnek.", napoveda: "Střípek chodí do klidných hodin, kde je ještě hodně volno.", chodi: { klid: true } },
-  { kdo: "bublinka", text: "Ať se hněte míň. (Tohle nepsala Bublinka.)", napoveda: "Bublinka se schovává tam, kde je plno. V davu ji nikdo nehledá.", chodi: { plno: true } },
-];

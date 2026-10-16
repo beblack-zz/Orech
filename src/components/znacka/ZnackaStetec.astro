@@ -9,6 +9,10 @@
  * (:root[data-tema="noc"]).
  *
  * `vyska` je výška verzálky v pixelech; šířka se dopočítá.
+ *
+ * `napevno` zapíše barvy rovnou do atributů (hodnota je barva JIRO, soumrak
+ * podle `tema`) — pro samostatný soubor v pages/kresby, kam CSS stránky ani
+ * currentColor nedosáhnou. Sady soumraku musí sedět s <style> dole.
  */
 import { STETEC, VIEWBOX, VERZALKA, SAKU_OD, SAKU_DO } from "./stetec-kresba";
 import { noveId } from "../navrhy-loga/sdilene";
@@ -17,8 +21,16 @@ interface Props {
   vyska?: number;
   tema?: "svetle" | "tmave" | "auto";
   class?: string;
+  napevno?: string;
 }
-const { vyska = 16, tema = "svetle", class: trida = "" } = Astro.props;
+const { vyska = 16, tema = "svetle", class: trida = "", napevno } = Astro.props;
+
+/** Soumrak v saku napevno — stejné hodnoty jako --zs-1 až --zs-4 v <style> */
+const SOUMRAK = {
+  svetle: ["#c4432b", "#c0708a", "#7a5e8e", "#3e3c78"],
+  tmave: ["#e0603c", "#e08aa0", "#b49ad0", "#9a92d8"],
+};
+const paleta = SOUMRAK[tema === "tmave" ? "tmave" : "svetle"];
 
 const [x, y, w, h] = VIEWBOX;
 const px = vyska / VERZALKA;
@@ -42,10 +54,21 @@ const id = noveId("znacka");
       <feDisplacementMap in="a" in2="j" scale="0.6" xChannelSelector="R" yChannelSelector="G" />
     </filter>
     <linearGradient id={`${id}-g`} gradientUnits="userSpaceOnUse" x1={SAKU_OD} y1="0" x2={SAKU_DO} y2="0">
-      <stop offset="0" style="stop-color: var(--zs-1)" />
-      <stop offset="0.3" style="stop-color: var(--zs-2)" />
-      <stop offset="0.62" style="stop-color: var(--zs-3)" />
-      <stop offset="1" style="stop-color: var(--zs-4)" />
+      {napevno ? (
+        <>
+          <stop offset="0" stop-color={paleta[0]} />
+          <stop offset="0.3" stop-color={paleta[1]} />
+          <stop offset="0.62" stop-color={paleta[2]} />
+          <stop offset="1" stop-color={paleta[3]} />
+        </>
+      ) : (
+        <>
+          <stop offset="0" style="stop-color: var(--zs-1)" />
+          <stop offset="0.3" style="stop-color: var(--zs-2)" />
+          <stop offset="0.62" style="stop-color: var(--zs-3)" />
+          <stop offset="1" style="stop-color: var(--zs-4)" />
+        </>
+      )}
     </linearGradient>
     <mask id={`${id}-m`} maskUnits="userSpaceOnUse" x={x} y={y} width={w} height={h}>
       <rect x={x} y={y} width={w} height={h} fill="#fff" />
@@ -54,7 +77,7 @@ const id = noveId("znacka");
   </defs>
   <g mask={`url(#${id}-m)`}>
     <g filter={`url(#${id}-h)`}>
-      <g fill="currentColor" set:html={STETEC.jiro} />
+      <g fill={napevno ?? "currentColor"} set:html={STETEC.jiro} />
       <g fill={`url(#${id}-g)`} set:html={STETEC.saku} />
     </g>
   </g>

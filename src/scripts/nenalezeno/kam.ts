@@ -14,15 +14,15 @@ export interface Cil {
 }
 
 export const CILE: Cil[] = [
-  { href: "/kurzy-2", nazev: "Kurzy a termíny", slova: ["kurzy", "kurz", "terminy", "termin", "workshop", "workshopy", "seminar", "seminare", "deti", "krouzek", "lekce", "courses"] },
+  { href: "/rezervace#rz-rad", nazev: "Kurzy a termíny", slova: ["kurzy", "kurz", "terminy", "termin", "workshop", "workshopy", "seminar", "seminare", "deti", "krouzek", "lekce", "courses"] },
   { href: "/dilna", nazev: "Dílna", slova: ["dilna", "openstudio", "open", "studio", "atelier", "cenik", "clenstvi", "tocit", "kruh", "glazovani"] },
   { href: "/rezervace", nazev: "Rezervace", slova: ["rezervace", "rezervovat", "rezervuj", "booking", "objednat", "objednavka", "prihlaska", "kalendar"] },
-  { href: "/obchod-2", nazev: "Obchod", slova: ["obchod", "eshop", "shop", "kramek", "produkty", "produkt", "kosik", "hrnky", "hrnek", "misky"] },
-  { href: "/parta-2", nazev: "Parta", slova: ["parta", "postavicky", "kami", "stripek", "hlinka", "kapka", "pecinka", "vazicka", "bublinka", "kachlik", "cedulka", "samotka"] },
-  { href: "/o-nas-2", nazev: "O nás", slova: ["onas", "nas", "pribeh", "about", "jirik", "renca", "lektori", "kdo"] },
+  { href: "/obchod", nazev: "Obchod", slova: ["obchod", "eshop", "shop", "kramek", "produkty", "produkt", "kosik", "hrnky", "hrnek", "misky"] },
+  { href: "/parta", nazev: "Parta", slova: ["parta", "postavicky", "kami", "stripek", "hlinka", "kapka", "pecinka", "vazicka", "bublinka", "kachlik", "cedulka", "samotka"] },
+  { href: "/o-nas", nazev: "O nás", slova: ["onas", "nas", "pribeh", "about", "jirik", "renca", "lektori", "kdo"] },
   { href: "/kontakt", nazev: "Kontakt", slova: ["kontakt", "kontakty", "telefon", "email", "mail", "adresa", "mapa", "kudy", "kde", "otevreno", "oteviraci", "contact"] },
-  { href: "/domek-2", nazev: "Domek", slova: ["domek", "dum", "prohlidka", "zahrada"] },
-  { href: "/kurzy-2#poukaz", nazev: "Dárkový poukaz", slova: ["poukaz", "poukazy", "darkovy", "darek", "voucher"] },
+  { href: "/#prohlidka", nazev: "Prohlídka dílny", slova: ["domek", "dum", "prohlidka", "zahrada"] },
+  { href: "/rezervace#rz-darky", nazev: "Dárkový poukaz", slova: ["poukaz", "poukazy", "darkovy", "darek", "voucher"] },
 ];
 
 /** Malá písmena bez diakritiky; z adresy zbydou jen slova. */

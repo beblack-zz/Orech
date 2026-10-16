@@ -1,5 +1,5 @@
 /**
- * Doplňky pro /obchod-2. Zboží zůstává v obchod.ts (na přání a naše
+ * Doplňky pro /obchod. Zboží zůstává v obchod.ts (na přání a naše
  * tvorba) a zdaleka.ts (keramika z Japonska s fotkami). Tady je jen to,
  * co přidal nový vzhled: texty ze stávající stránky Obchod, popisy
  * glazur, japonská jména pro naši tvorbu a odkud je keramika z Japonska.

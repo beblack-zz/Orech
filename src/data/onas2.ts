@@ -1,7 +1,8 @@
 import type { PostavaId } from "./parta";
+import { veDnySlovy, otevrenoSlovy } from "./rezervace";
 
 /**
- * Doplňky pro /o-nas-2. Lidé, milníky a texty o dílně jsou v uvod2.ts
+ * Doplňky pro /o-nas. Lidé, milníky a texty o dílně jsou v uvod2.ts
  * (lide, milniky, oDilne) — tady je jen to, co přidal nový vzhled:
  * svitek s příběhem dílny, zlato na kintsugi, co říká parta ke kreslenému
  * ensō a pár vět ze stránky O nás, které v uvod2.ts nejsou.
@@ -15,7 +16,8 @@ export const oNasTexty = {
   lektori:
     "Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a rozjímat u hlíny.",
   adresa: "Luční 235, Ořech.",
-  oteviraci: "Dílna je otevřená v úterý a v pátek 9:00–18:30.",
+  /* Otevírací doba se nepřepisuje ručně — bere se z Rezervace */
+  oteviraci: `Dílna je otevřená ${veDnySlovy} ${otevrenoSlovy}.`,
 };
 
 /* ——— Svitek ———

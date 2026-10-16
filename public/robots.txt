@@ -1,0 +1,13 @@
+# Web se ještě připravuje — vyhledávače zatím nic neprocházejí.
+User-agent: *
+Disallow: /
+
+# Při spuštění webu: smazat tři řádky nahoře a odkomentovat tyhle
+# (a z public/_headers odebrat X-Robots-Tag). Komnaty hry, Marcel a 404
+# mají noindex samy, API rezervací a osobní odkazy do vyhledávačů nepatří.
+#
+# User-agent: *
+# Disallow: /api/
+# Disallow: /k/
+#
+# Sitemap: https://orechovahlina.cz/sitemap.xml

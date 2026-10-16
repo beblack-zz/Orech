@@ -12,6 +12,7 @@ import { sezonaMesice } from "../../data/uvod2";
 import { ulice } from "./ulice";
 import { prohlidka } from "./prohlidka";
 import { uvodZivot } from "./uvod-zivot";
+import { pozdeji } from "../parta2/pozdeji";
 
 /** Roční období podle dneška — stránka je statická a období v ní je z buildu */
 function initSezona() {
@@ -28,5 +29,7 @@ stranka("domek-2", () => {
   uvodZivot();
   ulice();
   prohlidka();
+  /* Velké kresby níž na stránce (prohlídka dílny) až cestou k nim */
+  pozdeji();
   spust();
 });

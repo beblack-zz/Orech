@@ -1,5 +1,5 @@
 /*
- * Vystoupení Šamotky na /parta-3 — choreografie pro scény ze scripts/samotka-nese.
+ * Vystoupení Šamotky na /parta — choreografie pro scény ze scripts/samotka-nese.
  * Jak se zapisují, je v ../herec.js; hraje je režisér (../reziser.ts).
  *
  * Scény startují předtočené (V.zacatek), časové značky v dyn jsou proto

@@ -1,5 +1,5 @@
 /*
- * Vystoupení Vázičky na /parta-3 — choreografie pro scény ze scripts/vazicka-gejsa.
+ * Vystoupení Vázičky na /parta — choreografie pro scény ze scripts/vazicka-gejsa.
  * Jak se zapisují, je v ../herec.js; hraje je režisér (../reziser.ts).
  *
  * Tyhle tři scény si nic nelosují přes Math.random (mají vlastní zasetou náhodu),

@@ -1,0 +1,74 @@
+---
+/**
+ * O nás 2 — návrh nového vzhledu stránky O nás. Stejný svět jako
+ * ostatní dvojky (obloha, papír, písmo, parta); tady je první rok dílny
+ * jeden den, od noci do noci:
+ *
+ *   noc        — garáž po havárii: kapka, kruhy na vodě a z nich ensō
+ *   svítání…   — rok dílny ve skutečné místnosti: měsíc po měsíci
+ *                od února až do teď (kresba z Domku 2)
+ *   západ      — Jiřík a Renča, dva svitky kakejiku
+ *   soumrak    — méně dokonalosti, víc radosti: nakresli si ensō
+ *   noc        — kintsugi, skupinové foto party a všichni jste vítáni
+ *
+ * V roce se schovává devět šupinek zlata, kterými Střípek zalije
+ * misku (sbírka v hlavičce). Texty jsou ze stávající stránky O nás
+ * (uvod2.ts, onas2.ts), milníky z uvod2.ts, termíny z kurzy.ts.
+ */
+import "../styles/pisma.css";
+import Hlava from "../components/Hlava.astro";
+import { ClientRouter } from "astro:transitions";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/dilna-rez.css";
+import "../styles/dilna-suteren.css";
+import "../styles/rok-dilny.css";
+import "../styles/onas2.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import TusSprite from "../components/onas2/TusSprite.astro";
+import Pocatek from "../components/onas2/Pocatek.astro";
+import Rok from "../components/onas2/Rok.astro";
+import Rukopisy from "../components/onas2/Rukopisy.astro";
+import KresliEnso from "../components/onas2/KresliEnso.astro";
+import Kintsugi from "../components/onas2/Kintsugi.astro";
+import Foto from "../components/onas2/Foto.astro";
+import Vitani from "../components/onas2/Vitani.astro";
+import ZlatoDialog from "../components/onas2/ZlatoDialog.astro";
+
+
+
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <Hlava titulek="O nás — dílna v Ořechu · JIRO saku" popis="Malá keramická dílna v Ořechu. Začalo to vodovodní havárií v garáži — projdi si první rok dílny měsíc po měsíci, seznam se s Jiříkem a Renčou a nakresli si ensō." barva="#141B42" />
+    <ClientRouter />
+  </head>
+  <body class="p2 n2" data-stranka="o-nas-2">
+    <a class="preskocit" href="#rok">Přeskočit na rok dílny</a>
+    <Nebe />
+    <Hlavicka sber="zlato" />
+    <TusSprite />
+
+    <main>
+      <Pocatek />
+      <Rok />
+      <Rukopisy />
+      <KresliEnso />
+      <Kintsugi />
+      <Foto />
+      <Vitani />
+    </main>
+
+    <Paticka />
+    <ZlatoDialog />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/onas2/hlavni.ts";
+    </script>
+  </body>
+</html>

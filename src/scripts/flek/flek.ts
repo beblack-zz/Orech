@@ -8,7 +8,7 @@
  *   čeká   malý flek sedí na stránce a jede s ní
  *   roste  rozlévá se do velikosti scény a mezitím se stahuje, co bude hrát
  *   hraje  scéna je vidět a herec (parta3/herec.js) jí posílá události
- *          jako myš — stejně jako režisér na /parta-3; křížek, klepnutí
+ *          jako myš — stejně jako režisér na /parta; křížek, klepnutí
  *          do scény nebo Esc ji ukončí dřív
  *   mizí   kaňka se stáhne do tečky a vrstva se ze stránky odebere
  *
@@ -185,7 +185,7 @@ export function initFlek() {
     const ven = {
       ukaz: (x: number, y: number) => posli("pointermove", x, y),
       stiskni: (x: number, y: number) => posli("pointerdown", x, y),
-      /* pouští se přes pointercancel jako na /parta-3: scény ho berou stejně jako pointerup */
+      /* pouští se přes pointercancel jako na /parta: scény ho berou stejně jako pointerup */
       pust: (x: number, y: number) => posli("pointercancel", x, y),
       pryc: () => posli("pointerleave", -20, -20),
       titulek,

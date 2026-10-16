@@ -1,5 +1,5 @@
 /**
- * Drobnosti na /parta-3: svitek s průvodem a parta na louce
+ * Drobnosti na /parta: svitek s průvodem a parta na louce
  * v závěru. Postavičky v průvodu jsou živé scény a hýbou se samy (běh mají
  * ve svých komponentách), tady se jen srovná svitek a rozmluví malé podoby.
  */

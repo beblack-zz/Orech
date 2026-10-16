@@ -8,6 +8,7 @@
  */
 import { nadobaSvg, hroudaSvg } from "./kresba/nadoba";
 import type { Stav } from "./kresba/nadoba";
+import { odloz } from "../../scripts/parta2/pozdeji";
 
 interface Props {
   id: string;
@@ -40,9 +41,9 @@ const { id, hodina, cislo, japonsky, stitek, nazev, perex, latka = "indigo", kap
       {kapitoly.map((k, i) => (
         <li>
           <a href={`#${k.id}`}>
-            <span class="d-cast-kus" set:html={k.stav === "hrouda"
+            <span class="d-cast-kus" set:html={odloz(k.stav === "hrouda"
               ? hroudaSvg(`dcs${i}`, 90, 90, false)
-              : nadobaSvg({ id: `dcs${i}`, tvar: k.stav === "mokry" ? "valec" : "hrnek", stav: k.stav, glazura: "celadon", stin: false }, 90, 90)} />
+              : nadobaSvg({ id: `dcs${i}`, tvar: k.stav === "mokry" ? "valec" : "hrnek", stav: k.stav, glazura: "celadon", stin: false }, 90, 90))} />
             <span class="d-cast-k-cislo" lang="ja" aria-hidden="true">{k.cislo}</span>
             <span class="d-cast-k-nazev">{k.nazev}</span>
           </a>

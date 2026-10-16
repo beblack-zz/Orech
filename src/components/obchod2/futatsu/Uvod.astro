@@ -18,7 +18,7 @@ import { uvodScena, odrazDefs, odrazObal, odrazObrys, PLATNO_VB, HRNEK_NA_PLATNE
 import { V } from "./kresba";
 import { podpisove, cenovka } from "../../../data/kramek";
 
-const kus = podpisove.find((k) => k.podpis === "/obchod-2/futatsu")!;
+const kus = podpisove.find((k) => k.podpis === "/obchod/futatsu")!;
 const { castka, mena } = cenovka(kus.cena);
 const pod = { id: "fpu", uhel: 62, nadhled: 12, svetlo: "vlevo" as const };
 const h = HRNEK_NA_PLATNE;
@@ -39,8 +39,8 @@ const KAPITOLY = [
       <div class="ft-uvod-jmeno">
         <nav class="ft-cesta" aria-label="Kde jsi">
           <ol>
-            <li><a href="/obchod-2">Obchod</a></li>
-            <li><a href="/obchod-2#podpis">Podpisový kus</a></li>
+            <li><a href="/obchod">Obchod</a></li>
+            <li><a href="/obchod#podpis">Podpisový kus</a></li>
             <li><span aria-current="page">Futatsu</span></li>
           </ol>
         </nav>

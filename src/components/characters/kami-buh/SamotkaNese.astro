@@ -28,7 +28,9 @@ const prvniSnimek = celeSvg(V, V.klidne.t, pretoc(V, V.klidne.t), {}, { pozadi: 
 <div class={`samotka-nese ${cls}`} data-samotka-nese={varianta} tabindex="0" role="img" aria-label={popisy[varianta]} set:html={prvniSnimek}></div>
 
 <script>
-  import "../../../scripts/samotka-nese/beh.js";
+  /* Motor se stáhne, až se scéna přiblíží k oknu nebo na ni člověk sáhne; do té doby je vidět první snímek z buildu (parta2/lina-scena.ts) */
+  import { linaScena } from "../../../scripts/parta2/lina-scena";
+  linaScena("samotka-nese", () => import("../../../scripts/samotka-nese/beh.js"));
 </script>
 
 <style is:global>

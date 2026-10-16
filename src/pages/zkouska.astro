@@ -17,13 +17,9 @@
  * z Party 2 (parta2.css), noren a úvodní text z Úvodu 2 (uvod2.css), vlastní
  * věci v styles/zkouska.css a hry každá ve styles/zkouska-urovne.
  */
-import "@fontsource-variable/fraunces/full.css";
+import "../styles/pisma.css";
+import Hlava from "../components/Hlava.astro";
 import { ClientRouter } from "astro:transitions";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/newsreader";
-import "@fontsource-variable/newsreader/opsz-italic.css";
-import "@fontsource/caveat/400.css";
-import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/dilna-zaklad.css";
@@ -39,40 +35,18 @@ import Deska from "../components/zkouska/Deska.astro";
 import Sin from "../components/zkouska/Sin.astro";
 import Uroven from "../components/zkouska/Uroven.astro";
 import Sesit from "../components/zkouska/Sesit.astro";
-import { urovne, stupne, znamky, list } from "../data/mistr";
+import { urovne, list } from "../data/mistr";
 
 /*
  * Štětcové písmo se stahuje jen se znaky, které na stránce opravdu jsou:
  * z dat úrovní, z desky, sešitu, listu a dat psaných znaky (十月十四日).
  */
-const znaky = new Set<string>();
-const pridej = (s: string) => {
-  for (const ch of s) if (/[ぁ-ヿ一-鿿〇]/.test(ch)) znaky.add(ch);
-};
-urovne.forEach((u) => pridej(u.cislo + u.znak));
-stupne.forEach((s) => pridej(s.znak));
-Object.values(znamky).forEach((z) => pridej(z.znak));
-pridej(list.znak);
-pridej("二工房修業双六振出名人の間上がり修業帳胡桃再令和年月日〇一二三四五六七八九十朱文白文印");
-pridej("見習職人名人");
-/* Znaky ze scén úrovní: svitky a amulety na zdi */
-pridej("形金火廼要慎陶");
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
+
 ---
 <!doctype html>
 <html lang="cs">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Učení u mistra · JIRO saku</title>
-    <meta name="description" content="Za šest nalezených kami se otevře učení u mistra: devět zastavení cesty hlíny, za každé razítko a na konci mistrovský list." />
-    <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#6F8FC8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href={pismoZnaku} />
+    <Hlava titulek="Učení u mistra · JIRO saku" popis="Za šest nalezených kami se otevře učení u mistra: devět zastavení cesty hlíny, za každé razítko a na konci mistrovský list." barva="#6F8FC8" noindex />
     <ClientRouter />
   </head>
   <body class="p2 d2 zk" data-stranka="zkouska">
@@ -88,7 +62,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
       </div>
     </main>
 
-    <Paticka poznamka="Učení u mistra je druhá komnata hry se schovanými kami. Otevře se tomu, kdo jich najde šest." />
+    <Paticka />
 
     <Uroven />
     <Sesit />

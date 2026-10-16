@@ -10,6 +10,7 @@ import Kami from "../parta2/Kami.astro";
 import { kapitoly } from "../../data/dilna";
 import { suseniSvg, podpisSvg, MISTA_SUSENI } from "./kresba/suseni";
 import { mista } from "./misto";
+import { odloz } from "../../scripts/parta2/pozdeji";
 
 const k = kapitoly.find((x) => x.id === "suseni")!;
 const m = mista(1000, 560);
@@ -17,14 +18,14 @@ const m = mista(1000, 560);
 <Kapitola kapitola={k} strana="vpravo" trida="d-kap-suseni">
   <figure class="d-obraz">
     <div class="d-obraz-kresba">
-      <div class="d-kresba" set:html={suseniSvg()} />
+      <div class="d-kresba" set:html={odloz(suseniSvg())} />
       <Kami id="kachlik" class="d-kami-nad" style={m.kami(MISTA_SUSENI.kachlik)} />
     </div>
     <figcaption>Mokrý pod fólií, kožený s čerstvým uchem, suchý. Každý o kus menší.</figcaption>
   </figure>
   <figure class="d-obraz d-podpis">
     <div class="d-podpis-kresba">
-      <div class="d-kresba" set:html={podpisSvg("Jana")} />
+      <div class="d-kresba" set:html={odloz(podpisSvg("Jana"))} />
       <Kami id="cedulka" class="d-podpis-kami" />
     </div>
     <figcaption>Podpis rydlem do dna — tužka by v peci shořela. Cedulka si pamatuje, čí je který.</figcaption>

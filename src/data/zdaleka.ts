@@ -1,6 +1,6 @@
 /**
  * Keramika zdaleka — kusy z Japonska, které v obchodě máme. Používá je
- * /obchod (mřížka s fotkami) i /obchod-2 (krabice z paulovnie). Hlavní
+ * /obchod (mřížka s fotkami) i /obchod (krabice z paulovnie). Hlavní
  * fotka je upravená do čtverce ve stylu webu (src/images), další pohledy
  * jsou originály z dílny (fotoorech).
  *

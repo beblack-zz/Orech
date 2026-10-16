@@ -15,7 +15,7 @@ export interface Produkt {
   tag?: string;
   tagKind?: "new" | "last";
   /**
-   * Fotky kusu, první je hlavní. Dokud chybí, krámek na /obchod-2
+   * Fotky kusu, první je hlavní. Dokud chybí, krámek na /obchod
    * ukazuje kus zabalený v novinách. Fotka se přidá jako v zdaleka.ts:
    * import obrázku nahoře a { src, alt, popis: "Zepředu" }.
    */
@@ -44,7 +44,7 @@ export const produkty: Produkt[] = [
     shape: "mug",
     author: "JIRO",
     glaze: "Shino",
-    podpis: "/obchod-2/futatsu",
+    podpis: "/obchod/futatsu",
     fotky: [
       { src: futatsuBok, alt: "Futatsu z boku: matná bílá glazura shino, vpravo dva seříznuté výstupky s oranžovou hlínou", popis: "Z boku" },
       { src: futatsuZevnitr, alt: "Pohled do hrnku Futatsu: krakelé a lesklé jezírko na dně, rezavé tečky na okraji", popis: "Zevnitř" },

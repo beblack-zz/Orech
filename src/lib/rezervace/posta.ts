@@ -23,6 +23,8 @@ export interface Mail {
   text: string;
   /** Poslat skrytou kopii dílně */
   kopie?: boolean;
+  /** Kam jde odpověď, když se na mail klikne Odpovědět — odesílatel bývá adresa, kterou nikdo nečte */
+  odpovedet?: string;
 }
 
 const ZKR = ["ne", "po", "út", "st", "čt", "pá", "so"];
@@ -54,7 +56,7 @@ export function pozvanka(clen: { jmeno: string; email: string }, odkaz: string):
       "tady je tvůj odkaz na rezervace v dílně:",
       odkaz,
       "",
-      "Stačí ho otevřít. Web si tě zapamatuje a příště už jen vybereš den a odjezd — jízdenka platí hned, nic se nepotvrzuje.",
+      "Stačí ho otevřít. Web si tě zapamatuje a příště už jen vybereš den a hodinu — jízdenka platí hned, nic se nepotvrzuje.",
       "Odkaz je jen tvůj, tak ho nikomu neposílej. Kdyby se ztratil, ozvi se a pošleme nový.",
       "",
       PODPIS,
@@ -90,7 +92,7 @@ function sepis(z: Zadost, kurz: string | null, vyluk = 0): { nazev: string; radk
         `Permanentka: ${KAZDY[denVTydnu(z.den)]}, ${spoje}`,
         `Platí: od ${datum(z.den)} do ${datum(konecPermanentky(z.den))} (v den kurzu se nejede)`,
         `Počet lidí: ${z.osob}`,
-        `Cena: ${kc(z.hodiny.length * z.osob * cenaPermanentky(jizd))} (${jizd} jízd po ${kc(P.cenaJizdy)} za člověka a spoj)`,
+        `Cena: ${kc(z.hodiny.length * z.osob * cenaPermanentky(jizd))} (${jizd}× po ${kc(P.cenaJizdy)} za člověka a hodinu)`,
       ],
     };
   }
@@ -146,7 +148,14 @@ export async function posli(p: Posta, m: Mail): Promise<boolean> {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${p.klic}` },
-      body: JSON.stringify({ from: p.od, to: [m.komu], subject: m.predmet, text: m.text, ...(m.kopie && p.kopie ? { bcc: [p.kopie] } : {}) }),
+      body: JSON.stringify({
+        from: p.od,
+        to: [m.komu],
+        subject: m.predmet,
+        text: m.text,
+        ...(m.kopie && p.kopie ? { bcc: [p.kopie] } : {}),
+        ...(m.odpovedet ? { reply_to: m.odpovedet } : {}),
+      }),
     });
     if (!r.ok) console.error(`[rezervace] Resend odmítl mail (${r.status}): ${await r.text().catch(() => "")}`);
     return r.ok;

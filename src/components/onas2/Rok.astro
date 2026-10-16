@@ -27,8 +27,7 @@ import KapkaSchovka from "../characters/schovka/Kapka.astro";
 import { dilna, DILNA_W, DILNA_H } from "../domek2/kresba/dilna";
 import { milniky, sezonaMesice } from "../../data/uvod2";
 import { sceny } from "../../data/onas2";
-import { kurzy } from "../../data/kurzy";
-import { pocetKurzu } from "../../data/pocty";
+import { kurzy } from "../../data/rezervace";
 import foto6673 from "../../../images/Dilna/6673.jpg";
 
 const d = dilna("rok", "dr");
@@ -40,9 +39,9 @@ const postava = (id: string, nasobek = 1.45) => {
   return `left:${(((k.x - w / 2) / W) * 100).toFixed(3)}%;bottom:${(((H - k.pata - w * 0.12) / H) * 100).toFixed(3)}%;width:${((w / W) * 100).toFixed(3)}%`;
 };
 
-const k0 = kurzy[0];
-const ted = k0
-  ? `v kalendáři ${kurzy.length >= 2 && kurzy.length <= 4 ? "jsou" : "je"} ${pocetKurzu(kurzy.length)}, nejbližší ${k0.date.getDate()}. ${k0.date.getMonth() + 1}. — ${k0.title}`
+/* Kurzy jsou zvláštní vlaky z Rezervace: jezdí v sobotu, termíny jsou v jízdním řádu */
+const ted = kurzy.length
+  ? `v sobotu jezdí zvláštní vlaky — ${kurzy.map((k) => k.nazev).join(" a ")}`
   : "chystáme další termíny";
 
 /* Kam se v každém měsíci dívá kamera: střed x, y a kolik ze scény (viewBox 1600 × 1000) */

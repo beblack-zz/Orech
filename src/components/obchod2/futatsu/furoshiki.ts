@@ -1,6 +1,6 @@
 /**
  * 結 Závěr — Futatsu na rozprostřeném šátku. Kresba konce stránky
- * /obchod-2/futatsu: ráno, světlo zleva z okna, indigový furoshiki se
+ * /obchod/futatsu: ráno, světlo zleva z okna, indigový furoshiki se
  * vzorem seigaiha (stejný šátek je košík webu, Satek.astro) a na něm hrnek.
  * Po „Do šátku“ se šátek kolem hrnku zaváže.
  *

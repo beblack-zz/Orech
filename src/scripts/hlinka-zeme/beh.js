@@ -16,7 +16,7 @@
  * má vrstvy oříznuté skvrnou — ořez přidává obsahVrstvy z kresby.js.
  */
 import { kresby, pretoc, obsahVrstvy } from "./kresby.js";
-import { jeZapnuto } from "../parta2/zvuk";
+import { hraZapnuta as jeZapnuto } from "../parta2/zvuk";
 
 const NS = "http://www.w3.org/2000/svg";
 const VB = 180;

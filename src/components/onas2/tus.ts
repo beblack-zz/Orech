@@ -1,5 +1,5 @@
 /**
- * Kreslení tuší pro svitek na /o-nas-2. Všechno běží při buildu a vrací
+ * Kreslení tuší pro svitek na /o-nas. Všechno běží při buildu a vrací
  * hotové SVG jako text — scéna je pak jen poskládaná z tahů, přes které
  * jde filtr #tus-hrana (roztřepený okraj) a pod nimi rozpité skvrny
  * #tus-rozpit.

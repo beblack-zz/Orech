@@ -4,7 +4,8 @@
  * nabídne tři otázky podle stránky (data/pruvodce.ts); po výběru ožije,
  * stránka sjede k cíli, Vázička k němu doletí, cíl se rozzáří a ona řekne
  * větu v bublině — přitom se zatočí a vymění si květy za další měsíc.
- * Pak se vrátí do rohu a zase zčerná.
+ * Pak se vrátí do rohu a zase zčerná. Stín zapíná `STIN` — 16. 10. je
+ * vypnutý, ať jsou v rohu vidět její výrazy.
  *
  * Mluví jako hostitelka — nabízí, že uvede, ukáže, doprovodí (texty
  * v data/pruvodce.ts). Čárkou nad ní se dá schovat: zmizí a v rohu
@@ -23,18 +24,68 @@
  * a beh.js ho rozběhne (spustVse). Klepnout jde na tlačítko v rohu, ne na
  * kresbu — ta klikání na stránku nepřekáží.
  *
+ * Myš: když se kurzor přiblíží, stín si ho všimne — trochu prosvětlí,
+ * natočí se k němu a kouká za ním; mávnutí kolem ní je vítr a kurzor
+ * na tváři ji schová za vějíř. To všechno umí kresba sama, jen k ní myš
+ * přes `pointer-events: none` nedojde — poloha kurzoru se jí posílá odsud.
+ * Každá replika nese výraz (data/pruvodce.ts), se kterým ji řekne.
+ *
+ * Co o hostovi ví (pruvodce-host.ts): jen to, co v domě sám udělal —
+ * podpis, mistrovský list, zkoušky, nalezené kami, šátek, slepené číslo,
+ * uzlíky, lístek ze svatyně, dárkovou jízdenku, noc v hlavičce. Podle toho
+ * ho vítá, mistrovi se ukáže i s kruhem dvanácti květů a v noci nese
+ * lucernu. Sama od sebe řekne nejvýš jednu stopu za stránku a na to, co
+ * host právě udělal (našel kami, převzal list, zapnul noc), reaguje hned,
+ * jak nikomu nepřekáží. Nic nového si neukládá.
+ *
+ * Co se děje teď (třetí kolo, počítadla platí jen na téhle stránce): rychlý
+ * scroll je vítr — přidrží si vlasy a přísně se podívá, napodruhé
+ * a napotřetí to řekne; klepání dokola na ni — napotřetí se otočí zády;
+ * v tichu si upraví květy, ovívá se a po minutě zadřímne; ve vlasech nosí
+ * květy skutečného měsíce (otočka je jen obnoví) a jednou za stránku
+ * poznamená, co je zrovna na obrazovce.
+ *
  * Spouští ji hlavicka.ts na každé stránce s hlavičkou nového vzhledu.
  */
-import { rekni } from "./kami";
+import { rekni, dobaPsani } from "./kami";
+import { samisen, dozvuk } from "./pruvodce-hlas";
 import { rozhoupejZaves } from "./zaves";
-import { spustVse } from "../vazicka-gejsa/beh.js";
-import { rady, hlasky } from "../../data/pruvodce";
+import { NALEZEN } from "./sber";
+import { MISTR_ZMENA } from "./mistr";
+import { zjisti, vypln, vyplnRepliku, radaPro, coVimPolozky, coVimTitul } from "./pruvodce-host";
+import type { Host } from "./pruvodce-host";
+import { spustVse, zahraj } from "../vazicka-gejsa/beh.js";
+import { toraTora } from "./ozashiki";
+import { rady, hlasky, uvitani, mistrovskyList, kNalezu, stopy, naNoc, coVim, pomalu, klepani, probuzeni, veVlasech, povidani, ozashiki, naObrazovce as poznamky } from "../../data/pruvodce";
 import { hlavni as ensoTah, kapka as ensoKapka, W as ENSO_W } from "../../components/navrhy-loga/enso-tvar";
-import type { Rada } from "../../data/pruvodce";
+import type { Gesto, Rada, Replika, Vyraz } from "../../data/pruvodce";
+import type { PostavaId } from "../../data/parta";
 
 type Bod = { x: number; y: number };
 type Drzeni = { naklon: number; otoc: number; pohled: [number, number] } | null;
 interface Akce { delka: number; krok: (q: number) => void; start?: () => void }
+/** Co si vyměňuje s kresbou (beh.js ji rozběhne, kami-kvety.js čte `vstup` a `dyn.otoc`) */
+type Scena = {
+  stav: () => {
+    dyn: { otoc?: number };
+    vstup: {
+      kliky: Bod[];
+      vitr?: number;
+      pohled?: [number, number];
+      mys?: Bod | null;
+      vitrMysi?: number;
+      vyraz?: Vyraz;
+      lucerna?: boolean;
+      mesic?: number;
+      bezOtocek?: boolean;
+      vlasy?: boolean;
+      ovivani?: boolean;
+      spi?: boolean;
+      uklon?: boolean;
+      vejir?: boolean;
+    };
+  };
+};
 
 /** Kde je postava v rámečku 180 × 180, v násobcích jeho strany od středu (změřeno z kresby) */
 const POSTAVA = { l: -0.21, r: 0.22, t: -0.24, b: 0.43 };
@@ -42,6 +93,29 @@ const POSTAVA = { l: -0.21, r: 0.22, t: -0.24, b: 0.43 };
 const OKRAJ = { r: 14, b: 10 };
 /** Jak často se kolem čárky protočí ensō, v milisekundách */
 const ENSO_KAZDYCH = 30_000;
+/** Kurzor blíž než tolik velikostí postavy od jejího středu: všimne si ho; dál než `pusti` už ne */
+const VNIMA = { od: 3, pusti: 3.6 };
+/** Doma sedí jako stín (černá silueta, v barvě až v letu); vypnuto, ať jsou vidět výrazy — stín vrátí `true` */
+const STIN = false;
+/** Jak moc ji ofoukne mávnutí myší — v rohu je malá, plná síla z /marcel by s ní cloumala */
+const VITR_MYSI = 0.25;
+/**
+ * Sama od sebe (stopa v domě) promluví nejdřív `poNacteni` ms po načtení
+ * stránky a pak nejvýš jednou za `rozestup`. Na to, co host právě udělal,
+ * reaguje hned, jak nikomu nepřekáží — ale do `cerstve` ms, pak už to
+ * nemá smysl říkat.
+ */
+const SAMA = { poNacteni: 6_000, rozestup: 90_000, cerstve: 20_000 };
+/** Kdy naposledy promluvila sama od sebe — žije v modulu, takže platí i přes přechody mezi stránkami (nic se neukládá) */
+let posledniSama = -Infinity;
+/** Rychlý scroll (px/s, vyhlazeně): nad tím je to vítr; jedna epizoda spěchu končí po `klid` ms bez něj */
+const SPECH = { rychlost: 2600, klid: 1500 };
+/** Klepání dokola: tolik klepnutí během `okno` ms je jedna epizoda; napotřetí se otočí zády na `zady` s */
+const KLEPANI = { klepnuti: 4, okno: 3_000, zady: 2.6 };
+/** Ticho: po `zabava` ms bez pohybu se zabývá sama sebou (každých `rozestup` ms), po `spanek` ms zadřímne */
+const TICHO = { zabava: 15_000, rozestup: 9_000, spanek: 60_000 };
+/** Otočená zády, když je uražená */
+const ZADY: Drzeni = { naklon: 0, otoc: 180, pohled: [0, 0] };
 /** Na kterých stránkách (data-stranka) se jednou za návštěvu webu představí, a jak si to pamatuje */
 const PREDSTAVENI = { stranky: ["domek-2"], klic: "pruvodce-predstavena" };
 const VYVOJ = !!import.meta.env?.DEV;
@@ -62,6 +136,9 @@ const ulozSchovanou = (ano: boolean) => {
     /* bez úložiště se po načtení zase ukáže — nevadí */
   }
 };
+/** Ikonky bublin vedle ní: bublina s třemi tečkami (povídání) a postava (co o hostovi ví) — tah tuší jako zbytek nabídky */
+const IKONA_POVIDANI = `<svg viewBox="0 0 24 24"><path d="M4.5 6.5 Q4.5 4 7 4 H17 Q19.5 4 19.5 6.5 V13 Q19.5 15.5 17 15.5 H11 L7 19.5 V15.5 Q4.5 15.5 4.5 13 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="8.6" cy="9.8" r="1.1" fill="currentColor"/><circle cx="12" cy="9.8" r="1.1" fill="currentColor"/><circle cx="15.4" cy="9.8" r="1.1" fill="currentColor"/></svg>`;
+const IKONA_CO_VIM = `<svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5.2 19.5 Q5.8 13.6 12 13.6 Q18.2 13.6 18.8 19.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`;
 /** Ensō z loga (tah štětce, kapka na začátku) v soumrakových barvách loga; maska ho kreslí po směru tahu */
 const ensoSvg = () => `<svg class="pruvodce-enso" viewBox="0 0 200 200" aria-hidden="true">
   <defs>
@@ -82,8 +159,10 @@ const omez = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const hladce = (q: number) => q * q * (3 - 2 * q);
 const nahodne = (a: number, b: number) => a + Math.random() * (b - a);
 const kCili = (v: number, cil: number, dt: number, tau: number) => v + (cil - v) * (1 - Math.exp(-dt / tau));
-/** Jak dlouho visí bublina (rekni v kami.ts ji zavře za 3,6 s + 30 ms na znak) */
-const delkaBubliny = (text: string) => 3.9 + text.length * 0.03;
+/** Kurzor v jednotkách kresby: přes postavu přesně, dál od ní stlačený, ať ji vzdálená myš neofukuje */
+const stlac = (o: number) => (Math.abs(o) <= 90 ? o : Math.sign(o) * (90 + (Math.abs(o) - 90) * 0.2));
+/** Jak dlouho visí bublina (rekni v kami.ts ji zavře za 3,6 s + 30 ms na znak, a když píše štětcem, ještě o dobu psaní později) */
+const delkaBubliny = (text: string) => 3.9 + text.length * 0.03 + dobaPsani(text) / 1000;
 /** Rozzáří závěs s kami a rozhoupe ho (animace zaves-zari v parta2.css doběhne sama) */
 const rozzarZaves = () => {
   const z = document.querySelector<HTMLElement>("[data-zaves]");
@@ -111,16 +190,22 @@ export function pruvodce() {
   const stranka = document.body.dataset.stranka ?? "";
   const klidne = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
+  /* Co o hostovi ví — jen z toho, co v domě sám udělal (pruvodce-host.ts) */
+  let host = zjisti();
+  const nacteno = performance.now();
+  const hlava = document.querySelector(".hlava");
+  const uvitaniPro = (h: Host) => (h.mistr ? (h.mistr.osloveni === "sensei" ? uvitani.sensei : uvitani.mistr) : h.noc ? uvitani.noc : h.jmeno ? uvitani.podpis : uvitani.host);
+
   /* ——— Prvky: létající Vázička, tlačítko v rohu a nabídka ——— */
   const O = document.createElement("div");
-  O.className = "pruvodce stin";
+  O.className = STIN ? "pruvodce stin" : "pruvodce";
   O.setAttribute("aria-hidden", "true");
   const T = document.createElement("div");
   T.className = "pruvodce-telo";
   const VG = document.createElement("div");
   VG.className = "vazicka-gejsa";
-  /* Vlastní id (vgp-), ať se nepotká s jinou Vázičkou na stránce — viz kamiPruvodce */
-  VG.dataset.vazickaGejsa = "pruvodce";
+  /* Vlastní id (vgp-), ať se nepotká s jinou Vázičkou na stránce — viz kamiPruvodce; mistrovi se ukáže i s kruhem dvanácti květů */
+  VG.dataset.vazickaGejsa = host.mistr ? "pruvodceMistr" : "pruvodce";
   T.append(VG);
   O.append(T);
 
@@ -133,7 +218,7 @@ export function pruvodce() {
   const napoveda = document.createElement("span");
   napoveda.className = "pruvodce-napoveda";
   napoveda.setAttribute("aria-hidden", "true");
-  napoveda.textContent = hlasky.napoveda;
+  napoveda.textContent = vypln(uvitaniPro(host).napoveda, host);
   tlacitko.append(napoveda);
 
   const nabidka = document.createElement("div");
@@ -145,10 +230,27 @@ export function pruvodce() {
   const titul = document.createElement("p");
   titul.className = "pruvodce-titul";
   titul.id = "pruvodce-titul";
-  titul.textContent = hlasky.titul;
+  titul.textContent = vypln(uvitaniPro(host).titul, host);
   const seznam = document.createElement("div");
   seznam.className = "pruvodce-volby";
   nabidka.append(titul, seznam);
+  /* Vedle ní vlevo dvě bubliny — povídání a co o hostovi ví. Vyskočí s nabídkou a s ní zmizí; popisek jen při najetí. Svítí ta, jejíž obsah nabídka zrovna ukazuje */
+  const kulicky = document.createElement("div");
+  kulicky.className = "pruvodce-kulicky";
+  kulicky.hidden = true;
+  const kulicka = (ikona: string, popis: string, celkem: string) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pruvodce-kulicka";
+    b.setAttribute("aria-label", celkem);
+    b.setAttribute("aria-pressed", "false");
+    b.setAttribute("aria-controls", "pruvodce-nabidka");
+    b.innerHTML = `${ikona}<span class="pruvodce-kulicka-popis" aria-hidden="true">${popis}</span>`;
+    kulicky.append(b);
+    return b;
+  };
+  const kulickaPovidani = kulicka(IKONA_POVIDANI, povidani.kratce, povidani.otazka);
+  const kulickaCoVim = kulicka(IKONA_CO_VIM, coVim.kratce, coVim.otazka);
 
   /* Čárkou nad ní se schová; v rohu pak zůstane jen malá čárka, kolem které se občas protočí ensō */
   const zmensit = document.createElement("button");
@@ -169,18 +271,41 @@ export function pruvodce() {
   hlas.className = "pruvodce-hlas";
   hlas.setAttribute("aria-live", "polite");
 
-  document.body.append(O, tlacitko, zmensit, carka, nabidka, hlas);
+  document.body.append(O, tlacitko, zmensit, carka, nabidka, kulicky, hlas);
   spustVse();
 
   /* Po každé radě se zatočí a vymění si květy za další měsíc — umí to sama na klepnutí (beh.js, kami-kvety.js), tak se jí klepnutí jen pošle */
+  const scena = () => (VG as HTMLElement & { __scena?: Scena }).__scena;
   const vymenKvety = () => {
-    (VG as HTMLElement & { __scena?: { stav: () => { vstup: { kliky: { x: number; y: number }[] } } } }).__scena?.stav().vstup.kliky.push({ x: 90, y: 90 });
+    scena()?.stav().vstup.kliky.push({ x: 90, y: 90 });
   };
 
   let bublina: (() => boolean) | null = null;
-  const rekniTu = (text: string) => {
-    bublina = rekni(VG, "vazicka", text, { pevne: true, cerna: true });
+  /** S jakým výrazem to říká — kresba ho drží, dokud visí bublina */
+  let vyrazBubliny: Vyraz | undefined;
+  /* Píše štětcem a mluví šamisenem (pruvodce-hlas.ts), s omezeným pohybem jen ukáže hotovou větu; gesto k ní hned */
+  const rekniTu = ({ text, vyraz, gesto }: Replika) => {
+    bublina = rekni(VG, "vazicka", text, { pevne: true, cerna: true, pise: klidne ? undefined : samisen(text, vyraz) });
+    if (!klidne) dozvuk(vyraz, dobaPsani(text) / 1000 + 0.15);
+    vyrazBubliny = vyraz;
+    ukazGesto(gesto);
     hlas.textContent = `Vázička: ${text}`;
+  };
+
+  /* ═══ Sama od sebe: stopa v domě, nalezený kami, mistrovský list, noc ═══ */
+  const cekaji: { r: Replika; hned: boolean; platiOd: number; platiDo: number }[] = [];
+  /** Co už na téhle stránce sama od sebe řekla — dvakrát totéž neřekne */
+  const rekla = new Set<string>();
+  /** `hned` = reakce na to, co host právě udělal (předběhne čekající stopy); `za` ms ji ještě podrží (třeba po úleku) */
+  const rekniSama = (r: Replika, hned = false, za = 0) => {
+    if (rekla.has(r.text) || cekaji.some((c) => c.r.text === r.text)) return;
+    const ted = performance.now();
+    cekaji.push({ r, hned, platiOd: ted + za, platiDo: hned ? ted + za + SAMA.cerstve : Infinity });
+  };
+  /** Host zrovna píše — do formuláře nemluví */
+  const pise = () => {
+    const a = document.activeElement;
+    return !!a && a !== document.body && (a.matches("input, textarea, select") || (a as HTMLElement).isContentEditable);
   };
 
   /* ═══ Rozměry, kotva a klidové místo ═══ */
@@ -192,6 +317,7 @@ export function pruvodce() {
     O.style.width = O.style.height = `${B}px`;
     tlacitko.style.setProperty("--b", `${B}px`);
     nabidka.style.setProperty("--b", `${B}px`);
+    kulicky.style.setProperty("--b", `${B}px`);
     zmensit.style.setProperty("--b", `${B}px`);
   };
   zmer();
@@ -266,7 +392,7 @@ export function pruvodce() {
     let_(doma),
     cekej(0.25, DOMA_POZA),
     hned(() => {
-      O.classList.add("stin");
+      O.classList.toggle("stin", STIN);
       venku = false;
       tlacitko.classList.remove("prazdno");
       zmensit.hidden = false;
@@ -331,7 +457,7 @@ export function pruvodce() {
         if (r.efekt === "zaves") rozzarZaves();
         else rozzar(el);
         vymenKvety();
-        rekniTu(veta);
+        rekniTu({ text: veta, vyraz: r.vyraz });
       }),
       cekej(delkaBubliny(veta)),
       ...domu(),
@@ -341,20 +467,35 @@ export function pruvodce() {
   };
 
   /* ═══ Nabídka ═══ */
+  const volba = (text: string, naKlik: () => void) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pruvodce-volba";
+    b.textContent = text;
+    b.addEventListener("click", naKlik);
+    seznam.append(b);
+    return b;
+  };
+  /** Co je v nabídce zrovna otevřené: rady stránky, nebo obsah jedné z bublin vedle ní */
+  let obsah: "rady" | "povidani" | "coVim" = "rady";
+  const otevreno = (o: typeof obsah) => {
+    obsah = o;
+    kulickaPovidani.setAttribute("aria-pressed", String(o === "povidani"));
+    kulickaCoVim.setAttribute("aria-pressed", String(o === "coVim"));
+  };
+  /* Rady stránky (s větou podle toho, co host udělal); povídání a „co o tobě vím“ jsou bubliny vedle ní */
   const nabidni = () => {
-    const moje = rady[stranka] ?? rady.vychozi;
+    host = zjisti();
+    otevreno("rady");
+    titul.textContent = vypln(uvitaniPro(host).titul, host);
     seznam.textContent = "";
-    for (const r of moje) {
-      if (!najdi(r)) continue;
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "pruvodce-volba";
-      b.textContent = r.otazka;
-      b.addEventListener("click", () => {
+    for (const puvodni of rady[stranka] ?? rady.vychozi) {
+      const r = radaPro(puvodni, host, stranka);
+      if (!r || !najdi(r)) continue;
+      volba(r.otazka, () => {
         zavri(false);
         ukaz(r);
       });
-      seznam.append(b);
     }
     if (!seznam.childElementCount) {
       const nic = document.createElement("p");
@@ -363,9 +504,120 @@ export function pruvodce() {
       seznam.append(nic);
     }
   };
+  /** Bublina otevře v nabídce svůj obsah; když už je otevřený, vrátí se k radám */
+  const kulickou = (o: "povidani" | "coVim", ukazat: () => void) => () => {
+    if (obsah !== o) return ukazat();
+    nabidni();
+    seznam.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+  };
+  kulickaPovidani.addEventListener("click", kulickou("povidani", () => ukazPovidani()));
+  kulickaCoVim.addEventListener("click", kulickou("coVim", () => ukazCoVim()));
+  /** „Popovídáme si?“ — místo rad tři témata a cesta zpátky */
+  const ukazPovidani = () => {
+    otevreno("povidani");
+    titul.textContent = povidani.titul;
+    seznam.textContent = "";
+    volba(veVlasech.otazka, rekniVlasy);
+    volba(povidani.ostatni, rekniOstatni);
+    volba(ozashiki.otazka, hraj);
+    const zpet = volba(coVim.zpet, () => {
+      nabidni();
+      seznam.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+    });
+    zpet.classList.add("pruvodce-zpet");
+    seznam.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+  };
+  /** Co nosí ve vlasech: zůstane doma, zatočí se (květy měsíce se jen obnoví) a řekne, proč zrovna tyhle — a sáhne si na ně */
+  const rekniVlasy = () => {
+    zavri(false);
+    const r = veVlasech.mesice[mesic];
+    fronta = [hned(vymenKvety), cekej(klidne ? 0.01 : 1.3), hned(() => rekniTu({ gesto: "vlasy", ...r })), cekej(delkaBubliny(r.text))];
+    akce = null;
+  };
+  /* ═══ Ozashiki: hra Tora-tora (ozashiki.ts) — doletí k panelu, hraje a po hře se vrátí do rohu ═══ */
+  let hra: { zavri: () => void } | null = null;
+  /** Doletí vedle panelu hry (vpravo; když tam není místo, nad jeho pravý roh), zůstane tam a řekne pravidla */
+  const kHre = (panel: HTMLElement, uvod: Replika) => {
+    venku = true;
+    O.classList.remove("stin");
+    O.classList.add("hraje");
+    tlacitko.classList.add("prazdno");
+    zmensit.hidden = true;
+    const M = 1.25;
+    const misto = (): Bod => {
+      const r = panel.getBoundingClientRect();
+      return r.right + B * M * 0.6 < W ? { x: r.width + B * M * 0.32, y: r.height * 0.42 } : { x: r.width - B * M * 0.3, y: -B * M * 0.22 };
+    };
+    fronta = [
+      cekej(klidne ? 0.01 : 0.2, { naklon: 0, otoc: -14, pohled: [-1, 0.3] }),
+      kotvi(() => panel),
+      let_(misto, M),
+      cekej(klidne ? 0.01 : 0.25, { naklon: -2, otoc: -26, pohled: [-1.6, 0.4] }),
+      hned(() => rekniTu(uvod)),
+    ];
+    akce = null;
+  };
+  const hraj = () => {
+    zavri(false);
+    hra = toraTora({
+      rekni: rekniTu,
+      gesto: ukazGesto,
+      zlozvyk: (ano) => {
+        ovivaStale = ano && !klidne;
+      },
+      prilet: kHre,
+      odlet: () => {
+        hra = null;
+        O.classList.remove("hraje");
+        fronta = domu();
+        akce = null;
+        tlacitko.focus({ preventScroll: true });
+      },
+      zahraj,
+      klidne,
+    });
+  };
+  /** Co si myslí o ostatních: o kami, které host už našel (kromě ní), pokaždé o dalším; když nikoho, ať je jde najít */
+  let oKom = 0;
+  const rekniOstatni = () => {
+    zavri(false);
+    const nalezeni = zjisti().nalezeni.filter((id) => id !== "vazicka");
+    const r = nalezeni.length ? kNalezu[nalezeni[oKom++ % nalezeni.length]] : povidani.nikoho;
+    fronta = [hned(() => rekniTu(r)), cekej(delkaBubliny(r.text))];
+    akce = null;
+  };
+  /** Místo voleb vyjmenuje, co o hostovi ví (jen co web opravdu má), a dá cestu zpátky */
+  const ukazCoVim = () => {
+    host = zjisti();
+    otevreno("coVim");
+    const polozky = coVimPolozky(host);
+    titul.textContent = coVimTitul(polozky);
+    seznam.textContent = "";
+    if (polozky.length) {
+      const ul = document.createElement("ul");
+      ul.className = "pruvodce-vim";
+      for (const p of polozky) {
+        const li = document.createElement("li");
+        li.textContent = p;
+        ul.append(li);
+      }
+      seznam.append(ul);
+    }
+    const konec = document.createElement("p");
+    konec.className = "pruvodce-vim-konec";
+    konec.textContent = polozky.length ? coVim.konec : coVim.nic;
+    seznam.append(konec);
+    const zpet = volba(coVim.zpet, () => {
+      nabidni();
+      seznam.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+    });
+    zpet.classList.add("pruvodce-zpet");
+    zpet.focus({ preventScroll: true });
+  };
   const otevri = () => {
     nabidni();
     nabidka.hidden = false;
+    kulicky.hidden = false;
     tlacitko.setAttribute("aria-expanded", "true");
     O.classList.add("posloucha");
     drzi = { naklon: -2, otoc: -12, pohled: [-0.6, -0.9] };
@@ -374,6 +626,7 @@ export function pruvodce() {
   function zavri(vratitFokus = true) {
     if (nabidka.hidden) return;
     nabidka.hidden = true;
+    kulicky.hidden = true;
     tlacitko.setAttribute("aria-expanded", "false");
     O.classList.remove("posloucha");
     if (!venku) drzi = DOMA_POZA;
@@ -381,12 +634,19 @@ export function pruvodce() {
   }
 
   tlacitko.addEventListener("click", () => {
+    /* Klepnutí na roh během hry hru zavře (a ona se vrátí) */
+    if (hra) {
+      hra.zavri();
+      return;
+    }
     /* Když je zrovna pryč, klepnutí ji zavolá zpátky */
     if (venku) {
       fronta = domu();
       akce = null;
       return;
     }
+    /* uražená zády chvíli neposlouchá; kdo klepe dokola, tomu odpoví po svém */
+    if (cas < otocenaDo || klepeDokola()) return;
     if (nabidka.hidden) otevri();
     else zavri();
   });
@@ -433,24 +693,158 @@ export function pruvodce() {
   carka.addEventListener("click", ukazSe);
 
   const naKlavesu = (e: KeyboardEvent) => {
+    aktivita();
     if (e.key === "Escape" && !nabidka.hidden) zavri();
   };
   const naKlik = (e: PointerEvent) => {
+    aktivita();
     if (nabidka.hidden) return;
     const t = e.target as Node;
-    if (!nabidka.contains(t) && !tlacitko.contains(t)) zavri(false);
+    if (!nabidka.contains(t) && !tlacitko.contains(t) && !kulicky.contains(t)) zavri(false);
   };
   document.addEventListener("keydown", naKlavesu);
   document.addEventListener("pointerdown", naKlik);
 
+  /* ═══ Myš: kde je kurzor (myš a pero; dotyk nemá jak přijít blíž) ═══ */
+  let kurzor: Bod | null = null;
+  /** Všimla si kurzoru, protože je blízko — stín trochu prosvětlí (třída `vnima`) */
+  let vnima = false;
+  const naPohyb = (e: PointerEvent) => {
+    aktivita();
+    if (e.pointerType === "touch") return;
+    kurzor = { x: e.clientX, y: e.clientY };
+  };
+  /* kurzor odešel z okna */
+  const naOdchod = (e: PointerEvent) => {
+    if (!e.relatedTarget) kurzor = null;
+  };
+  document.addEventListener("pointermove", naPohyb, { passive: true });
+  document.addEventListener("pointerout", naOdchod);
+  /** Doma s kurzorem blízko se k němu natočí: zleva skoro z profilu, shora čelem */
+  const kKurzoru = (k: Bod, s: Bod): Drzeni => {
+    const q = omez((k.x - s.x) / (2.5 * B), -1, 0.6);
+    return { naklon: -1 + 3 * q, otoc: -8 + 22 * q, pohled: [-0.9, 0.2] };
+  };
+
+  /* ═══ Co se děje teď: spěch, klepání dokola, ticho (nic se neukládá, počítadla platí jen na téhle stránce) ═══ */
+  /** Květy skutečného měsíce (leden = 0) */
+  const mesic = new Date().getMonth();
+  /** Výraz na chvíli bez bubliny: přísný pohled, úžas */
+  let vyrazChvili: { vyraz: Vyraz; do: number } | null = null;
+  /** Do kdy (`cas`) si drží vlasy, ovívá se, je otočená zády, klaní se a ukazuje vějířem */
+  let vlasyDo = 0, ovivaDo = 0, otocenaDo = 0, uklonDo = 0, vejirDo = 0;
+  /** Ovívá se, dokud se to nevypne — zlozvyk při Tora-tora, když si vybrala tygra (ozashiki.ts) */
+  let ovivaStale = false;
+  /** Gesto k replice (data/pruvodce.ts): na jak dlouho který pohyb — zády tolik, co při klepání dokola */
+  function ukazGesto(g?: Gesto) {
+    if (!g || klidne) return;
+    if (g === "uklon") uklonDo = cas + 1.4;
+    if (g === "vejir") vejirDo = cas + 2;
+    if (g === "vlasy") vlasyDo = cas + 1.8;
+    if (g === "ovivani") ovivaDo = cas + 3;
+    if (g === "zady") otocenaDo = cas + KLEPANI.zady;
+  }
+  /** Vítr ze scrollu (0…1) a odkud fouká; leknutí — kolik ještě poskočí */
+  let poryv = 0, poryvSmer = 1, skok = 0;
+  let posledniAktivita = performance.now(), dalsiZabava = 0, zabav = 0;
+  let spi = false, uzRekla = false;
+  const pohled = (vyraz: Vyraz) => {
+    vyrazChvili = { vyraz, do: cas + 1.6 };
+  };
+  /** Cokoli host udělá, je pohyb: vzbudí ji, a když spala, lekne se (poprvé to i řekne) */
+  const aktivita = () => {
+    posledniAktivita = performance.now();
+    if (!spi) return;
+    spi = false;
+    vyrazChvili = { vyraz: "uzas", do: cas + 1.1 };
+    skok = 1;
+    if (!uzRekla) {
+      uzRekla = true;
+      /* nejdřív úlek, až pak věta */
+      rekniSama(probuzeni, true, 1200);
+    }
+  };
+  /* Rychlý scroll je vítr: poprvé jen pohled, napodruhé a napotřetí to řekne */
+  let scrollY0 = window.scrollY, scrollT0 = performance.now(), rychlost = 0, spechu = 0, spechOd = 0, vSpechu = false;
+  const naScroll = () => {
+    aktivita();
+    const ted = performance.now(), y = window.scrollY;
+    const v = ((y - scrollY0) / Math.max(16, ted - scrollT0)) * 1000;
+    rychlost = rychlost * 0.6 + Math.abs(v) * 0.4;
+    if (Math.abs(v) > 1) poryvSmer = v > 0 ? 1 : -1;
+    scrollY0 = y;
+    scrollT0 = ted;
+    if (rychlost < SPECH.rychlost || venku || schovana) return;
+    spechOd = ted;
+    if (!klidne) {
+      poryv = Math.max(poryv, Math.min(1, rychlost / (SPECH.rychlost * 2)));
+      vlasyDo = cas + 1.2;
+    }
+    if (vSpechu) return;
+    vSpechu = true;
+    spechu++;
+    pohled("prisna");
+    if (spechu === 2) rekniSama(pomalu[0], true);
+    if (spechu === 3) rekniSama(pomalu[1], true);
+  };
+  /* Klepání dokola na ni: poprvé pohled, napodruhé věta, napotřetí „Hm.“ a zády; nabídku přitom zavře */
+  const klepnuti: number[] = [];
+  let epizodKlepani = 0;
+  function klepeDokola() {
+    const ted = performance.now();
+    klepnuti.push(ted);
+    while (klepnuti.length && ted - klepnuti[0] > KLEPANI.okno) klepnuti.shift();
+    if (klepnuti.length < KLEPANI.klepnuti) return false;
+    klepnuti.length = 0;
+    epizodKlepani++;
+    zavri(false);
+    pohled("prisna");
+    if (epizodKlepani === 2) rekniTu(klepani[0]);
+    /* „Hm.“ má gesto zády (data/pruvodce.ts) — na tu chvíli pak klepání neposlouchá */
+    if (epizodKlepani === 3) rekniTu(klepani[1]);
+    return true;
+  }
+  /** Ticho: když se nic neděje, upraví si květy nebo se ovívá, po minutě zadřímne; když má co dělat, ticho se nepočítá */
+  const ticho = (ted: number) => {
+    if (klidne || venku || schovana || !nabidka.hidden || akce || fronta.length || bublina || cas < otocenaDo) {
+      posledniAktivita = Math.max(posledniAktivita, ted - TICHO.zabava + 4000);
+      return;
+    }
+    const klid = ted - posledniAktivita;
+    if (!spi && klid > TICHO.spanek) {
+      spi = true;
+      return;
+    }
+    if (spi || klid < TICHO.zabava || ted < dalsiZabava) return;
+    dalsiZabava = ted + TICHO.rozestup;
+    if (zabav++ % 2 === 0) vlasyDo = cas + 1.8;
+    else ovivaDo = cas + 3;
+  };
+  window.addEventListener("scroll", naScroll, { passive: true });
+  for (const g of ["wheel", "touchstart"]) document.addEventListener(g, aktivita, { passive: true });
+
   /* ═══ Vykreslení ═══ */
   const vykresli = (dt: number) => {
+    /* kurzoru si všimne jen doma — ne v letu a ne schovaná do čárky */
+    const s0 = naObrazovce();
+    const vRohu = !venku && !schovana;
+    const daleko = kurzor && vRohu ? Math.hypot(kurzor.x - s0.x, kurzor.y - s0.y) / B : Infinity;
+    const vidi = daleko < (vnima ? VNIMA.pusti : VNIMA.od);
+    if (vidi !== vnima) {
+      vnima = vidi;
+      O.classList.toggle("vnima", vidi);
+    }
     if (dt > 0) {
       /* rychlost z polohy vůči kotvě — scroll ji nenatáčí */
       vid.vx = kCili(vid.vx, (poz.x - predX) / dt, dt, 0.15);
       vid.vy = kCili(vid.vy, (poz.y - predY) / dt, dt, 0.15);
       const k = omez(vid.vx / 260, -1, 1);
-      const cil = drzi ?? { naklon: k * 9, otoc: k * 42, pohled: [k * 1.9, omez(vid.vy / 300, -1, 1) * 1.1] };
+      const kKurzoruTed = vnima && kurzor && nabidka.hidden && !akce && !fronta.length ? kKurzoru(kurzor, s0) : null;
+      const cil = (cas < otocenaDo ? ZADY : null) ?? kKurzoruTed ?? drzi ?? { naklon: k * 9, otoc: k * 42, pohled: [k * 1.9, omez(vid.vy / 300, -1, 1) * 1.1] };
+      poryv = kCili(poryv, 0, dt, 0.5);
+      skok = kCili(skok, 0, dt, 0.12);
+      if (performance.now() - spechOd > SPECH.klid) vSpechu = false;
+      rychlost = kCili(rychlost, 0, dt, 0.25);
       vid.naklon = kCili(vid.naklon, cil.naklon, dt, 0.25);
       vid.otoc = kCili(vid.otoc, cil.otoc, dt, 0.3);
       vid.pohled = [kCili(vid.pohled[0], cil.pohled[0], dt, 0.2), kCili(vid.pohled[1], cil.pohled[1], dt, 0.2)];
@@ -460,17 +854,40 @@ export function pruvodce() {
     predY = poz.y;
     const s = naObrazovce();
     const vlna = klidne ? 0 : Math.sin(cas * 2.3) * (venku ? 4 : 1.6);
-    const x0 = s.x - B / 2, y0 = s.y - B / 2 + vlna;
+    const x0 = s.x - B / 2, y0 = s.y - B / 2 + vlna - skok * 7;
     O.style.transform = `translate3d(${x0.toFixed(1)}px, ${y0.toFixed(1)}px, 0)`;
     T.style.transform = `rotate(${vid.naklon.toFixed(2)}deg) scale(${poz.m.toFixed(3)})`;
     if (bublina && !bublina()) bublina = null;
 
-    const sc = (VG as HTMLElement & { __scena?: { stav: () => { dyn: { otoc?: number }; vstup: { vitr?: number; pohled?: [number, number] } } } }).__scena;
+    /* Noc v hlavičce přepíná host tlačítkem: s ní nese lucernu, a když ji zapne, řekne si o ni */
+    const noc = !!hlava?.classList.contains("je-noc");
+    if (noc !== host.noc) {
+      host = { ...host, noc };
+      napoveda.textContent = vypln(uvitaniPro(host).napoveda, host);
+      if (noc && performance.now() - nacteno > 1000) rekniSama(naNoc, true);
+    }
+
+    const sc = scena();
     if (sc) {
       const { dyn, vstup } = sc.stav();
       dyn.otoc = vid.otoc;
-      vstup.vitr = vid.vitr;
+      vstup.vitr = vid.vitr + poryv * 2.4 * poryvSmer;
       vstup.pohled = vid.pohled;
+      vstup.lucerna = noc;
+      vstup.mesic = mesic;
+      vstup.bezOtocek = true;
+      vstup.vlasy = cas < vlasyDo;
+      vstup.ovivani = cas < ovivaDo || ovivaStale;
+      vstup.spi = spi;
+      vstup.uklon = cas < uklonDo;
+      vstup.vejir = cas < vejirDo;
+      /* kurzor v jednotkách kresby (180 × 180, tělo se zvětšuje kolem 50 % / 60 %); s otevřenou nabídkou kouká za ním, i když je dál */
+      vstup.mys =
+        kurzor && vRohu && (vnima || !nabidka.hidden)
+          ? { x: 90 + stlac(((kurzor.x - x0 - 0.5 * B) / (B * poz.m)) * 180), y: 90 + stlac(((kurzor.y - y0 - 0.6 * B) / (B * poz.m)) * 180 + 18) }
+          : null;
+      vstup.vitrMysi = VITR_MYSI;
+      vstup.vyraz = bublina ? vyrazBubliny : vyrazChvili && cas < vyrazChvili.do ? vyrazChvili.vyraz : undefined;
     }
   };
   vykresli(0);
@@ -478,6 +895,63 @@ export function pruvodce() {
   /* Schovaná zůstane schovaná i na další stránce */
   if (nactiSchovanou()) schovej(true);
   else predstavSe();
+
+  /* ═══ Co host v domě udělal: stopa na stránce a reakce na to, co udělal právě teď ═══ */
+  const plati = { futatsu: host.futatsuVSatku, slepeno: host.slepeno > 0, uzliky: host.uzliky > 0, listek: host.listek, darek: host.darek };
+  const stopa = stopy.find((s) => s.kde.includes(stranka) && plati[s.co]);
+  if (stopa) rekniSama(stopa.replika);
+  const naNalez = (e: Event) => {
+    const r = kNalezu[(e as CustomEvent<PostavaId>).detail];
+    if (r) rekniSama(r, true);
+  };
+  const naMistra = () => {
+    host = zjisti();
+    napoveda.textContent = vypln(uvitaniPro(host).napoveda, host);
+    if (host.mistr) rekniSama(vyplnRepliku(mistrovskyList[host.mistr.osloveni], host), true);
+  };
+  /* slepené číslo na ztracené stránce (nenalezeno/hlavni.ts) */
+  const scenaNenalezeno = document.querySelector("[data-nenalezeno]");
+  const naSlepeni = () => {
+    const s = stopy.find((x) => x.co === "slepeno");
+    if (s) rekniSama(s.replika, true);
+  };
+  document.addEventListener(NALEZEN, naNalez);
+  document.addEventListener(MISTR_ZMENA, naMistra);
+  scenaNenalezeno?.addEventListener("nn:slepeno", naSlepeni);
+  /* Poznámka k tomu, co je zrovna na obrazovce: první z téhle stránky, který je aspoň z půlky vidět, a pak už žádná */
+  const mojePoznamky = poznamky.filter((p) => p.kde === stranka);
+  let pozorovatel: IntersectionObserver | null = null;
+  if (mojePoznamky.length && "IntersectionObserver" in window) {
+    pozorovatel = new IntersectionObserver(
+      (zaznamy) => {
+        const z = zaznamy.find((x) => x.isIntersecting && x.intersectionRatio >= 0.5);
+        const p = z && mojePoznamky.find((x) => document.querySelector(x.cil) === z.target);
+        if (!p) return;
+        rekniSama(p.replika);
+        pozorovatel?.disconnect();
+        pozorovatel = null;
+      },
+      { threshold: 0.5 },
+    );
+    for (const p of mojePoznamky) {
+      const el = document.querySelector(p.cil);
+      if (el) pozorovatel.observe(el);
+    }
+  }
+  /** Řekne, co čeká, až nikomu nepřekáží: doma, s nabídkou zavřenou, bez cizí bubliny a oslavy devíti kami (sber.ts) a když host nepíše */
+  const zkusPromluvit = (ted: number) => {
+    for (let i = cekaji.length - 1; i >= 0; i--) if (cekaji[i].platiDo < ted) cekaji.splice(i, 1);
+    if (!cekaji.length || venku || schovana || !nabidka.hidden || akce || fronta.length || bublina || document.querySelector(".bublina, .oslava-zprava") || pise()) return;
+    /* reakce předbíhají; stopa a poznámka počkají na odstup po načtení i po minulé větě */
+    const muze = (c: (typeof cekaji)[number]) => ted >= c.platiOd && (c.hned || (ted - nacteno >= SAMA.poNacteni && ted - posledniSama >= SAMA.rozestup));
+    const i = cekaji.findIndex((c) => c.hned && muze(c));
+    const j = i >= 0 ? i : cekaji.findIndex(muze);
+    if (j < 0) return;
+    const [c] = cekaji.splice(j, 1);
+    rekla.add(c.r.text);
+    posledniSama = ted;
+    rekniTu(c.r);
+  };
 
   /* ═══ Představení na úvodu ═══ */
   function predstavSe() {
@@ -505,11 +979,11 @@ export function pruvodce() {
       let_(() => ({ x: W * 0.5, y: H * 0.46 }), 1.6),
       cekej(klidne ? 0.01 : 0.4, CELEM),
       hned(() => rekniTu(prvni)),
-      cekej(delkaBubliny(prvni)),
+      cekej(delkaBubliny(prvni.text)),
       let_(doma, 1),
       cekej(0.3, DOMA_POZA),
       hned(() => rekniTu(druha)),
-      cekej(delkaBubliny(druha)),
+      cekej(delkaBubliny(druha.text)),
       ...domu().slice(-1),
     ];
     akce = null;
@@ -523,6 +997,14 @@ export function pruvodce() {
       document.removeEventListener("keydown", naKlavesu);
       document.removeEventListener("pointerdown", naKlik);
       window.removeEventListener("resize", naZmenu);
+      document.removeEventListener("pointermove", naPohyb);
+      document.removeEventListener("pointerout", naOdchod);
+      document.removeEventListener(NALEZEN, naNalez);
+      document.removeEventListener(MISTR_ZMENA, naMistra);
+      scenaNenalezeno?.removeEventListener("nn:slepeno", naSlepeni);
+      window.removeEventListener("scroll", naScroll);
+      for (const g of ["wheel", "touchstart"]) document.removeEventListener(g, aktivita);
+      pozorovatel?.disconnect();
       return;
     }
     requestAnimationFrame(smycka);
@@ -540,6 +1022,8 @@ export function pruvodce() {
       akce.krok(q);
       if (q >= 1) akce = null;
     }
+    zkusPromluvit(ted);
+    ticho(ted);
     vykresli(dt);
   };
   requestAnimationFrame(smycka);

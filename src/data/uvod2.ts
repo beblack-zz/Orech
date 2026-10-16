@@ -118,45 +118,6 @@ export const denOtevrenychDveri = {
   terminy: ["4. 9.", "11. 9.", "18. 9.", "25. 9."],
 };
 
-/* ——— Razítka ———
- *
- * Prohlídka dílny jako „stamp rally“: u každého zastavení se dá něco
- * udělat a za to je razítko do sešitu. Dvě jsou zadarmo — vstupní (projít
- * norenem) a výstupní (zůstat do noci). Sešit si pamatuje prohlížeč.
- */
-
-export type RazitkoId = "brana" | "kruh" | "stul" | "pec" | "police" | "poukaz" | "pauza" | "odjezdy" | "noc";
-
-export interface Razitko {
-  id: RazitkoId;
-  /** Znak uprostřed otisku */
-  znak: string;
-  nazev: string;
-  /** Co pro razítko udělat — stojí v sešitě, dokud chybí */
-  ukol: string;
-  /** Kdo z party u razítka stojí — jeho barva je v otisku */
-  kdo: PostavaId;
-}
-
-export const razitka: Razitko[] = [
-  { id: "brana", znak: "門", nazev: "Brána", ukol: "Projít norenem do dílny.", kdo: "kachlik" },
-  { id: "kruh", znak: "轆", nazev: "Kruh", ukol: "Roztočit kruh.", kdo: "vazicka" },
-  { id: "stul", znak: "机", nazev: "Stůl", ukol: "Prohníst hroudu na stole.", kdo: "hlinka" },
-  { id: "pec", znak: "窯", nazev: "Pec", ukol: "Vypálit pec a otevřít ji.", kdo: "pecinka" },
-  { id: "police", znak: "棚", nazev: "Police", ukol: "Vzít něco z police.", kdo: "stripek" },
-  { id: "poukaz", znak: "贈", nazev: "Poukaz", ukol: "Otočit poukaz na nástěnce.", kdo: "cedulka" },
-  { id: "pauza", znak: "茶", nazev: "Pauza", ukol: "Postavit na kafe.", kdo: "kapka" },
-  { id: "odjezdy", znak: "発", nazev: "Odjezdy", ukol: "Přepnout tabuli s odjezdy.", kdo: "kachlik" },
-  { id: "noc", znak: "夜", nazev: "Noc", ukol: "Zůstat v dílně do noci.", kdo: "bublinka" },
-];
-
-/** Klíče, pod kterými si sbírky pamatují ostatní stránky nového vzhledu. */
-export const jineSbirky = [
-  { klic: "parta2-nalezeni", celkem: 9, kde: "Parta 2", co: "schovaných kami", href: "/parta-2" },
-  { klic: "kurzy2-naradi", celkem: 6, kde: "Kurzy 2", co: "kusů ztraceného nářadí", href: "/kurzy-2" },
-  { klic: "onas2-zlato", celkem: 9, kde: "O nás 2", co: "šupinek zlata na kintsugi", href: "/o-nas-2" },
-];
-
 /* ——— Roční období ——— */
 
 export type Sezona = "zima" | "predjari" | "jaro" | "leto" | "podzim";

@@ -13,7 +13,7 @@
  * ta, nad kterou je myš, nebo na kterou se naposledy klepnulo.
  */
 import { kresby, pretoc, obsahVrstvy } from "./kresby.js";
-import { jeZapnuto } from "../parta2/zvuk";
+import { smi } from "../parta2/zvuk";
 
 const NS = "http://www.w3.org/2000/svg";
 const VB = 180;
@@ -158,13 +158,14 @@ const Zvuk = (() => {
     smich: (t, out, s) => [932, 1109, 1397, 1109, 1245].forEach((f0, i) => ton(t + i * 0.085, out, { typ: "triangle", f: f0 * 0.93, f2: f0, vrchol: 0.05 * s, nabeh: 0.006, utlum: 0.075, vibrato: 18, hloubka: 14 })),
     /* lekla se: krátké ach */
     ach: (t, out, s) => ton(t, out, { f: 720, f2: 1180, vrchol: 0.07 * s, nabeh: 0.004, utlum: 0.12 }),
-    /* šamisen: úder plektrem do kůže, struna a její bzučivý dozvuk (sawari) */
+    /* šamisen: úder plektrem do kůže, struna a její bzučivý dozvuk (sawari); `delka` < 1 ho zkrátí — průvodce jím mluví po slabikách */
     struna: (t, out, s, z) => {
       const f0 = STUPNICE[Math.max(0, Math.min(STUPNICE.length - 1, z.vys || 0))];
+      const d = z.delka ?? 1;
       sumik(t, out, { f: 1500, q: 1.4, vrchol: 0.16 * s, nabeh: 0.001, utlum: 0.025 });
-      ton(t, out, { typ: "triangle", f: f0 * 1.012, f2: f0, vrchol: 0.15 * s, nabeh: 0.002, utlum: 0.85 });
-      ton(t, out, { typ: "sawtooth", f: f0, vrchol: 0.045 * s, nabeh: 0.002, utlum: 0.2 });
-      ton(t + 0.012, out, { typ: "square", f: f0 * 2.003, vrchol: 0.012 * s, nabeh: 0.01, utlum: 0.5, vibrato: 31, hloubka: 5 });
+      ton(t, out, { typ: "triangle", f: f0 * 1.012, f2: f0, vrchol: 0.15 * s, nabeh: 0.002, utlum: 0.85 * d });
+      ton(t, out, { typ: "sawtooth", f: f0, vrchol: 0.045 * s, nabeh: 0.002, utlum: 0.2 * d });
+      ton(t + 0.012, out, { typ: "square", f: f0 * 2.003, vrchol: 0.012 * s, nabeh: 0.01, utlum: 0.5 * d, vibrato: 31, hloubka: 5 });
     },
     /* zvonek rin: dva tóny těsně vedle sebe, které se vlní */
     zvon: (t, out, s) => {
@@ -227,14 +228,14 @@ const Zvuk = (() => {
       if (pripravit() && ctx.state === "suspended") ctx.resume();
     },
     hraj: (z) => {
-      if (!ctx || !jeZapnuto() || !ZVUKY[z.druh]) return;
+      if (!ctx || !smi(z.skupina || "hra") || !ZVUKY[z.druh]) return;
       if (ctx.state === "suspended") ctx.resume();
       ZVUKY[z.druh](ctx.currentTime + 0.005 + (z.za || 0), vystup(z.pan), z.sila ?? 1, z);
     },
     /** stálé zvuky podle scény: { vitr, dest } v rozsahu 0…1 */
     nastav: ({ vitr = 0, dest = 0 } = {}) => {
       if (!ctx || !stale) return;
-      const zap = jeZapnuto();
+      const zap = smi("hra");
       stale.vitr.gain.setTargetAtTime(zap ? vitr * 0.2 : 0, ctx.currentTime, 0.3);
       stale.dest.gain.setTargetAtTime(zap ? dest * 0.05 : 0, ctx.currentTime, 0.4);
       stale.lijak.gain.setTargetAtTime(zap ? dest * 0.1 : 0, ctx.currentTime, 0.4);
@@ -420,6 +421,12 @@ const bezici = [];
 for (const g of ["pointerup", "keydown", "touchend"]) document.addEventListener(g, () => document.querySelector("[data-vazicka-gejsa]") && Zvuk.odemkni(), true);
 /* tušový flek (scripts/flek/flek.ts) staví scénu až po kliknutí — spouští ji a odemyká jí zvuk sám */
 export const odemkni = () => Zvuk.odemkni();
+/**
+ * Zahraje zvuk mimo plochu kresby — průvodce (parta2/pruvodce-hlas.ts) mluví
+ * šamisenem, i když nad ním myš není. Hraje, jen když je zvuk webu zapnutý
+ * a už se odemkl gestem; jinak nic.
+ */
+export const zahraj = (z) => Zvuk.hraj(z);
 export const spustVse = () => {
   for (const el of document.querySelectorAll("[data-vazicka-gejsa]")) {
     if (el.dataset.bezi) continue;

@@ -1,5 +1,5 @@
 /*
- * Vystoupení Hlínky na /parta-3 — choreografie pro scény ze scripts/hlinka-zeme.
+ * Vystoupení Hlínky na /parta — choreografie pro scény ze scripts/hlinka-zeme.
  * Jak se zapisují, je v ../herec.js; hraje je režisér (../reziser.ts).
  */
 import { cekej, mys, klik, pryc, az, titulek, ohlas } from "../herec.js";

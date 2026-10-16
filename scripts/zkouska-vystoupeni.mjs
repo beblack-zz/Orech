@@ -1,4 +1,4 @@
-// Zkouška vystoupení pro divadlo na /parta-3 bez prohlížeče: pustí choreografii
+// Zkouška vystoupení pro divadlo na /parta bez prohlížeče: pustí choreografii
 // (src/scripts/parta3/vystoupeni/<postava>.js) proti čisté simulaci scény — stejné
 // generátory jako na webu —, vypíše, co se dělo, a umí uložit snímky do PNG.
 // Když se změní scéna, tady se pozná, jestli na ni vystoupení pořád sedí.

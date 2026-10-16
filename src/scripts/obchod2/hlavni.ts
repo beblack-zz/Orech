@@ -1,5 +1,5 @@
 /**
- * Vstup pro /obchod-2. Obloha, hlavička, zvuky a klikací kami jsou
+ * Vstup pro /obchod. Obloha, hlavička, zvuky a klikací kami jsou
  * společné s ostatními stránkami nového vzhledu, zbytek je vlastní
  * obchodu: krámek s kamerou a stmíváním, detail kusu a šátek.
  */

@@ -1,5 +1,5 @@
 /**
- * Kresby pro /parta-3: chrám nad oblaky. Generátory vracejí SVG jako text
+ * Kresby pro /parta: chrám nad oblaky. Generátory vracejí SVG jako text
  * (stránka je vkládá přes set:html), stejně jako kresby Domku 2 — jde je tak
  * zavolat i mimo stránku a prohlédnout si výsledek.
  *

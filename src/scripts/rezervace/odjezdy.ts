@@ -88,7 +88,7 @@ const poznamka = (s: StavHodiny, mam: boolean, volno: number) => (mam ? "nastupu
 const BUBEN = ["volno", "obsazeno", "odjel", "nastupuješ", "včas", "Ořech", "permanentka"];
 
 const radaHodiny = (denVTydnu?: number) =>
-  `Klikni na volný odjezd — klidně na víc. Každý trvá hodinu a půl a má ${sklonuj(R.mist, "místo", "místa", "míst")}. ` +
+  `Klikni na volnou hodinu — klidně na víc. Každá trvá 90 minut a má ${sklonuj(R.mist, "místo", "místa", "míst")}. ` +
   "Vedle je jízdné za člověka, kdybyste nastoupili teď — čím víc lidí v dílně opravdu bude, tím míň platí každý; platí se na místě. " +
   `První a poslední spoj dne jsou na permanentku: ${denVTydnu === undefined ? "jeden den v týdnu" : KAZDY[denVTydnu]} po ${P.mesicu} měsíce, ${P.mist} místa na spoji. ` +
   "Obloha nad mořem ukáže, jaké v tu dobu bude v dílně světlo.";

@@ -1,5 +1,5 @@
 /**
- * Krámek na /obchod-2 — společný základ kreseb.
+ * Krámek na /obchod — společný základ kreseb.
  *
  * Průčelí malého japonského obchodu s nádobím (うつわ屋 utsuwa-ya),
  * kreslené čelně podle dvou předloh: noční plakát (dvě střechy, velký

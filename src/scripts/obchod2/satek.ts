@@ -5,12 +5,15 @@
  * data-satek-pridat a data-satek-id (v krámku i v detailu kusu); kus
  * v krámku má data-satek-kus, aby šlo poznat, že leží v šátku.
  *
- * Zavázání je jen obrázek: rohy šátku se přeloží, nahoře se udělá uzel
- * a pak se otevře e-mail. Stránka sama nic neodesílá.
+ * Zavázání: rohy šátku se přeloží, nahoře se udělá uzel a objednávka
+ * odejde na /api/objednavka (scripts/parta2/objednavka.ts). Odkaz na
+ * tlačítku je připravený e-mail se stejným seznamem — ten se ukáže jako
+ * záloha, když server neodpoví.
  */
 import { nacti, uloz, klid } from "../parta2/stav";
 import { pocetKusu } from "../../data/pocty";
 import * as zvuk from "../parta2/zvuk";
+import { posliObjednavku, platnyEmail, proc, zaloha } from "../parta2/objednavka";
 
 interface Zbozi {
   id: string;
@@ -45,8 +48,12 @@ export function initSatek(): Satek {
   const plovouci = document.querySelector<HTMLAnchorElement>(".o2-satek-tlacitko");
   const ikony = document.getElementById("o2-ikony") as HTMLTemplateElement | null;
   const jmeno = koren?.querySelector<HTMLInputElement>('input[name="jmeno"]');
+  const mailEl = koren?.querySelector<HTMLInputElement>('input[name="email"]');
   const pozn = koren?.querySelector<HTMLTextAreaElement>('textarea[name="poznamka"]');
+  const pasticka = koren?.querySelector<HTMLInputElement>('input[name="web"]');
+  const zprava = koren?.querySelector<HTMLElement>(".o2-satek-zprava");
   let zavazano = false;
+  let odesila = false;
   let satekVidet = false;
 
   const ikona = (id: string) => ikony?.content.querySelector(`[data-ikona="${id}"]`)?.cloneNode(true) as SVGSVGElement | undefined;
@@ -206,10 +213,18 @@ export function initSatek(): Satek {
     };
   };
 
+  const rekni = (co: string | ((el: HTMLElement) => void)) => {
+    if (!zprava) return;
+    if (typeof co === "string") zprava.textContent = co;
+    else co(zprava);
+    zprava.hidden = false;
+  };
+
   const rozvaz = (zvukem = true) => {
     zavazano = false;
     kresba?.classList.remove("zavazano");
     if (rozvazat) rozvazat.hidden = true;
+    if (zprava) zprava.hidden = true;
     if (zvukem) zvuk.latka();
   };
 
@@ -234,21 +249,56 @@ export function initSatek(): Satek {
     prepni(b.dataset.satekId, b);
   });
 
-  zavazat?.addEventListener("click", (e) => {
+  zavazat?.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (zavazat.getAttribute("aria-disabled") === "true") return;
-    const href = zavazat.href;
+    if (zavazat.getAttribute("aria-disabled") === "true" || odesila) return;
+    /* Bez jména a e-mailu nevíme, komu odpovědět */
+    const chybi = !jmeno?.value.trim() ? jmeno : !platnyEmail(mailEl?.value ?? "") ? mailEl : null;
+    if (chybi) {
+      rekni(chybi === jmeno ? "Napiš nám jméno, ať víme, komu šátek patří." : "Napiš nám e-mail, ať máme kam odpovědět.");
+      chybi?.focus();
+      return;
+    }
+    const zalozni = zavazat.href;
+    odesila = true;
+    zavazat.setAttribute("aria-busy", "true");
     zavazano = true;
     kresba?.classList.add("zavazano");
-    if (rozvazat) rozvazat.hidden = false;
+    if (zprava) zprava.hidden = true;
     zvuk.uzel();
-    window.setTimeout(() => {
-      window.location.href = href;
-    }, klid ? 0 : 1600);
+    /* Objednávka letí, zatímco se šátek zavazuje; zpráva přijde, až je uzel hotový */
+    const [odpoved] = await Promise.all([
+      posliObjednavku({
+        druh: "satek",
+        kusy: [...vSatku],
+        doprava: koren?.querySelector<HTMLInputElement>('input[name="doprava"]:checked')?.value ?? "odber",
+        jmeno: jmeno?.value ?? "",
+        email: mailEl?.value ?? "",
+        poznamka: pozn?.value ?? "",
+        web: pasticka?.value ?? "",
+      }),
+      new Promise((hotovo) => window.setTimeout(hotovo, klid ? 0 : 1600)),
+    ]);
+    odesila = false;
+    zavazat.removeAttribute("aria-busy");
+    if (rozvazat) rozvazat.hidden = false;
+    const adresa = (mailEl?.value ?? "").trim();
+    if (odpoved.ok) {
+      rekni(
+        odpoved.naoko
+          ? `Šátek je zavázaný a objednávka je u nás. Ozveme se na ${adresa}.`
+          : `Šátek je zavázaný a objednávka je u nás. Potvrzení ti právě odešlo na ${adresa} — ozveme se kvůli platbě.`,
+      );
+      if (odpoved.naoko) console.info("[objednávka] naoko — server zatím maily neposílá");
+    } else {
+      rozvaz(false);
+      rekni((el) => zaloha(el, proc(odpoved.chyba), email, zalozni));
+    }
   });
   rozvazat?.addEventListener("click", () => rozvaz());
   koren?.querySelectorAll('input[name="doprava"]').forEach((r) => r.addEventListener("change", mail));
   jmeno?.addEventListener("input", mail);
+  mailEl?.addEventListener("input", mail);
   pozn?.addEventListener("input", mail);
 
   const sekce = document.getElementById("satek");

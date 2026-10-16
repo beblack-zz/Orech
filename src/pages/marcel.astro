@@ -69,13 +69,9 @@
  * Pod nimi je Na schovávanou (SamotkaSchovka.astro): malá Šamotka
  * s cizí miskou na zádech a žárem pod sebou.
  */
-import "@fontsource-variable/fraunces/full.css";
+import "../styles/pisma.css";
+import Hlava from "../components/Hlava.astro";
 import { ClientRouter } from "astro:transitions";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/newsreader";
-import "@fontsource-variable/newsreader/opsz-italic.css";
-import "@fontsource/caveat/400.css";
-import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/marcel.css";
@@ -108,6 +104,7 @@ import Postavicka from "../components/characters/Postavicka.astro";
 import Kami from "../components/parta2/Kami.astro";
 import Louka from "../components/parta2/Louka.astro";
 import Lucernicka from "../components/parta2/Lucernicka.astro";
+import IgPrispevek from "../components/marcel/IgPrispevek.astro";
 import { parta } from "../data/parta";
 import type { PostavaId } from "../data/parta";
 
@@ -154,22 +151,12 @@ const styly: Record<PostavaId, string> = {
   samotka: "Mědirytina",
 };
 
-/* Štětcové písmo jen se znaky ze štítků, z brány v Inari (CedulkaEma v3) a z nádržky u Hlínky (HlinkaZeme v3) */
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("円相顔筆奉納稲荷五隹止矢")}`;
+
 ---
 <!doctype html>
 <html lang="cs">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Marcel — JIRO saku</title>
-    <meta name="description" content="Pracovní stránka: postavičky z dílny jako kami a návrhy jejich tváří." />
-    <meta name="theme-color" content="#4F5E9C" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href={pismoZnaku} />
+    <Hlava titulek="Marcel — JIRO saku" popis="Pracovní stránka: postavičky z dílny jako kami a návrhy jejich tváří." barva="#4F5E9C" noindex />
     <ClientRouter />
   </head>
   <body class="p2 mc" data-stranka="marcel">
@@ -476,9 +463,18 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
           </ul>
         </div>
       </section>
+
+      {/* Příspěvek na Instagram — dřív samostatná stránka /ig-prispevek */}
+      <section class="mc-sekce" data-hodina="23.2" aria-labelledby="mc-instagram">
+        <div class="papir mc-siroky">
+          <p class="stitek">Instagram · příspěvek 4 : 5</p>
+          <h2 id="mc-instagram" class="nadpis-2">Pecinka na Instagramu</h2>
+          <IgPrispevek />
+        </div>
+      </section>
     </main>
 
-    <Paticka poznamka="Marcel je pracovní stránka: postavičky z dílny jako kami a návrhy jejich tváří." />
+    <Paticka />
 
     <script>
       import "../scripts/marcel/hlavni.ts";

@@ -14,14 +14,10 @@
  * věci stránky v styles/papirna.css, zámek ve scripts/papirna/hlavni.ts.
  */
 import fs from "node:fs";
+import Hlava from "../components/Hlava.astro";
 import path from "node:path";
-import "@fontsource-variable/fraunces/full.css";
+import "../styles/pisma.css";
 import { ClientRouter } from "astro:transitions";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/newsreader";
-import "@fontsource-variable/newsreader/opsz-italic.css";
-import "@fontsource/caveat/400.css";
-import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/papirna.css";
@@ -52,22 +48,12 @@ const rady = [
   "Na omalovánku a obrysy pastelky nebo fixy. Vodovky papír zvlní.",
 ];
 
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("一紙神")}`;
+
 ---
 <!doctype html>
 <html lang="cs">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Papírna · JIRO saku</title>
-    <meta name="description" content="Za tři nalezené kami se otevře Papírna: vystřihovánka party z dílny a omalovánka ke stažení." />
-    <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#4F5E9C" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href={pismoZnaku} />
+    <Hlava titulek="Papírna · JIRO saku" popis="Za tři nalezené kami se otevře Papírna: vystřihovánka party z dílny a omalovánka ke stažení." barva="#4F5E9C" noindex />
     <ClientRouter />
   </head>
   <body class="p2 pa" data-stranka="papirna" data-prah={prah}>
@@ -89,7 +75,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
             <p class="pa-pokyn">Papírna se otevře za {prah} nalezené kami. Máš <b class="pa-pocet">0</b> z {prah}.</p>
             <div class="pa-akce">
               <button type="button" class="tlacitko pa-omamori">Otevřít omamori</button>
-              <a class="tlacitko tlacitko-obrys" href="/parta-2">Kde začít hledat</a>
+              <a class="tlacitko tlacitko-obrys" href="/parta#hledani">Kde začít hledat</a>
             </div>
           </div>
           <div class="pa-otevreno" hidden>
@@ -134,7 +120,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
       </section>
     </main>
 
-    <Paticka poznamka={`Papírna je první komnata hry se schovanými kami. Otevře se za ${prah} nalezené.`} />
+    <Paticka />
 
     <script>
       import "../scripts/papirna/hlavni.ts";

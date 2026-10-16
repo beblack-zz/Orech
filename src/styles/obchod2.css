@@ -768,6 +768,11 @@
 .o2-satek-akce { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .o2-zavazat { cursor: pointer; }
 .o2-zavazat[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; transform: none; }
+.o2-zavazat[aria-busy="true"] { opacity: 0.7; cursor: progress; }
+.o2-satek-zprava { margin: 12px 0 0; padding-right: 64px; font: 600 20px / 1.2 var(--f-ruka); color: #3E6E68; }
+.o2-satek-zprava b { font-family: var(--f-text); font-size: 15px; font-weight: 600; }
+/* .p2 button by tlačítku vzal písmo — proto rodič v selektoru */
+.o2-satek-mriz .o2-satek-zprava :is(a, button) { color: var(--rumelka); font: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .o2-satek-pozn { margin: 12px 0 0; padding-right: 64px; font-size: 13.5px; color: var(--inkoust-3); }
 
 /* Čelo pultu: tři kroky na dřevěných tabulkách */

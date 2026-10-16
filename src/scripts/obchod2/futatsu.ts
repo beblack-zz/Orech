@@ -1,5 +1,5 @@
 /**
- * Vstup pro /obchod-2/futatsu. Obloha, hlavička, kami a šátek jsou společné
+ * Vstup pro /obchod/futatsu. Obloha, hlavička, kami a šátek jsou společné
  * s krámkem, hrnek do ruky (futatsu-otoc.ts) a noční kapitoly
  * (futatsu-noc.ts) mají vlastní moduly. Tady je zbytek stránky:
  *

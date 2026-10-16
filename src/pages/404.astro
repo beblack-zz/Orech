@@ -14,13 +14,9 @@
  * člověk asi chtěl (scripts/nenalezeno/kam.ts), a odkazy dál. Bez skriptu
  * zůstane číslo jako obrázek a text s odkazy.
  */
-import "@fontsource-variable/fraunces/full.css";
+import "../styles/pisma.css";
+import Hlava from "../components/Hlava.astro";
 import { ClientRouter } from "astro:transitions";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/newsreader";
-import "@fontsource-variable/newsreader/opsz-italic.css";
-import "@fontsource/caveat/400.css";
-import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/nenalezeno.css";
@@ -31,25 +27,18 @@ import Paticka from "../components/parta2/Paticka.astro";
 import Scena from "../components/nenalezeno/Scena.astro";
 
 const kam = [
-  { href: "/kurzy-2", label: "Kurzy a termíny" },
+  { href: "/rezervace#rz-rad", label: "Kurzy a termíny" },
   { href: "/dilna", label: "Dílna" },
   { href: "/rezervace", label: "Rezervace" },
-  { href: "/obchod-2", label: "Obchod" },
-  { href: "/parta-2", label: "Parta" },
-  { href: "/o-nas-2", label: "O nás" },
+  { href: "/obchod", label: "Obchod" },
+  { href: "/parta", label: "Parta" },
+  { href: "/o-nas", label: "O nás" },
 ];
 ---
 <!doctype html>
 <html lang="cs">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Tahle stránka se rozbila — JIRO saku</title>
-    <meta name="description" content="Stránka, kterou hledáš, tady není. Střípek ji aspoň slepí zlatem — a ukáže, kudy dál." />
-    <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#4F5E9C" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <Hlava titulek="Tahle stránka se rozbila — JIRO saku" popis="Stránka, kterou hledáš, tady není. Střípek ji aspoň slepí zlatem — a ukáže, kudy dál." barva="#4F5E9C" noindex />
     <ClientRouter />
   </head>
   <body class="p2 nn" data-stranka="nenalezeno">
@@ -90,7 +79,7 @@ const kam = [
       </section>
     </main>
 
-    <Paticka poznamka="Číslo z porcelánu se kreslí, rozbíjí a lepí přímo v prohlížeči — žádné obrázky, žádné nahrávky." />
+    <Paticka />
 
     <script>
       import "../scripts/nenalezeno/hlavni.ts";

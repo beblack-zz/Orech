@@ -1,12 +1,12 @@
 import type { PostavaId } from "./parta";
 
 /**
- * Parta 3 — nebeský chrám. Data pro /parta-3.
+ * Parta 3 — nebeský chrám. Data pro /parta.
  *
  * Parta 2 je den v dílně: cesta hlíny od hroudy po výpal. Parta 3 je noc
  * nad ní — když dílna zhasne, kami vystoupají do chrámu nad oblaky a hrají
  * divadlo. Tady je, kdo vystupuje, čím je a které kusy má na repertoáru.
- * Na /parta-3 je z toho „kdo je kdo“ pod lampiony; kusy s
+ * Na /parta je z toho „kdo je kdo“ pod lampiony; kusy s
  * `tus` hraje tušový flek (components/flek/Flek.astro).
  *
  * Kresby kusů jsou přehnané podoby z /marcel (components/characters/kami-buh);

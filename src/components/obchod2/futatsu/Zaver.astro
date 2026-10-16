@@ -17,7 +17,7 @@ import { podobizna, PODOBIZNA, obrys } from "./podobizna";
 import { satekScena, SATEK, KUS_SATEK, NADHLED_SATEK } from "./furoshiki";
 import { podpisove, cenovka } from "../../../data/kramek";
 
-const kus = podpisove.find((k) => k.podpis === "/obchod-2/futatsu")!;
+const kus = podpisove.find((k) => k.podpis === "/obchod/futatsu")!;
 const { castka, mena } = cenovka(kus.cena);
 const { zadni, predni } = satekScena(0, obrys({ uhel: 62, nadhled: NADHLED_SATEK }));
 
@@ -63,7 +63,7 @@ const poloha =
       </div>
       <p class="ftn-zaver-jak" data-zaver-prazdny>Šátek je náš košík. Až ho dole na pultu zavážeš, otevře se e-mail se seznamem a my potvrdíme, jestli je Futatsu ještě k mání.</p>
       <p class="ftn-zaver-jak" data-zaver-plny hidden>Futatsu leží v šátku. Zavázat ho můžeš <a href="#satek">dole na pultu</a> — otevře se e-mail se seznamem, potvrdíme, jestli je ještě k mání, a domluvíme platbu.</p>
-      <a class="ftn-zpet" href="/obchod-2#podpis">Zpátky do krámku</a>
+      <a class="ftn-zpet" href="/obchod#podpis">Zpátky do krámku</a>
     </div>
   </div>
 </section>

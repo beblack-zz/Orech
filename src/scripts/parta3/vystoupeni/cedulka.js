@@ -1,5 +1,5 @@
 /*
- * Vystoupení Cedulky na /parta-3 — choreografie pro scény ze scripts/cedulka-ema.
+ * Vystoupení Cedulky na /parta — choreografie pro scény ze scripts/cedulka-ema.
  * Jak se zapisují, je v ../herec.js; hraje je režisér (../reziser.ts).
  */
 import { cekej, mys, klik, pryc, az, titulek, ohlas } from "../herec.js";

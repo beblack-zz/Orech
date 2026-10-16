@@ -10,14 +10,15 @@
  * U každé zastávky je fotka toho místa: tohle je kresba, tohle doopravdy.
  * Do kresby se dá klikat — kruhy, hrouda, pec, kusy na regálu, dřez,
  * kávovar, lampa, dveře, knihy, glazury. Obsluha: scripts/domek2/prohlidka.ts.
+ * Samotná kresba čeká v <template> a vloží se, až se k prohlídce člověk blíží.
  */
 import { Image } from "astro:assets";
 import Kami from "../parta2/Kami.astro";
 import Postavicka from "../characters/Postavicka.astro";
 import { dilna, DILNA_W, DILNA_H } from "./kresba/dilna";
 import { zastavky } from "../../data/domek2";
-import { kurzy } from "../../data/kurzy";
-import { otazky, denVTydnu, glazury } from "../../data/kurzy2";
+import { kurzy, rezervace } from "../../data/rezervace";
+import { otazky, glazury } from "../../data/kurzy2";
 import { produkty } from "../../data/obchod";
 import { parta } from "../../data/parta";
 import { kdy } from "../../data/dilna";
@@ -52,12 +53,17 @@ const kamera = (id: string) => (d.kamery[id] ?? d.kamery.prehled).join(",");
 const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
 const otazka = (q: string) => otazky.find((o) => o.q === q);
 const pecinka = parta.find((p) => p.id === "pecinka");
-const k0 = kurzy[0];
-const datum = (dt: Date) => `${denVTydnu(dt)} ${dt.getDate()}. ${dt.getMonth() + 1}.`;
+/** Kurzy jsou jen zvláštní vlaky z Rezervace — u kruhů se ukáže ten na kruhu */
+const k0 = kurzy.find((k) => k.id === "kruh") ?? kurzy[0];
 const kusy = produkty.slice(0, 4);
 const glazura = (nazev: string) => glazury.find((g) => g.nazev === nazev.toLowerCase());
 const mail = (predmet: string, telo: string) => `mailto:${kontakt.email}?subject=${encodeURIComponent(predmet)}&body=${encodeURIComponent(telo)}`;
-const chatKafe = [otazka("Co si mám vzít s sebou?"), otazka("Kolik nás bude?")];
+/* Kolik se vejde, říká Rezervace — v kurzy2.ts je ještě stará odpověď „nejvýš 8 lidí“ */
+const kolik = otazka("Kolik nás bude?");
+const chatKafe = [
+  otazka("Co si mám vzít s sebou?"),
+  kolik && { ...kolik, a: `Na hodinu jsou v dílně ${rezervace.mist} místa, na celodenním kurzu ${k0.mist}. U kruhu se na každého dostane.` },
+];
 const z = Object.fromEntries(zastavky.map((x) => [x.id, x]));
 const kamiVKresbe: PostavaId[] = ["vazicka", "hlinka", "pecinka", "stripek", "cedulka", "kapka", "kachlik"];
 ---
@@ -68,7 +74,12 @@ const kamiVKresbe: PostavaId[] = ["vazicka", "hlinka", "pecinka", "stripek", "ce
         <div class="prohlidka-okno dm-okno">
           <div class="prohlidka-svet">
             <div class="rez dm-rez" data-rez="prohlidka">
-              <svg class="rez-kresba" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={d.svg} />
+              {/* Kresba dílny (přes tisíc prvků) se vloží, až se k ní člověk blíží
+                  (scripts/parta2/pozdeji.ts). Obal zůstává — .rez má poměr stran sám,
+                  klikací místa, cedulky i parta jsou v HTML vedle. Hlídá se celá sekce:
+                  kresba jezdí pod kamerou a kus z ní bývá mimo rám. */}
+              <svg class="rez-kresba" viewBox={`0 0 ${W} ${H}`} aria-hidden="true"></svg>
+              <template data-pozdeji="dovnitr" data-pozdeji-sleduj=".prohlidka"><svg xmlns="http://www.w3.org/2000/svg" set:html={d.svg} /></template>
 
               <div class="rez-mista">
                 {/* Zvýraznění „1 pec · 2 stoly · 3 kruhy“ z úvodní karty */}
@@ -139,7 +150,7 @@ const kamiVKresbe: PostavaId[] = ["vazicka", "hlinka", "pecinka", "stripek", "ce
         <p class="stanice-meta">{z.kruhy.meta}</p>
         <p>{z.kruhy.text}</p>
         {k0 && (
-          <p class="stanice-nejblizsi">Nejbližší kurz u kruhu: <a href="/kurzy-2#hledac"><b>{k0.title}</b>, {datum(k0.date)}</a>, vede {k0.lektor}.</p>
+          <p class="stanice-nejblizsi">Celý den u kruhu: <a href="/rezervace#rz-rad"><b>{k0.nazev}</b>, v sobotu</a>, vede {k0.lektor}.</p>
         )}
         <div class="stanice-akce">
           <button type="button" class="tlacitko tlacitko-maly" data-akce="kruh" data-kruh="0">Roztočit kopací kruh</button>
@@ -179,7 +190,7 @@ const kamiVKresbe: PostavaId[] = ["vazicka", "hlinka", "pecinka", "stripek", "ce
           <div class="pec-teplomer" aria-hidden="true"><span class="pec-sloupec"></span></div>
           <button type="button" class="tlacitko tlacitko-maly pec-tlacitko" data-akce="pec">Zapálit pec</button>
         </div>
-        <a class="stanice-odkaz" href="/parta-2#pecinka">Co se v peci děje, stupeň po stupni <span aria-hidden="true">→</span></a>
+        <a class="stanice-odkaz" href="/dilna#vypal">Co se v peci děje, stupeň po stupni <span aria-hidden="true">→</span></a>
         <figure class="dm-polaroid dm-polaroid-vpravo">
           <Image src={fotky[z.pec.foto.soubor]} alt={z.pec.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.pec.foto.kde}`} />
           <figcaption>{z.pec.foto.popis}</figcaption>
@@ -208,7 +219,7 @@ const kamiVKresbe: PostavaId[] = ["vazicka", "hlinka", "pecinka", "stripek", "ce
             );
           })}
         </ul>
-        <a class="stanice-odkaz" href="/obchod-2">Celý obchod <span aria-hidden="true">→</span></a>
+        <a class="stanice-odkaz" href="/obchod">Celý obchod <span aria-hidden="true">→</span></a>
         <figure class="dm-polaroid">
           <Image src={fotky[z.regal.foto.soubor]} alt={z.regal.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.regal.foto.kde}`} />
           <figcaption>{z.regal.foto.popis}</figcaption>

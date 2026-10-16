@@ -1,6 +1,6 @@
 // @ts-nocheck — převzato z návrhu navrhy/dvojka-vykres.html, čistý JS bez typů
 /**
- * Výkres hrnku Futatsu: čisté generátory SVG bez DOM (stránka /obchod-2/futatsu,
+ * Výkres hrnku Futatsu: čisté generátory SVG bez DOM (stránka /obchod/futatsu,
  * scripts/obchod2/futatsu.ts). Míry v mm, profil RIM/OUT/IN/BASE a výstupky NUBS
  * jsou odhad z fotek — až přijdou skutečné, mění se jen tady.
  *

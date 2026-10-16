@@ -10,6 +10,7 @@ import Kami from "../parta2/Kami.astro";
 import { kapitoly } from "../../data/dilna";
 import { ranoSvg, MISTA_RANO } from "./kresba/pec";
 import { mista } from "./misto";
+import { odloz } from "../../scripts/parta2/pozdeji";
 
 const k = kapitoly.find((x) => x.id === "hotovo")!;
 const m = mista(1200, 700);
@@ -17,7 +18,7 @@ const m = mista(1200, 700);
 <Kapitola kapitola={k} strana="siroka" trida="d-kap-hotovo">
   <figure class="d-obraz d-rano">
     <div class="d-obraz-kresba">
-      <div class="d-kresba" set:html={ranoSvg()} />
+      <div class="d-kresba" set:html={odloz(ranoSvg())} />
       <Kami id="pecinka" class="d-kami-nad" style={m.kami(MISTA_RANO.pecinka)} />
       <Kami id="stripek" class="d-kami-nad" style={m.kami(MISTA_RANO.stripek)} />
     </div>

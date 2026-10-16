@@ -1,0 +1,71 @@
+---
+/**
+ * Obchod 2 — návrh nového vzhledu obchodu. Stejný svět jako Parta 2,
+ * Kurzy 2 a Domek 2 (obloha, papír, písmo, parta), tady jako průčelí
+ * malého japonského obchodu s nádobím, kreslené podle nočního plakátu
+ * a izometrického krámku:
+ *
+ *   odpoledne → noc  — krámek na jednu obrazovku: kamera jede po průčelí
+ *                      (okno patra s keramikou z Japonska, výlohy s kusy
+ *                      z dílny), stmívá se, lampiony se rozsvěcují, spadne roleta
+ *   vitríny          — zboží pod krámkem za sklem: vlastní tvorba
+ *                      a japonská keramika (obloha se mezitím stmívá dál)
+ *   zadní místnost   — 奥の間 s tokonomou: podpisový kus Futatsu v paprsku
+ *                      z okénka, jde vzít do ruky, svitek s jeho výkresem
+ *                      a lístek 折紙 s cenou (Podpis.astro)
+ *   noc              — šátek furoshiki místo košíku, zaváže se a odejde mailem
+ *
+ * Fotky jsou zatím jen u keramiky z Japonska (zdaleka.ts); kusy z dílny
+ * stojí zabalené v novinách, dokud nedostanou `fotky` v obchod.ts.
+ */
+import "../styles/pisma.css";
+import Hlava from "../components/Hlava.astro";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/obchod2.css";
+import "../styles/kramek.css";
+import "../styles/vitrina.css";
+import { ClientRouter } from "astro:transitions";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Kramek from "../components/obchod2/Kramek.astro";
+import Vitrina from "../components/obchod2/Vitrina.astro";
+import Podpis from "../components/obchod2/Podpis.astro";
+import DetailKusu from "../components/obchod2/DetailKusu.astro";
+import Satek from "../components/obchod2/Satek.astro";
+
+import { kramek } from "../data/kramek";
+import { pocetKusu } from "../data/pocty";
+
+
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <Hlava titulek="Obchod — keramika z dílny i z Japonska · JIRO saku" popis={`Ručně dělaná keramika z dílny v Ořechu a kusy z Japonska. ${pocetKusu(kramek.length)}, každý jen jednou — co vidíš, to dostaneš.`} barva="#6FA4DA" />
+    <ClientRouter />
+  </head>
+  <body class="p2 o2" data-stranka="obchod-2">
+    <a class="preskocit" href="#kramek">Přeskočit do krámku</a>
+    <Nebe />
+    <Hlavicka sber="zadny" />
+
+    <main>
+      <Kramek />
+      <Vitrina odkud="dilna" />
+      <Vitrina odkud="japonsko" />
+      <Podpis />
+      <Satek />
+    </main>
+
+    <Paticka />
+    <DetailKusu />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/obchod2/hlavni.ts";
+    </script>
+  </body>
+</html>

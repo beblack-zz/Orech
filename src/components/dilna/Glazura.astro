@@ -11,6 +11,7 @@ import { kapitoly, glazovani, glazuraJaponsky } from "../../data/dilna";
 import { glazury } from "../../data/kurzy2";
 import { vzornikSvg, namaceniSvg, MISTA_GLAZURA } from "./kresba/glazura";
 import { mista } from "./misto";
+import { odloz } from "../../scripts/parta2/pozdeji";
 
 const k = kapitoly.find((x) => x.id === "glazura")!;
 const m = mista(800, 640);
@@ -23,7 +24,7 @@ const m = mista(800, 640);
   </ul>
 
   <figure class="d-obraz d-vzornik">
-    <div class="d-kresba" set:html={vzornikSvg()} />
+    <div class="d-kresba" set:html={odloz(vzornikSvg())} />
     <figcaption>
       Vzorník: nahoře syrová glazura, dole tatáž po výpalu —
       {glazury.map((g, i) => (
@@ -36,7 +37,7 @@ const m = mista(800, 640);
   </figure>
   <figure class="d-obraz d-namaceni">
     <div class="d-obraz-kresba">
-      <div class="d-kresba" set:html={namaceniSvg("dgn")} />
+      <div class="d-kresba" set:html={odloz(namaceniSvg("dgn"))} />
       <Kami id="kapka" class="d-kami-nad" style={m.kami(MISTA_GLAZURA.kapka)} />
     </div>
     <figcaption>Tři vteřiny ve kbelíku, pak houbičkou dočista otřít dno.</figcaption>

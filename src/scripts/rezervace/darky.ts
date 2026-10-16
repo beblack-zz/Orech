@@ -6,8 +6,10 @@
  * kurz a jízdenka se podle něj přepíše (znak, kurz, lektor, vláček).
  *
  * Zabalit a darovat: jízdenka dostane razítko Dárek, ovine ji páska
- * s mašlí mizuhiki, vláček v okně odjede a vrátí se — a otevře se e-mail
- * s objednávkou té jedné jízdenky. Stránka sama nic neodesílá. Rozepsaný
+ * s mašlí mizuhiki, vláček v okně odjede a vrátí se — a objednávka té
+ * jedné jízdenky odejde na /api/objednavka (scripts/parta2/objednavka.ts).
+ * Odkaz na tlačítku je připravený e-mail se stejnou objednávkou; ukáže
+ * se jako záloha, když server neodpoví. Rozepsaný
  * dárek si prohlížeč pamatuje (rezervace-darek), ať se při návratu
  * nepíše znovu.
  *
@@ -22,6 +24,7 @@ import { rezervace as R, permanentka as P, kurzy, cenaOdjezdu, cenaPermanentky, 
 import { sklonuj } from "../../data/pocty";
 import { klid, omez, nacti, uloz } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
+import { posliObjednavku, platnyEmail, proc, zaloha } from "../parta2/objednavka";
 
 type Dar = "hodiny" | "pas" | "kurz";
 type Forma = "pdf" | "papir";
@@ -38,7 +41,6 @@ interface Rozepsany {
 const KLIC = "rezervace-darek";
 const POLE: Pole[] = ["pro", "vzkaz", "od"];
 const DELKA: Record<Pole, number> = { pro: 28, vzkaz: 70, od: 28 };
-const ODJEZDU = ["", "jeden odjezd", "dva odjezdy", "tři odjezdy", "čtyři odjezdy"];
 const kc = (n: number) => `${n.toLocaleString("cs-CZ")} Kč`;
 const dvoj = (n: number) => String(n).padStart(2, "0");
 const hhmm = (h: number) => `${Math.floor(h)}:${dvoj(Math.round((h % 1) * 60))}`;
@@ -205,9 +207,9 @@ export function initDarky() {
     const jmeno = nazev + (dar === "kurz" ? ` — ${kurz ? kurz.nazev : "kterýkoli kurz"}` : "");
     const popis =
       dar === "hodiny"
-        ? `${nazev} — ${ODJEZDU[odjezduDarku] ?? `${odjezduDarku} odjezdů`} po hodině a půl (odjezdy si obdarovaný vybere sám)`
+        ? `${nazev} — ${odjezduDarku}× 90 minut (hodiny si obdarovaný vybere sám)`
         : dar === "pas"
-          ? `Permanentka na ${sklonuj(P.mesicu, "měsíc", "měsíce", "měsíců")} — jeden den v týdnu, pokaždé stejný spoj (den a spoj si obdarovaný vybere sám)`
+          ? `Permanentka na ${sklonuj(P.mesicu, "měsíc", "měsíce", "měsíců")} — jeden den v týdnu, pokaždé stejná hodina (den a hodinu si obdarovaný vybere sám)`
           : `Zvláštní vlak — ${kurz ? `kurz ${kurz.nazev}` : "kterýkoli kurz"} na celý den (${kurz ? "termín" : "kurz i termín"} si obdarovaný vybere sám)`;
     const radky = [
       "Ahoj, chci objednat dárkovou jízdenku:",
@@ -429,6 +431,11 @@ export function initDarky() {
     }
   }
 
+  const kupujici = koren.querySelector<HTMLInputElement>('[name="kupujici-jmeno"]');
+  const kupujiciMail = koren.querySelector<HTMLInputElement>('[name="kupujici-email"]');
+  const pasticka = koren.querySelector<HTMLInputElement>('[name="web"]');
+  let odesila = false;
+
   for (const s of sloupce) {
     const odeslat = s.querySelector<HTMLAnchorElement>(".rz-dar-darovat");
     const hotovo = s.querySelector<HTMLElement>(".rz-dar-hotovo");
@@ -436,9 +443,33 @@ export function initDarky() {
     if (!odeslat) continue;
     odeslat.addEventListener("click", (e) => {
       e.preventDefault();
+      if (odesila) return;
       const dar = s.dataset.dar as Dar;
-      const href = mail(s, stav());
+      const st = stav();
+      const href = mail(s, st);
       rozbal();
+      /* Bez jména a e-mailu kupujícího nevíme, komu se ozvat kvůli platbě */
+      const chybi = !kupujici?.value.trim() ? kupujici : !platnyEmail(kupujiciMail?.value ?? "") ? kupujiciMail : null;
+      if (chybi) {
+        if (hotovo) hotovo.textContent = chybi === kupujici ? "Dole pod jízdenkami nám napiš svoje jméno — ať víme, od koho dárek je." : "Dole pod jízdenkami nám napiš svůj e-mail — ať máme kam se ozvat.";
+        chybi?.focus({ preventScroll: true });
+        chybi?.scrollIntoView({ block: "center", behavior: klid ? "auto" : "smooth" });
+        return;
+      }
+      odesila = true;
+      const odpoved = posliObjednavku({
+        druh: "darek",
+        dar,
+        kurz: st.kurz,
+        forma: st.forma,
+        pro: st.pro,
+        vzkaz: st.vzkaz,
+        od: st.od,
+        jmeno: kupujici?.value ?? "",
+        email: kupujiciMail?.value ?? "",
+        poznamka: "",
+        web: pasticka?.value ?? "",
+      });
       odeslat.setAttribute("aria-busy", "true");
       /* Páska jde přes prostředek jízdenky — ten musí být vidět, jinak se k jízdence nejdřív posune */
       const predmet = s.querySelector<HTMLElement>(".rz-dar-predmet");
@@ -462,18 +493,24 @@ export function initDarky() {
         window.setTimeout(() => zvuk.oslava(), 2050);
       });
       pozdeji(start + 6000, () => s.classList.remove("balim"));
-      /* Mail se otevře, až je jízdenka zabalená */
-      pozdeji(start + (klid ? 300 : 2300), () => {
+      /* Zpráva přijde, až je jízdenka zabalená a server odpověděl */
+      /* Vlastní časovač, ne `pozdeji` — rozbal() ty ruší a objednávka by pak nikdy nedoběhla */
+      const zabaleno = new Promise<void>((konec) => window.setTimeout(konec, start + (klid ? 300 : 2300)));
+      Promise.all([odpoved, zabaleno]).then(([o]) => {
+        odesila = false;
         odeslat.removeAttribute("aria-busy");
-        if (hotovo) {
-          /* Kdyby prohlížeč mail z časovače neotevřel, je tu odkaz na tentýž */
-          const znovu = document.createElement("a");
-          znovu.href = href;
-          znovu.textContent = "otevřít znovu";
-          hotovo.replaceChildren("Zabaleno. Mail s objednávkou je připravený — stačí ho odeslat. Neotevřel se? ", znovu, ".");
+        const adresa = (kupujiciMail?.value ?? "").trim();
+        if (o.ok) {
+          if (hotovo)
+            hotovo.textContent = o.naoko
+              ? `Zabaleno a objednávka je u nás. Ozveme se na ${adresa} kvůli platbě.`
+              : `Zabaleno a odesláno. Potvrzení ti právě odešlo na ${adresa} — ozveme se kvůli platbě.`;
+          if (o.naoko) console.info("[objednávka] naoko — server zatím maily neposílá");
+          if (rozbalit) rozbalit.hidden = false;
+        } else {
+          rozbal();
+          if (hotovo) zaloha(hotovo, proc(o.chyba), email, href);
         }
-        if (rozbalit) rozbalit.hidden = false;
-        window.location.href = href;
       });
     });
     rozbalit?.addEventListener("click", () => {

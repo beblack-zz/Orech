@@ -10,43 +10,40 @@
  * a protože je patička všude, dá se najít na kterékoli stránce.
  *
  * Bez skriptu zůstane jen kontakt — tlačítko Kopej se ukáže až s ním.
- * Poznámku dole si stránka může poslat vlastní.
  *
  * S patičkou jde na každou stránku i tušový flek (components/flek): kaňka
  * leží vedle patičky, ne v ní, protože se pozicuje vůči celé stránce.
  * `flekMimo` jsou místa stránky, kam flek nesmí (k těm, kterým se vyhýbá
  * sám); spouští ho hlavička (scripts/parta2/hlavicka.ts).
  */
-import Enso from "../navrhy-loga/Enso.astro";
-import ZnackaStetec from "../znacka/ZnackaStetec.astro";
 import { kontakt, mapa } from "../../data/uvod2";
 import { oteviraciDoba, vrstvy } from "../../data/paticka";
-import { koreny, puda, vrstva, nalez, lopatka, SCHOVANA } from "./podzemi";
+import { lopatka, SCHOVANA } from "./podzemi";
+/* Kresby patičky (hlína, kořeny, vrstvy, nálezy, ensō a značka) jsou samostatné soubory
+   /kresby/*.svg — prohlížeč si je uloží jednou, místo aby byly v HTML každé stránky */
+import { patickaKresby } from "../../pages/kresby/_kresby";
 import Hlinka from "../characters/schovka/Hlinka.astro";
 import Flek from "../flek/Flek.astro";
 
 interface Props {
-  poznamka?: string;
   flekMimo?: string;
 }
-const {
-  flekMimo = "",
-  poznamka = "Parta 2 je návrh nového vzhledu webu. Obloha, krajina i zvuky se kreslí a skládají přímo v prohlížeči — žádné fotky, žádné nahrávky.",
-} = Astro.props;
+const { flekMimo = "" } = Astro.props;
 const rok = new Date().getFullYear();
+const K = await patickaKresby();
 ---
 <Flek mimo={flekMimo} />
 <footer class="pata">
   <div class="pata-hlina">
     <div class="pata-pozadi" aria-hidden="true">
-      <div class="pata-puda" set:html={puda()} />
-      <div class="pata-koreny" set:html={koreny()} />
+      <div class="pata-puda"><img src={K.puda} alt="" decoding="async" fetchpriority="low" /></div>
+      <div class="pata-koreny"><img src={K.koreny} alt="" decoding="async" fetchpriority="low" /></div>
     </div>
 
     <div class="pata-obsah">
       <div class="pata-info">
         <div>
-          <p class="pata-znacka"><Enso size={54} soumrak tema="tmave" /> <ZnackaStetec vyska={26} tema="tmave" /></p>
+          <p class="pata-znacka"><img src={K.enso} width="54" height="54" alt="JIRO saku" decoding="async" /> <img src={K.znacka.src} width={K.znacka.width} height={K.znacka.height} alt="JIRO saku" decoding="async" /></p>
           <p class="pata-podtitul">Keramická dílna v Ořechu.</p>
         </div>
         <div>
@@ -64,27 +61,26 @@ const rok = new Date().getFullYear();
         </div>
       </div>
       <nav class="pata-nav" aria-label="Patička">
-        <a href="/kurzy-2">Kurzy</a>
+        <a href="/rezervace#rz-rad">Kurzy</a>
         <a href="/dilna">Dílna</a>
-        <a href="/obchod-2">Obchod</a>
-        <a href="/parta-2">Parta</a>
-        <a href="/o-nas-2">O nás</a>
+        <a href="/obchod">Obchod</a>
+        <a href="/parta">Parta</a>
+        <a href="/o-nas">O nás</a>
       </nav>
       <p class="pata-tiraz">© {rok} JIRO saku · {kontakt.ulice}, {kontakt.psc} {kontakt.obec}</p>
-      <p class="pata-poznamka">{poznamka}</p>
     </div>
   </div>
 
   <div class="kopani" data-kopani>
     <ol class="vrstvy" id="pata-vrstvy" aria-label="Starší vrstvy pod dílnou">
-      {vrstvy.map((v, i) => (
+      {vrstvy.map((v) => (
         <li class:list={["vrstva", { "vrstva-svetla": v.svetla }]} aria-hidden="true" inert>
           <div class="vrstva-obal">
             <div class="vrstva-plocha">
-              <div class="vrstva-pozadi" set:html={vrstva(i)} />
+              <div class="vrstva-pozadi"><img src={K.vrstva(v.id)} alt="" decoding="async" fetchpriority="low" /></div>
               <div class="vrstva-nalez">
                 <div class="vrstva-nalez-obal">
-                  <Fragment set:html={nalez(v.id)} />
+                  <img src={K.nalez(v.id)} width="240" height="160" alt="" decoding="async" fetchpriority="low" />
                   {v.id === SCHOVANA.vrstva && (
                     <button
                       type="button"

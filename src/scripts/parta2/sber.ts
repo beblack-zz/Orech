@@ -11,6 +11,8 @@ import { ukazOmamori, SMAZANO } from "./omamori";
 
 const KLIC = KLIC_NALEZENI;
 const VSICHNI = 9;
+/** Pošle se na document, když host najde nového kami (detail = jeho id) — Vázička-průvodce na to řekne svou */
+export const NALEZEN = "kami:nalezen";
 const nalezeni = new Set<string>(nacti<string[]>(KLIC, []));
 
 /** Nalezení kami ve skrýších svítí — na Partě 2 i mimo ni (schovej níž) */
@@ -147,6 +149,7 @@ export function najdi(s: HTMLElement | SVGElement) {
   }
   nalezeni.add(id);
   uloz(KLIC, [...nalezeni]);
+  document.dispatchEvent(new CustomEvent(NALEZEN, { detail: id }));
   s.classList.add("nalezen-ted");
   window.setTimeout(() => s.classList.remove("nalezen-ted"), 800);
   aktualizuj(id);

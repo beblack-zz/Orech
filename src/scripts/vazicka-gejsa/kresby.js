@@ -30,7 +30,7 @@
  * posune přes krok(). Zvuky, které má běh zahrát, krok přidá do dyn.zvuk.
  */
 import { f } from "./spolecne.js";
-import { kamiKvety, kamiLet, kamiPruvodce } from "./kami-kvety.js";
+import { kamiKvety, kamiLet, kamiPruvodce, kamiPruvodceMistr } from "./kami-kvety.js";
 import { lemTycinka } from "./lem-tycinka.js";
 import { lemDestnik } from "./lem-destnik.js";
 import { lampion } from "./lampion.js";
@@ -75,4 +75,4 @@ export const pretoc = (V, t, vstup = {}, krokS = 1 / 60) => {
   return dyn;
 };
 
-export const kresby = { kvety: kamiKvety, let: kamiLet, pruvodce: kamiPruvodce, tycinka: lemTycinka, destnik: lemDestnik, lampion };
+export const kresby = { kvety: kamiKvety, let: kamiLet, pruvodce: kamiPruvodce, pruvodceMistr: kamiPruvodceMistr, tycinka: lemTycinka, destnik: lemDestnik, lampion };

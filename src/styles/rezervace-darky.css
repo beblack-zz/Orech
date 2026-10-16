@@ -302,6 +302,13 @@
 .rz-darky-forma { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .rz-darky-forma legend { float: left; margin: 0 6px 0 0; padding: 0; font-size: 15px; color: var(--inkoust-2); }
 .rz-darky-dole .rz-pozn { max-width: 52ch; }
+/* Kdo dárek kupuje — kam napsat kvůli platbě */
+.rz-darky-kupujici { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.rz-darky-pole { display: grid; gap: 2px; min-width: min(240px, 100%); font-size: 14px; color: var(--inkoust-2); }
+.rz-darky-pole input { width: 100%; padding: 4px 2px; border: 0; border-bottom: 1.5px solid rgba(43, 36, 32, 0.45); border-radius: 0; background: transparent; color: var(--inkoust); font: 600 22px / 1.2 var(--f-ruka); }
+.rz-darky-pole input:focus { outline: none; border-bottom-color: var(--rumelka); box-shadow: 0 2px 0 rgba(196, 67, 43, 0.25); }
+.rz-dar-hotovo b { font-family: var(--f-text); font-size: 15px; }
+.rz-darky-karta .rz-dar-hotovo :is(a, button) { color: var(--rumelka); font: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .rz-darky-pata { max-width: 82ch; margin: 16px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--inkoust-3); }
 
 /* ——— UV lampa ——— */

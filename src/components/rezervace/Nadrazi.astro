@@ -38,7 +38,7 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
 
   <div class="rz-nadrazi-karta papir">
     <p class="stitek">jízdenka do dílny</p>
-    <h1 id="rz-nadpis" class="rz-nadpis">Vyber si odjezd. <em>Nastup.</em></h1>
+    <h1 id="rz-nadpis" class="rz-nadpis">Vyber si hodinu v dílně. <em>Nastup.</em></h1>
 
     {/* Kdo se dívá. Bez skriptu a v ukázce host — skript (hlavni.ts) přepne na člena, který přišel přes svůj odkaz, nebo na neplatný odkaz */}
     <div class="rz-clen" data-co="host" aria-live="polite">
@@ -47,7 +47,7 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.2" /><path d="M12.2 12 H21 M17.5 12 V15.5 M20.5 12 V14.5" /></svg>
           Rezervace jen s přístupem
         </p>
-        <p>Jsi tu poprvé? Zavolej, nadiktuj nám e-mail a pošleme ti odkaz — pak už si zamluvíš sám. Projít si odjezdy a ceny můžeš i bez něj.</p>
+        <p>Jsi tu poprvé? Zavolej, nadiktuj nám e-mail a pošleme ti odkaz — pak už si zamluvíš sám. Projít si volné hodiny a ceny můžeš i bez něj.</p>
         <a class="rz-clen-tel" href={`tel:${kontakt.telefonOdkaz}`}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5 L9.4 3.2 L11 7.6 L8.9 9.2 C9.9 11.4 12.6 14.1 14.8 15.1 L16.4 13 L20.8 14.6 L20.5 17.4 C20.3 19 18.9 20.3 17.2 20.2 C10 19.6 4.4 14 3.8 6.8 C3.7 5.1 5 3.7 6.6 3.5 Z" /></svg>
           {kontakt.telefon}
@@ -61,13 +61,13 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
       </div>
     </div>
     <p class="rz-perex">
-      Čas v dílně se tu kupuje jako jízdenka na vlak: vybereš den a odjezd — hodinu a půl v dílně, kde jsou
-      {rezervace.mist} místa. Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin. Jízdné je skupinové a platí se
+      Čas v dílně se tu kupuje jako jízdenka na vlak: vybereš den a hodinu v dílně (90 min) — jsou na ni {rezervace.mist} místa.
+      Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin. Jízdné je skupinové a platí se
       na místě: když jsi v dílně sám, {kc(cenaZaCloveka(1))}&nbsp;Kč, když je plno, {kc(cenaZaCloveka(rezervace.mist))}&nbsp;Kč za každého.
     </p>
 
     <button type="button" class="rz-pristi" data-rz-nejblizsi hidden>
-      <span class="rz-pristi-hlava">příští volný odjezd</span>
+      <span class="rz-pristi-hlava">příští volná hodina</span>
       <span class="rz-pristi-klapky" aria-hidden="true">
         <Flap text="—" class="rz-pristi-den" />
         <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i><Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>.</i>
@@ -81,7 +81,7 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
     <p class="rz-dnes" aria-live="polite">Otevřeno je každé úterý a pátek, {rezervace.od}–{rezervace.do} hodin.</p>
     <p class="rz-jinak">
       {V_DEN_KURZU} jezdí <b>zvláštní vlak</b> — kurz na celý den, kde se místa plní po jednom.
-      A kdo jezdí pravidelně, vezme si <b>permanentku</b> na {permanentka.mesicu} měsíce: jeden den v týdnu, první nebo poslední spoj.
+      A kdo jezdí pravidelně, vezme si <b>permanentku</b> na {permanentka.mesicu} měsíce: jeden den v týdnu, první nebo poslední hodina dne.
     </p>
     <button type="button" class="rz-kurz-pristi" data-rz-kurz-pristi hidden>
       <span class="rz-kurz-pristi-hlava">příští zvláštní vlak</span>
@@ -89,7 +89,7 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
       <span class="rz-kurz-pristi-akce" aria-hidden="true">→</span>
     </button>
     <div class="rz-cta">
-      <a class="tlacitko" href="#rz-pokladna">Vybrat odjezd</a>
+      <a class="tlacitko" href="#rz-pokladna">Vybrat hodinu</a>
       <a class="tlacitko tlacitko-obrys" href="#rz-darky">Darovat jízdenku</a>
     </div>
     <p class="rz-pokyn">

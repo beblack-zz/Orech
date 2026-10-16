@@ -7,13 +7,25 @@
  *
  * Zvuk je ve výchozím stavu zapnutý, ale prohlížeč ho pustí až po prvním
  * kliknutí nebo klávese na stránce — to hlídá hlavicka.ts. Kliknutí na
- * zvonkohru v hlavičce ho ztlumí.
+ * zvonkohru v hlavičce otevře nabídku: celý zvuk, nebo jen některé skupiny.
  */
 import type { PostavaId } from "../../data/parta";
 import { priOdchodu } from "./prechody";
 
+/**
+ * Skupiny, které si host může v nabídce u zvonkohry vypnout zvlášť.
+ * Kami (jejich beh.js) a hlas Vázičky mají vlastní AudioContext, takže
+ * se jen ptají přes `smi`; ostatní jdou přes vlastní zesilovač skupiny.
+ */
+export type Skupina = "zvonkohra" | "okoli" | "vazicka" | "hra";
+export const SKUPINY: readonly Skupina[] = ["zvonkohra", "okoli", "vazicka", "hra"];
+const skupiny: Record<Skupina, boolean> = { zvonkohra: true, okoli: true, vazicka: true, hra: true };
+const uzlySkupin: Partial<Record<Skupina, GainNode>> = {};
+
 let ctx: AudioContext | null = null;
 let hlavni: GainNode;
+/** Zvuky pod rukou: klepnutí, kami, scény */
+let hra: GainNode;
 let vitr: GainNode;
 let vitrNarazy: GainNode;
 let vitrFiltr: BiquadFilterNode;
@@ -45,6 +57,14 @@ function pripravit() {
   hlavni = ctx.createGain();
   hlavni.gain.value = 0;
   hlavni.connect(ctx.destination);
+  for (const s of ["zvonkohra", "okoli", "hra"] as const) {
+    const g = ctx.createGain();
+    g.gain.value = skupiny[s] ? 1 : 0;
+    g.connect(hlavni);
+    uzlySkupin[s] = g;
+  }
+  hra = uzlySkupin.hra!;
+  const okoli = uzlySkupin.okoli!;
 
   const v = ctx.createBufferSource();
   v.buffer = sum(4, true);
@@ -56,7 +76,7 @@ function pripravit() {
   vitrNarazy.gain.value = 0.6;
   vitr = ctx.createGain();
   vitr.gain.value = 0.05;
-  v.connect(vitrFiltr).connect(vitrNarazy).connect(vitr).connect(hlavni);
+  v.connect(vitrFiltr).connect(vitrNarazy).connect(vitr).connect(okoli);
   v.start();
   pripravZvonkohru();
 
@@ -68,32 +88,76 @@ function pripravit() {
   pf.frequency.value = 200;
   pec = ctx.createGain();
   pec.gain.value = 0;
-  p.connect(pf).connect(pec).connect(hlavni);
+  p.connect(pf).connect(pec).connect(okoli);
   p.start();
 }
 
 export const jeZapnuto = () => zapnuto;
+/** Smí hrát tahle skupina — zvuk je zapnutý a skupina v nabídce taky */
+export const smi = (s: Skupina) => zapnuto && skupiny[s];
+/** Pro beh.js kami: místo jeZapnuto, ať je ztlumí i volba „Zvuky pod rukou“ */
+export const hraZapnuta = () => smi("hra");
+export const skupinaZapnuta = (s: Skupina) => skupiny[s];
+
+/** Zapne nebo vypne skupinu; zesilovač dojede měkce, ať to necvakne */
+export function nastavSkupinu(s: Skupina, zap: boolean) {
+  skupiny[s] = zap;
+  const g = uzlySkupin[s];
+  if (!ctx || !g) return;
+  const t = ctx.currentTime;
+  podrz(g.gain, t);
+  g.gain.setTargetAtTime(zap ? 1 : 0, t + 0.01, zap ? 0.5 : 0.12);
+}
 /** Opravdu hraje — prohlížeč zvuk pustí až po prvním gestu na stránce */
 export const hraje = () => zapnuto && ctx?.state === "running";
 export const odemkni = () => ctx?.resume();
 
+/** Zastaví plánované změny hlasitosti a podrží tu, která právě zní (Firefox cancelAndHold neumí) */
+function podrz(g: AudioParam, t: number) {
+  if (typeof g.cancelAndHoldAtTime === "function") g.cancelAndHoldAtTime(t);
+  else {
+    const v = g.value;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(v, t);
+  }
+}
+
+/** Jak dlouho zvuk po zapnutí najíždí */
+const NABEH = 2.6;
+const PLNA = 0.9;
+
 export async function prepni() {
   if (!ctx) pripravit();
   zapnuto = !zapnuto;
-  const t = ctx!.currentTime;
-  hlavni.gain.cancelScheduledValues(t);
   if (zapnuto) {
     await ctx!.resume();
-    hlavni.gain.setTargetAtTime(0.9, t, 0.4);
+    if (!zapnuto) return zapnuto;
+    /* Náběh po křivce: ucho slyší hlasitost logaritmicky, takže rovná
+       rampa zní jako rána a pak už nic. Smoothstep na druhou začne skoro
+       potichu (po čtvrtině náběhu −31 dB) a do plné hlasitosti dojde měkce. */
+    const t = ctx!.currentTime;
+    podrz(hlavni.gain, t);
+    const od = hlavni.gain.value;
+    const krivka = new Float32Array(64);
+    for (let i = 0; i < krivka.length; i++) {
+      const x = i / (krivka.length - 1);
+      const s = x * x * (3 - 2 * x);
+      krivka[i] = od + (PLNA - od) * s * s;
+    }
+    hlavni.gain.setValueCurveAtTime(krivka, t + 0.01, NABEH);
     planujCvrcky();
   } else {
-    hlavni.gain.setTargetAtTime(0, t, 0.15);
+    const t = ctx!.currentTime;
+    podrz(hlavni.gain, t);
+    hlavni.gain.setTargetAtTime(0, t + 0.01, 0.15);
     window.clearTimeout(cvrckyCas);
   }
   return zapnuto;
 }
 
-const muze = () => zapnuto && ctx !== null;
+/* Dokud prohlížeč zvuk nepustí, čas kontextu stojí — údery naplánované
+   mezitím by po prvním kliknutí zazněly všechny najednou. */
+const muze = () => zapnuto && ctx !== null && ctx.state === "running";
 
 export function furin(vyska?: number, hlasitost = 0.11) {
   if (!muze()) return;
@@ -104,7 +168,7 @@ export function furin(vyska?: number, hlasitost = 0.11) {
   ven.gain.value = hlasitost;
   const pan = c.createStereoPanner();
   pan.pan.value = Math.random() * 0.8 - 0.4;
-  ven.connect(pan).connect(hlavni);
+  ven.connect(pan).connect(hra);
   for (const [k, g, doba] of [[1, 1, 2.8], [2.76, 0.45, 1.7], [5.4, 0.22, 0.9], [8.93, 0.1, 0.5]]) {
     const o = c.createOscillator();
     o.frequency.value = f * k * (1 + (Math.random() - 0.5) * 0.004);
@@ -128,7 +192,7 @@ function cvrcek() {
   g.gain.value = 0;
   const pan = c.createStereoPanner();
   pan.pan.value = Math.random() * 1.6 - 0.8;
-  o.connect(g).connect(pan).connect(hlavni);
+  o.connect(g).connect(pan).connect(uzlySkupin.okoli!);
   const sila = 0.022 * noc;
   for (let i = 0; i < 3; i++) {
     const s = t + i * 0.055;
@@ -212,13 +276,14 @@ function pripravZvonkohru() {
   komp.ratio.value = 3;
   komp.attack.value = 0.005;
   komp.release.value = 0.4;
+  const ven = uzlySkupin.zvonkohra!;
   zvonkohraVen = c.createGain();
-  zvonkohraVen.connect(komp).connect(hlavni);
+  zvonkohraVen.connect(komp).connect(ven);
   const dozvuk = c.createConvolver();
   dozvuk.buffer = odezva(3.4);
   const mokro = c.createGain();
   mokro.gain.value = 0.3;
-  komp.connect(mokro).connect(dozvuk).connect(hlavni);
+  komp.connect(mokro).connect(dozvuk).connect(ven);
   klepnuti = sum(0.06, false);
 }
 
@@ -247,7 +312,7 @@ function odezva(sekundy: number) {
 
 /** Úder do trubky zvonkohry: tón v Hz, síla 0–1, pan −1 vlevo … 1 vpravo */
 export function zvonek(ton: number, sila: number, pan = 0) {
-  if (!muze() || !zvonkohraVen) return;
+  if (!muze() || !skupiny.zvonkohra || !zvonkohraVen) return;
   const c = ctx!;
   const t = c.currentTime + 0.004;
   while (hlasy.length && hlasy[0].konec < t) hlasy.shift();
@@ -314,7 +379,7 @@ function pripravKruh() {
   mf.frequency.value = 170;
   motorSila = c.createGain();
   motorSila.gain.value = 0;
-  motor.connect(mf).connect(motorSila).connect(hlavni);
+  motor.connect(mf).connect(motorSila).connect(hra);
   motor.start();
 
   const s = c.createBufferSource();
@@ -326,7 +391,7 @@ function pripravKruh() {
   sf.Q.value = 0.8;
   mlask = c.createGain();
   mlask.gain.value = 0;
-  s.connect(sf).connect(mlask).connect(hlavni);
+  s.connect(sf).connect(mlask).connect(hra);
   s.start();
 }
 
@@ -357,7 +422,7 @@ function ton(f0: number, f1: number, doba: number, typ: OscillatorType = "sine",
   const g = c.createGain();
   g.gain.setValueAtTime(sila, t);
   g.gain.exponentialRampToValueAtTime(0.0001, t + doba);
-  o.connect(g).connect(hlavni);
+  o.connect(g).connect(hra);
   o.start(t);
   o.stop(t + doba + 0.02);
 }
@@ -375,7 +440,7 @@ function sumik(doba: number, frekvence: number, q: number, sila: number) {
   const g = c.createGain();
   g.gain.setValueAtTime(sila, t);
   g.gain.exponentialRampToValueAtTime(0.0001, t + doba);
-  s.connect(f).connect(g).connect(hlavni);
+  s.connect(f).connect(g).connect(hra);
   s.start(t);
 }
 
@@ -464,7 +529,7 @@ export function stetecSila(mira: number) {
     f.Q.value = 0.55;
     stetec = c.createGain();
     stetec.gain.value = 0;
-    s.connect(f).connect(stetec).connect(hlavni);
+    s.connect(f).connect(stetec).connect(hra);
     s.start();
   }
   stetec.gain.setTargetAtTime(Math.min(1, Math.max(0, mira)) * 0.1, c.currentTime, 0.04);
@@ -509,7 +574,7 @@ export function rozhlas(zaver = false) {
     filtr.type = "bandpass";
     filtr.frequency.value = 1400;
     filtr.Q.value = 0.7;
-    ven.connect(filtr).connect(hlavni);
+    ven.connect(filtr).connect(hra);
     for (const [k, g, doba] of [[1, 1, 1.6], [2, 0.35, 1.1], [3.01, 0.2, 0.7], [4.2, 0.08, 0.4]]) {
       const o = c.createOscillator();
       o.frequency.value = fr * k;
@@ -567,4 +632,4 @@ export const ohineri = () => {
 /* Komnata Dílna (/zkouska): hry si skládají vlastní zvuky ze stejných kousků */
 export { ton, sumik };
 /** Kontext a hlavní výstup pro přesné plánování (rytmus hnětení) — null, dokud zvuk nehraje */
-export const audio = () => (muze() && ctx ? { ctx, vystup: hlavni as AudioNode } : null);
+export const audio = () => (muze() && ctx ? { ctx, vystup: hra as AudioNode } : null);

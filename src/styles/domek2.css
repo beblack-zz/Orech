@@ -12,6 +12,8 @@
 /* ——— Svítání: krajina z Party 2 (.uvod v parta2.css), text z Úvodu 2 ——— */
 
 .dm-uvod-akce { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; text-shadow: none; }
+/* Kdy a za kolik — pod tlačítky, aby bylo vidět bez kliknutí */
+.dm-uvod-kdy { margin: 12px 0 0; font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
 /* Na obloze nad krajinou je obrysové tlačítko světlé */
 .dm-uvod .tlacitko-obrys { border-color: rgba(255, 251, 242, 0.85); color: #FFFBF2 !important; }
 .dm-uvod .tlacitko-obrys:hover { background: #FFFBF2; color: var(--inkoust) !important; }
@@ -563,23 +565,12 @@
 /* Parta jde po chodníku: ten je v kresbě 11 až 17 % nad spodkem */
 .dm-vecer .pruvod { z-index: 4; bottom: 10.5%; }
 /*
- * Průvod s lampiony z /marcel: kresby jsou čtvercové a chodí na místě, dopředu
- * je nese CSS. Mezera je aspoň 1,2 šířky, takže na úzkém displeji jdou řidčeji
- * (část cesty je mimo obrazovku) a na širokém celá šňůra vyplní chodník.
- * Ve čtverci je pod nohama asi osmina vzduchu — kresba se o ni stáhne pod
- * spodek člena, aby šlapali po chodníku jako dřív parta.
+ * Průvod s lucerničkami: malá kami jako na /marcel, pohyb a lucerna jsou
+ * z uvod2.css a parta2.css (.pruvod-clen, .pruvod-kami, .lucerna). Na chodníku
+ * u domu jsou o kus větší, ať nezmizí vedle fasády; sedm jich jde po 60 s dokola.
  */
-.dm-pruvod { height: clamp(110px, 13vw, 200px); }
-.dm-pruvod-clen {
-  width: clamp(110px, 13vw, 200px);
-  animation: dm-pruvod 70s linear infinite;
-  animation-delay: calc(var(--i) * -70s / var(--clenu, 7));
-}
-@keyframes dm-pruvod {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(calc(max(100vw + 100%, var(--clenu, 7) * 120%) - 100%)); }
-}
-.dm-pruvod-kresba { width: 100%; margin-bottom: -12%; }
+.dm-vecer .pruvod { height: clamp(90px, 12vw, 160px); }
+.dm-vecer .pruvod-clen { width: clamp(64px, 8vw, 118px); animation-delay: calc(var(--i) * -60s / 7); }
 .dm-vecer .noc-karta { margin-top: 0; }
 @media (max-width: 860px) {
   .dm-vecer-dum { --w: calc(100vw * 3100 / 1180); right: auto; left: calc(50% - var(--w) * 0.645); }
@@ -595,7 +586,6 @@
   .z-sakura.trese,
   .kudy-tady,
   .rozhlas-bublina { animation: none !important; }
-  .dm-pruvod-clen { left: calc(1vw + var(--i) * 14vw); animation: none; }
   .u-brana-kridla,
   .dm-polaroid img { transition: none; }
 }

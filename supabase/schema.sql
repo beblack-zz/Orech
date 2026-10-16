@@ -18,7 +18,7 @@
 --               Rezervaci po telefonu jde zapsat ručně novým řádkem.
 --   kurzy       Vypsané termíny kurzů: den, který kurz (kruh, glazury — jak
 --               se jmenují na webu) a kolik míst; web umí nakreslit nejvýš
---               tolik sedadel, kolik má kurz v src/data/rezervace.ts (7).
+--               tolik sedadel, kolik má kurz v src/data/rezervace.ts (4).
 --               Ten den nejedou hodinové odjezdy ani permanentky.
 --   zavreno     Zavřený den (cas prázdný) nebo jeden odjezd (cas 10:30).
 --   kdo_prijde  Jen ke čtení: kdo kdy přijde, permanentky rozepsané po týdnech.
@@ -49,7 +49,7 @@ create table if not exists kurzy (
   den date primary key,
   /* id kurzu z webu (src/data/rezervace.ts): kruh, glazury */
   kurz text not null,
-  mist smallint not null default 7 check (mist > 0)
+  mist smallint not null default 4 check (mist > 0)
 );
 
 create table if not exists zavreno (

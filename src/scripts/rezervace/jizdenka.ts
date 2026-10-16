@@ -381,7 +381,7 @@ export function initJizdenka() {
         osvetli(hodiny[0] ?? 10);
       }
       prazdno.hidden = n > 0;
-      prazdno.textContent = d?.kurz ? "Nastup na tabuli a zvláštní vlak přijede." : "Vyber odjezd a vlak přijede.";
+      prazdno.textContent = d?.kurz ? "Nastup na tabuli a zvláštní vlak přijede." : "Vyber hodinu a vlak přijede.";
 
       /* Jiný druh jízdenky je jiný vlak — přijede znovu, ne že by se jen přepřáhl */
       const bylo = zmenaDruhu ? 0 : pocet;

@@ -1,0 +1,61 @@
+---
+/**
+ * Kudy k nám — sekce pod první obrazovkou Kontaktu. Vlevo karta s adresou,
+ * cestou ke dveřím a odkazem na mapu (mapa se do stránky nevkládá, tahala
+ * by cizí skripty), vpravo kresba domu z ulice přesně přes fotku 6670
+ * s táhlem — ať se dům na místě pozná. Nahoře travnatý lem navazuje na
+ * louku z první obrazovky; barvy louky jdou s ročním obdobím (data-sezona
+ * přepisuje scripts/kontakt/scena.ts) a v noci louka potemní (--ko-noc).
+ * Táhlo obsluhuje scripts/kontakt/kudy.ts.
+ */
+import { Image } from "astro:assets";
+import { ulice, ULICE } from "../domek2/kresba/ulice";
+import { trava } from "../parta2/tvary";
+import { kontakt, mapa, type Sezona } from "../../data/uvod2";
+import { porovnani } from "../../data/domek2";
+import { kudy } from "../../data/kontakt";
+import foto6670 from "../../../images/Dilna/6670.jpg";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+const F = ULICE.foto;
+const kresba = ulice({ id: "ko-ul", nebe: true });
+/* lem trávy přes spodní okraj první obrazovky */
+const zadni = trava(1600, 64, 44, 300, 9711);
+const predni = trava(1600, 64, 30, 180, 9712);
+---
+<section class="ko-kudy" id="kudy" data-sezona={sezona} aria-labelledby="ko-kudy-nadpis">
+  <svg class="ko-kudy-lem ko-venku" data-sezona={sezona} viewBox="0 0 1600 64" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <rect y="54" width="1600" height="12" class="ko-kudy-lem-zem" />
+    <path class="svt-trava-1" d={zadni.join(" ")} />
+    <path class="svt-trava-3" d={predni.join(" ")} />
+  </svg>
+
+  <div class="ko-kudy-obsah">
+    <div class="ko-kudy-karta papir">
+      <p class="stitek"><span lang="ja">道順</span> · kudy k nám</p>
+      <h2 id="ko-kudy-nadpis" class="nadpis-2">{kudy.nadpis}</h2>
+      <p class="ko-kudy-adresa">{kontakt.ulice} · {kontakt.psc} {kontakt.obec}</p>
+      <ol class="ko-kudy-kroky">
+        {kudy.kroky.map((k) => <li>{k}</li>)}
+      </ol>
+      <a class="tlacitko" href={mapa} target="_blank" rel="noopener">Ukázat na mapě</a>
+    </div>
+
+    <figure class="ko-srovnani" data-srovnani style="--deleni:58%">
+      <div class="ko-srovnani-plocha">
+        <Image class="ko-srovnani-foto" src={foto6670} alt={porovnani.ulice.alt} width={900} widths={[420, 640, 900]} sizes="(min-width: 1000px) 440px, 92vw" format="webp" loading="lazy" />
+        <div class="ko-srovnani-kresba">
+          <svg viewBox={`${F.x} ${F.y} ${F.w} ${F.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" set:html={kresba} />
+        </div>
+        <span class="ko-srovnani-stitek ko-srovnani-stitek-kresba" aria-hidden="true">kresba</span>
+        <span class="ko-srovnani-stitek ko-srovnani-stitek-foto" aria-hidden="true">fotka</span>
+        <div class="ko-srovnani-tahlo" aria-hidden="true"><span></span></div>
+        <input class="ko-srovnani-posuvnik" type="range" min="0" max="100" value="58" aria-label="Dům z ulice: kolik je vidět kresby a kolik fotky" />
+      </div>
+      <figcaption><b>Takhle nás poznáš z ulice.</b> Kresba leží přesně na fotce — táhlem odkryješ, co je co.</figcaption>
+    </figure>
+  </div>
+</section>

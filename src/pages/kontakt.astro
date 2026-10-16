@@ -1,120 +1,166 @@
 ---
 /**
- * Kontakt — samostatná stránka v novém vzhledu webu, v menu jako Kontakt.
- * Dvě zastávky jednoho odpoledne:
+ * Kontakt — provázkový telefon (糸電話). Jedna obrazovka, dvě zastávky:
  *
- *   dopoledne — karta na obloze: telefon (tudy se dává přístup
- *               k rezervacím), e-mail, adresa s mapou a kdy je otevřeno;
- *               pod tím rozcestník na rezervace, dárky a Dílnu
- *   před polednem — zeptej se dílny: otázky, na které odpovídá parta
- *               (components/kontakt/Otazky.astro, dřív na Dílně)
- *   poledne   — jak dům doopravdy vypadá: kresba a fotka přes sebe
- *               s táhlem a sakura během roku (domek2/Porovnani.astro,
- *               dřív na úvodu)
- *   odpoledne — kudy k nám: Ořech z kopce se zeleným domem a partou,
- *               karta s cestou ke dveřím (domek2/Kudy.astro, tatáž jako
- *               na úvodu)
+ *   venku   v trávě leží Futatsu otvorem k nám, z jeho paty vede provázek
+ *           kōhaku přes údolí s Ořechem k zelenému domu z Luční; na plotě
+ *           sedí ten, kdo má službu, s druhým hrnkem. Na provázku vrabci,
+ *           visačky s otázkami a dopis na kladce.
+ *   uvnitř  po zvednutí hrnku kamera vjede po provázku oknem do dílny
+ *           k ústředně 交換台 — hrnek drží ten, kdo má službu, poslouchá
+ *           i Bublinka, Cedulka listuje knihou odjezdů a Kachlík ťuká
+ *           odkaz na rezervace, který pak jede po provázku zpátky.
  *
- * Údaje jsou z data/uvod2.ts (kontakt, mapa) a data/dilna.ts (kdy), ať
- * všude stojí totéž. Telefon je zatím vymyšlený.
+ * Kresby se skládají v prohlížeči podle velikosti okna, hodiny, ročního
+ * období a toho, jestli je otevřeno (scripts/kontakt/scena.ts). Všechny
+ * údaje jsou obyčejný text a odkazy v panelu — fungují hned, bez klikání
+ * na kresbu i bez JavaScriptu. Telefon se na mobilu vytočí okamžitě,
+ * dopis se pošle poštou (mailto), představení běží jen kolem.
  */
-import "@fontsource-variable/fraunces/full.css";
+import "../styles/pisma.css";
+import Hlava from "../components/Hlava.astro";
 import { ClientRouter } from "astro:transitions";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/newsreader";
-import "@fontsource-variable/newsreader/opsz-italic.css";
-import "@fontsource/caveat/400.css";
-import "@fontsource/caveat/600.css";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
-import "../styles/uvod2.css";
-import "../styles/domek2.css";
 import "../styles/kontakt.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
-import Otazky from "../components/kontakt/Otazky.astro";
-import Porovnani from "../components/domek2/Porovnani.astro";
-import Kudy from "../components/domek2/Kudy.astro";
+import Postavicka from "../components/characters/Postavicka.astro";
+import KudyKNam from "../components/kontakt/KudyKNam.astro";
+import { svitaniStyly } from "../components/domek2/kresba/svitani";
 import { kontakt, mapa, sezonaMesice } from "../data/uvod2";
-import { kdy } from "../data/dilna";
-import { rezervace } from "../data/rezervace";
+import { kdy, otazky } from "../data/dilna";
+import { parta, type PostavaId } from "../data/parta";
 
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+const KAMI: PostavaId[] = ["kapka", "pecinka", "bublinka", "cedulka", "kachlik", "hlinka", "samotka", "stripek", "vazicka"];
 /** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška */
 const sezona = sezonaMesice(new Date().getMonth() + 1);
-const V_DEN = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
+const styly = svitaniStyly(".ko-venku");
+const data = {
+  otazky: otazky.map((o) => ({ q: o.q, a: o.a, kdo: o.kdo })),
+  jmena: Object.fromEntries(parta.map((p) => [p.id, p.name])),
+  telefon: kontakt.telefon,
+  email: kontakt.email,
+};
 
-/* Štětcové písmo jen se znaky, které na stránce opravdu jsou (連絡 kontakt, 質問 otázky, 写生 kresba podle skutečnosti, 道順 kudy k nám) */
-const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("連絡質問写生道順")}`;
+
 ---
 <!doctype html>
 <html lang="cs">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kontakt · JIRO saku</title>
-    <meta name="description" content={`Keramická dílna JIRO saku, ${kontakt.ulice}, ${kontakt.psc} ${kontakt.obec}. Telefon ${kontakt.telefon}, e-mail ${kontakt.email}. Otevřeno každé ${kdy.dny} ${kdy.hodiny} hodin.`} />
-    <meta name="theme-color" content="#6F8FC8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href={pismoZnaku} />
+    <Hlava titulek="Kontakt · JIRO saku" popis={`Keramická dílna JIRO saku, ${kontakt.ulice}, ${kontakt.psc} ${kontakt.obec}. Telefon ${kontakt.telefon}, e-mail ${kontakt.email}. Otevřeno každé ${kdy.dny} ${kdy.hodiny} hodin.`} barva="#6F8FC8" data />
+    <Fragment set:html={`<style>${styly}</style>`} />
     <ClientRouter />
   </head>
-  <body class="p2 u2 dm2 ko" data-stranka="kontakt">
+  <body class="p2 ko" data-stranka="kontakt">
     <a class="preskocit" href="#ko-nadpis">Přeskočit na kontakt</a>
     <Nebe />
     <Hlavicka sber="zadny" />
 
     <main>
-      <section class="ko-uvod" id="kontakt" data-hodina="10.6" aria-labelledby="ko-nadpis">
-        <div class="ko-karta papir">
+      <section class="ko-scena" id="kontakt" data-hodina="12" data-zastavka="venku" aria-labelledby="ko-nadpis">
+        <div class="ko-platno" aria-hidden="true">
+          <svg class="ko-venku" data-sezona={sezona} xmlns="http://www.w3.org/2000/svg"></svg>
+          <svg class="ko-uvnitr" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="ko-vrstva"></div>
+
+        <div class="ko-panel">
+          <button type="button" class="ko-ven ko-jen-uvnitr">← Zpátky ven k hrnku</button>
           <p class="stitek"><span lang="ja">連絡</span> · kontakt</p>
           <h1 id="ko-nadpis" class="ko-nadpis">Zavolej, napiš, <em>nebo přijď.</em></h1>
-          <p class="ko-perex">
-            Dílna je v suterénu zeleného domu v Ořechu — kde bývala garáž, jsou teď okna.
-            Kafe je vždycky.
-          </p>
 
-          <div class="ko-listky">
-            <div class="ko-listek ko-listek-tel">
-              <h2>Telefon</h2>
-              <a class="ko-hlavni" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
-              <p>Tudy dáváme přístup k rezervacím: nadiktuješ e-mail a odkaz ti přijde. Pak už si odjezdy zamlouváš sám.</p>
-            </div>
-            <div class="ko-listek">
-              <h2>E-mail</h2>
-              <a class="ko-hlavni" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
-              <p>Na kurzy, dárkové jízdenky, keramiku z obchodu — nebo cokoli dalšího.</p>
-            </div>
-            <div class="ko-listek">
-              <h2>Adresa</h2>
-              <p class="ko-hlavni ko-adresa">{kontakt.ulice}<br />{kontakt.psc} {kontakt.obec}</p>
-              <p><a href={mapa} target="_blank" rel="noopener">Ukázat na mapě</a> · <a href="#kudy">kudy ke dveřím</a></p>
-            </div>
-            <div class="ko-listek">
-              <h2>Otevřeno</h2>
-              <p class="ko-hlavni">každé {kdy.dny}<br />{kdy.hodiny} hodin</p>
-              <p>Kurzy na celý den jezdí {V_DEN[rezervace.denKurzu]}. Hodina u nás trvá {kdy.minut} minut.</p>
-            </div>
+          <div class="ko-telefon">
+            <p class="ko-popisek">Telefon<span class="ko-jen-venku"> · zvedni hrnek</span><span class="ko-jen-uvnitr"> · linka <span lang="ja">二</span></span></p>
+            <a class="ko-cislo" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+            <p class="ko-pozn">Tudy dáváme přístup k rezervacím: nadiktuješ e-mail a odkaz ti přijde. <a href="/rezervace">Odkaz už máš? Vyber hodinu</a></p>
           </div>
 
-          <nav class="ko-dal" aria-label="Kam dál">
-            <a class="tlacitko" href="/rezervace">Vybrat odjezd</a>
-            <a class="tlacitko tlacitko-obrys" href="/rezervace#rz-darky">Darovat jízdenku</a>
-            <a class="tlacitko tlacitko-obrys" href="/dilna">Jak to v dílně chodí</a>
+          <dl class="ko-udaje">
+            <div>
+              <dt>E-mail</dt>
+              <dd><a href={`mailto:${kontakt.email}`}>{kontakt.email}</a></dd>
+            </div>
+            <div>
+              <dt>Adresa</dt>
+              <dd><a href={mapa} target="_blank" rel="noopener">{kontakt.ulice}, {kontakt.obec}</a></dd>
+            </div>
+            <div class="ko-udaj-kdy">
+              <dt>Otevřeno</dt>
+              <dd>{kdy.dny.replace("úterý a pátek", "út a pá")} {kdy.hodiny} <span class="ko-stav" hidden></span></dd>
+            </div>
+          </dl>
+
+          <div class="ko-tlacitka">
+            <a class="tlacitko ko-zvednout ko-jen-venku" href={`tel:${kontakt.telefonOdkaz}`}>Zvednout hrnek</a>
+            <button type="button" class="tlacitko ko-zavesit ko-jen-uvnitr">Zavěsit</button>
+            <a class="tlacitko tlacitko-obrys ko-psat" href={`mailto:${kontakt.email}`}>Napsat dopis</a>
+            <a class="tlacitko tlacitko-obrys ko-kudy-tl ko-jen-venku" href="#kudy">Kudy k nám</a>
+          </div>
+          <nav class="ko-dal ko-jen-venku" aria-label="Kam dál">
+            <button type="button" class="ko-otazky-tl">Na co se lidi ptají</button>
+            <a href="/rezervace#rz-darky">Darovat jízdenku</a>
+            <a href="/dilna">Jak to v dílně chodí</a>
           </nav>
+          <p class="ko-hlaseni" role="status" aria-live="polite"></p>
         </div>
       </section>
 
-      <Otazky />
-      <Porovnani sezona={sezona} />
-      <Kudy sezona={sezona} />
+      <KudyKNam sezona={sezona} />
+
+      <dialog class="ko-okno ko-dopis" aria-labelledby="ko-dopis-nadpis">
+        <form method="dialog" class="ko-papir">
+          <p class="stitek"><span lang="ja">〆</span> · dopis po provázku</p>
+          <h2 id="ko-dopis-nadpis" class="ko-okno-nadpis">Napiš nám</h2>
+          <label class="ko-pole">
+            <span>Co potřebuješ?</span>
+            <textarea name="text" rows="6" placeholder="Třeba kdy můžeme přijít ve čtyřech…"></textarea>
+          </label>
+          <label class="ko-pole ko-pole-jmeno">
+            <span>Podpis</span>
+            <input name="jmeno" type="text" autocomplete="name" placeholder="Tvoje jméno" />
+          </label>
+          <p class="ko-okno-pozn">Dopis se otevře ve tvé poště, odtud ho odešleš na {kontakt.email}.</p>
+          <div class="ko-okno-akce">
+            <button type="submit" value="poslat" class="tlacitko">Poslat po provázku</button>
+            <button type="submit" value="zavrit" class="tlacitko tlacitko-obrys">Zavřít</button>
+          </div>
+        </form>
+      </dialog>
+
+
+      <dialog class="ko-okno ko-otazky" aria-labelledby="ko-otazky-nadpis">
+        <form method="dialog" class="ko-papir">
+          <p class="stitek"><span lang="ja">質問</span> · otázky</p>
+          <h2 id="ko-otazky-nadpis" class="ko-okno-nadpis">Na co se lidi ptají</h2>
+          <div class="ko-chat">
+            {otazky.map((o) => (
+              <div class="ko-chat-radek">
+                <p class="ko-chat-q">{o.q}</p>
+                <div class="ko-chat-a">
+                  <svg class="ko-chat-kami" viewBox="0 0 180 180" aria-hidden="true"><use href={`#ko-k-${o.kdo}`} /></svg>
+                  <p><b>{jmeno(o.kdo)}</b>{o.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div class="ko-okno-akce">
+            <button type="submit" class="tlacitko tlacitko-obrys">Zavřít</button>
+          </div>
+        </form>
+      </dialog>
+
+      <script type="application/json" id="ko-data" set:html={JSON.stringify(data)}></script>
+
+      <svg class="ko-sprite" width="0" height="0" aria-hidden="true" focusable="false">
+        {KAMI.map((id) => <g id={`ko-k-${id}`}><Postavicka id={id} size={180} varianta="kami" /></g>)}
+      </svg>
     </main>
 
-    <Paticka poznamka="Kontakt je návrh v novém vzhledu webu. Telefon je zatím vymyšlený." />
+    <Paticka />
     <div class="oznameni" role="status" aria-live="polite"></div>
 
     <script>

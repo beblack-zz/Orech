@@ -3,14 +3,15 @@
  * Jiřík a Renča jako dva svitky kakejiku, které se rozvinou, když na
  * ně člověk dojede (scripts/onas2/rukopisy.ts). Fotky a texty jsou ze
  * stránky O nás (uvod2.ts — lide), kolik kurzů kdo vede, se počítá
- * z kurzy.ts. Pečeť je znak místa, kde ho v dílně najdeš: kruh, nebo pec.
+ * ze zvláštních vlaků v Rezervaci (jiné kurzy nejsou). Pečeť je znak
+ * místa, kde ho v dílně najdeš: kruh, nebo pec.
  */
 import { Image } from "astro:assets";
 import fotoJirik from "../../images/o-nas-jirik.webp";
 import fotoRenca from "../../images/o-nas-renca.webp";
 import { lide } from "../../data/uvod2";
 import { oNasTexty } from "../../data/onas2";
-import { kurzy } from "../../data/kurzy";
+import { kurzy } from "../../data/rezervace";
 import { pocetKurzu } from "../../data/pocty";
 
 const fotky: Record<string, { src: ImageMetadata; alt: string; znak: string; kde: string }> = {
@@ -41,7 +42,7 @@ const fotky: Record<string, { src: ImageMetadata; alt: string; znak: string; kde
               <h3 class="kakejiku-jmeno" id={`kakejiku-${i}-jmeno`}>{l.jmeno}</h3>
               <p class="kakejiku-role">{l.role} · {f && <span lang="ja">{f.znak}</span>} {l.kde}</p>
               <p class="kakejiku-bio">{l.bio}</p>
-              {n > 0 && <p class="kakejiku-vede">Teď vede {pocetKurzu(n)}. <a href="/kurzy-2#terminy">Termíny <span aria-hidden="true">→</span></a></p>}
+              {n > 0 && <p class="kakejiku-vede">Teď vede {pocetKurzu(n)}. <a href="/rezervace#rz-rad">Termíny <span aria-hidden="true">→</span></a></p>}
               {f && <span class="kakejiku-pecet" lang="ja" aria-hidden="true">{f.znak}</span>}
             </div>
           </div>

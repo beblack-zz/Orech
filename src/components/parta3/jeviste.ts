@@ -1,5 +1,5 @@
 /**
- * Vršek jeviště kagura-den na /parta-3 — čelní pohled: střecha s prohnutým
+ * Vršek jeviště kagura-den na /parta — čelní pohled: střecha s prohnutým
  * štítem a vlys, ze kterého visí řada lampionů a pod ním řasená látka.
  * Jeviště samo už na stránce není; pod vlysem visí list obsazení
  * (Obsazeni.astro) a lampiony přepínají, čí je.

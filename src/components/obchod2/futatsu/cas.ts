@@ -1,6 +1,6 @@
 /**
  * 四 Čas — hrnek, který stárne s tebou. Kresby kapitoly Čas na stránce
- * /obchod-2/futatsu: pohled do Futatsu shora, jak stojí na dřevěném
+ * /obchod/futatsu: pohled do Futatsu shora, jak stojí na dřevěném
  * podšálku (chataku) v ranním světle zleva.
  *
  *   pohledShora(stari, caj, p)  velký pohled: podšálek a stíny, obruba

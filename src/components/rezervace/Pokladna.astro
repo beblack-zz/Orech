@@ -50,7 +50,7 @@ const cenyKurzu = cenyKurzuCisla.map((c) => c.toLocaleString("cs-CZ")).filter((_
   <h2 id="rz-pokladna-nadpis" class="nadpis-2">Kolik vás pojede a kdy</h2>
 
   <div class="rz-krok">
-    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>01</span> Kolik vás pojede <small>odjezd má {rezervace.mist} místa a jízdné je skupinové: čím víc lidí v dílně na odjezdu opravdu je — vašich i cizích —, tím míň platí každý. Od {cenaZaCloveka(1)}&nbsp;Kč, když jsi tam sám, po {cenaZaCloveka(rezervace.mist)}&nbsp;Kč, když je plno; platí se na místě a kdo nepřijde, nepočítá se.</small></h3>
+    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>01</span> Kolik vás pojede <small>hodina v dílně má {rezervace.mist} místa a jízdné je skupinové: čím víc lidí na ni v dílně opravdu přijde — vašich i cizích —, tím míň platí každý. Od {cenaZaCloveka(1)}&nbsp;Kč, když jsi tam sám, po {cenaZaCloveka(rezervace.mist)}&nbsp;Kč, když je plno; platí se na místě a kdo nepřijde, nepočítá se.</small></h3>
     <div class="rz-osoby" role="radiogroup" aria-label="Počet lidí">
       {lide.map((n) => (
         <label class="rz-osoba">
@@ -88,12 +88,12 @@ const cenyKurzu = cenyKurzuCisla.map((c) => c.toLocaleString("cs-CZ")).filter((_
   <div class="rz-krok rz-pas">
     <h3 class="rz-otazka">
       <span class="rz-pas-znak" aria-hidden="true">{permanentka.mesicu} měsíce</span> Permanentka <span class="rz-pas-den" aria-live="polite"></span>
-      <small>na {permanentka.mesicu} měsíce a na jeden den v týdnu — na ten, který máš vybraný. Pokaždé stejný spoj, první nebo poslední toho dne; na každém jsou {permanentka.mist} místa.</small>
+      <small>na {permanentka.mesicu} měsíce a na jeden den v týdnu — na ten, který máš vybraný. Pokaždé stejná hodina, první nebo poslední toho dne; na každé jsou {permanentka.mist} místa.</small>
     </h3>
     <div class="rz-pasy" role="group" aria-label="Permanentka — na který spoj">
       {permanentka.spoje.map((s) => (
         <button type="button" class="rz-pas-volba" data-pas={s.h} aria-pressed="false" disabled>
-          <span class="rz-pas-hlava">{s.nazev} spoj</span>
+          <span class="rz-pas-hlava">{s.nazev} hodina</span>
           <b class="rz-pas-cas">{hhmm(s.h)}–{hhmm(s.h + rezervace.blok)}</b>
           <span class="rz-pas-mista" aria-hidden="true">
             {mistaPermanentky.map(() => <svg class="rz-sedacka pas" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg>)}
@@ -104,7 +104,7 @@ const cenyKurzu = cenyKurzuCisla.map((c) => c.toLocaleString("cs-CZ")).filter((_
       ))}
     </div>
     <p class="rz-pas-pozn">
-      {kc(permanentka.cenaJizdy)}&nbsp;Kč za každý týden — za {permanentka.mesicu} měsíce obvykle {jizdPermanentky} jízd, tedy {kc(cenaPermanentky())}&nbsp;Kč za člověka a jeden spoj.
+      {kc(permanentka.cenaJizdy)}&nbsp;Kč za každý týden — za {permanentka.mesicu} měsíce obvykle {jizdPermanentky} týdnů, tedy {kc(cenaPermanentky())}&nbsp;Kč za člověka a jednu hodinu v týdnu.
       <span class="rz-pas-stav" aria-live="polite"></span>
     </p>
   </div>

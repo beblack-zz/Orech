@@ -1,11 +1,10 @@
-/* Náhled instagramového příspěvku — viz pages/ig-prispevek.astro */
+/* Náhled instagramového příspěvku na stránce Marcel — viz components/marcel/IgPrispevek.astro */
 
-body.ig-stranka {
-  margin: 0;
-  min-height: 100vh;
+.ig-scena {
   display: grid;
   place-items: center;
   padding: 32px 16px;
+  border-radius: 18px;
   background: #ECE6DA;
   font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
   color: #111;

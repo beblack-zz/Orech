@@ -209,24 +209,24 @@ interface Druh {
 const hodina: Druh = {
   id: "hodina",
   klic: "hodina",
-  titul: "Hodina a půl",
-  pod: "běžný spoj",
+  titul: "Hodina v dílně",
+  pod: "90 minut",
   kresba: kresbaHodina,
   vb: VB_HODINA,
   znacka: "H",
-  nazev: "Hodina a půl",
-  vlak: "běžný spoj",
-  heslo: "Dílna na hodinu a půl. Děláš si, co chceš.",
+  nazev: "Hodina v dílně",
+  vlak: "90 minut",
+  heslo: "Dílna na 90 minut. Děláš si, co chceš.",
   fakta: [
     { co: "co děláš", html: `<b>cokoli</b> — ${volby.join(", ")}. Žádný program, tempo je tvoje` },
     { co: "lektor", html: `<b>když chceš</b> — ukáže a poradí. Když ne, je dílna jen tvoje; na kruh bez lektora jen se základy` },
-    { co: "s kým", html: `odjezd má ${sklonuj(rezervace.mist, "místo", "místa", "míst")}: přijdeš sám, nebo až ${skupina}, a na volná místa si koupí jízdenku další — s každým je to levnější pro všechny` },
-    { co: "kdy", html: `${kdyJede}, odjezdy ${cas(hodinove[0])}–${cas(hodinove[hodinove.length - 1])} po hodině a půl; můžeš si jich vzít víc` },
+    { co: "s kým", html: `hodina má ${sklonuj(rezervace.mist, "místo", "místa", "míst")}: přijdeš sám, nebo až ${skupina}, a na volná místa si koupí jízdenku další — s každým je to levnější pro všechny` },
+    { co: "kdy", html: `${kdyJede}, začátky ${cas(hodinove[0])}–${cas(hodinove[hodinove.length - 1])} po 90 minutách; hodin si můžeš vzít víc` },
     { co: "pro koho", html: `pro začátečníka i pro toho, kdo ví, co chce, a chce na to klid` },
     { co: "v ceně", html: vCene.map((v) => v.co.toLowerCase()).join(", ") },
   ],
   cena: `${kc(rozpetiJizdneho.od)}–${kc(rozpetiJizdneho.do)}`,
-  zaCo: "za člověka a hodinu a půl — čím víc lidí na odjezdu, tím míň",
+  zaCo: "za člověka a hodinu v dílně (90 min) — čím víc lidí v dílně, tím míň",
   tarif: jizdne.skupina.map((c, i) => ({ kdo: i === 0 ? "1 člověk" : `${i + 1} lidi`, cena: kc(c) })),
   tarifPozn: `Kč za každého podle toho, kolik lidí v dílně opravdu je — platí se na místě a kdo nepřijde, nepočítá se · ${detskaSlovy}`,
 };
@@ -249,8 +249,8 @@ const listyKurzu: Druh[] = kurzy.map((k) => {
     heslo: k.popis,
     fakta: [
       { co: "lektor", html: `<b>celý den u toho</b> — vede ${k.lektor}` },
-      { co: "s kým", html: `se skupinou: vlak má ${sklonuj(k.mist, "místo", "místa", "míst")} a každý si kupuje jen to své` },
-      { co: "kdy", html: `${V_DEN[rezervace.denKurzu]}, celý den ${cas(rezervace.od)}–${cas(rezervace.do)}; běžné spoje ten den nejedou` },
+      { co: "s kým", html: `se skupinou: kurz má ${sklonuj(k.mist, "místo", "místa", "míst")} a každý si kupuje jen to své` },
+      { co: "kdy", html: `${V_DEN[rezervace.denKurzu]}, celý den ${cas(rezervace.od)}–${cas(rezervace.do)}; běžné hodiny ten den nejsou` },
       { co: "pro koho", html: k.proKoho },
     ],
     cena: kc(k.cena),
@@ -268,15 +268,15 @@ const pas: Druh = {
   znacka: "P",
   nazev: "Permanentka",
   vlak: "stálé místo",
-  heslo: `Tvoje hodina a půl každý týden, na ${mesice}.`,
+  heslo: `Tvoje hodina v dílně každý týden, na ${mesice}.`,
   fakta: [
-    { co: "co děláš", html: `<b>totéž co na běžném spoji</b> — tvoříš po svém, jen pravidelně` },
-    { co: "kdy", html: `první nebo poslední spoj dne (${spolu(permanentka.spoje.map((s) => cas(s.h)), "nebo")}), jeden den v týdnu — třeba ${KAZDY[rezervace.dny[0]]} v ${cas(permanentka.spoje[0].h)}` },
-    { co: "platí", html: `${mesice} od první jízdy` },
-    { co: "s kým", html: `máš jedno sedadlo; spoj má ${sklonuj(permanentka.mist, "místo", "místa", "míst")}, dílnu tak sdílíš nejvýš ${spolusedici}` },
+    { co: "co děláš", html: `<b>totéž co na běžné hodině</b> — tvoříš po svém, jen pravidelně` },
+    { co: "kdy", html: `první nebo poslední hodina dne (${spolu(permanentka.spoje.map((s) => cas(s.h)), "nebo")}), jeden den v týdnu — třeba ${KAZDY[rezervace.dny[0]]} v ${cas(permanentka.spoje[0].h)}` },
+    { co: "platí", html: `${mesice} od první hodiny` },
+    { co: "s kým", html: `máš jedno místo; hodina má ${sklonuj(permanentka.mist, "místo", "místa", "míst")}, dílnu tak sdílíš nejvýš ${spolusedici}` },
   ],
   cena: kc(cenaPermanentky()),
-  zaCo: `za člověka na ${mesice} — ${jizdPermanentky} jízd po ${kc(permanentka.cenaJizdy)} Kč, výluky se neplatí`,
+  zaCo: `za člověka na ${mesice} — ${jizdPermanentky} týdnů po ${kc(permanentka.cenaJizdy)} Kč, týdny, kdy hodina odpadne, se neplatí`,
 };
 
 const listy = [hodina, pas, ...listyKurzu];
@@ -296,7 +296,7 @@ const listy = [hodina, pas, ...listyKurzu];
           {d.nadpis && <h3>{d.nadpis.jmeno} <small>{d.nadpis.k}</small></h3>}
           <p class="rz-rad-heslo">{d.heslo}</p>
           {d.linka && (
-            <ol class="rz-rad-linka" style={`--n:${d.linka.length}`} aria-label="Trať dne — zastávky po hodině a půl">
+            <ol class="rz-rad-linka" style={`--n:${d.linka.length}`} aria-label="Trať dne — zastávky po 90 minutách">
               {d.linka.map((z, k) => <li class={k === d.linka!.length - 1 ? "cil" : undefined}><i>{k === d.linka!.length - 1 ? "" : k + 1}</i><span><b>{cas(z.h)}</b> {z.nazev}</span></li>)}
             </ol>
           )}
@@ -306,7 +306,7 @@ const listy = [hodina, pas, ...listyKurzu];
           <p class="rz-rad-jizdne"><span>jízdné</span> <b>{d.cena}&nbsp;Kč</b> {d.zaCo}</p>
           {d.tarif && (
             <div class="rz-rad-tarif">
-              <ol aria-label="Jízdné za každého podle toho, kolik lidí na odjezdu sedí">
+              <ol aria-label="Jízdné za každého podle toho, kolik lidí v dílně sedí">
                 {d.tarif.map((t) => <li><span>{t.kdo}</span> <b>{t.cena}</b></li>)}
               </ol>
               {d.tarifPozn && <p>{d.tarifPozn}</p>}

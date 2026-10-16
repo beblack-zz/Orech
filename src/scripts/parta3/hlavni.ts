@@ -1,5 +1,5 @@
 /**
- * Vstup pro /parta-3. Obloha a hlavička se zvukem jsou společné s ostatními
+ * Vstup pro /parta. Obloha a hlavička se zvukem jsou společné s ostatními
  * stránkami nového vzhledu; lampiony v průvodu se spouštějí samy přes své
  * komponenty (scripts/<postava>-<téma>/beh.js). Lampiony pod střechou chrámu
  * přepínají obsazení a malé kami v něm jsou klikací stejně jako na Partě 2.
