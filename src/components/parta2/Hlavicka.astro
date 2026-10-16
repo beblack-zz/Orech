@@ -34,7 +34,8 @@ import Omamori from "./Omamori.astro";
 import { zvyrazneni } from "../../scripts/parta2/tah-kresba";
 import { noveId } from "../navrhy-loga/sdilene";
 import ZnackaStetec from "../znacka/ZnackaStetec.astro";
-import RezervaceKalendar from "./RezervaceKalendar.astro";
+/* Písmo značky — dřív ho na každou stránku přinášela jízdenka vpravo dole, kterou nahradil průvodce (scripts/parta2/pruvodce.ts) */
+import "../../styles/znacka.css";
 
 interface Props {
   /** zadny — stránka bez sbírky; omamori — Parta 2, její sbírku ukazuje závěs pod pruhem */
@@ -48,6 +49,7 @@ const odkazy: { href: string; label: string; skrtnuto?: boolean }[] = [
   { href: "/obchod-2", label: "Obchod 2" },
   { href: "/parta-3", label: "KAMI parta" },
   { href: "/o-nas-2", label: "O nás 2" },
+  { href: "/kontakt", label: "Kontakt" },
   { href: "/marcel", label: "Marcel", skrtnuto: true },
 ];
 /** Spáry misky v ikoně zlata — kolik jich je, tolik šupinek se hledá */
@@ -213,4 +215,3 @@ const zvId = noveId("hlava-stranka");
 {/* Omamori se schovanými kami — otevírá ho břevno závěsu na každé stránce */}
 <Omamori />
 
-{tady !== "/rezervace" && <RezervaceKalendar />}

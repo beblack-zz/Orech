@@ -29,7 +29,7 @@ import { rezervace, kurzy, permanentka, odjezdy, hhmm } from "../../data/rezerva
 import { DELKA_ZVLASTNIHO, VYSKA_ZVLASTNIHO } from "./vlak";
 
 const dvoj = (n: number) => String(n).padStart(2, "0");
-const sedacky = Array.from({ length: Math.max(rezervace.maxOsob, permanentka.mist) }, (_, i) => i);
+const sedacky = Array.from({ length: Math.max(rezervace.mist, permanentka.mist) }, (_, i) => i);
 const mistaKurzu = Array.from({ length: Math.max(1, ...kurzy.map((k) => k.mist)) }, (_, i) => i);
 
 /** Kde stojí slunce v danou hodinu — stejný vzorec jako obloha (nebe.ts) */
@@ -130,7 +130,7 @@ const radky = odjezdy.map((h) => ({
             </span>
             {/* V den kurzu místo kupé: zastávka na trati zvláštního vlaku */}
             <span class="rz-o-trasa" aria-hidden="true"><i class="rz-o-bod"></i><span class="rz-o-poradi"></span></span>
-            <span class="rz-o-stav" aria-hidden="true"><Flap text="" /><small class="rz-o-co"></small></span>
+            <span class="rz-o-stav" aria-hidden="true"><Flap text="" /><small class="rz-o-co"></small><small class="rz-o-jizdne"></small></span>
             <span class="rz-o-lampa" aria-hidden="true"></span>
             <span class="sr-only rz-o-popis">{r.od} až {r.konec}</span>
           </button>
@@ -146,7 +146,7 @@ const radky = odjezdy.map((h) => ({
         <li class="jen-hodiny"><svg class="rz-sedacka pas" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> místo na permanentku</li>
       </ul>
       <p class="rz-tabule-rada">
-        Klikni na volný odjezd — klidně na víc. Každý trvá hodinu a půl a je celý váš, ať jedeš sám, nebo až ve čtyřech.
+        Klikni na volný odjezd — klidně na víc. Každý trvá hodinu a půl a má {rezervace.mist} místa. Vedle je jízdné za člověka, kdybyste nastoupili teď — čím víc lidí v dílně opravdu bude, tím míň platí každý; platí se na místě.
         Obloha nad mořem ukáže, jaké v tu dobu bude v dílně světlo.
       </p>
       <p class="rz-hlaseni" role="status" aria-live="polite"></p>

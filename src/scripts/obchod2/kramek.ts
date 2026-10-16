@@ -1,9 +1,10 @@
 /**
- * Krámek: kliknutím na přihrádku (nebo bednu) se kus otevře v detailu.
- * Obsah detailu je předem vyrenderovaný v <template data-detail="id">
- * (components/obchod2/DetailKusu.astro) — tady se jen naklonuje dovnitř
- * dialogu. V detailu se listuje v pořadí, v jakém kusy stojí v krámku
- * (šipkami nebo odkazy dole), a přepínají se pohledy na fotky.
+ * Detail kusu: kliknutím na kus v krámku nebo ve vitríně pod ním
+ * (data-otevri-kus) se kus otevře v dialogu. Obsah detailu je předem
+ * vyrenderovaný v <template data-detail="id"> (components/obchod2/
+ * DetailKusu.astro) — tady se jen naklonuje dovnitř dialogu. V detailu
+ * se listuje v pořadí vitrín (šipkami nebo odkazy dole) a přepínají se
+ * pohledy na fotky.
  *
  * Tlačítka „Do šátku“ obsluhuje šátek (satek.ts) přes data-satek-pridat;
  * po naklonování se jim jen srovná nápis.
@@ -15,7 +16,8 @@ export function kramek(satek: Satek) {
   const dialog = document.querySelector<HTMLDialogElement>(".o2k-dialog");
   const obsah = dialog?.querySelector<HTMLElement>("[data-detail-obsah]");
   if (!dialog || !obsah) return;
-  const ids = [...document.querySelectorAll<HTMLElement>("[data-kramek-kus]")].map((el) => el.dataset.kramekKus ?? "");
+  /* Každý kus je na stránce dvakrát (v krámku a ve vitríně) — listuje se v pořadí šablon, jako ve vitrínách */
+  const ids = [...document.querySelectorAll<HTMLTemplateElement>("template[data-detail]")].map((t) => t.dataset.detail ?? "");
   const poradi = dialog.querySelector<HTMLElement>(".o2k-poradi");
   let i = 0;
 

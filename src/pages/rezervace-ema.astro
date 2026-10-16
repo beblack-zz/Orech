@@ -36,12 +36,13 @@ import EmaSprite from "../components/rezervace/ema/EmaSprite.astro";
 import PraniDialog from "../components/rezervace/ema/PraniDialog.astro";
 import Noc from "../components/rezervace/ema/Noc.astro";
 
-import { rezervace } from "../data/rezervace";
+import { rezervace, cenaZaCloveka } from "../data/rezervace";
 import { kontakt } from "../data/uvod2";
 import { sekki, DNY_ZNAK } from "../data/koyomi";
 import { KAPACITA } from "../scripts/rezervace/ema-simulace";
 
-const cena = rezervace.cena.toLocaleString("cs-CZ");
+/* Archiv počítal jednu cenu za člověka; od 16. 10. 2026 je jízdné skupinové, tady zůstává cena pro jednoho */
+const cena = cenaZaCloveka(1).toLocaleString("cs-CZ");
 
 /* Štětcové písmo jen se znaky, které na stránce opravdu jsou */
 const znaky = new Set<string>();
@@ -78,7 +79,7 @@ const barvy = ["#9C7860", "#D79A94", "#93B39B", "#E8B440"];
     <Hlavicka sber="ema" />
     <EmaSprite />
 
-    <main data-rezervace data-cena={rezervace.cena} data-email={kontakt.email}>
+    <main data-rezervace data-cena={cenaZaCloveka(1)} data-email={kontakt.email}>
       <Brana />
 
       {/* ——— Dopoledne: kolik vás bude a který den ——— */}

@@ -1,0 +1,63 @@
+---
+/**
+ * Jeden kus v krámku (Kramek.astro): stojí na polici v okně patra
+ * (keramika z Japonska, s fotkou) nebo ve výloze přízemí (kusy z dílny,
+ * dokud nemají fotku, zabalené v novinách). Pozice a velikost jsou
+ * v pixelech světa kresby (3200 × 2000), kamera je pak zvětší.
+ *
+ * Kliknutím se kus otevře v detailu (DetailKusu.astro, scripts/obchod2/
+ * kramek.ts). Na hraně police je páska se jménem, na balíku tlačítko
+ * do šátku, nad kusem visí cenovka. `data-satek-kus` čte šátek, aby kus
+ * označil, když leží v šátku.
+ */
+import { Image } from "astro:assets";
+import Zabaleno from "./Zabaleno.astro";
+import type { KusVKramku } from "../../data/kramek";
+import { cenovka } from "../../data/kramek";
+import type { Obdelnik } from "./kresba/zaklad";
+
+interface Props {
+  kus: KusVKramku;
+  /** Pořadí v krámku — balíky podle něj vypadají každý jinak */
+  i: number;
+  /** Kde kus stojí (obdélník světa) — spodní hrana leží na polici */
+  ram: Obdelnik;
+  /** Výška přední hrany police pod kusem (páska se jménem) */
+  hrana: number;
+  /** Zastávka kamery, ze které je kus vidět (klávesnice na ni kameru pošle) */
+  zastavka: string;
+}
+const { kus, i, ram, hrana, zastavka } = Astro.props;
+const foto = kus.fotky[0];
+const { castka, mena } = cenovka(kus.cena);
+---
+<article
+  class:list={["krm-kus", `krm-kus-${kus.odkud}`, { "krm-kus-zabaleny": !foto }]}
+  data-kramek-kus={kus.id}
+  data-satek-kus={kus.id}
+  data-zastavka={zastavka}
+  style={`left:${ram.x}px;top:${ram.y}px;width:${ram.w}px;height:${ram.h + hrana}px;--kus:${ram.h}px;--hrana:${hrana}px`}
+>
+  <button type="button" class="krm-kus-okno" id={`kus-${kus.id}`} data-otevri-kus={kus.id} aria-label={`${kus.nazev}, ${kus.autor}, ${kus.cena}. ${foto ? "Prohlédnout" : "Rozbalit"}`}>
+    {foto ? (
+      <Image
+        src={foto.src}
+        alt={foto.alt}
+        width={400}
+        widths={[200, 300, 400]}
+        sizes="(min-width: 1000px) 240px, 40vw"
+        format="webp"
+        class="krm-foto"
+        loading={i < 4 ? "eager" : "lazy"}
+      />
+    ) : (
+      <Zabaleno tvar={kus.tvar ?? "bowl"} seme={i + 1} slama={false} class="krm-balik" />
+    )}
+  </button>
+
+  <span class="krm-cenovka" aria-hidden="true"><b>{castka}</b>{mena && <small>{mena}</small>}</span>
+  {kus.novinka && <span class="krm-pop" aria-hidden="true"><span lang="ja">新作</span>novinka</span>}
+  <button type="button" class="krm-do-satku" data-satek-pridat data-satek-id={kus.id} data-pridat="+ do šátku" data-vyndat="✓ v šátku" aria-describedby={`kus-${kus.id}`}>+ do šátku</button>
+  <span class="krm-paska" aria-hidden="true">{kus.nazev}</span>
+  <span class="krm-v-satku" data-v-satku hidden aria-hidden="true"></span>
+</article>

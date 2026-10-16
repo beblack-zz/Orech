@@ -3,11 +3,12 @@
  *
  * Když jsou rezervace zapojené (Supabase, viz src/lib/rezervace), bere se
  * skutečná obsazenost z /api/volno. Kdo přišel přes svůj odkaz z pozvánky,
- * dostane s ní i své jméno a jízdenky a může rezervovat rovnou; ostatní
- * vidí tabuli jen ke čtení a jízdenka jim odchází mailem.
+ * dostane s ní i své jméno a jízdenky a může rezervovat; ostatní vidí
+ * tabuli jen ke čtení a místo označení jízdenky dostanou telefon, přes
+ * který se dává přístup.
  *
  * Když zapojené nejsou (nebo server neodpoví), zůstává ukázka ze
- * simulace.ts a mail — tak jako dřív. Zbytek stránky rozdíl nepozná:
+ * simulace.ts a rezervovat nemůže nikdo. Zbytek stránky rozdíl nepozná:
  * dostane dny ve stejném tvaru.
  */
 import { rezervace as R, kurzy, permanentka as P, odjezdy } from "../../data/rezervace";
@@ -16,7 +17,7 @@ import type { Den, Hodina } from "./simulace";
 import type { Volno, Moje, Zadost, Odpoved } from "../../lib/rezervace/typy";
 
 export interface Kalendar {
-  /** false = ukázka: obsazenost je vymyšlená a jízdenka odchází mailem */
+  /** false = ukázka: obsazenost je vymyšlená a rezervovat nejde */
   zive: boolean;
   dny: Den[];
   /** Kolik permanentek je na který spoj prodaných, když by se začalo jezdit tímhle dnem */
@@ -48,7 +49,9 @@ export function ukazka(dnes: Date): Kalendar {
 
 /** Ze seznamu toho, co je zamluvené, udělá dny, jak je čeká tabule */
 export function zVolna(v: Volno, dnes: Date, ted = new Date()): Kalendar {
-  const obsazeno = new Set(v.obsazeno.map((o) => `${o.den}-${o.h}`));
+  /* Kolik míst je na kterém odjezdu pryč — server je posílá sečtené, ale kdyby ne, sečtou se tady */
+  const obsazeno = new Map<string, number>();
+  for (const o of v.obsazeno) obsazeno.set(`${o.den}-${o.h}`, (obsazeno.get(`${o.den}-${o.h}`) ?? 0) + o.osob);
   const zavreno = new Set(v.zavreno.map((z) => (z.h === null ? z.den : `${z.den}-${z.h}`)));
   const kurzDny = new Map(v.kurzy.map((k) => [k.den, k]));
   const dny: Den[] = [];
@@ -61,7 +64,7 @@ export function zVolna(v: Volno, dnes: Date, ted = new Date()): Kalendar {
     if (!kurz && (!R.dny.includes(d.getDay()) || zavreno.has(klic))) continue;
     const hodiny: Hodina[] = odjezdy.map((h) => ({
       h,
-      volno: !obsazeno.has(`${klic}-${h}`) && !zavreno.has(`${klic}-${h}`),
+      volno: zavreno.has(`${klic}-${h}`) ? 0 : Math.max(0, R.mist - (obsazeno.get(`${klic}-${h}`) ?? 0)),
       probehlo: new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(h), (h % 1) * 60) <= ted,
       pas: jeSpojPermanentky(h),
     }));
@@ -105,7 +108,7 @@ export async function nactiKalendar(dnes: Date): Promise<Kalendar> {
     const v = (await r.json()) as Volno;
     if (r.ok && v.zive) return zVolna(v, dnes);
   } catch {
-    /* server neodpověděl nebo na hostingu není — zůstane ukázka a mail */
+    /* server neodpověděl nebo na hostingu není — zůstane ukázka */
   } finally {
     window.clearTimeout(limit);
   }

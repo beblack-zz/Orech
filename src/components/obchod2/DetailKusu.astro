@@ -6,16 +6,19 @@
  *
  * Obsah každého kusu je předem vyrenderovaný v <template> — obrázky se
  * tak načtou, až když se kus otevře. Dialog plní a listuje v něm
- * scripts/obchod2/kramek.ts (pořadí jako v krámku).
+ * scripts/obchod2/kramek.ts v pořadí šablon — tedy jako ve vitrínách pod
+ * krámkem: nejdřív vlastní tvorba, pak keramika z Japonska.
  */
 import { Image } from "astro:assets";
 import Zabaleno from "./Zabaleno.astro";
-import { kramek, cenovka } from "../../data/kramek";
+import { kramek, zDilny, zJaponska, cenovka } from "../../data/kramek";
 import { glazuraPopis, vzdalenost } from "../../data/obchod2";
 import { glazury } from "../../data/kurzy2";
 import { kontakt } from "../../data/uvod2";
 
-const detaily = kramek.map((kus, i) => {
+const detaily = [...zDilny, ...zJaponska].map((kus) => {
+  /* Balík v novinách vypadá všude stejně: seme podle pořadí v krámku */
+  const i = kramek.indexOf(kus);
   const km = kus.druh?.odkud ? Math.round(vzdalenost(kus.druh.odkud.gps) / 10) * 10 : null;
   const glazura = kus.glazura?.toLowerCase();
   const g = glazura ? glazury.find((x) => x.nazev === glazura) : undefined;

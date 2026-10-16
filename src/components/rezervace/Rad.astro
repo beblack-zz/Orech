@@ -27,7 +27,7 @@
  * místo, které se dá koupit) a pod ním to hlavní: tři volby, které na sebe
  * nenavazují, nebo týdny, na které permanentka platí.
  */
-import { rezervace, kurzy, permanentka, odjezdy, hhmm, cenaOdjezdu } from "../../data/rezervace";
+import { rezervace, kurzy, permanentka, odjezdy, hhmm, jizdne, rozpetiJizdneho, cenaPermanentky, jizdPermanentky, detskaSlovy } from "../../data/rezervace";
 import { cinnosti, vCene } from "../../data/dilna";
 import { sklonuj } from "../../data/pocty";
 import { vlak, zvlastniVlak, oknaSalonu, VUZ, MEZERA, SEDADLA, VYSKA, VYSKA_ZVLASTNIHO } from "./vlak";
@@ -61,7 +61,6 @@ const PERO = "M24 4 C36 2 45 8 44 16 C43 25 31 30 19 28 C8 26 2 21 4 13 C6 6 15 
 const f1 = (n: number) => Math.round(n * 10) / 10;
 const napis = (x: number, y: number, text: string, trida: string, kotva = "start") => `<text x="${f1(x)}" y="${y}" class="${trida}" text-anchor="${kotva}">${text}</text>`;
 const hladina = `<path d="M${KX} 1.5 H${KX + KW}" class="rz-rad-k-hladina"/>`;
-const tvoje = (x: number, y: number) => `<circle cx="${f1(x)}" cy="${y}" r="22" class="rz-rad-k-moje"/><path transform="translate(${f1(x - 48)} ${y - 32}) scale(2)" d="${PERO}" class="rz-rad-k-pero"/>`;
 const xVozu = (i: number) => i * (VUZ + MEZERA);
 /** Kde je v i-tém voze sedadlo — každý druhý vůz je otočený */
 const xSedadla = (i: number, s: number) => (i % 2 ? xVozu(i) + VUZ - SEDADLA[s] : xVozu(i) + SEDADLA[s]);
@@ -70,27 +69,36 @@ const naPermanentku = new Set(permanentka.spoje.map((s) => s.h));
 const hodinove = odjezdy.filter((h) => !naPermanentku.has(h));
 const volby = cinnosti.map((c) => c.nazev.toLowerCase());
 
-/* Odjezd (hodina a půl): dva vozy, dva odjezdy. První si vzala skupina, druhý je volný — pod každým jedna tečka.
+/* Odjezd (hodina a půl): dva vozy, dva odjezdy, pod každým tečka za každé místo. Na prvním sedíte vy dva
+   a jeden cizí, čtvrté místo je volné; na druhém zatím sedí jen jeden.
    Pod tím, co se dá dělat: tři volby, které na sebe nenavazují */
-const vase: Misto[] = SEDADLA.map(() => null);
-[2, 3, 1, 4].slice(0, rezervace.maxOsob).forEach((s, k) => (vase[s] = { kdo: "ty", barva: BARVY_LIDI[k % BARVY_LIDI.length] }));
+const hodSedadla = [1, 2, 3, 4, 0, 5].slice(0, rezervace.mist).sort((a, b) => a - b);
 const hVozy = [
-  { h: hodinove[0] ?? rezervace.od, mista: vase, moje: true, co: "vaše" },
-  { h: hodinove[1] ?? rezervace.od + rezervace.blok, mista: [] as Misto[], moje: false, co: "volno" },
+  { h: hodinove[0] ?? rezervace.od, vy: [hodSedadla[1], hodSedadla[2]], cizi: [hodSedadla[0]], co: "vaše" },
+  { h: hodinove[1] ?? rezervace.od + rezervace.blok, vy: [] as number[], cizi: [hodSedadla[hodSedadla.length - 1]], co: "volno" },
 ];
 const kresbaHodina =
-  vlak(hVozy.map((v) => ({ mista: v.mista }))) +
+  vlak(hVozy.map((v) => ({ mista: SEDADLA.map((_, s): Misto => (v.vy.includes(s) ? { kdo: "ty", barva: BARVY_LIDI[v.vy.indexOf(s)] } : v.cizi.includes(s) ? { kdo: "stin" } : null)) }))) +
   hladina +
   hVozy
     .map((v, i) => {
       const x0 = xVozu(i);
-      const cx = x0 + VUZ / 2;
-      return (
-        `<path d="M${x0 + 10} 12 V24 H${x0 + VUZ - 10} V12" class="rz-rad-k-spoj"/>` +
-        (v.moje ? tvoje(cx, Y_T) : `<circle cx="${cx}" cy="${Y_T}" r="22" class="rz-rad-k-volno"/>`) +
-        napis(cx - 66, Y_T, cas(v.h), "rz-rad-k-cas", "end") +
-        napis(cx + 66, Y_T, v.co, "rz-rad-k-co")
-      );
+      const tecky = hodSedadla
+        .map((s) => {
+          const x = xSedadla(i, s);
+          const tecka = v.vy.includes(s) ? `<circle cx="${x}" cy="${Y_T}" r="15" class="rz-rad-k-moje"/>` : v.cizi.includes(s) ? `<circle cx="${x}" cy="${Y_T}" r="12.5" class="rz-rad-k-obs"/>` : `<circle cx="${x}" cy="${Y_T}" r="15" class="rz-rad-k-volno"/>`;
+          return `<path d="M${x} 6 V40" class="rz-rad-k-spoj"/>` + tecka;
+        })
+        .join("");
+      /* Kroužek propiskou kolem vašich míst — natažený přes obě */
+      const xs = v.vy.map((s) => xSedadla(i, s));
+      const pero = xs.length
+        ? (() => {
+            const sx = (Math.max(...xs) - Math.min(...xs) + 60) / 43;
+            return `<path transform="translate(${f1((Math.max(...xs) + Math.min(...xs)) / 2 - 24 * sx)} ${Y_T - 32}) scale(${f1(sx * 100) / 100} 2)" d="${PERO}" class="rz-rad-k-pero"/>`;
+          })()
+        : "";
+      return tecky + pero + napis(x0 + 20, Y_T, cas(v.h), "rz-rad-k-cas") + napis(x0 + VUZ - 20, Y_T, v.co, "rz-rad-k-co", "end");
     })
     .join("") +
   volby
@@ -178,6 +186,9 @@ interface Druh {
   /** Jak se cedule jmenuje, když je tenhle list vidět, a co stojí v hlavičce vedle */
   titul: string;
   pod: string;
+  /** Skupinové jízdné — kolik za každého podle toho, kolik vás jede (jen hodina a půl) */
+  tarif?: { kdo: string; cena: string }[];
+  tarifPozn?: string;
   /** Jméno přímo v listu — má ho jen kurz, ostatní stačí jméno cedule */
   nadpis?: { jmeno: string; k: string };
   /** Trať dne se jmény zastávek (kurz) */
@@ -209,13 +220,15 @@ const hodina: Druh = {
   fakta: [
     { co: "co děláš", html: `<b>cokoli</b> — ${volby.join(", ")}. Žádný program, tempo je tvoje` },
     { co: "lektor", html: `<b>když chceš</b> — ukáže a poradí. Když ne, je dílna jen tvoje; na kruh bez lektora jen se základy` },
-    { co: "s kým", html: `sám, nebo až ${skupina}; odjezd je celý váš a nikdo další nepřistoupí` },
+    { co: "s kým", html: `odjezd má ${sklonuj(rezervace.mist, "místo", "místa", "míst")}: přijdeš sám, nebo až ${skupina}, a na volná místa si koupí jízdenku další — s každým je to levnější pro všechny` },
     { co: "kdy", html: `${kdyJede}, odjezdy ${cas(hodinove[0])}–${cas(hodinove[hodinove.length - 1])} po hodině a půl; můžeš si jich vzít víc` },
     { co: "pro koho", html: `pro začátečníka i pro toho, kdo ví, co chce, a chce na to klid` },
     { co: "v ceně", html: vCene.map((v) => v.co.toLowerCase()).join(", ") },
   ],
-  cena: kc(cenaOdjezdu),
-  zaCo: "za člověka a hodinu a půl",
+  cena: `${kc(rozpetiJizdneho.od)}–${kc(rozpetiJizdneho.do)}`,
+  zaCo: "za člověka a hodinu a půl — čím víc lidí na odjezdu, tím míň",
+  tarif: jizdne.skupina.map((c, i) => ({ kdo: i === 0 ? "1 člověk" : `${i + 1} lidi`, cena: kc(c) })),
+  tarifPozn: `Kč za každého podle toho, kolik lidí v dílně opravdu je — platí se na místě a kdo nepřijde, nepočítá se · ${detskaSlovy}`,
 };
 
 /* Každý kurz má vlastní list — ukáže se ten, který je vybraný */
@@ -262,8 +275,8 @@ const pas: Druh = {
     { co: "platí", html: `${mesice} od první jízdy` },
     { co: "s kým", html: `máš jedno sedadlo; spoj má ${sklonuj(permanentka.mist, "místo", "místa", "míst")}, dílnu tak sdílíš nejvýš ${spolusedici}` },
   ],
-  cena: kc(permanentka.cena),
-  zaCo: `za člověka na ${mesice}`,
+  cena: kc(cenaPermanentky()),
+  zaCo: `za člověka na ${mesice} — ${jizdPermanentky} jízd po ${kc(permanentka.cenaJizdy)} Kč, výluky se neplatí`,
 };
 
 const listy = [hodina, pas, ...listyKurzu];
@@ -291,6 +304,14 @@ const listy = [hodina, pas, ...listyKurzu];
             {d.fakta.map((f) => <div><dt>{f.co}</dt><dd set:html={f.html} /></div>)}
           </dl>
           <p class="rz-rad-jizdne"><span>jízdné</span> <b>{d.cena}&nbsp;Kč</b> {d.zaCo}</p>
+          {d.tarif && (
+            <div class="rz-rad-tarif">
+              <ol aria-label="Jízdné za každého podle toho, kolik lidí na odjezdu sedí">
+                {d.tarif.map((t) => <li><span>{t.kdo}</span> <b>{t.cena}</b></li>)}
+              </ol>
+              {d.tarifPozn && <p>{d.tarifPozn}</p>}
+            </div>
+          )}
           {/* Kulaté razítko platnosti — jen na průkazce */}
           {d.id === "pas" && <span class="rz-rad-platnost" aria-hidden="true"><b>{permanentka.mesicu}</b><span>měs.</span></span>}
         </div>

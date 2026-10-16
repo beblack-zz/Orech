@@ -318,3 +318,18 @@ export const kamiKvety = {
  */
 const BEZ_KRUHU = new Set(["zare", "kruh", "kruh-zivy", "kvet-roku", "stin"]);
 export const kamiLet = { ...kamiKvety, id: "let", vrstvy: kamiKvety.vrstvy.filter((v) => !BEZ_KRUHU.has(v.id)) };
+
+/*
+ * Průvodce — tatáž podoba v letu, jen s vlastními id (vgp- místo vg1-).
+ * Sedí v rohu každé stránky (scripts/parta2/pruvodce.ts), takže se potká
+ * s jinými Vázičkami: na KAMI partě s 01 Kami v obsazení. Se stejnými id
+ * by si tělo vzalo bílou z cizí kresby, a když je ta ve schovaném listu,
+ * zůstalo by průhledné. Id se přepíšou v hotovém textu kresby.
+ */
+const naPruvodce = (s) => (typeof s === "string" ? s.replaceAll("vg1-", "vgp-") : s);
+export const kamiPruvodce = {
+  ...kamiLet,
+  id: "pruvodce",
+  defs: () => naPruvodce(kamiLet.defs()),
+  vrstvy: kamiLet.vrstvy.map((v) => ({ ...v, kresli: (st) => naPruvodce(v.kresli(st)) })),
+};

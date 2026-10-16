@@ -9,8 +9,10 @@
  * z kanceláře, v květnu linky s dřezem a kávovarem… Na konci fotka
  * zvenku: kde bývala vrata, jsou okna.
  *
- * Kresba je z Domku 2 (domek2/kresba/dilna.ts, režim „rok“), měsíce
- * přepíná scripts/uvod2/rok.ts — stejný skript jako na Úvodu 2.
+ * Kresba je z Domku 2 (domek2/kresba/dilna.ts, režim „rok“). Scéna je na
+ * jednu obrazovku a měsíce se přepínají kliknutím — tlačítky, šipkami po
+ * stranách nebo na klávesnici; scroll s ní nehýbe (scripts/uvod2/rok.ts,
+ * stejný skript jako na Úvodu 2).
  * V každém měsíci se schovává jedna šupinka zlata na kintsugi (data
  * v onas2.ts — sceny a zlato) a obloha nad rokem jde z noci do večera
  * jako dřív nad svitkem.
@@ -133,6 +135,14 @@ const zlatoStyl = ([x, y, u]: [number, number, number]) =>
         </li>
       ))}
     </ol>
+
+    {/* Šipky po stranách: o měsíc zpět a dál (scripts/uvod2/rok.ts) */}
+    <button type="button" class="rok-sipka rok-sipka-zpet" aria-label="Předchozí měsíc" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" /></svg>
+    </button>
+    <button type="button" class="rok-sipka rok-sipka-dal" aria-label="Další měsíc">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L16 12 L9 19" /></svg>
+    </button>
 
     <figure class="rok-foto">
       <Image src={foto6673} alt="Okna dílny zvenku: prosklené dveře a dvě pole s nadsvětlíky pod balkonem, před nimi truhlíky s vřesem na šikmé desce a dlažba" width={1100} widths={[480, 760, 1100]} sizes="(min-width: 861px) 30vw, 72vw" format="webp" />

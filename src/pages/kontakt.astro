@@ -1,0 +1,124 @@
+---
+/**
+ * Kontakt — samostatná stránka v novém vzhledu webu, v menu jako Kontakt.
+ * Dvě zastávky jednoho odpoledne:
+ *
+ *   dopoledne — karta na obloze: telefon (tudy se dává přístup
+ *               k rezervacím), e-mail, adresa s mapou a kdy je otevřeno;
+ *               pod tím rozcestník na rezervace, dárky a Dílnu
+ *   před polednem — zeptej se dílny: otázky, na které odpovídá parta
+ *               (components/kontakt/Otazky.astro, dřív na Dílně)
+ *   poledne   — jak dům doopravdy vypadá: kresba a fotka přes sebe
+ *               s táhlem a sakura během roku (domek2/Porovnani.astro,
+ *               dřív na úvodu)
+ *   odpoledne — kudy k nám: Ořech z kopce se zeleným domem a partou,
+ *               karta s cestou ke dveřím (domek2/Kudy.astro, tatáž jako
+ *               na úvodu)
+ *
+ * Údaje jsou z data/uvod2.ts (kontakt, mapa) a data/dilna.ts (kdy), ať
+ * všude stojí totéž. Telefon je zatím vymyšlený.
+ */
+import "@fontsource-variable/fraunces/full.css";
+import { ClientRouter } from "astro:transitions";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/opsz-italic.css";
+import "@fontsource/caveat/400.css";
+import "@fontsource/caveat/600.css";
+import "../styles/postavicky.css";
+import "../styles/parta2.css";
+import "../styles/uvod2.css";
+import "../styles/domek2.css";
+import "../styles/kontakt.css";
+
+import Nebe from "../components/parta2/Nebe.astro";
+import Hlavicka from "../components/parta2/Hlavicka.astro";
+import Paticka from "../components/parta2/Paticka.astro";
+import Otazky from "../components/kontakt/Otazky.astro";
+import Porovnani from "../components/domek2/Porovnani.astro";
+import Kudy from "../components/domek2/Kudy.astro";
+import { kontakt, mapa, sezonaMesice } from "../data/uvod2";
+import { kdy } from "../data/dilna";
+import { rezervace } from "../data/rezervace";
+
+/** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška */
+const sezona = sezonaMesice(new Date().getMonth() + 1);
+const V_DEN = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
+
+/* Štětcové písmo jen se znaky, které na stránce opravdu jsou (連絡 kontakt, 質問 otázky, 写生 kresba podle skutečnosti, 道順 kudy k nám) */
+const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("連絡質問写生道順")}`;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kontakt · JIRO saku</title>
+    <meta name="description" content={`Keramická dílna JIRO saku, ${kontakt.ulice}, ${kontakt.psc} ${kontakt.obec}. Telefon ${kontakt.telefon}, e-mail ${kontakt.email}. Otevřeno každé ${kdy.dny} ${kdy.hodiny} hodin.`} />
+    <meta name="theme-color" content="#6F8FC8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={pismoZnaku} />
+    <ClientRouter />
+  </head>
+  <body class="p2 u2 dm2 ko" data-stranka="kontakt">
+    <a class="preskocit" href="#ko-nadpis">Přeskočit na kontakt</a>
+    <Nebe />
+    <Hlavicka sber="zadny" />
+
+    <main>
+      <section class="ko-uvod" id="kontakt" data-hodina="10.6" aria-labelledby="ko-nadpis">
+        <div class="ko-karta papir">
+          <p class="stitek"><span lang="ja">連絡</span> · kontakt</p>
+          <h1 id="ko-nadpis" class="ko-nadpis">Zavolej, napiš, <em>nebo přijď.</em></h1>
+          <p class="ko-perex">
+            Dílna je v suterénu zeleného domu v Ořechu — kde bývala garáž, jsou teď okna.
+            Kafe je vždycky.
+          </p>
+
+          <div class="ko-listky">
+            <div class="ko-listek ko-listek-tel">
+              <h2>Telefon</h2>
+              <a class="ko-hlavni" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+              <p>Tudy dáváme přístup k rezervacím: nadiktuješ e-mail a odkaz ti přijde. Pak už si odjezdy zamlouváš sám.</p>
+            </div>
+            <div class="ko-listek">
+              <h2>E-mail</h2>
+              <a class="ko-hlavni" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+              <p>Na kurzy, dárkové jízdenky, keramiku z obchodu — nebo cokoli dalšího.</p>
+            </div>
+            <div class="ko-listek">
+              <h2>Adresa</h2>
+              <p class="ko-hlavni ko-adresa">{kontakt.ulice}<br />{kontakt.psc} {kontakt.obec}</p>
+              <p><a href={mapa} target="_blank" rel="noopener">Ukázat na mapě</a> · <a href="#kudy">kudy ke dveřím</a></p>
+            </div>
+            <div class="ko-listek">
+              <h2>Otevřeno</h2>
+              <p class="ko-hlavni">každé {kdy.dny}<br />{kdy.hodiny} hodin</p>
+              <p>Kurzy na celý den jezdí {V_DEN[rezervace.denKurzu]}. Hodina u nás trvá {kdy.minut} minut.</p>
+            </div>
+          </div>
+
+          <nav class="ko-dal" aria-label="Kam dál">
+            <a class="tlacitko" href="/rezervace">Vybrat odjezd</a>
+            <a class="tlacitko tlacitko-obrys" href="/rezervace#rz-darky">Darovat jízdenku</a>
+            <a class="tlacitko tlacitko-obrys" href="/dilna">Jak to v dílně chodí</a>
+          </nav>
+        </div>
+      </section>
+
+      <Otazky />
+      <Porovnani sezona={sezona} />
+      <Kudy sezona={sezona} />
+    </main>
+
+    <Paticka poznamka="Kontakt je návrh v novém vzhledu webu. Telefon je zatím vymyšlený." />
+    <div class="oznameni" role="status" aria-live="polite"></div>
+
+    <script>
+      import "../scripts/kontakt/hlavni.ts";
+    </script>
+  </body>
+</html>

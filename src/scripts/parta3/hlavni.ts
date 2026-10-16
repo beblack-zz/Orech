@@ -11,6 +11,7 @@ import { initKami } from "../parta2/kami";
 import { hlavicka } from "../parta2/hlavicka";
 import { initObsazeni } from "./obsazeni";
 import { initPruvod, initZaver } from "./pruvod";
+import { initHledani } from "./hledani";
 import { schovej } from "../parta2/sber";
 
 /* Celé se to spustí při každé návštěvě stránky, i po přechodu bez načtení (prechody.ts) */
@@ -21,6 +22,7 @@ stranka("parta-3", () => {
   initPruvod();
   initObsazeni();
   initZaver();
+  initHledani();
   /* Pecinka vykukuje nad svitkem průvodu — hra na hledání kami */
   document.querySelectorAll<HTMLElement>(".svitek [data-skryty]").forEach(schovej);
   spust();

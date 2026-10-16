@@ -14,6 +14,10 @@
  * zvláštní vlak (kurz), na který je ještě místo. Otevře jeho den a sjede
  * k tabuli — nastoupit už člověk musí sám.
  *
+ * Hned pod nadpisem je cedulka, kdo se dívá: kdo nemá přístup, dozví se,
+ * že rezervovat smí jen člen a přístup se dává po telefonu (s tlačítkem
+ * na telefon); člena, který přišel přes svůj odkaz, pozdraví jménem.
+ *
  * Druhé tlačítko vede k dárkovým jízdenkám za soumraku (Darky.astro).
  *
  * Nad poslední klapkou cedulky vykukuje černý Kachlík — hra na
@@ -22,9 +26,10 @@
  */
 import Flap from "../uvod2/Flap.astro";
 import Kachlik from "../characters/schovka/Kachlik.astro";
-import { rezervace, permanentka, cenaOdjezdu } from "../../data/rezervace";
+import { rezervace, permanentka, cenaZaCloveka } from "../../data/rezervace";
+import { kontakt } from "../../data/uvod2";
 
-const cena = cenaOdjezdu.toLocaleString("cs-CZ");
+const kc = (n: number) => n.toLocaleString("cs-CZ");
 /** Kdy jezdí zvláštní vlak — začátek věty o kurzech */
 const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve čtvrtek", "V pátek", "V sobotu"][rezervace.denKurzu];
 ---
@@ -34,10 +39,31 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
   <div class="rz-nadrazi-karta papir">
     <p class="stitek">jízdenka do dílny</p>
     <h1 id="rz-nadpis" class="rz-nadpis">Vyber si odjezd. <em>Nastup.</em></h1>
+
+    {/* Kdo se dívá. Bez skriptu a v ukázce host — skript (hlavni.ts) přepne na člena, který přišel přes svůj odkaz, nebo na neplatný odkaz */}
+    <div class="rz-clen" data-co="host" aria-live="polite">
+      <div data-clen="host">
+        <p class="rz-clen-titul">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.2" /><path d="M12.2 12 H21 M17.5 12 V15.5 M20.5 12 V14.5" /></svg>
+          Rezervace jen s přístupem
+        </p>
+        <p>Jsi tu poprvé? Zavolej, nadiktuj nám e-mail a pošleme ti odkaz — pak už si zamluvíš sám. Projít si odjezdy a ceny můžeš i bez něj.</p>
+        <a class="rz-clen-tel" href={`tel:${kontakt.telefonOdkaz}`}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5 L9.4 3.2 L11 7.6 L8.9 9.2 C9.9 11.4 12.6 14.1 14.8 15.1 L16.4 13 L20.8 14.6 L20.5 17.4 C20.3 19 18.9 20.3 17.2 20.2 C10 19.6 4.4 14 3.8 6.8 C3.7 5.1 5 3.7 6.6 3.5 Z" /></svg>
+          {kontakt.telefon}
+        </a>
+      </div>
+      <p data-clen="clen" hidden>Ahoj, <b class="rz-clen-jmeno"></b>! Máš přístup — jízdenka platí hned, jak ji označíš.</p>
+      <div data-clen="neplatny" hidden>
+        <p class="rz-clen-titul">Tenhle odkaz už neplatí</p>
+        <p>Zavolej nám nebo <a href={`mailto:${kontakt.email}`}>napiš</a> a pošleme ti nový.</p>
+        <a class="rz-clen-tel" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+      </div>
+    </div>
     <p class="rz-perex">
-      Čas v dílně se tu kupuje jako jízdenka na vlak: vybereš den a odjezd — hodinu a půl, která je celá vaše,
-      ať jedeš sám, nebo až ve čtyřech. Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin, {cena}&nbsp;Kč
-      za člověka a odjezd. Jízdenka odejde mailem a platí, až ji potvrdíme.
+      Čas v dílně se tu kupuje jako jízdenka na vlak: vybereš den a odjezd — hodinu a půl v dílně, kde jsou
+      {rezervace.mist} místa. Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin. Jízdné je skupinové a platí se
+      na místě: když jsi v dílně sám, {kc(cenaZaCloveka(1))}&nbsp;Kč, když je plno, {kc(cenaZaCloveka(rezervace.mist))}&nbsp;Kč za každého.
     </p>
 
     <button type="button" class="rz-pristi" data-rz-nejblizsi hidden>

@@ -1,5 +1,5 @@
 import type { PostavaId } from "./parta";
-import { rezervace } from "./rezervace";
+import { rezervace, cenaZaCloveka, rozpetiJizdneho, tarifSlovy, detskaSlovy } from "./rezervace";
 
 /**
  * Dílna — /dilna. Informační stránka: jak to v dílně chodí (hodina,
@@ -23,7 +23,7 @@ import { rezervace } from "./rezervace";
  * `vCene` níž.
  */
 
-const cena = rezervace.cena.toLocaleString("cs-CZ");
+const kc = (n: number) => n.toLocaleString("cs-CZ");
 const DNY = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
 const VE = ["", "jednom", "dvou", "třech", "čtyřech", "pěti", "šesti", "sedmi", "osmi"];
 const dny = rezervace.dny.map((d) => DNY[d]);
@@ -33,8 +33,18 @@ export const kdy = {
   /** „úterý a pátek“ */
   dny: dny.length > 1 ? `${dny.slice(0, -1).join(", ")} a ${dny[dny.length - 1]}` : dny[0],
   hodiny: `${rezervace.od}–${rezervace.do}`,
-  cena: `${cena} Kč`,
+  /** Jízdné je skupinové (rezervace.ts): „400–500 Kč“ */
+  cena: `${kc(rozpetiJizdneho.od)}–${kc(rozpetiJizdneho.do)} Kč`,
+  /** Kolik platí, kdo přijde sám, a kolik každý ve čtyřech */
+  cenaSam: `${kc(cenaZaCloveka(1))} Kč`,
+  cenaOd: `${kc(rozpetiJizdneho.od)} Kč`,
   zaCo: "za člověka a hodinu",
+  /** „1 člověk 500 Kč, 2 lidi 450, 3 lidi 425 a 4 lidi 400 Kč za každého“ — podle toho, kolik lidí v dílně nakonec je */
+  tarif: tarifSlovy(),
+  /** „dětská jízdenka do 10 let je o 100 Kč levnější“ */
+  deti: detskaSlovy,
+  /** Kolik míst je v dílně na jednu hodinu */
+  mist: rezervace.mist,
   /** Kolik minut má „hodina“ v dílně — tolik, kolik jeden odjezd na Rezervaci */
   minut: Math.round(rezervace.blok * 60),
   /** „sám, nebo až ve čtyřech“ */
@@ -145,7 +155,7 @@ export const navsteva: KrokNavstevy[] = [
   {
     kdo: "ty",
     nazev: "Zamluvíš si hodinu",
-    text: `Každé ${kdy.dny}, ${kdy.hodiny} hodin. Hodina se zamlouvá celá — přijdeš ${kdy.skupina}.`,
+    text: `Každé ${kdy.dny}, ${kdy.hodiny} hodin. Na hodinu jsou v dílně ${kdy.mist} místa — přijdeš ${kdy.skupina}.`,
     stav: "hrouda",
     odkaz: { href: "/rezervace", text: "Vybrat hodinu" },
   },
@@ -457,16 +467,18 @@ export const vCene: { co: string; pozn: string }[] = [
 /* ——— Pravidla a otázky ——— */
 
 export const pravidla = [
-  "Hodinu si zamluv předem — na Rezervaci, mailem nebo telefonem.",
+  "Hodinu si zamluv předem na Rezervaci. Poprvé zavolej — nadiktuješ e-mail a pošleme ti přístup.",
   "Po sobě ukliď: hlínu ze stolu, nástroje na místo.",
   "Hotové kusy podepiš a nech na polici k sušení.",
   "Na kruh bez lektora jen se základy.",
 ];
 
-/** Odpovědi říká někdo z party. Část je z Kurzů 2 (kurzy2.ts), zbytek je o dílně. */
+/** Odpovědi říká někdo z party. Část je z Kurzů 2 (kurzy2.ts), zbytek je o dílně. Ukazuje je Kontakt (components/kontakt/Otazky.astro). */
 export const otazky: { q: string; a: string; kdo: PostavaId }[] = [
   { q: "Musím něco umět?", a: "Nemusíš. Lektor je v ceně hodiny a provede tě vším od první hroudy.", kdo: "vazicka" },
-  { q: "Můžu přijít s kamarády?", a: `Jasně. Hodina se zamlouvá celá — přijď ${kdy.skupina}. Platí se za každého.`, kdo: "samotka" },
+  { q: "Můžu přijít s kamarády?", a: `Jasně — čím víc lidí v dílně, tím míň platí každý: ${kdy.tarif}. Na hodinu jsou v dílně ${kdy.mist} místa a platí se na místě.`, kdo: "samotka" },
+  { q: "A když někdo nepřijde?", a: "Počítá se, kolik vás v dílně opravdu je. Platí se až na místě, takže když se zamluví čtyři a dorazí tři, platí každý jako ve třech. Jen dej vědět, ať místo může dostat někdo jiný.", kdo: "kachlik" },
+  { q: "A můžu vzít dítě?", a: `Můžeš. Sedí s vámi jako každý a ${kdy.deti}.`, kdo: "kapka" },
   { q: "A když lektora nechci?", a: "Pak je to open studio — dílna je tvoje. Jen na kruh bez lektora je potřeba mít základy.", kdo: "stripek" },
   { q: "Co si mám vzít s sebou?", a: "Nic — zástěru, hlínu i nástroje máme tady. Přijď v oblečení, které se může ušpinit.", kdo: "hlinka" },
   { q: "Proč musím přijít ještě jednou?", a: "Glazuje se až po prvním výpalu a kus z kruhu se ještě obrábí, když zavadne. Obojí je na některé z dalších hodin.", kdo: "cedulka" },

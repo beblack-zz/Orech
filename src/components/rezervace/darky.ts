@@ -375,7 +375,7 @@ export const vozuHodiny = (odjezdu: number) => Math.max(1, odjezdu);
 const SEDADLO = 2;
 const sedi = (): Misto[] => Array.from({ length: 6 }, (_, i) => (i === SEDADLO ? { kdo: "ty", barva: TY } : null));
 
-/** Hodinový vlak: vůz na každý kupon, na cedulce číslo kuponu; obdarovaný sedí v prvním voze, odjezd je celý jeho */
+/** Hodinový vlak: vůz na každý kupon, na cedulce číslo kuponu; obdarovaný sedí v prvním voze */
 export function vlakHodiny(odjezdu: number) {
   return vlak(Array.from({ length: vozuHodiny(odjezdu) }, (_, i) => ({ cislo: String(i + 1), mista: i === 0 ? sedi() : [] })), { smer: 1 });
 }
@@ -730,8 +730,13 @@ export function lic(o: Lic) {
   const mistoUv = uvObsah(L.w / 2, 300, 236, L.perforace + 14, [124, 166]);
   return `${deska(id, lak)}
   ${hlavaDesky(o.titul)}
-  <g filter="url(#rzd-stin)"><g transform="translate(${L.x} ${L.y})">${telo(o, id, lak)}</g></g>
-  <!-- UV je mimo stín, ať se stín při každém pohybu lampy nepřepočítává -->
+  <!-- Stín se vrhá jen z obrysu jízdenky, ne z celé kresby: filtr s rozmazáním by se jinak počítal
+       znovu s každým snímkem hologramu, kouře, závěsů i lampy — na slabším stroji to sekalo -->
+  <g transform="translate(${L.x} ${L.y})">
+    <g filter="url(#rzd-stin)"><rect width="${L.w}" height="${L.h}" fill="#C39434" mask="url(#${id}-tvar)"/></g>
+    ${telo(o, id, lak)}
+  </g>
+  <!-- UV je zvlášť nad jízdenkou, ať se při pohybu lampy nepřekresluje víc, než musí -->
   <g transform="translate(${L.x} ${L.y})">
     <g mask="url(#${id}-tvar)">
       ${uv(id, `mask="url(#${id}-tvar)"`, mistoUv)}

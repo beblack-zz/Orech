@@ -21,7 +21,8 @@ export interface Moje {
 export interface Volno {
   /** false = rezervace nejsou zapojené; stránka ukáže ukázku a jízdenku pošle mailem */
   zive: boolean;
-  obsazeno: { den: string; h: number }[];
+  /** Kolik míst je na kterém odjezdu zamluvených */
+  obsazeno: { den: string; h: number; osob: number }[];
   /** h null = zavřený celý den */
   zavreno: { den: string; h: number | null }[];
   kurzy: { den: string; kurz: string; mist: number; obsazeno: number }[];
@@ -46,8 +47,8 @@ export interface Zadost {
  * Proč to nešlo:
  *   neznamy     odkaz chybí nebo už neplatí
  *   spatne      žádost nesedí s pravidly (den, hodina, počet lidí)
- *   obsazeno    odjezd mezitím zamluvil někdo jiný
- *   plno        v kurzu nebo na permanentce už není dost míst
+ *   obsazeno    (starší hláška) odjezd je mezitím celý pryč
+ *   plno        na odjezdu, v kurzu nebo na permanentce už není dost míst
  *   zavreno     ten den nebo odjezd je zavřený
  *   vyluka      ten den jede kurz
  *   nejede      kurz ten den vypsaný není

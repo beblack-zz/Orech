@@ -18,8 +18,8 @@ import { kontakt } from "../../data/uvod2";
       <span class="d-kanban-provaz"></span>
       <div class="d-kanban-deska">
         <span class="d-kanban-znak" lang="ja">一時間</span>
-        <b class="d-kanban-cena">{kdy.cena}</b>
-        <span class="d-kanban-za">za člověka<br />a hodinu</span>
+        <b class="d-kanban-cena">{kdy.cenaSam}</b>
+        <span class="d-kanban-za">za hodinu<br />ve čtyřech {kdy.cenaOd}</span>
         <span class="d-kanban-minut">hodina = {kdy.minut} minut</span>
       </div>
     </div>
@@ -30,8 +30,8 @@ import { kontakt } from "../../data/uvod2";
       <p class="d-cena-perex">
         Za člověka a hodinu, každé {kdy.dny} od {kdy.hodiny.replace("–", " do ")} hodin. Jen ta hodina je
         u nás delší, než bývá: tvoříme tam, kde má hlína čas, a ten v dílně plyne tak pomalu, že hodina
-        trvá {kdy.minut} minut. Zamlouvá se celá — přijdeš {kdy.skupina} a dílna je ta hodina vaše.
-        S lektorem i bez něj stojí stejně.
+        trvá {kdy.minut} minut. Na hodinu jsou v dílně {kdy.mist} místa a čím víc lidí na ni nakonec přijde,
+        tím míň platí každý: {kdy.tarif}; {kdy.deti}. Platí se na místě. S lektorem i bez něj stojí stejně.
       </p>
       <p class="d-mezititulek">V ceně je</p>
       <ul class="d-vcene">

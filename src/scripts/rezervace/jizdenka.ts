@@ -3,8 +3,8 @@
  * a označení.
  *
  * Vláček má vůz na každý vybraný odjezd, na cedulce vozu je jeho čas
- * a v oknech sedí tvoje skupina — hodina se zamlouvá celá, takže nikdo
- * cizí s vámi nejede. Obloha obrázku je obloha první vybrané hodiny. Když se
+ * a v oknech sedí tvoje skupina a jako stíny ti, kdo už na ten odjezd
+ * jízdenku mají — odjezd má pár míst a plní se po skupinách. Obloha obrázku je obloha první vybrané hodiny. Když se
  * vybere první hodina, vláček přijede; s další hodinou se připojí vůz
  * a vláček sebou trhne. Výřez obrázku se přizpůsobí délce vlaku, ať je
  * vidět celý.
@@ -25,7 +25,7 @@
  */
 import { vlak, delka, zvlastniVlak, DELKA_ZVLASTNIHO } from "../../components/rezervace/vlak";
 import type { Misto } from "../../components/rezervace/vlak";
-import { rezervace as R, permanentka as P, hhmm } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu, rozpisOdjezdu, rozpetiJizdneho, cenaPermanentky } from "../../data/rezervace";
 import { sklonuj, zPoctu } from "../../data/pocty";
 import { paleta } from "../parta2/paleta";
 import { klid, omez, mix, mixBarva, hladce } from "../parta2/stav";
@@ -80,12 +80,11 @@ export interface UdajeJizdenky {
   den?: Den;
   hodiny: number[];
   osob: number;
-  cena: number;
   /** Nastupuje se do zvláštního vlaku toho dne */
   kurz?: KurzDne;
   /** Permanentka: na které spoje, odkdy dokdy a kolik jich je už prodaných */
   pas?: { spoje: number[]; platnost: { od: Date; do: Date; jizdy: Jizda[] }; obsazeno: ReadonlyMap<number, number> };
-  /** Zamlouvá člen se svým odkazem — jízdenka platí hned, nikdo ji nepotvrzuje */
+  /** Zamlouvá člen se svým odkazem — jízdenka platí hned; ostatní si ji zamluvit nemůžou */
   hned?: boolean;
 }
 
@@ -303,13 +302,14 @@ export function initJizdenka() {
       if (denPopis) denPopis.textContent = druh === "pas" ? "Platí" : "Den";
       if (hodinyPopis) hodinyPopis.textContent = druh === "pas" ? "Spoj" : "Odjezd";
       if (platnost) {
-        const az = u.hned ? "." : ", až ji potvrdíme.";
-        platnost.textContent =
-          druh === "kurz"
-            ? `Platí na uvedený kurz${az}`
+        /* Zamluvit si ji může jen člen — ostatním jízdenka jen ukáže, co by měli */
+        platnost.textContent = !u.hned
+          ? "Zamluvit si ji můžeš, až od nás budeš mít přístup."
+          : druh === "kurz"
+            ? "Platí na uvedený kurz."
             : druh === "pas"
-              ? `Platí na uvedený spoj po celou dobu platnosti${az}`
-              : `Platí pro uvedený den a odjezd${az}`;
+              ? "Platí na uvedený spoj po celou dobu platnosti."
+              : "Platí pro uvedený den a odjezd.";
       }
 
       /* Údaje */
@@ -325,17 +325,23 @@ export function initJizdenka() {
       } else if (druh === "pas" && u.pas) {
         const pl = u.pas.platnost;
         const pocetJizd = pl.jizdy.filter((j) => !j.vyluka).length;
-        const celkem = u.pas.spoje.length * u.osob * P.cena;
+        const celkem = u.pas.spoje.length * u.osob * cenaPermanentky(pocetJizd);
         lDen.textContent = `od ${datum(pl.od)} do ${datum(pl.do)}`;
         lHodiny.textContent = `${u.pas.spoje.map((h) => `${P.spoje.find((s) => s.h === h)?.nazev ?? ""} ${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ")}${d ? ` · ${KAZDY[d.datum.getDay()]}` : ""}`;
         lLide.textContent = lidi(u.osob);
-        lCena.textContent = `${kc(celkem)}${pocetJizd ? ` · jedna jízda vyjde na ${kc(Math.round(P.cena / pocetJizd))}` : ""}`;
+        lCena.textContent = `${kc(celkem)} · ${u.pas.spoje.length > 1 ? `${u.pas.spoje.length} spoje × ` : ""}${sklonuj(pocetJizd, "jízda", "jízdy", "jízd")} po ${kc(P.cenaJizdy)}${u.osob > 1 ? " za každého" : ""}`;
         cislo.textContent = `${ddmm}·P${u.pas.spoje.join("+")}·${u.osob}`;
       } else {
         lDen.textContent = dlouhyDen;
         lHodiny.textContent = hodiny.length ? `${useky(hodiny)} · ${trvani(hodiny.length)}` : "ještě nevybraný";
         lLide.textContent = lidi(u.osob);
-        lCena.textContent = hodiny.length ? `${kc(hodiny.length * u.osob * u.cena)} · ${odjezdu(hodiny.length)} × ${lidi(u.osob)} × ${kc(u.cena)}` : `${kc(u.cena)} za člověka a hodinu a půl`;
+        /* Platí se na místě podle toho, kolik lidí na odjezdu nakonec sedí — tady je, kolik by to stálo teď */
+        const ostatni = (h: number) => R.mist - (d?.hodiny.find((x) => x.h === h)?.volno ?? R.mist);
+        const ted = hodiny.reduce((a, h) => a + cenaOdjezdu(u.osob, ostatni(h)), 0);
+        const plno = hodiny.length * cenaOdjezdu(u.osob, R.mist - u.osob);
+        lCena.textContent = hodiny.length
+          ? `${ted > plno ? "nejvýš " : ""}${kc(ted)} · ${hodiny.length === 1 ? rozpisOdjezdu(u.osob, ostatni(hodiny[0])) : odjezdu(hodiny.length)}; platí se na místě${ted > plno ? `, s každým, kdo přisedne, míň` : ""}`
+          : `${rozpetiJizdneho.od}–${rozpetiJizdneho.do} Kč za člověka podle toho, kolik vás v dílně bude`;
         cislo.textContent = d && hodiny.length ? `${ddmm}·${hhmm(hodiny[0]).replace(":", "").padStart(4, "0")}·${u.osob}` : "—";
       }
       koren.classList.toggle("je-vyplnena", !!d && n > 0);
@@ -363,10 +369,15 @@ export function initJizdenka() {
         osvetli(u.pas.spoje[0]);
       } else {
         vyrez(delka(Math.max(1, n)));
-        /* Vůz je celý váš — skupina sedí uprostřed, zbytek oken je prázdný */
-        const mista: Misto[] = Array(6).fill(null);
-        [2, 3, 1, 4].slice(0, u.osob).forEach((m, k) => (mista[m] = { kdo: "ty", barva: BARVY_LIDI[k] }));
-        vlakG.innerHTML = n ? vlak(hodiny.map((h) => ({ cislo: hhmm(h), mista })), { smer: 1 }) : "";
+        /* Skupina sedí uprostřed vozu, kdo už na odjezd jízdenku má, sedí jako stín po krajích */
+        const vozy = hodiny.map((h) => {
+          const mista: Misto[] = Array(6).fill(null);
+          [2, 3, 1, 4].slice(0, u.osob).forEach((m, k) => (mista[m] = { kdo: "ty", barva: BARVY_LIDI[k] }));
+          const cizich = R.mist - (d?.hodiny.find((x) => x.h === h)?.volno ?? R.mist);
+          [0, 5, 4, 1].filter((m) => !mista[m]).slice(0, cizich).forEach((m) => (mista[m] = { kdo: "stin" }));
+          return { cislo: hhmm(h), mista };
+        });
+        vlakG.innerHTML = n ? vlak(vozy, { smer: 1 }) : "";
         osvetli(hodiny[0] ?? 10);
       }
       prazdno.hidden = n > 0;

@@ -2,9 +2,9 @@
  * Simulovaná obsazenost odjezdů na /rezervace — dokud nemáme skutečný
  * kalendář. Jsou tu tři věci, které se dají koupit:
  *
- *   odjezd       hodina a půl v dílně; buď volný, nebo obsazený: rezervuje
- *                se celý, pro jednoho až čtyři lidi jako jednu skupinu,
- *                žádná místa (v kódu se mu pořád říká hodina)
+ *   odjezd       hodina a půl v dílně s pár místy; plní se po skupinách
+ *                (jeden až čtyři lidi), takže se na něm můžou potkat
+ *                cizí lidi (v kódu se mu pořád říká hodina)
  *   kurz         zvláštní vlak na celý den, jezdí v sobotu; má pár míst
  *                a ta se plní po jednom
  *   permanentka  první nebo poslední spoj jednoho dne v týdnu na tři
@@ -33,8 +33,8 @@ import type { KurzVlak } from "../../data/rezervace";
 export interface Hodina {
   /** Začátek odjezdu — hodina dne i s půlkou: 10.5 je 10:30 */
   h: number;
-  /** Nikdo ji ještě nezamluvil */
-  volno: boolean;
+  /** Kolik míst je na ní ještě volných (z `rezervace.mist`); zavřený odjezd má 0 */
+  volno: number;
   /** Dnes už začala */
   probehlo: boolean;
   /** Spoj vyhrazený permanentkám — na hodinovou jízdenku se nedá */
@@ -96,9 +96,12 @@ export function simuluj(dnes: Date, ted = new Date()): Den[] {
     const naval = nahoda(`${klic}-den`);
     const hodiny: Hodina[] = [];
     for (const h of odjezdy) {
-      const obsazena = naval > 0.92 || nahoda(`${klic}-${h}`) < 0.14 + naval * 0.42;
+      /* Odjezd je plný, nebo na něm už pár lidí sedí — častěji ve dnech, které jsou víc rozebrané */
+      const plna = naval > 0.92 || nahoda(`${klic}-${h}`) < 0.14 + naval * 0.42;
+      const nekdo = nahoda(`${klic}-${h}-mista`);
+      const obsazeno = plna ? R.mist : nekdo < 0.45 - naval * 0.3 ? 0 : Math.min(R.mist - 1, 1 + Math.floor(nahoda(`${klic}-${h}-kolik`) * (R.mist - 1)));
       const zacatek = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(h), (h % 1) * 60);
-      hodiny.push({ h, volno: !obsazena, probehlo: zacatek <= ted, pas: jeSpojPermanentky(h) });
+      hodiny.push({ h, volno: R.mist - obsazeno, probehlo: zacatek <= ted, pas: jeSpojPermanentky(h) });
     }
     const den: Den = { datum: d, klic, hodiny };
     if (kurz) {
@@ -112,8 +115,8 @@ export function simuluj(dnes: Date, ted = new Date()): Den[] {
   return dny;
 }
 
-/** Hodiny, které se ten den dají koupit na hodinovou jízdenku */
-export const volneHodiny = (d: Den) => (d.kurz ? [] : d.hodiny.filter((h) => !h.probehlo && h.volno && !h.pas));
+/** Hodiny, které se ten den dají koupit na hodinovou jízdenku — a kam se vejde `osob` lidí */
+export const volneHodiny = (d: Den, osob = 1) => (d.kurz ? [] : d.hodiny.filter((h) => !h.probehlo && h.volno >= osob && !h.pas));
 
 /** Kolik míst zbývá ve zvláštním vlaku — 0, když už vyjel */
 export const volnoVKurzu = (k: KurzDne) => (k.probehlo ? 0 : k.kurz.mist - k.obsazeno);

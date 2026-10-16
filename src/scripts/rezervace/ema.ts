@@ -19,7 +19,7 @@ import { hlavicka } from "../parta2/hlavicka";
 import { initSbirka } from "../parta2/sbirka";
 import { paleta } from "../parta2/paleta";
 import * as zvuk from "../parta2/zvuk";
-import { rezervace as R, prani } from "../../data/rezervace";
+import { rezervace as R, prani, cenaZaCloveka } from "../../data/rezervace";
 import { sekkiDne, DNY_ZNAK } from "../../data/koyomi";
 import { sklonuj } from "../../data/pocty";
 import { simuluj, nahoda, KAPACITA } from "./ema-simulace";
@@ -58,7 +58,7 @@ function init() {
   const koren = document.querySelector<HTMLElement>("[data-rezervace]");
   if (!koren) return;
   const email = koren.dataset.email ?? "";
-  const cena = Number(koren.dataset.cena ?? R.cena);
+  const cena = Number(koren.dataset.cena ?? cenaZaCloveka(1));
   const dnyEl = koren.querySelector<HTMLElement>(".rz-dny")!;
   const deska = koren.querySelector<HTMLElement>(".rz-deska")!;
   const denNazev = koren.querySelector<HTMLElement>(".rz-den-nazev")!;

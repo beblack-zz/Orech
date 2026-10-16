@@ -54,7 +54,8 @@ export function initSatek(): Satek {
   const obnovTlacitka = () => {
     document.querySelectorAll<HTMLButtonElement>("[data-satek-pridat]").forEach((b) => {
       const je = vSatku.has(b.dataset.satekId ?? "");
-      b.textContent = je ? "Vyndat ze šátku" : "Do šátku";
+      /* Malá tlačítka na balících v krámku mají kratší nápisy (data-pridat / data-vyndat) */
+      b.textContent = je ? (b.dataset.vyndat ?? "Vyndat ze šátku") : (b.dataset.pridat ?? "Do šátku");
       b.classList.toggle("v-satku", je);
     });
     document.querySelectorAll<HTMLElement>("[data-satek-kus]").forEach((p) => {

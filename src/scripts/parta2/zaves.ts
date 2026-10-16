@@ -30,7 +30,7 @@ export const KLIC_NALEZENI = "parta2-nalezeni";
 let zivy: { ukaz: (nalezeni: string[], novy?: string) => void; rozhoupej: () => void } | null = null;
 /** Navlékne nalezené na šňůrky; `novy` je ten, kdo přibyl právě teď */
 export const ukazZaves = (nalezeni: string[], novy?: string) => zivy?.ukaz(nalezeni, novy);
-/** Cukne postupně všemi třemi šňůrkami — když na závěs někdo ukazuje (Vázička na úvodu, domek2/let-kami.ts) */
+/** Cukne postupně všemi třemi šňůrkami — když na závěs někdo ukazuje (Vázička-průvodce, parta2/pruvodce.ts) */
 export const rozhoupejZaves = () => zivy?.rozhoupej();
 
 /** Volá se jednou a jako trvalé (prechody.ts) — smyčka i posluchače mají přežít přechod mezi stránkami */

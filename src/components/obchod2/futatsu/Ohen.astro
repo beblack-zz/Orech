@@ -1,0 +1,146 @@
+---
+/**
+ * 三 Oheň — 01:30, noc u pece. Co s Futatsu udělal ostrý výpal.
+ *
+ * Díváme se do komory pece (kresba ohen.ts) a hrnek v ní stojí jako
+ * podobizna (podobizna.ts), takže jde i v peci otáčet. Pod scénou je
+ * pálicí křivka z Dílny jako jezdec: vodorovně čas od zapnutí, nahoru
+ * skoro celý den, dolů celou noc. Teplota bere s sebou žár (barva podle
+ * krivka.ts), spirály, hrnek, glazuru (vypal 0 → 1, když taje), žároměrky
+ * a při chladnutí praskání krakelé — s jiskřičkou, a když je na webu
+ * zapnutý zvuk, s tichým cinknutím. Šest zastavení vpravo jede na svá
+ * místa křivky. Skript: initOhen ve scripts/obchod2/futatsu-noc.ts.
+ *
+ * Bez skriptu stojí pec na začátku (víko otevřené, syrová glazura)
+ * a texty všech zastavení jsou vidět pod sebou.
+ */
+import "../../../styles/futatsu-noc.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { podobizna, PODOBIZNA } from "./podobizna";
+import { pecScena, kusVrstva, krivkaPasek, stavVypalu, fazeVypalu, SCENA, KUS_OHEN, NADHLED_OHEN } from "./ohen";
+import { casPro, teplotaV, barvaZaru } from "../../dilna/kresba/krivka";
+
+const cislo = (n: number) => Math.round(n).toLocaleString("cs-CZ");
+
+/* Zastavení výpalu: kde na křivce leží, krátký text a co k tomu řekne Pecinka */
+const ZASTAVKY = [
+  {
+    h: 0,
+    nazev: "Do pece",
+    text: "Futatsu stojí na šamotové desce. Do pece jde podruhé, tentokrát v glazuře — ta je zatím jen bledá křídová vrstva a výstupky jsou holá hlína.",
+    pecinka: "Mám na sobě shimenawu. Tak se chovej.",
+  },
+  {
+    h: casPro(600),
+    nazev: "Rozsvítí se",
+    text: "Do pěti set stupňů je v peci tma. Pak začne svítit, nejdřív třešňově. Spirály topí napřed a hrnek se prohřívá pozadu, proti žáru stojí jako stín.",
+    pecinka: "Mám na sobě shimenawu. Tak se chovej.",
+  },
+  {
+    h: casPro(1240),
+    nazev: "Glazura taje",
+    text: "Kolem 1 240 °C se bledá křída taví ve sklo. Kde leží tence, probarví se do oranžova.",
+    pecinka: "Umím až 1 320. Dneska stačí tohle.",
+  },
+  {
+    h: 11.1,
+    nazev: "Vrchol",
+    text: "Na 1 280 °C se pec chvíli drží, ať se glazura rozleje a uhladí. Holá hlína v řezu výstupků zrudne do barvy ohně, hiiro, a kde je glazura na okraji nejtenčí, prosvítá železo v rezavých tečkách. Hrnek teď svítí stejně jako pec.",
+    pecinka: "Umím až 1 320. Dneska stačí tohle.",
+  },
+  {
+    h: 14.45,
+    nazev: "Chladne",
+    text: "Pak pec celou noc chladne. Glazura tuhne ve sklo a žár pomalu zhasíná.",
+    pecinka: "Neotvírej mě. Ještě ne. Ještě ne. Ještě… ne.",
+  },
+  {
+    h: 24,
+    nazev: "Ráno",
+    text: "Sklo glazury se při chladnutí smrští jinak než střep pod ním, a tak uvnitř popraská jemnou sítí — krakelé. Někdy je to slyšet jako tiché cinkání. Ráno se otevře víko.",
+    pecinka: "Přes noc podřimuju. Ale jedním okem.",
+  },
+];
+const hodiny = ZASTAVKY.map((z) => z.h);
+const s0 = stavVypalu(0);
+
+/* Hrnek nad kresbou: na šířku je scéna celá (3 : 2), na telefonu se ořízne na čtverec uprostřed */
+const UZKA = { x0: 200, w: 800 };
+const proc = (n: number) => `${n.toFixed(3)}%`;
+const poloha =
+  `--kx:${proc((KUS_OHEN.x / SCENA.W) * 100)};--ky:${proc((KUS_OHEN.y / SCENA.H) * 100)};--kw:${proc((KUS_OHEN.w / SCENA.W) * 100)};--kh:${proc((KUS_OHEN.h / SCENA.H) * 100)};` +
+  `--kx2:${proc(((KUS_OHEN.x - UZKA.x0) / UZKA.w) * 100)};--kw2:${proc((KUS_OHEN.w / UZKA.w) * 100)}`;
+---
+<section class="ft-kap ft-kap-ohen ftn-ohen" id="ohen" data-hodina="25.5" aria-labelledby="ohen-nadpis" data-ohen style="--zar:0;--zar-barva:#4A3F3A">
+  <p class="ft-kap-znak" lang="ja" aria-hidden="true">火</p>
+  <header class="ft-kap-hlava">
+    <p class="stitek"><span class="ft-kap-cislo" lang="ja">三</span> <span lang="ja">火</span> · hi</p>
+    <h2 class="ft-kap-nazev" id="ohen-nadpis">Co s ním udělal oheň</h2>
+    <p class="ft-kap-podtitul">jedna noc v peci, od křídy po sklo</p>
+  </header>
+
+  <div class="ftn-noc">
+    <figure class="ftn-pec ftn-scena" style={`${poloha};--fto-jas:1`}>
+      <div class="ftn-pec-kresba" set:html={pecScena(s0)} />
+      <div class="ftn-pec-kus">
+        <div
+          class="ftn-pec-hrnek"
+          data-futatsu-otoc
+          data-id="fph"
+          data-uhel="62"
+          data-nadhled={NADHLED_OHEN}
+          data-svetlo="shora"
+          data-vypal="0"
+          tabindex="0"
+          role="img"
+          aria-label="Futatsu v peci. Táhni do strany nebo použij šipky a hrnek se otočí."
+        >
+          <svg viewBox={PODOBIZNA.viewBox} set:html={podobizna({ id: "fph", uhel: 62, nadhled: NADHLED_OHEN, svetlo: "shora", vypal: 0 })} />
+        </div>
+        <svg class="ftn-pec-zar" viewBox={PODOBIZNA.viewBox} aria-hidden="true" focusable="false" set:html={kusVrstva(s0)} />
+      </div>
+      <p class="ftn-teplota" aria-hidden="true"><b data-teplota>{cislo(s0.T)}</b><span>°C</span><small data-faze>{fazeVypalu(0)}</small></p>
+      <figcaption class="sr-only">Futatsu stojí v komoře elektrické pece na šamotové desce. Za ním je stěna z izolačních cihel se spirálami topného drátu, vlevo vzadu žároměrky. Jak teplota stoupá, pec se rozsvítí do třešňova, oranžova a nahoře do žlutobíla.</figcaption>
+    </figure>
+
+    <div
+      class="ftn-krivka"
+      role="slider"
+      tabindex="0"
+      aria-label="Čas výpalu: vlevo zapnutí pece, vpravo ráno"
+      aria-valuemin="0"
+      aria-valuemax="24"
+      aria-valuenow="0"
+      aria-valuetext={`${cislo(s0.T)} °C, ${fazeVypalu(0)}`}
+      data-krivka
+    >
+      <div class="ftn-krivka-siroka" set:html={krivkaPasek(hodiny, 0, false, "fto-kr")} />
+      <div class="ftn-krivka-uzka" set:html={krivkaPasek(hodiny, 0, true, "fto-ku")} />
+    </div>
+
+    <div class="ftn-ohen-bok">
+      <div class="ftn-ovladani">
+        <button type="button" class="ftn-hrat" data-hrat aria-pressed="false"><span aria-hidden="true">▶</span> Zapálit pec</button>
+        <p class="ftn-napoveda">nebo táhni po křivce</p>
+      </div>
+      <ol class="ftn-zastavky" aria-label="Zastavení výpalu">
+        {ZASTAVKY.map((z, i) => (
+          <li class={`ftn-zastavka${i === 0 ? " ted" : ""}`} data-i={i} style={`--barva:${barvaZaru(Math.max(teplotaV(z.h), 560))}`}>
+            <button type="button" data-h={z.h.toFixed(3)} aria-pressed={i === 0 ? "true" : "false"}>
+              <b>{cislo(teplotaV(z.h))}&nbsp;°C</b>
+              <span>{z.nazev}</span>
+            </button>
+            <p class="ftn-zastavka-text">{z.text}</p>
+          </li>
+        ))}
+      </ol>
+      <p class="sr-only" aria-live="polite" data-oznam></p>
+    </div>
+  </div>
+
+  <div class="ft-tip ftn-tip">
+    <span class="ft-tip-kami" aria-hidden="true"><Postavicka id="pecinka" size={64} varianta="kami" /></span>
+    <p><b>Pecinka radí</b><span data-pecinka>{ZASTAVKY[0].pecinka}</span></p>
+  </div>
+  <script type="application/json" data-pecinka-repliky set:html={JSON.stringify(ZASTAVKY.map((z) => z.pecinka))} />
+</section>

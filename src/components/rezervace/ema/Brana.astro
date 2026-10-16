@@ -11,9 +11,9 @@
 import Kami from "../../parta2/Kami.astro";
 import Shide from "../../characters/kami/Shide.astro";
 import { nahoda } from "../../parta2/tvary";
-import { rezervace } from "../../../data/rezervace";
+import { rezervace, cenaZaCloveka } from "../../../data/rezervace";
 
-const cena = rezervace.cena.toLocaleString("cs-CZ");
+const cena = cenaZaCloveka(1).toLocaleString("cs-CZ");
 
 /* Kde visí destičky: dvě lišty, háčky po čtyřiceti, pár háčků volných */
 const r = nahoda(235);

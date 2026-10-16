@@ -1,0 +1,171 @@
+---
+/**
+ * Uvnitř krámku — po scrollu z ulice se vejde dovnitř. Dvě stěny
+ * interiéru nakreslené stejnou rukou jako průčelí (kresba/uvnitr.ts),
+ * každá s vitrínou:
+ *
+ *   dilna     Vlastní tvorba: světlá vitrína se stříškou z tašek, štítem
+ *             手作り, policemi a dvěma posuvnými skly; kolem bambus,
+ *             stolička s balením, kalendář, daruma, dveře do dílny.
+ *             Kusy stojí na policích zabalené v novinách (dokud nemají
+ *             fotku), pod policí visí na provázku cedulka s cenou.
+ *   japonsko  Japonská keramika: tmavá lakovaná vitrína s mosazí, štítek
+ *             letecké pošty, nasvícené výklenky s obloukem a mosazné
+ *             jmenovky; kolem krabice z paulovnie, bedna, ve které kusy
+ *             přiletěly, svitek 一期一会, paraván a kulaté okno.
+ *
+ * Kresba se kreslí dvakrát (široká: 4 kusy na polici, úzká: 2) a CSS
+ * ukáže jednu. Kusy, cedulky, štít a lístky jsou HTML jen jednou —
+ * každý prvek nese polohu pro obě rozvržení v proměnných --l1…--h2
+ * (procenta jádra), velikosti písma jdou z jednotky kresby --u.
+ *
+ * Klik na kus otevře tentýž detail jako v krámku (DetailKusu.astro,
+ * scripts/obchod2/kramek.ts), „Do šátku“ obsluhuje šátek (satek.ts) —
+ * data-satek-kus kus označí, když v šátku leží. Styly: styles/vitrina.css.
+ */
+import { Image } from "astro:assets";
+import Zabaleno from "./Zabaleno.astro";
+import { zJaponska, zDilny, kramek, cenovka } from "../../data/kramek";
+import { vzdalenost } from "../../data/obchod2";
+import { glazury } from "../../data/kurzy2";
+import { pocetKusu } from "../../data/pocty";
+import { stena } from "./kresba/uvnitr";
+import type { Obdelnik } from "./kresba/zaklad";
+
+interface Props {
+  odkud: "dilna" | "japonsko";
+}
+const { odkud } = Astro.props;
+const japonsko = odkud === "japonsko";
+const kusy = japonsko ? zJaponska : zDilny;
+const id = japonsko ? "japonsko" : "tvorba";
+
+const S = { siroka: stena(odkud, "siroka", kusy.length), uzka: stena(odkud, "uzka", kusy.length) };
+const g1 = S.siroka.g;
+const g2 = S.uzka.g;
+const pr = (v: number, z: number) => `${((v / z) * 100).toFixed(3)}%`;
+/** Poloha prvku v obou rozvrženích (procenta jádra) */
+const poloha = (a: Obdelnik, b: Obdelnik) =>
+  `--l1:${pr(a.x, g1.W)};--t1:${pr(a.y, g1.H)};--w1:${pr(a.w, g1.W)};--h1:${pr(a.h, g1.H)};` +
+  `--l2:${pr(b.x, g2.W)};--t2:${pr(b.y, g2.H)};--w2:${pr(b.w, g2.W)};--h2:${pr(b.h, g2.H)}`;
+/** SVG přes celou šířku: jádro W, kresba i s kusy za kraji */
+const kresba = (g: typeof g1) => `left:${pr(-g.ext, g.W)};width:${pr(g.W + 2 * g.ext, g.W)}`;
+
+const karty = kusy.map((kus, i) => {
+  const glazura = kus.glazura?.toLowerCase();
+  const g = glazura ? glazury.find((x) => x.nazev === glazura) : undefined;
+  const o = kus.druh?.odkud;
+  return {
+    kus,
+    /* Balík v novinách vypadá všude stejně (krámek, detail, šátek): seme podle pořadí v krámku */
+    seme: kramek.indexOf(kus) + 1,
+    foto: kus.fotky[0],
+    zevnitr: kus.fotky[1],
+    vzorek: g ? `--g1:${g.svetlo};--g2:${g.stred};--g3:${g.stin}` : undefined,
+    cesta: o ? `${o.mesto}, ${o.prefektura} → Ořech · ${(Math.round(vzdalenost(o.gps) / 10) * 10).toLocaleString("cs-CZ")} km` : "z Japonska",
+    kusPoloha: poloha(g1.kusy[i], g2.kusy[i]),
+    /* papírové cedulky visí každá trochu nakřivo */
+    cedulkaPoloha: `${poloha(g1.cedulky[i], g2.cedulky[i])};--r:${japonsko ? 0 : [-1.1, 0.9, -0.4, 1.3][i % 4]}deg`,
+    ...cenovka(kus.cena),
+  };
+});
+const sZabalenym = karty.some((k) => !k.foto);
+const velikosti = "(min-width: 1000px) 190px, 34vw";
+---
+<section class:list={["o2v", `o2v-${odkud}`]} id={id} aria-labelledby={`${id}-nadpis`}>
+  <div class="o2v-jadro" style={`--a1:${g1.W} / ${g1.H};--a2:${g2.W} / ${g2.H}`}>
+    <svg class="o2v-kresba o2v-siroka" viewBox={S.siroka.viewBox} style={kresba(g1)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.siroka.zadni} />
+    <svg class="o2v-kresba o2v-uzka" viewBox={S.uzka.viewBox} style={kresba(g2)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.uzka.zadni} />
+
+    {/* Kusy za sklem */}
+    {karty.map(({ kus, seme, foto, zevnitr, kusPoloha }) => (
+      <div class="o2v-misto o2v-kus" style={kusPoloha} data-satek-kus={kus.id}>
+        <button type="button" class:list={["o2v-obraz", { "o2v-nika": japonsko, "o2v-s-fotkou": foto }]} data-otevri-kus={kus.id} aria-label={`${foto ? "Prohlédnout" : "Rozbalit"}: ${kus.nazev}`}>
+          {foto ? (
+            <>
+              <Image src={foto.src} alt={foto.alt} width={500} widths={[250, 380, 500]} sizes={velikosti} format="webp" class="o2v-foto" loading="lazy" />
+              {zevnitr && <Image src={zevnitr.src} alt="" width={500} widths={[250, 380, 500]} sizes={velikosti} format="webp" class="o2v-foto o2v-foto-druha" loading="lazy" />}
+              {zevnitr && <span class="o2v-pohled" aria-hidden="true">{zevnitr.popis}</span>}
+            </>
+          ) : (
+            <Zabaleno tvar={kus.tvar ?? "bowl"} seme={seme} slama={false} predpona="o2v-zab" class="o2v-balik" />
+          )}
+          {kus.novinka && <span class="o2v-pop" aria-hidden="true"><b lang="ja">新作</b></span>}
+          <span class="o2v-v-satku" data-v-satku hidden>v šátku</span>
+        </button>
+        {kus.druh && <span class="o2v-hakogaki" lang="ja" aria-hidden="true">{kus.druh.znak}</span>}
+      </div>
+    ))}
+
+    <svg class="o2v-kresba o2v-siroka" viewBox={S.siroka.viewBox} style={kresba(g1)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.siroka.predni} />
+    <svg class="o2v-kresba o2v-uzka" viewBox={S.uzka.viewBox} style={kresba(g2)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.uzka.predni} />
+
+    {/* Štít nad vitrínou */}
+    <header class="o2v-misto o2v-stit" style={poloha(g1.stit, g2.stit)}>
+      <p class="o2v-stit-ja" lang="ja">{japonsko ? "航空便" : "手作り"}</p>
+      <div class="o2v-stit-text">
+        <h2 id={`${id}-nadpis`} class="o2v-nadpis">{japonsko ? "Japonská keramika" : "Vlastní tvorba"}</h2>
+        <p class="o2v-stit-pod">{japonsko ? `od japonských hrnčířů · ${pocetKusu(kusy.length)}` : `z naší dílny v Ořechu · ${pocetKusu(kusy.length)}`}</p>
+      </div>
+    </header>
+
+    {/* Lístky přilepené zevnitř na sklo */}
+    <div class="o2v-misto o2v-listky" style={poloha(g1.listky, g2.listky)}>
+      {japonsko ? (
+        <div class="o2v-listek o2v-obalka">
+          <p>Od japonských hrnčířů, každý kus z jiné pece a jiné tradice. Klikni na něj — povíme ti, odkud je a na co se na něm podívat.</p>
+          <svg class="o2v-znamka" viewBox="0 0 40 48" aria-hidden="true">
+            <rect width="40" height="48" fill="#FBF7EC" />
+            <g transform="translate(4 4) scale(0.8)">
+              <rect width="40" height="48" fill="#BFD6E6" />
+              <circle cx="29" cy="12" r="6" fill="#C4432B" />
+              <path d="M0 38 L14 20 Q20 14 26 20 L40 36 V48 H0 Z" fill="#5F738F" />
+              <path d="M14 20 Q20 14 26 20 L23 23 L20.5 21 L18 24 L16.5 22 Z" fill="#FBF7EC" />
+              <rect y="38" width="40" height="10" fill="#FBF7EC" />
+              <text x="20" y="45.5" text-anchor="middle" font-size="6.4" font-weight="600" letter-spacing="0.6" fill="#2B2420" font-family="Fraunces Variable, Georgia, serif">NIPPON</text>
+            </g>
+          </svg>
+          <svg class="o2v-postovni" viewBox="0 0 150 64" aria-hidden="true">
+            <g fill="none" stroke="currentColor">
+              <circle cx="32" cy="32" r="28" stroke-width="1.8" />
+              <circle cx="32" cy="32" r="22.5" stroke-width="0.9" />
+              <path d="M64 20 q8 -5 16 0 t16 0 t16 0 t16 0 t16 0 M64 32 q8 -5 16 0 t16 0 t16 0 t16 0 t16 0 M64 44 q8 -5 16 0 t16 0 t16 0 t16 0 t16 0" stroke-width="1.8" />
+            </g>
+            <text x="32" y="33" text-anchor="middle" font-size="13" fill="currentColor" font-family="Yuji Syuku, serif">航空便</text>
+            <text x="32" y="45.5" text-anchor="middle" font-size="7.4" font-weight="600" letter-spacing="1.2" fill="currentColor" font-family="Fraunces Variable, Georgia, serif">OŘECH</text>
+          </svg>
+        </div>
+      ) : (
+        <>
+          <p class="o2v-listek">Točené na kruhu nebo modelované, glazované ručně a vypálené u nás v Ořechu. Každý kus je jen jeden.</p>
+          {sZabalenym && <p class="o2v-listek o2v-listek-noviny">Zatím v novinách — fotky doplníme. Chceš kus vidět hned? Klikni a napiš nám.</p>}
+        </>
+      )}
+    </div>
+
+    {/* Cedulky s cenou (na tvorbě papírové na provázku, na Japonsku mosazné) */}
+    {karty.map(({ kus, vzorek, cesta, castka, mena, cedulkaPoloha }) => (
+      <div class="o2v-misto o2v-cedulka" style={cedulkaPoloha} data-satek-kus={kus.id}>
+        <h3 class="o2v-jmeno" id={`o2v-${kus.id}`}>
+          <button type="button" class="o2v-jmeno-odkaz" data-otevri-kus={kus.id}>{kus.nazev}</button>
+        </h3>
+        {japonsko ? (
+          <>
+            <p class="o2v-meta">{kus.autor}{kus.druh && <> · <i>{kus.druh.cteni}</i></>}</p>
+            <p class="o2v-cesta">{cesta}</p>
+          </>
+        ) : (
+          <p class="o2v-meta">
+            {vzorek && <span class="o2v-vzorek" style={vzorek} aria-hidden="true"></span>}
+            {kus.glazura}
+            {kus.novinka && <span class="o2v-novinka">novinka</span>}
+          </p>
+        )}
+        <div class="o2v-koupit">
+          <p class="o2v-cena"><b>{castka}</b> {mena}</p>
+          <button type="button" class="o2v-do-satku" data-satek-pridat data-satek-id={kus.id} data-pridat="Do šátku" data-vyndat="✓ V šátku" aria-describedby={`o2v-${kus.id}`}>Do šátku</button>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>

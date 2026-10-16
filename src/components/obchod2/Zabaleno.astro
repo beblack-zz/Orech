@@ -17,11 +17,13 @@ interface Props {
   /** Sláma kolem, jako v bedně */
   slama?: boolean;
   class?: string;
+  /** Předpona id (ořez, stín), když je tentýž balík na stránce víckrát — v krámku i v nabídce */
+  predpona?: string;
 }
-const { tvar, seme, slama = true, class: cls = "" } = Astro.props;
+const { tvar, seme, slama = true, class: cls = "", predpona = "zab" } = Astro.props;
 const r = nahoda(seme * 7 + 3);
 const f = (n: number) => Math.round(n * 10) / 10;
-const id = `zab-${seme}-${tvar}`;
+const id = `${predpona}-${seme}-${tvar}`;
 
 /* Tělo balíku, krček (kde je provázek) a chomáček papíru nad ním */
 const TVARY: Record<Tvar, { telo: string; krk: number; vrsek?: string; sirka: number }> = {

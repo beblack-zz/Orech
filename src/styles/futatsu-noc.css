@@ -1,0 +1,352 @@
+/*
+ * ——— Futatsu: noční kapitoly (Oheň, Čas, Závěr) ———
+ *
+ * Začátek kapitol (ft-kap*, ft-tip) je ve futatsu.css — hlavička stojí
+ * na obloze jako u ostatních kapitol. Tady je, co mají jen tyhle tři:
+ *
+ *   三 Oheň    noční panel jako výpal na Dílně: komora pece s hrnkem,
+ *              velká teplota, pálicí křivka jako jezdec, zastavení
+ *   四 Čas     panel za svítání: hrnek shora na podšálku, malé pohledy
+ *              na stáří a jezdec
+ *   結 závěr   ranní washi: hrnek na rozprostřeném šátku, cena, Do šátku
+ *
+ * Kresby (ohen.ts, cas.ts, furoshiki.ts) mají pevný viewBox; hrnek
+ * (podobizna) leží nad kresbou jako HTML na místě, které dá komponenta
+ * v proměnných --kx/--ky/--kw/--kh (na telefonu --kx2/--kw2, kresba se
+ * tam ořízne na čtverec). Chování: scripts/obchod2/futatsu-noc.ts.
+ * Třídy ftn-, v kresbách fto- (oheň), ftc- (čas), ftz- (šátek).
+ */
+
+/* ——— Společné ——— */
+
+.ftn-scena { position: relative; margin: 0; }
+.ftn-tip { width: min(1240px, 100%); margin: 26px auto 0; justify-content: flex-end; }
+.ftn-drobne { margin: 0; font-size: 14.5px; line-height: 1.5; color: rgba(241, 232, 214, 0.7); }
+
+/* ═══════════════ 三 Oheň ═══════════════ */
+
+/* Noční panel: tma, jediné světlo je pec — záře panelu jde s teplotou (skript nastaví --zar a --zar-barva) */
+.ftn-noc {
+  position: relative;
+  z-index: 1;
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  padding: clamp(14px, 2.4vw, 30px);
+  border-radius: 30px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(250px, 0.72fr);
+  grid-template-areas:
+    "scena bok"
+    "krivka bok";
+  gap: 14px clamp(18px, 2.6vw, 36px);
+  align-items: start;
+  background: linear-gradient(#1E1A33, #120F1C);
+  background:
+    radial-gradient(ellipse 58% 48% at 34% 40%, color-mix(in srgb, var(--zar-barva, #F4852A) calc(var(--zar, 0) * 36%), transparent), transparent 72%),
+    linear-gradient(#1E1A33, #120F1C);
+  color: #EDE4D3;
+  box-shadow: 0 50px 100px -40px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 220, 170, 0.08);
+}
+.ftn-ohen .ft-kap-znak { color: color-mix(in srgb, var(--zar-barva, #FFC88C) calc(8% + var(--zar, 0) * 14%), transparent); transition: none; }
+
+/* Komora pece: kresba přes celé pole, na telefonu oříznutá na čtverec */
+.ftn-pec {
+  grid-area: scena;
+  aspect-ratio: 3 / 2;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0A0812;
+  box-shadow: inset 0 0 0 1px rgba(255, 220, 170, 0.08);
+}
+.ftn-pec-kresba,
+.ftn-pec-kresba > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+/* Okraje komory se ztrácejí do tmy panelu */
+.ftn-pec::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: radial-gradient(ellipse 78% 72% at 50% 50%, transparent 58%, rgba(10, 8, 18, 0.55));
+  pointer-events: none;
+}
+.ftn-pec-kus { position: absolute; z-index: 2; left: var(--kx); top: var(--ky); width: var(--kw); height: var(--kh); }
+.ftn-pec-hrnek,
+.ftn-pec-hrnek > svg,
+.ftn-pec-zar { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; }
+/* Zavřená pec: hrnek ztmavne stejně jako kresba kolem (skript nastaví --fto-jas) */
+.ftn-pec-hrnek { filter: brightness(var(--fto-jas, 1)); cursor: grab; touch-action: pan-y; border-radius: 40%; }
+.ftn-pec-hrnek:focus-visible { outline: 2px solid #FFD976; outline-offset: -6px; }
+.ftn-pec-zar { pointer-events: none; }
+
+/* Velká teplota v rohu komory */
+.ftn-teplota {
+  position: absolute;
+  z-index: 4;
+  left: 3.4%;
+  top: 4%;
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  column-gap: 6px;
+  color: #FFF3CF;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--zar-barva, #FFB443) calc(var(--zar, 0) * 100%), transparent), 0 2px 10px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.ftn-teplota b {
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 600;
+  font-size: clamp(30px, 4.4vw, 60px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ftn-teplota span { font-family: var(--f-display); font-size: clamp(15px, 1.4vw, 20px); opacity: 0.85; }
+.ftn-teplota small { grid-column: 1 / -1; margin-top: 4px; font-family: var(--f-ruka); font-size: clamp(18px, 1.7vw, 24px); line-height: 1; color: #FFE2B8; }
+
+/* Jiskřička, když praskne krakelé (třídu dá skript na chvilku) */
+.fto-k-jiskra { transform-box: fill-box; transform-origin: center; }
+.fto-k-jiskra.cinkne { animation: fto-jiskra 0.8s ease-out; }
+@keyframes fto-jiskra {
+  0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  20% { opacity: 1; transform: scale(1.2) rotate(18deg); }
+  100% { opacity: 0; transform: scale(0.55) rotate(45deg); }
+}
+/* Spirály se mihotají, když žhnou (bez žáru je jejich vrstva průhledná) */
+.fto-spirala { animation: fto-mihot 2.3s ease-in-out infinite; }
+@keyframes fto-mihot { 0%, 100% { opacity: 1; } 40% { opacity: 0.84; } 70% { opacity: 0.95; } }
+
+/* Pálicí křivka: jezdec přes celou šířku scény, tahem nebo klávesami */
+.ftn-krivka {
+  grid-area: krivka;
+  position: relative;
+  border-radius: 14px;
+  cursor: pointer;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.ftn-krivka svg { display: block; width: 100%; height: auto; }
+.ftn-krivka-uzka { display: none; }
+.ftn-krivka:focus-visible { outline: 2px solid #FFD976; outline-offset: 3px; }
+.ftn-krivka.tahne { cursor: grabbing; }
+
+/* Vpravo: zapálit a zastavení */
+.ftn-ohen-bok { grid-area: bok; display: grid; gap: 14px; align-content: start; }
+.ftn-ovladani { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.ftn-noc .ftn-hrat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px 11px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 226, 184, 0.55);
+  background: rgba(255, 180, 100, 0.12);
+  color: #FFE9C8;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 15.5px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.ftn-noc .ftn-hrat:hover { background: rgba(255, 180, 100, 0.24); border-color: #FFD9A6; transform: translateY(-1px); }
+.ftn-noc .ftn-hrat[aria-pressed="true"] { background: #FFE2B8; color: #2A1E14; }
+.ftn-hrat span { font-size: 0.8em; }
+.ftn-napoveda { margin: 0; font-family: var(--f-ruka); font-size: 20px; line-height: 1; color: rgba(255, 226, 184, 0.75); }
+
+.ftn-zastavky { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ftn-noc .ftn-zastavka button {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 14px 9px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 3px 0 0 var(--barva, #FFB443);
+  color: #E3D9CA;
+  text-align: left;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.ftn-noc .ftn-zastavka button:hover { background: rgba(255, 220, 160, 0.09); }
+.ftn-zastavka button b {
+  min-width: 5.4ch;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 72;
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.1;
+  color: #FFF3DF;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ftn-zastavka button span { font-size: 15.5px; line-height: 1.3; }
+.ftn-noc .ftn-zastavka.ted button { background: rgba(255, 220, 160, 0.13); box-shadow: inset 4px 0 0 var(--barva, #FFB443), 0 14px 30px -22px rgba(255, 150, 60, 0.7); }
+.ftn-zastavka-text { margin: 8px 6px 6px 16px; font-size: 15.5px; line-height: 1.55; color: #E3D9CA; }
+/* Se skriptem je vidět jen text zastavení, u kterého pec zrovna je */
+.s-js .ftn-zastavka:not(.ted) .ftn-zastavka-text { display: none; }
+
+/* ═══════════════ 四 Čas ═══════════════ */
+
+/* Panel za svítání: vlevo ještě noc, vpravo teplé světlo z okna */
+.ftn-svitani {
+  position: relative;
+  z-index: 1;
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  padding: clamp(16px, 2.6vw, 34px);
+  border-radius: 30px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  grid-template-areas: "bok scena";
+  gap: clamp(18px, 3vw, 44px);
+  align-items: center;
+  background:
+    radial-gradient(ellipse 50% 60% at 78% 50%, rgba(255, 196, 150, 0.34), transparent 72%),
+    linear-gradient(100deg, #2B2C5A 0%, #403E6E 42%, #7E5E83 78%, #A9757F 100%);
+  color: #F1E8D6;
+  box-shadow: 0 50px 100px -44px rgba(10, 8, 30, 0.8), 0 0 0 1px rgba(255, 230, 210, 0.1);
+}
+.ftn-shora { grid-area: scena; width: min(100%, 600px); justify-self: center; }
+.ftn-shora-kresba,
+.ftn-shora-kresba > svg { display: block; width: 100%; height: auto; }
+/* Pára nad douškem stoupá a rozplývá se */
+.ftc-para-0, .ftc-para-1, .ftc-para-2 { transform-box: view-box; animation: ftc-para 7s ease-in-out infinite; }
+.ftc-para-1 { animation-delay: -2.3s; }
+.ftc-para-2 { animation-delay: -4.6s; }
+@keyframes ftc-para {
+  0% { opacity: 0; transform: translate(0, 18px); }
+  30% { opacity: 1; }
+  70% { opacity: 0.75; }
+  100% { opacity: 0; transform: translate(10px, -34px); }
+}
+
+.ftn-cas-bok { grid-area: bok; display: grid; gap: 18px; align-content: center; }
+.ftn-cas-uvod { margin: 0; font-size: 17.5px; line-height: 1.6; color: #F1E8D6; }
+.ftn-stari { display: grid; gap: 4px; }
+.ftn-stari-zastavky { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ftn-svitani .ftn-stari-z {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 6px 4px 8px;
+  border-radius: 16px;
+  color: #F1E8D6;
+  transition: background 0.25s;
+}
+.ftn-svitani .ftn-stari-z:hover { background: rgba(255, 240, 220, 0.08); }
+.ftn-stari-nahled { display: block; width: min(100%, 92px); border-radius: 50%; box-shadow: 0 10px 18px -10px rgba(10, 8, 30, 0.7); transition: box-shadow 0.25s, transform 0.25s; }
+.ftn-stari-nahled svg { display: block; width: 100%; height: auto; }
+.ftn-stari-z.ted .ftn-stari-nahled { box-shadow: 0 0 0 3px #FFD9A6, 0 12px 22px -10px rgba(10, 8, 30, 0.8); transform: translateY(-2px); }
+.ftn-stari-nazev { font-family: var(--f-ruka); font-size: 19px; line-height: 1.05; text-align: center; }
+/* Jezdec vede od prvního malého pohledu k poslednímu */
+.ftn-stari-jezdec { display: block; margin: 2px 12.5% 0; }
+.ftn-stari-jezdec input { display: block; width: 100%; margin: 0; accent-color: #E8A766; }
+.ftn-stari-popis { justify-self: center; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 15px; letter-spacing: 0.04em; color: #FFE2C4; }
+.ftn-stari-texty p { margin: 0; font-size: 16px; line-height: 1.55; color: #F1E8D6; }
+.ftn-stari-texty p + p { margin-top: 10px; }
+.ftn-stari-texty b { font-family: var(--f-display); font-weight: 600; color: #FFE2C4; }
+.s-js .ftn-stari-text:not(.ted) { display: none; }
+
+/* ═══════════════ 結 Závěr ═══════════════ */
+
+.ftn-zaver { position: relative; z-index: 2; padding: 10vh 20px 6vh; scroll-margin-top: 64px; }
+.ftn-zaver-znak { top: 2vh; }
+.ftn-zaver-mriz {
+  position: relative;
+  z-index: 1;
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  padding: clamp(14px, 2.4vw, 30px);
+  border-radius: 30px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.85fr);
+  gap: clamp(18px, 3vw, 44px);
+  align-items: center;
+  background: var(--washi, #FBF7EC);
+  color: var(--inkoust);
+  box-shadow: 0 40px 90px -40px rgba(40, 30, 60, 0.6), 0 0 0 1px rgba(43, 36, 32, 0.06);
+}
+.ftn-satek { aspect-ratio: var(--pomer, 250 / 188); border-radius: 22px; overflow: hidden; background: #C49E72; }
+.ftn-satek-vrstva,
+.ftn-satek-vrstva > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.ftn-satek-predni { pointer-events: none; }
+.ftn-satek-kus { position: absolute; left: var(--kx); top: var(--ky); width: var(--kw); height: var(--kh); }
+.ftn-satek-hrnek,
+.ftn-satek-hrnek > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; }
+.ftn-satek-hrnek { cursor: grab; touch-action: pan-y; border-radius: 40%; }
+.ftn-satek-hrnek:focus-visible { outline: 2px solid var(--rumelka); outline-offset: -6px; }
+/* Zavázaný hrnek nejde otáčet — je v šátku */
+.ftn-satek.v-satku .ftn-satek-hrnek { pointer-events: none; }
+
+.ftn-zaver-text { display: grid; gap: 14px; justify-items: start; }
+.ftn-zaver-text .stitek [lang="ja"] { font-size: 1.35em; }
+.ftn-zaver-nazev {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: clamp(42px, 5vw, 72px);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+}
+.ftn-zaver-perex { margin: 0; max-width: 32em; font-size: 17.5px; line-height: 1.6; color: var(--inkoust-2); }
+.ftn-zaver-cena { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.ftn-cenovka {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: clamp(38px, 4.4vw, 52px);
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-variation-settings: "SOFT" 50, "opsz" 72;
+  white-space: nowrap;
+}
+.ftn-cenovka small { font-size: 0.45em; font-weight: 400; color: var(--inkoust-2); margin-left: 0.1em; }
+.ftn-zaver-jak { margin: 0; max-width: 34em; font-size: 15.5px; line-height: 1.55; color: var(--inkoust-3); }
+.ftn-zaver-jak a { color: var(--rumelka); font-weight: 600; }
+.ftn-zpet { color: var(--rumelka); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+
+/* ——— Užší okna ——— */
+
+@media (max-width: 1000px) {
+  .ftn-noc { grid-template-columns: minmax(0, 1fr); grid-template-areas: "scena" "krivka" "bok"; }
+  .ftn-svitani { grid-template-columns: minmax(0, 1fr); grid-template-areas: "scena" "bok"; }
+  .ftn-shora { width: min(100%, 520px); }
+  .ftn-zaver-mriz { grid-template-columns: minmax(0, 1fr); }
+  .ftn-tip { justify-content: flex-start; }
+}
+
+@media (max-width: 640px) {
+  .ftn-noc,
+  .ftn-svitani,
+  .ftn-zaver-mriz { border-radius: 22px; padding: 12px; }
+  .ftn-pec { aspect-ratio: 1 / 1; border-radius: 16px; }
+  .ftn-pec-kus { left: var(--kx2); width: var(--kw2); }
+  .ftn-krivka-siroka { display: none; }
+  .ftn-krivka-uzka { display: block; }
+  .ftn-zastavky { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ftn-zastavka.ted { grid-column: 1 / -1; }
+  .ftn-zastavka button { flex-direction: column; gap: 0; padding: 7px 12px 8px 14px; }
+  .ftn-zastavka button b { font-size: 17px; }
+  .ftn-zastavka button span { font-size: 14px; }
+  .ftn-stari-nazev { font-size: 16px; }
+  .ftn-satek { aspect-ratio: 1 / 1; }
+  .ftn-satek-kus { left: var(--kx2); width: var(--kw2); }
+  .ftn-zaver { padding: 7vh 12px 4vh; }
+}
+
+/* ——— Méně pohybu ——— */
+
+@media (prefers-reduced-motion: reduce) {
+  .fto-k-jiskra.cinkne,
+  .fto-spirala,
+  .ftc-para-0, .ftc-para-1, .ftc-para-2 { animation: none !important; }
+  .ftn-zastavka button,
+  .ftn-stari-nahled,
+  .ftn-stari-z,
+  .ftn-hrat { transition: none !important; }
+}

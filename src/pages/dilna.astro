@@ -12,7 +12,7 @@
  *   odpoledne  část druhá, jak se dělá keramika: hlína, tvar, sušení,
  *              přežah, glazura
  *   noc        ostrý výpal — pálicí křivka a pec v plném žáru
- *   ráno       otevření pece, slovníček, otázky
+ *   ráno       otevření pece, slovníček (otázky jsou od 16. 10. na Kontaktu)
  *   9:00       dílna se otvírá, na prkně je pro tebe místo
  *
  * Kdy a za kolik je z data/rezervace.ts, zbytek z data/dilna.ts, teploty
@@ -46,7 +46,6 @@ import Glazura from "../components/dilna/Glazura.astro";
 import Vypal from "../components/dilna/Vypal.astro";
 import Hotovo from "../components/dilna/Hotovo.astro";
 import Slovnicek from "../components/dilna/Slovnicek.astro";
-import Otazky from "../components/dilna/Otazky.astro";
 import Zaver from "../components/dilna/Zaver.astro";
 
 import { cinnosti, kapitoly, kdy, slovnicek, glazuraJaponsky } from "../data/dilna";
@@ -79,7 +78,7 @@ kapitoly.forEach((k) => {
 });
 slovnicek.forEach((s) => s.hesla.forEach((h) => pridej(h.japonsky ?? "")));
 Object.values(glazuraJaponsky).forEach((g) => pridej(g.znak));
-pridej("工房工程一二案内土から器へ手窯先生一人時間値段規則質問用語開店");
+pridej("工房工程一二案内土から器へ手窯先生一人時間値段規則用語開店");
 const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
 ---
 <!doctype html>
@@ -138,7 +137,6 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
       <Hotovo />
 
       <Slovnicek />
-      <Otazky />
       <Zaver />
     </main>
 

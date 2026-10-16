@@ -1,0 +1,96 @@
+---
+/**
+ * 0 Úvod — večer, 20:24. Vlevo papír s tím podstatným (jméno, heslo, cena,
+ * Do šátku a pět kapitol), vpravo Futatsu na černé lakované desce pod
+ * teplým světlem lampy a za ním 二つ štětcem (kresba uvod.ts).
+ *
+ * Hrnek je namalovaný (podobizna.ts) a jde vzít do ruky: tahem nebo
+ * šipkami se otočí (scripts/obchod2/futatsu-otoc.ts). Při příchodu se
+ * přitočí z odvrácené strany a ukáže podpis, pak se pomalu otáčí sám.
+ * V laku se zrcadlí — v HTML jen obrys, celou kresbu do odrazu dává a s každým
+ * pootočením překresluje scripts/obchod2/futatsu.ts. Bez skriptu stojí na 62°.
+ *
+ * Kresba, odraz i hrnek sdílejí plátno v milimetrech (uvod.ts PLATNO),
+ * takže na sebe sedí v každé velikosti; výřez scény řídí futatsu.css.
+ */
+import { podobizna, obrys, PODOBIZNA } from "./podobizna";
+import { uvodScena, odrazDefs, odrazObal, odrazObrys, PLATNO_VB, HRNEK_NA_PLATNE, NAPOVEDA } from "./uvod";
+import { V } from "./kresba";
+import { podpisove, cenovka } from "../../../data/kramek";
+
+const kus = podpisove.find((k) => k.podpis === "/obchod-2/futatsu")!;
+const { castka, mena } = cenovka(kus.cena);
+const pod = { id: "fpu", uhel: 62, nadhled: 12, svetlo: "vlevo" as const };
+const h = HRNEK_NA_PLATNE;
+const procenta = (o: { left: number; top: number; width: number; height: number }) =>
+  `left:${o.left.toFixed(3)}%;top:${o.top.toFixed(3)}%;width:${o.width.toFixed(3)}%;height:${o.height.toFixed(3)}%`;
+
+const KAPITOLY = [
+  { id: "podpis-kusu", cislo: "一", nazev: "Podpis", pozn: "dva výstupky na boku" },
+  { id: "vykres", cislo: "二", nazev: "Výkres", pozn: "strojní součástka na prkně" },
+  { id: "ohen", cislo: "三", nazev: "Oheň", pozn: "co s ním udělala pec" },
+  { id: "cas", cislo: "四", nazev: "Čas", pozn: "hrnek, který stárne s tebou" },
+  { id: "origami", cislo: "五", nazev: "Origami", pozn: "osvědčení a skutečná velikost" },
+];
+---
+<section class="ft-uvod" id="ft-uvod" data-hodina="20.4" aria-labelledby="ft-nazev">
+  <div class="ft-uvod-mriz">
+    <div class="ft-uvod-karta papir">
+      <div class="ft-uvod-jmeno">
+        <nav class="ft-cesta" aria-label="Kde jsi">
+          <ol>
+            <li><a href="/obchod-2">Obchod</a></li>
+            <li><a href="/obchod-2#podpis">Podpisový kus</a></li>
+            <li><span aria-current="page">Futatsu</span></li>
+          </ol>
+        </nav>
+        <p class="stitek">Podpisový kus · JIRO saku</p>
+        <h1 class="ft-nazev" id="ft-nazev">Futatsu <span class="ft-tate" lang="ja">二つ</span></h1>
+        <p class="ft-heslo">Ouško nemá. Má podpis.</p>
+      </div>
+      <div class="ft-uvod-telo">
+        <p class="ft-perex">
+          Yunomi, japonský hrnek na čaj, který se drží v dlaních. Místo ouška má na boku dva výstupky
+          seříznuté naplocho — podle nich se jmenuje Futatsu, japonsky „dvě“. Točený a glazovaný ručně v Ořechu.
+        </p>
+        <div class="ft-cena">
+          <p class="ft-cenovka">{castka} <small>{mena}</small></p>
+          <button type="button" class="tlacitko" data-satek-pridat data-satek-id={kus.id} data-pridat="Do šátku" data-vyndat="✓ V šátku">Do šátku</button>
+        </div>
+        <p class="ft-fakta">⌀ 84 × 76 mm · ≈ {V.objem} ml · shino · 1 280 °C</p>
+        <nav class="ft-obsah" aria-label="Kapitoly">
+          {KAPITOLY.map((k) => (
+            <a href={`#${k.id}`}><span lang="ja" aria-hidden="true">{k.cislo}</span><b>{k.nazev}</b><small>{k.pozn}</small></a>
+          ))}
+        </nav>
+      </div>
+    </div>
+
+    <figure class="ft-scena">
+      <div class="ft-platno">
+        <svg class="ft-scena-kresba" viewBox={PLATNO_VB} aria-hidden="true" focusable="false" set:html={uvodScena()} />
+        <svg class="ft-odraz" viewBox={PLATNO_VB} aria-hidden="true" focusable="false" set:html={odrazDefs() + odrazObal(odrazObrys(obrys(pod)))} />
+        <div
+          class="ft-hrnek"
+          style={procenta(h)}
+          data-futatsu-otoc
+          data-id="fpu"
+          data-uhel="62"
+          data-nadhled="12"
+          data-svetlo="vlevo"
+          data-vstup
+          data-auto
+          tabindex="0"
+          aria-label="Futatsu, hrnek bez ouška v mléčné glazuře shino. Na boku má dva seříznuté výstupky s oranžovou holou hlínou."
+        >
+          <svg viewBox={PODOBIZNA.viewBox} set:html={podobizna(pod)} />
+        </div>
+        <p class="ft-napoveda" style={`left:${NAPOVEDA.left.toFixed(3)}%;top:${NAPOVEDA.top.toFixed(3)}%`} aria-hidden="true">
+          <span>vezmi ho<br />do ruky</span>
+          <svg viewBox="0 0 64 22"><path d="M6 11 C20 4 44 4 58 11 M6 11 l7 -5 M6 11 l7 5 M58 11 l-7 -5 M58 11 l-7 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </p>
+      </div>
+      <figcaption class="sr-only">Futatsu stojí na černé lakované desce a zrcadlí se v ní. Svítí na něj teplá lampa a vedle je štětcem napsané 二つ.</figcaption>
+    </figure>
+  </div>
+</section>

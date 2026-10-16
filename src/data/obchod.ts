@@ -1,4 +1,7 @@
 import type { Pohled } from "./zdaleka";
+import futatsuBok from "../images/futatsu-bok.jpg";
+import futatsuZevnitr from "../images/futatsu-zevnitr.jpg";
+import futatsuZespodu from "../images/futatsu-zespodu.jpg";
 
 export type Tvar = "bowl" | "vase" | "mug" | "plate";
 
@@ -17,6 +20,11 @@ export interface Produkt {
    * import obrázku nahoře a { src, alt, popis: "Zepředu" }.
    */
   fotky?: Pohled[];
+  /**
+   * Podpisový kus s vlastní stránkou (výkres, kusovník…). V krámku stojí
+   * první ve výloze a ve vitríně, vedle něj srolovaný výkres s odkazem sem.
+   */
+  podpis?: string;
 }
 
 /** Jediný zdroj zboží. Homepage zobrazuje první čtyři, /obchod všechno. */
@@ -29,6 +37,20 @@ export const produkty: Produkt[] = [
   { name: "Hrnek Večerní", price: "520 Kč", shape: "mug", author: "JIRO", glaze: "Matná bílá", tag: "Novinka", tagKind: "new" },
   { name: "Váza široká", price: "1 680 Kč", shape: "vase", author: "JIRO", glaze: "Shino" },
   { name: "Talíř dezertní", price: "540 Kč", shape: "plate", author: "JIRO", glaze: "Celadon" },
+  /* Na konci, ať se nepohne pořadí ostatních (šátek si pamatuje id podle pořadí) — do výlohy ho dá `podpis` */
+  {
+    name: "Futatsu",
+    price: "1 200 Kč",
+    shape: "mug",
+    author: "JIRO",
+    glaze: "Shino",
+    podpis: "/obchod-2/futatsu",
+    fotky: [
+      { src: futatsuBok, alt: "Futatsu z boku: matná bílá glazura shino, vpravo dva seříznuté výstupky s oranžovou hlínou", popis: "Z boku" },
+      { src: futatsuZevnitr, alt: "Pohled do hrnku Futatsu: krakelé a lesklé jezírko na dně, rezavé tečky na okraji", popis: "Zevnitř" },
+      { src: futatsuZespodu, alt: "Dno hrnku Futatsu: obrobená patka bez glazury se soustřednými kruhy", popis: "Zespodu" },
+    ],
+  },
 ];
 
 /**

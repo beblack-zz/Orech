@@ -4,7 +4,7 @@
  *
  * ZNĚNÍ MAILŮ JE NÁVRH a čeká na potvrzení.
  */
-import { rezervace as R, permanentka as P, kurzy, hhmm, cenaOdjezdu } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, kurzy, hhmm, tarifSlovy, detskaSlovy, pravidloPrichodu, cenaPermanentky } from "../../data/rezervace";
 import { kontakt } from "../../data/uvod2";
 import { denVTydnu, konecPermanentky } from "./pravidla";
 import type { Zadost } from "./typy";
@@ -62,8 +62,11 @@ export function pozvanka(clen: { jmeno: string; email: string }, odkaz: string):
   };
 }
 
-/** Co je na jízdence slovy a v korunách. `kurz` je id kurzu, který ten den jede. */
-function sepis(z: Zadost, kurz: string | null): { nazev: string; radky: string[] } {
+/**
+ * Co je na jízdence slovy a v korunách. `kurz` je id kurzu, který ten den
+ * jede; `vyluk` kolik týdnů permanentky má výluku — ty se neplatí.
+ */
+function sepis(z: Zadost, kurz: string | null, vyluk = 0): { nazev: string; radky: string[] } {
   if (z.druh === "kurz") {
     const k = kurzy.find((x) => x.id === kurz);
     const zastavky = k?.program.map((p) => p.h) ?? [R.od];
@@ -78,6 +81,8 @@ function sepis(z: Zadost, kurz: string | null): { nazev: string; radky: string[]
     };
   }
   if (z.druh === "permanentka") {
+    /* Jízda je každý týden od prvního dne do posledního, kromě výluk */
+    const jizd = Math.floor((Date.parse(konecPermanentky(z.den)) - Date.parse(z.den)) / 604_800_000) + 1 - vyluk;
     const spoje = z.hodiny.map((h) => `${P.spoje.find((s) => s.h === h)?.nazev ?? ""} ${hhmm(h)}–${hhmm(h + R.blok)}`.trim()).join(" a ");
     return {
       nazev: `permanentka ${KAZDY[denVTydnu(z.den)]}, ${spoje}`,
@@ -85,7 +90,7 @@ function sepis(z: Zadost, kurz: string | null): { nazev: string; radky: string[]
         `Permanentka: ${KAZDY[denVTydnu(z.den)]}, ${spoje}`,
         `Platí: od ${datum(z.den)} do ${datum(konecPermanentky(z.den))} (v den kurzu se nejede)`,
         `Počet lidí: ${z.osob}`,
-        `Cena: ${kc(z.hodiny.length * z.osob * P.cena)} (${kc(P.cena)} za člověka, jeden den v týdnu a jeden spoj)`,
+        `Cena: ${kc(z.hodiny.length * z.osob * cenaPermanentky(jizd))} (${jizd} jízd po ${kc(P.cenaJizdy)} za člověka a spoj)`,
       ],
     };
   }
@@ -94,13 +99,14 @@ function sepis(z: Zadost, kurz: string | null): { nazev: string; radky: string[]
     radky: [
       `Kdy: ${datum(z.den)}, ${useky(z.hodiny)}`,
       `Počet lidí: ${z.osob}`,
-      `Cena: ${kc(z.hodiny.length * z.osob * cenaOdjezdu)} (${kc(cenaOdjezdu)} za člověka a hodinu a půl)`,
+      /* Kolik lidí na odjezdu nakonec bude, se ví až na místě — tam se i platí */
+      `Jízdné: platí se na místě podle toho, kolik lidí v dílně opravdu je — ${tarifSlovy()}; ${detskaSlovy}. ${pravidloPrichodu}`,
     ],
   };
 }
 
-export function potvrzeni(clen: { jmeno: string; email: string }, z: Zadost, kurz: string | null, web: string): Mail {
-  const s = sepis(z, kurz);
+export function potvrzeni(clen: { jmeno: string; email: string }, z: Zadost, kurz: string | null, web: string, vyluk = 0): Mail {
+  const s = sepis(z, kurz, vyluk);
   return {
     komu: clen.email,
     predmet: `Jízdenka do dílny: ${s.nazev}`,

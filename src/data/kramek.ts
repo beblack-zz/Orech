@@ -32,6 +32,8 @@ export interface KusVKramku {
   druh?: Druh;
   /** Autor „No name“: co k tomu říct */
   neznamy?: string;
+  /** Podpisový kus: odkaz na jeho vlastní stránku */
+  podpis?: string;
 }
 
 export const zJaponska: KusVKramku[] = zdaleka.map((k, i) => ({
@@ -46,7 +48,7 @@ export const zJaponska: KusVKramku[] = zdaleka.map((k, i) => ({
   neznamy: k.author === "No name" ? neznamyAutor.text : undefined,
 }));
 
-export const zDilny: KusVKramku[] = produkty.map((k, i) => ({
+const dilna: KusVKramku[] = produkty.map((k, i) => ({
   id: `na-prani-${i}`,
   nazev: k.name,
   cena: k.price ?? "",
@@ -56,10 +58,15 @@ export const zDilny: KusVKramku[] = produkty.map((k, i) => ({
   tvar: k.shape,
   glazura: k.glaze,
   novinka: k.tagKind === "new",
+  podpis: k.podpis,
 }));
+/* Podpisové kusy mají vlastní část pod vitrínami (Podpis.astro) a vlastní stránku — ve výloze
+   ani ve vitríně nestojí. V `kramek` jsou kvůli šátku; id zůstávají podle obchod.ts. */
+export const zDilny: KusVKramku[] = dilna.filter((k) => !k.podpis);
+export const podpisove: KusVKramku[] = dilna.filter((k) => k.podpis);
 
 /** Všechno v pořadí, v jakém to stojí v krámku (a jak se v detailu listuje) */
-export const kramek = [...zJaponska, ...zDilny];
+export const kramek = [...zJaponska, ...zDilny, ...podpisove];
 
 /** „1 240 Kč“ → číslo a měna zvlášť, na cenovku */
 export const cenovka = (cena: string) => {

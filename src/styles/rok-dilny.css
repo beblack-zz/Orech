@@ -8,9 +8,10 @@
 
 /* ——— Rok dílny ——— */
 
-.rok { position: relative; z-index: 2; height: calc(var(--kroku) * 44vh + 100vh); height: calc(var(--kroku) * 44svh + 100svh); }
+/* Jedna obrazovka — měsíce se přepínají kliknutím, ne scrollem */
+.rok { position: relative; z-index: 2; }
 .rok-kotva { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; }
-.rok-scena { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: clip; }
+.rok-scena { position: relative; height: 100vh; height: 100svh; overflow: clip; }
 .rok-ram { position: absolute; inset: 0; overflow: hidden; }
 .rok-svet { position: absolute; left: 0; top: 0; width: 100%; transform-origin: 0 0; }
 .rok-svet.jede { will-change: transform; }
@@ -85,7 +86,28 @@
   color: var(--rumelka);
 }
 .rok-krok.je .rok-text { opacity: 1; transform: none; }
-.rok.foto .rok-text { opacity: 0; }
+/* Šipky po stranách scény */
+.rok-sipka {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0 !important;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--papir) 92%, transparent) !important;
+  color: var(--inkoust);
+  box-shadow: 0 12px 26px -14px rgba(22, 16, 40, 0.7);
+  transform: translateY(-50%);
+  transition: background 0.2s, transform 0.2s, opacity 0.2s;
+}
+.rok-sipka svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.rok-sipka-zpet { left: clamp(10px, 2vw, 28px); }
+.rok-sipka-dal { right: clamp(10px, 2vw, 28px); }
+.rok-sipka:hover:not(:disabled) { background: var(--papir) !important; transform: translateY(-50%) scale(1.06); }
+.rok-sipka:disabled { opacity: 0; pointer-events: none; }
 .rok-foto {
   position: absolute;
   z-index: 5;
@@ -110,11 +132,14 @@
   .rok-kroky { left: 12px; right: 12px; width: auto; bottom: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); transform: none; }
   .rok-mesic { padding: 6px 2px !important; font-size: 12.5px !important; }
   .rok-text { width: 100%; bottom: calc(100% + 8px); padding: 11px 15px 13px; font-size: 17px; }
+  /* Na úzké obrazovce by se fotka u „Teď“ překrývala s textem — text ustoupí */
+  .rok.foto .rok-text { opacity: 0; }
+  .rok-sipka { top: auto; bottom: 168px; width: 44px; height: 44px; transform: none; }
+  .rok-sipka:hover:not(:disabled) { transform: scale(1.06); }
   .rok-foto { left: 50%; right: auto; width: min(64vw, 300px); transform: translate(-50%, -44%) rotate(4deg) scale(0.92); }
   .rok.foto .rok-foto { transform: translate(-50%, -50%) rotate(2.5deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rok { height: auto; }
-  .rok-scena { position: relative; }
+  .rok-sipka { transition: none; }
 }

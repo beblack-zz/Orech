@@ -7,10 +7,20 @@
 import * as zvuk from "../parta2/zvuk";
 import { rekni } from "../parta2/kami";
 import { omez } from "../parta2/stav";
+import { sezonaMesice } from "../../data/uvod2";
 
 export function porovnani() {
   const sekce = document.querySelector<HTMLElement>("#porovnani");
   if (!sekce) return;
+
+  /* Roční období podle dneška — stránka je statická a období v ní je z buildu. Přepínač má čtyři, předjaří patří k jaru */
+  const dnes = sezonaMesice(new Date().getMonth() + 1);
+  const s4 = dnes === "predjari" ? "jaro" : dnes;
+  sekce.dataset.sezona = s4;
+  sekce.querySelectorAll<HTMLButtonElement>("[data-sezona-volba]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sezonaVolba === s4)));
+  const tSezony = sekce.querySelector<HTMLTemplateElement>(`template[data-sezona-text="${s4}"]`)?.content.textContent?.trim();
+  const textSezony = sekce.querySelector<HTMLElement>(".sezona-text");
+  if (textSezony && tSezony) textSezony.textContent = tSezony;
 
   /* ——— Táhla ——— */
   sekce.querySelectorAll<HTMLElement>("[data-srovnani]").forEach((fig) => {

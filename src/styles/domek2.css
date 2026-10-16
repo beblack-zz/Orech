@@ -17,10 +17,9 @@
 .dm-uvod .tlacitko-obrys:hover { background: #FFFBF2; color: var(--inkoust) !important; }
 
 /*
- * Vázička létá po úvodu a schovává se (let-kami.ts): vrstvy krajiny dostanou
- * pořadí s mezerami a ona si bere číslo mezi nimi — za domem 2, za kmenem 5,
- * v koruně 7, v trávě 9, volně 12. Kopce a dům propouštějí klepnutí, ať jde
- * najít, i když jen vykukuje.
+ * Pořadí vrstev krajiny úvodu. Mezery jsou po Vázičce, která se mezi ně
+ * schovávala (do 16. 10. 2026; teď se jen představí a sedí v rohu jako
+ * průvodce, parta2/pruvodce.ts).
  */
 .dm-uvod .uvod-kopce { z-index: 1; pointer-events: none; }
 .dm-uvod .uvod-kopce-dum { z-index: 3; }
@@ -30,18 +29,6 @@
 .dm-uvod .uvod-louka { z-index: 10; }
 .dm-uvod .uvod-text,
 .dm-uvod .uvod-tategaki { z-index: 20; }
-.let-kami {
-  position: absolute;
-  z-index: 12;
-  left: 0;
-  top: 0;
-  width: 90px;
-  height: 90px;
-  visibility: hidden;
-  will-change: transform;
-}
-.let-kami.pripravena { visibility: visible; }
-.let-kami .vazicka-gejsa { width: 100%; height: 100%; }
 
 /*
  * Krajina úvodu (UvodKrajina.astro). Třídy .uvod-orech a .uvod-louka

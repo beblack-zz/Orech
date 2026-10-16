@@ -1,0 +1,47 @@
+---
+/**
+ * 一 Podpis 銘 (mei) — 21:18, první tma. Dva výstupky na boku jsou podpis.
+ *
+ * Nahoře řap japonského meče naležato (kresba mei.ts): mečíř podepisuje
+ * čepel tam, kam se nasadí rukojeť, a podpis pak nikdo nevidí. Dole lupa
+ * s makrem výstupku (vystupekZblizka z podobizna.ts): Futatsu má podpis
+ * venku, pod prsty. Text je jen z toho, co o kusu víme (stránka, data).
+ */
+import Postavicka from "../../characters/Postavicka.astro";
+import { rap, RAP_VB, lupa, LUPA } from "./mei";
+import { vystupekZblizka } from "./podobizna";
+---
+<section class="ft-kap ft-kap-podpis-kusu" id="podpis-kusu" data-hodina="21.3" aria-labelledby="podpis-kusu-nadpis">
+  <p class="ft-kap-znak" lang="ja" aria-hidden="true">銘</p>
+  <header class="ft-kap-hlava">
+    <p class="stitek"><span class="ft-kap-cislo" lang="ja">一</span> <span lang="ja">銘</span> · mei</p>
+    <h2 class="ft-kap-nazev" id="podpis-kusu-nadpis">Podpis na boku</h2>
+    <p class="ft-kap-podtitul">mečíř ho schová pod rukojeť, my pod prsty</p>
+  </header>
+
+  <div class="ft-mei">
+    <div class="ft-mei-rada ft-mei-rada-mec">
+      <figure class="ft-mei-mec">
+        <svg viewBox={RAP_VB} role="img" aria-label="Řap japonského meče bez rukojeti: u objímky habaki otvor pro kolík a pod ním vysekaný podpis mečíře. Kde by byla rukojeť, je jen čárkovaný obrys." set:html={rap()} />
+      </figure>
+      <div class="ft-mei-text">
+        <p>Japonští mečíři podepisují meč na řapu — na části čepele, která se zasune do rukojeti. Podpis, <i lang="ja-Latn">mei</i>, uvidí jen ten, kdo meč rozebere.</p>
+      </div>
+    </div>
+
+    <div class="ft-mei-rada ft-mei-rada-hrnek">
+      <div class="ft-mei-text">
+        <p>Futatsu má podpis venku, na boku, přesně tam, kde ho držíš. Dva výstupky seříznuté naplocho — v řezu zůstala holá hlína a oheň ji zbarvil do barvy, které Japonci říkají <i lang="ja-Latn">hiiro</i>. Prsty je najdou i poslepu.</p>
+        <p>Podle nich poznáš kus z naší dílny.</p>
+        <div class="ft-tip">
+          <span class="ft-tip-kami" aria-hidden="true"><Postavicka id="cedulka" size={64} varianta="kami" /></span>
+          <p><b>Cedulka radí</b>Jména na kusy obvykle píšu já. Tenhle se podepsal sám.</p>
+        </div>
+      </div>
+      <figure class="ft-mei-lupa">
+        <svg viewBox={`0 0 ${LUPA.w} ${LUPA.h}`} role="img" aria-label="Výstupek zblízka: seříznutá ploška holé hlíny v barvě ohně uprostřed mléčné glazury." set:html={lupa(vystupekZblizka({ id: "fpm" }))} />
+        <figcaption>výstupek zblízka</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>

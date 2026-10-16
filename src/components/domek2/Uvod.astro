@@ -4,16 +4,15 @@
  * rám stojí starý ořešák s veverkou v dutině, uprostřed na pahorku zelený
  * dům z Luční, za ním pole a vesnička v ranní mlze, vpředu louka. Strom,
  * pole i louka se mění s ročním obdobím (UvodKrajina, kresby v kresba/).
- * Text je z Úvodu 2 (Brana.astro). Nad loukou létá Vázička (01 Kami
- * z /marcel) a schovává se za dům, strom a do trávy
- * (scripts/domek2/let-kami.ts).
+ * Text je z Úvodu 2 (Brana.astro). Vázička se tu jednou za návštěvu
+ * představí a odletí do rohu, kde sedí jako průvodce
+ * (scripts/parta2/pruvodce.ts) — dřív tu létala a schovávala se.
  * Pod ní začíná ulice: dojde se k bráně a rampou dolů do dílny.
  *
  * Styly jsou z parta2.css (.uvod…), rozložení krajiny, tlačítka a pořadí
  * vrstev pro schovávání jsou v domek2.css.
  */
 import UvodKrajina from "./UvodKrajina.astro";
-import VazickaGejsa from "../characters/kami-buh/VazickaGejsa.astro";
 import { kontakt, sezonaMesice } from "../../data/uvod2";
 import { parta } from "../../data/parta";
 
@@ -26,8 +25,6 @@ const stupne = pecinka?.bio.match(/(\d[\d\s]*\d)\s*stup/)?.[1]?.replace(/\s/g, "
 ---
 <section class="uvod dm-uvod" id="uvod" data-hodina="6.2" data-sezona={sezona} aria-labelledby="uvod-nadpis">
   <UvodKrajina />
-
-  <div class="let-kami"><VazickaGejsa varianta="let" /></div>
 
   <div class="uvod-text">
     <p class="stitek stitek-svetly">Keramická dílna · {kontakt.obec} · od 2026</p>

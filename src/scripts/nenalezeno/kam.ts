@@ -19,8 +19,9 @@ export const CILE: Cil[] = [
   { href: "/rezervace", nazev: "Rezervace", slova: ["rezervace", "rezervovat", "rezervuj", "booking", "objednat", "objednavka", "prihlaska", "kalendar"] },
   { href: "/obchod-2", nazev: "Obchod", slova: ["obchod", "eshop", "shop", "kramek", "produkty", "produkt", "kosik", "hrnky", "hrnek", "misky"] },
   { href: "/parta-2", nazev: "Parta", slova: ["parta", "postavicky", "kami", "stripek", "hlinka", "kapka", "pecinka", "vazicka", "bublinka", "kachlik", "cedulka", "samotka"] },
-  { href: "/o-nas-2", nazev: "O nás", slova: ["onas", "nas", "kontakt", "kontakty", "pribeh", "about", "jirik", "renca", "lektori", "kdo"] },
-  { href: "/domek-2", nazev: "Domek", slova: ["domek", "dum", "prohlidka", "zahrada", "kudy", "mapa", "adresa"] },
+  { href: "/o-nas-2", nazev: "O nás", slova: ["onas", "nas", "pribeh", "about", "jirik", "renca", "lektori", "kdo"] },
+  { href: "/kontakt", nazev: "Kontakt", slova: ["kontakt", "kontakty", "telefon", "email", "mail", "adresa", "mapa", "kudy", "kde", "otevreno", "oteviraci", "contact"] },
+  { href: "/domek-2", nazev: "Domek", slova: ["domek", "dum", "prohlidka", "zahrada"] },
   { href: "/kurzy-2#poukaz", nazev: "Dárkový poukaz", slova: ["poukaz", "poukazy", "darkovy", "darek", "voucher"] },
 ];
 

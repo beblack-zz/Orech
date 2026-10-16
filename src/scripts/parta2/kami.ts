@@ -70,6 +70,8 @@ interface Volby {
   pevne?: boolean;
   /** Na světlém pozadí tmavá bublina, na tmavém světlá */
   kontrast?: boolean;
+  /** Vždycky černá — Vázička-průvodce (černá glazura jejích vlasů), na každém pozadí stejná */
+  cerna?: boolean;
 }
 
 /**
@@ -77,10 +79,10 @@ interface Volby {
  * Vrací funkci, která ji znovu postaví k prvku — vrátí false, když už
  * bublina zmizela (s `pevne` ji volající volá každý snímek).
  */
-export function rekni(el: Element, kdo: PostavaId, text: string, { pevne = false, kontrast = false }: Volby = {}) {
+export function rekni(el: Element, kdo: PostavaId, text: string, { pevne = false, kontrast = false, cerna = false }: Volby = {}) {
   zavri();
   const b = document.createElement("div");
-  b.className = pevne ? "bublina pevna" : "bublina";
+  b.className = `bublina${pevne ? " pevna" : ""}${cerna ? " cerna" : ""}`;
   const j = document.createElement("span");
   j.className = "bublina-jmeno";
   j.textContent = jmeno(kdo);

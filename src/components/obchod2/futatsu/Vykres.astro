@@ -1,0 +1,127 @@
+---
+/**
+ * 二 Výkres 図面 — 22:24, noc. Futatsu rozkreslený jako díl do stroje leží
+ * na rýsovacím prkně pod lampou (kresba prkno.ts). Modrotisk se tahem
+ * otáčí, čárkovaně jsou hrany vzadu, čísla v kroužcích vedou na kusovník
+ * připíchnutý vedle. Pod listem leží pauzák s rozpracovanou izometrií,
+ * dole tři pracovní fotky předlohy — čísla na nich svítí s kusovníkem.
+ *
+ * Výkres skládá kresba.ts, chování scripts/obchod2/futatsu.ts (rozvržení
+ * listu podle šířky, otáčení, zvýraznění dílu). Když přijdeš z úvodu,
+ * výkres stojí natočený tak, jak jsi hrnek nechal.
+ */
+import { Image } from "astro:assets";
+import Postavicka from "../../characters/Postavicka.astro";
+import * as K from "./kresba";
+import { deska, hrana, lampa, LAMPA, svetloLampy, pripinacek } from "./prkno";
+import { podpisove } from "../../../data/kramek";
+
+const kus = podpisove.find((k) => k.podpis === "/obchod-2/futatsu")!;
+const [bok, zevnitr, zespodu] = kus.fotky;
+const st = { a: 62 };
+const velikostFoto = "(min-width: 1100px) 190px, 40vw";
+
+/** Fotky předlohy s čísly kusovníku: kde na fotce dané místo je (v %). Leží přes sebe
+    zleva doprava a každá další zakryje pravý kraj předchozí — čísla tam proto nejsou;
+    z boku leží navrchu, má čísla až u pravého kraje. */
+const fotky = [
+  { f: zespodu, popis: "zespodu", sirka: 560, cisla: [{ n: 6, x: 20, y: 62, t: "patka" }, { n: 2, x: 64, y: 12, t: "dva výstupky" }] },
+  { f: zevnitr, popis: "zevnitř", sirka: 560, cisla: [{ n: 1, x: 10, y: 30, t: "okraj" }, { n: 5, x: 58, y: 44, t: "vnitřek a krakelé" }] },
+  { f: bok, popis: "z boku", sirka: 720, cisla: [{ n: 2, x: 89, y: 19, t: "dva výstupky" }, { n: 3, x: 30, y: 52, t: "stěna" }, { n: 6, x: 64, y: 92, t: "patka" }] },
+];
+
+/** Kusovník: šest míst, kam se při prohlídce dívá — čísla sedí s výkresem */
+const dily = [
+  { n: 1, nazev: "Okraj", jp: "口縁", cteni: "kōen", text: "Tenký a zakulacený, aby se z něj dobře pilo. Na hraně je glazura nejtenčí a prosvítá jí železo z hlíny — řada rezavých teček, na každém kusu jinak." },
+  { n: 2, nazev: "Dva výstupky", jp: "緋色", cteni: "hiiro", text: "Podpis, podle kterého dostal jméno. V řezu zůstala holá hlína a v peci zrudla do barvy ohně. Prsty je najdou i poslepu." },
+  { n: 3, nazev: "Stěna", jp: "胴", cteni: "dō", text: "Točená na kruhu, rovná, ke dnu se lehce zužuje. Má kolem čtyř milimetrů, takže čaj v ní dlouho drží teplo." },
+  { n: 4, nazev: "Glazura shino", jp: "志野", cteni: "shino", text: "Mléčně bílá, matná, s drobnými dírkami; kde leží slabě, probarví se do oranžova. První bílá glazura Japonska, z kraje Mino v 16. století." },
+  { n: 5, nazev: "Vnitřek", jp: "貫入", cteni: "kan’nyū", text: "Lesklejší a protkaný sítí prasklinek ve skle glazury. Na dně se glazura slila do jezírka chadamari, místa pro poslední doušek." },
+  { n: 6, nazev: "Patka", jp: "高台", cteni: "kōdai", text: "Obrobená očkem a bez glazury — je vidět, z jaké hlíny je udělaný. Na hraně glazury se táhne tenký oranžový proužek, další stopa ohně." },
+];
+---
+<section class="ft-kap ft-kap-vykres" id="vykres" data-hodina="22.4" aria-labelledby="vykres-nadpis">
+  <p class="ft-kap-znak" lang="ja" aria-hidden="true">図</p>
+  <header class="ft-kap-hlava">
+    <p class="stitek"><span class="ft-kap-cislo" lang="ja">二</span> <span lang="ja">図面</span> · zumen</p>
+    <h2 class="ft-kap-nazev" id="vykres-nadpis">Futatsu jako strojní součástka</h2>
+    <p class="ft-kap-podtitul">táhni výkresem a hrnek se otočí</p>
+    <div class="ft-ovladani" role="group" aria-label="Ovládání výkresu">
+      <label class="ft-rozsah" for="natoceni"><span>Natočení</span><input id="natoceni" type="range" min="0" max="359" step="1" value="62" /><output id="natoceni-txt" for="natoceni">062°</output></label>
+      <button type="button" class="ft-male" id="roztocit" aria-pressed="false">Roztočit</button>
+      <label class="ft-zaskrt" for="koty"><input id="koty" type="checkbox" checked /> Kóty</label>
+    </div>
+  </header>
+
+  <div class="ft-prkno">
+    <svg class="ft-prkno-deska" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false" set:html={deska()} />
+    <svg class="ft-prkno-hrana" viewBox="0 0 3000 22" preserveAspectRatio="xMinYMid slice" aria-hidden="true" focusable="false" set:html={hrana()} />
+    <svg class="ft-lampa" viewBox={`0 0 ${LAMPA.w} ${LAMPA.h}`} aria-hidden="true" focusable="false" set:html={lampa()} />
+
+    <div class="ft-prkno-mriz">
+      <div class="ft-list-obal">
+        <div class="ft-list-stin" aria-hidden="true"></div>
+        <div class="ft-list ft-vykres-ai" id="dv-list" data-lay="siroky" set:html={K.list("siroky", st)}></div>
+        <svg class="ft-roh" viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <linearGradient id="roh-dira" gradientUnits="userSpaceOnUse" x1="50" y1="50" x2="68" y2="32"><stop offset="0" stop-color="#000" stop-opacity=".3" /><stop offset="1" stop-color="#000" stop-opacity="0" /></linearGradient>
+            <linearGradient id="roh-rub" gradientUnits="userSpaceOnUse" x1="50" y1="50" x2="20" y2="80"><stop offset="0" stop-color="#C3C9CF" /><stop offset=".16" stop-color="#ECEEEC" /><stop offset=".6" stop-color="#F7F5EE" /><stop offset=".88" stop-color="#D9DCDD" /><stop offset="1" stop-color="#B9BFC5" /></linearGradient>
+            <filter id="roh-rozmaz" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" /></filter>
+          </defs>
+          <path d="M0 0L100 0L100 100Z" fill="url(#roh-dira)" />
+          <path d="M3 3C10 34 16 61 28 85C53 93 79 98 100 100Z" fill="#04101F" opacity=".55" filter="url(#roh-rozmaz)" transform="translate(-4 5)" />
+          <path d="M0 0C6 30 12 56 22 78C48 86 76 94 100 100Z" fill="url(#roh-rub)" />
+          <path d="M0 0C6 30 12 56 22 78C48 86 76 94 100 100" fill="none" stroke="#FFFFFF" stroke-opacity=".65" stroke-width=".8" />
+          <path d="M0 0L100 100" stroke="#8C98A6" stroke-opacity=".45" stroke-width=".6" />
+        </svg>
+      </div>
+
+      <div class="ft-kusovnik">
+        <span class="ft-pin" aria-hidden="true"><svg viewBox="0 0 24 24" set:html={pripinacek("ftp-pin-k")} /></span>
+        <p class="stitek"><span lang="ja">部品表</span> · kusovník</p>
+        <h3 class="ft-kusovnik-nadpis">Šest míst, kam se při prohlídce dívá</h3>
+        <p class="ft-kusovnik-jak">Rozkreslený jako díl do stroje, 1 : 1 na listu A3. Čárkovaně je, co je zrovna vzadu. Najeď na řádek nebo ťukni na číslo — místo se rozsvítí na výkrese i na fotkách.</p>
+        <ol class="ft-dily">
+          {dily.map((d) => (
+            <li class="ft-dil" data-dil={d.n} tabindex="0">
+              <span class="ft-dil-c" aria-hidden="true">{d.n}</span>
+              <div>
+                <h4>{d.nazev} <span class="ft-jp"><span lang="ja">{d.jp}</span>{d.cteni}</span></h4>
+                <p>{d.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="ft-prkno-dole">
+        <div class="ft-pauz-obal">
+          <div class="ft-pauzak ft-vykres-pauz" id="dv-pauz" data-uzky="0" set:html={K.pauzak(st, false)}></div>
+          <p class="ft-listecek">Izometrie na pauzáku. Obrys vlevo dole ještě čeká na tuš.</p>
+        </div>
+
+        <div class="ft-polaroidy" role="group" aria-label="Fotky předlohy">
+          {fotky.map((x, i) => (
+            <figure class={`ft-polaroid ft-polaroid-${i + 1}`}>
+              <span class="ft-pin" aria-hidden="true"><svg viewBox="0 0 24 24" set:html={pripinacek(`ftp-pin-${i + 1}`)} /></span>
+              <div class="ft-polaroid-obr">
+                <Image src={x.f.src} alt={x.f.alt} width={x.sirka} widths={[280, 440]} sizes={velikostFoto} format="webp" loading="lazy" />
+                {x.cisla.map((c) => (
+                  <button class="ft-fb" type="button" data-dil={c.n} style={`left:${c.x}%;top:${c.y}%`} aria-label={`${c.n}: ${c.t}`}>{c.n}</button>
+                ))}
+              </div>
+              <figcaption>{x.popis}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <svg class="ft-prkno-svetlo" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false" set:html={svetloLampy()} />
+  </div>
+
+  <div class="ft-tip ft-tip-vykres">
+    <span class="ft-tip-kami" aria-hidden="true"><Postavicka id="kachlik" size={64} varianta="kami" /></span>
+    <p><b>Kachlík radí</b>Tolerance je ±3 milimetry, ruka není stroj. Já mám nulu — ale já jsem kachlík.</p>
+  </div>
+</section>

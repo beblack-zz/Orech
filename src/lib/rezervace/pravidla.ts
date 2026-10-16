@@ -59,7 +59,7 @@ export function over(telo: unknown, nyni: Ted): Zadost | null {
   if (zaDni < 0 || zaDni > R.dniDopredu) return null;
 
   const osob = t.osob;
-  if (typeof osob !== "number" || !Number.isInteger(osob) || osob < 1 || osob > R.maxOsob) return null;
+  if (typeof osob !== "number" || !Number.isInteger(osob) || osob < 1 || osob > Math.min(R.maxOsob, R.mist)) return null;
 
   let poznamka: string | undefined;
   if (t.poznamka !== undefined && t.poznamka !== null) {

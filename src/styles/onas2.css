@@ -45,95 +45,208 @@
   --washi-vlakna: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.09' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.45 0 0 0 0 0.32 0 0 0 0.5 -0.12'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23v)'/%3E%3C/svg%3E");
 }
 
-/* ——— Začátek: kapka a ensō ——— */
+/* ——— Začátek: svět v kapce ——— */
 
-.pocatek { position: relative; z-index: 2; min-height: 100svh; padding: 104px 20px 60px; display: flex; flex-direction: column; justify-content: center; }
-.pocatek-mriz {
-  width: min(1240px, 100%);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  gap: clamp(24px, 4vw, 64px);
+/*
+ * Jeviště je čtverec 1000 × 1000 z kresba/miry.ts: má výšku sekce a osu
+ * kapky na --kx. Trubka, hladina a odlesky z něj přesahují přes celou
+ * šířku a sekce je ořízne. Text leží vlevo přímo na noci, bez papíru;
+ * na úzké obrazovce jde nadpis nad scénu a zbytek textu pod ni.
+ */
+.pocatek {
+  --kx: calc(50% + clamp(120px, 17vw, 420px));
+  position: relative;
+  z-index: 2;
+  height: max(100svh, 640px);
+  container-type: size;
+  overflow: hidden;
+  overflow: clip;
+  display: flex;
   align-items: center;
+  /* Text začíná až pod trubkou — její spodek je ve 22,8 % výšky (PRASKLINA_Y) */
+  padding: calc(max(100svh, 640px) * 0.228 + 26px) clamp(20px, 5vw, 84px) 70px;
+  color: #F1E8D6;
 }
+.pk-svet { position: absolute; inset: 0; pointer-events: none; }
+/* Makro: okraje noci ztmavnou, za textem ještě víc */
+.pk-svet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 62% 78% at var(--kx) 44%, rgba(6, 9, 28, 0) 34%, rgba(6, 9, 28, 0.5) 100%),
+    linear-gradient(90deg, rgba(6, 9, 28, 0.42), rgba(6, 9, 28, 0) 55%);
+}
+.pk-bokeh { position: absolute; inset: 0; }
+.pk-bokeh-k {
+  position: absolute;
+  width: var(--d);
+  height: var(--d);
+  margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2);
+  border-radius: 50%;
+  animation: pk-bokeh var(--z, 7s) ease-in-out infinite alternate;
+  will-change: transform;
+}
+.pk-bokeh-k2 { animation-name: pk-bokeh-2; }
+.pk-bokeh-k3 { animation-name: pk-bokeh-3; }
+@keyframes pk-bokeh { to { transform: translate(16px, -12px) scale(1.07); } }
+@keyframes pk-bokeh-2 { to { transform: translate(-14px, 9px) scale(0.94); } }
+@keyframes pk-bokeh-3 { to { transform: translate(8px, 14px) scale(1.04); } }
+
+.pk-jeviste {
+  position: absolute;
+  top: 0;
+  left: calc(var(--kx) - 50cqh);
+  width: 100cqh;
+  height: 100cqh;
+}
+.pk-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.pk-kresba { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+/* Plná visící kapka dýchá jako celek kolem praskliny — jen transformací, svět uvnitř se nepřekresluje */
+.pk-kresba-kapka { transform-origin: 50% 22.8%; will-change: transform; }
+.pk-dycha .pk-kresba-kapka { animation: pk-dech 2.6s ease-in-out infinite alternate; }
+@keyframes pk-dech { from { transform: scale(1.012, 0.99); } to { transform: scale(0.992, 1.01); } }
+/* Na hladinu jde klepnout — spadne tam malá kapka */
+.pk-bezi .pk-voda { pointer-events: auto; cursor: pointer; }
+
+/* Ensō za kapkou jako slunce na obzoru; s pohybem se namaluje při prvním dopadu */
+.pk-enso { position: absolute; translate: -50% -50%; }
+.pk-enso::before {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240, 112, 78, 0) 50%, rgba(232, 143, 164, 0.13) 58%, rgba(185, 160, 218, 0.07) 66%, rgba(185, 160, 218, 0) 72%);
+}
+.pk-enso .lg { position: relative; display: block; width: 100%; }
+.pk-enso svg { display: block; width: 100%; height: auto; }
+.pk-bezi .pk-enso { opacity: 0; transform: scale(0.9); transition: opacity 0.7s ease, transform 2.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.pk-bezi.pk-enso-je .pk-enso { opacity: 1; transform: none; }
+/*
+ * Odraz ensō: vrstva začíná na obzoru (71,6 % jeviště), logo v ní je
+ * převrácené kolem horní hrany. Maska ho rozbije do vodorovných proužků
+ * (vlnky) a ke kraji obrazovky ho nechá vyblednout.
+ */
+.pk-odraz {
+  position: absolute;
+  left: 0;
+  top: 71.6%;
+  width: 100%;
+  height: 60%;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.55;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.55) 28%, rgba(0, 0, 0, 0) 58%), repeating-linear-gradient(to bottom, #000 0 2px, rgba(0, 0, 0, 0.2) 2px 5px);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.55) 28%, rgba(0, 0, 0, 0) 58%), repeating-linear-gradient(to bottom, #000 0 2px, rgba(0, 0, 0, 0.2) 2px 5px);
+  mask-composite: intersect;
+}
+.pk-odraz-enso { position: absolute; left: 50%; translate: -50% -50%; transform: scaleY(-1); filter: blur(1px); animation: pk-vlna 3.4s ease-in-out infinite alternate; }
+.pk-odraz-enso .lg { display: block; width: 100%; }
+.pk-odraz-enso svg { display: block; width: 100%; height: auto; }
+@keyframes pk-vlna { from { transform: scaleY(-1) translateX(-5px); } to { transform: scale(1.015, -0.97) translateX(5px); } }
+.pk-bezi .pk-odraz { opacity: 0; transition: opacity 2.6s ease 0.8s; }
+.pk-bezi.pk-enso-je .pk-odraz { opacity: 0.55; }
+/* Klidné kruhy jsou jen pro omezený pohyb — jinak je kreslí skript */
+.pk-bezi .pk-kruhy-klid { display: none; }
+.pk-trpyt { transform-box: fill-box; transform-origin: center; animation: pk-trpyt 3.4s ease-in-out infinite; }
+/* Ve světě v kapce (svet.ts) svítí okna sklepní dílny a lampiony — každé trochu jinak */
+.pkw-svit { animation: pk-svit 2.4s ease-in-out infinite alternate; }
+.pkw-svit:nth-child(2n) { animation-duration: 3.1s; animation-delay: -1.2s; }
+.pkw-svit:nth-child(3n) { animation-duration: 2.7s; animation-delay: -0.6s; }
+@keyframes pk-svit { to { opacity: 0.6; } }
+@keyframes pk-trpyt { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(0.55) rotate(18deg); } }
+
+/* Kapka na trubce — tvrdí, že to nebyla ona */
+.pk-kami { position: absolute; z-index: 3; }
+.pk-kami .kami-vlnka { display: none; }
+.pk-poznamka {
+  position: absolute;
+  z-index: 3;
+  margin: 0;
+  font-family: var(--f-ruka);
+  font-size: clamp(17px, 2.5cqh, 27px);
+  line-height: 1.02;
+  text-align: right;
+  color: rgba(241, 232, 214, 0.88);
+  text-shadow: 0 1px 14px rgba(6, 9, 28, 0.85);
+  transform: rotate(-4deg);
+  pointer-events: none;
+}
+.pk-poznamka svg { position: absolute; left: 100%; bottom: 55%; width: 1.5em; height: 2.3em; margin-left: 0.05em; color: rgba(241, 232, 214, 0.7); overflow: visible; }
+.pk-pustit {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 46% 46% 50% 50% / 34% 34% 66% 66%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.pk-pustit:focus-visible { outline: 2px dashed rgba(241, 232, 214, 0.85); outline-offset: 8px; }
+
 .pocatek-tategaki {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   right: clamp(10px, 2vw, 34px);
-  top: 96px;
+  top: 31%;
   margin: 0;
   writing-mode: vertical-rl;
   font-family: var(--f-kanji);
   font-size: clamp(28px, 3.2vw, 48px);
   letter-spacing: 0.16em;
-  color: rgba(255, 251, 242, 0.8);
+  color: rgba(255, 251, 242, 0.78);
   text-shadow: 0 2px 14px rgba(10, 14, 40, 0.5);
 }
-.pocatek-text { padding: clamp(26px, 3.6vw, 52px); transform: rotate(-0.6deg); }
+.pocatek-text {
+  position: relative;
+  z-index: 4;
+  max-width: min(46rem, calc(var(--kx) - 31cqh - clamp(20px, 5vw, 84px) - 24px));
+}
 .pocatek-nadpis {
-  margin: 12px 0 18px;
+  margin: 14px 0 24px;
   font-family: var(--f-display);
   font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
   font-weight: 400;
-  font-size: clamp(42px, min(5.4vw, 8.4vh), 86px);
-  line-height: 0.96;
-  letter-spacing: -0.022em;
+  font-size: clamp(44px, min(6.4vw, 9.8cqh), 128px);
+  line-height: 0.94;
+  letter-spacing: -0.025em;
+  color: #FFF8EA;
+  text-shadow: 0 2px 30px rgba(6, 9, 28, 0.55);
 }
-.pocatek-nadpis em { display: block; color: var(--rumelka); font-weight: 300; }
-.pocatek-perex { margin: 0 0 24px; max-width: 46ch; color: var(--inkoust-2); font-size: clamp(16px, 1.2vw, 18px); }
+/* „jednou kapkou.“ v barvách ensō — od rumělky přes růž do soumraku */
+.pocatek-nadpis em {
+  display: block;
+  font-weight: 300;
+  color: #F0704E;
+  background: linear-gradient(100deg, #F0704E 8%, #E88FA4 52%, #B9A0DA 94%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  padding-bottom: 0.08em;
+}
+/* Tečka za větou je kapka — při dopadu poskočí */
+.pk-tecka { display: inline-block; -webkit-text-fill-color: #B9A0DA; color: #B9A0DA; }
+.pk-skok .pk-tecka { animation: pk-tecka 0.75s cubic-bezier(0.3, 1.7, 0.5, 1); }
+@keyframes pk-tecka { 0% { transform: none; } 30% { transform: translateY(0.1em) scale(1.3, 0.7); } 60% { transform: translateY(-0.22em) scale(0.85, 1.2); } 100% { transform: none; } }
+.pocatek-perex { margin: 0 0 26px; max-width: 44ch; color: rgba(241, 232, 214, 0.86); font-size: clamp(16px, 1.15vw, 19px); text-shadow: 0 1px 16px rgba(6, 9, 28, 0.7); }
 .pocatek-akce { display: flex; flex-wrap: wrap; gap: 10px; }
-.pocatek-pokyn { margin: 20px 0 0; font-family: var(--f-ruka); font-size: 24px; color: var(--inkoust-2); transform: rotate(-1.4deg); }
-
-.pocatek-scena { position: relative; width: min(600px, 100%); aspect-ratio: 1; justify-self: center; }
-.pocatek-kresba { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.pocatek-kapka-roste { transform-box: fill-box; transform-origin: 50% 0; transform: scale(0.15); }
-.pocatek-kapka-pada { opacity: 0; }
-.pocatek-kruh { opacity: 0; stroke-width: 2; transform-box: fill-box; transform-origin: center; vector-effect: non-scaling-stroke; }
-.pocatek-sprsk { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; }
-.bezi .pocatek-kapka-roste { animation: n2-kapka-roste 4s ease-in infinite; }
-.bezi .pocatek-kapka-pada { animation: n2-kapka-pada 4s cubic-bezier(0.55, 0, 1, 0.6) infinite; }
-.bezi .pocatek-kruh-1 { animation: n2-kruh 4s ease-out infinite; }
-.bezi .pocatek-kruh-2 { animation: n2-kruh 4s ease-out 0.35s infinite; }
-.bezi .pocatek-kruh-3 { animation: n2-kruh 4s ease-out 0.7s infinite; }
-.bezi .pocatek-sprsk { animation: n2-sprsk 4s ease-out infinite; }
-@keyframes n2-kapka-roste { 0% { transform: scale(0.15); } 22% { transform: scale(1); } 23%, 100% { transform: scale(0.15); } }
-@keyframes n2-kapka-pada {
-  0%, 22% { opacity: 0; transform: translateY(0); }
-  23% { opacity: 1; transform: translateY(0); }
-  33.5% { opacity: 1; transform: translateY(418px); }
-  34%, 100% { opacity: 0; transform: translateY(418px); }
-}
-@keyframes n2-kruh {
-  0%, 33% { opacity: 0; transform: scale(0.04); }
-  34% { opacity: 0.95; transform: scale(0.06); }
-  75% { opacity: 0; transform: scale(1.7); }
-  100% { opacity: 0; transform: scale(1.7); }
-}
-@keyframes n2-sprsk { 0%, 33% { opacity: 0; transform: translateY(0) scale(0.4); } 36% { opacity: 1; transform: translateY(-16px) scale(1.2); } 44%, 100% { opacity: 0; transform: translateY(-4px) scale(0.6); } }
-
-.pocatek-enso {
-  position: absolute;
-  left: 50%;
-  bottom: 17%;
-  width: 52%;
-  translate: -50% 0;
-  transform-origin: 50% 100%;
-}
-/* Ležet na hladině a čekat na kapku jen tehdy, když běží skript — bez něj ensō stojí rovnou.
-   Přechod má jen vstávání, ať se po načtení nepoloží viditelně. */
-.bezi:not(.stoji) .pocatek-enso { transform: perspective(600px) rotateX(80deg) scale(0.62); opacity: 0; }
-.stoji .pocatek-enso { transition: transform 1.9s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.7s ease-out; }
-.pocatek-enso .lg { display: block; width: 100%; }
-.pocatek-enso svg { width: 100%; height: auto; display: block; }
-.pocatek-scena.bezi:not(.stoji) .pocatek-enso * { animation-play-state: paused !important; }
-.pocatek-kapka-kami { position: absolute; z-index: 3; left: 4%; bottom: 10%; width: 15%; }
+.pocatek .tlacitko { background: #F1E8D6; border-color: #F1E8D6; color: #241E3E !important; }
+.pocatek .tlacitko:hover { background: #FFF8EA; border-color: #FFF8EA; }
+.pocatek .tlacitko-obrys { background: rgba(6, 9, 28, 0.2); border-color: rgba(241, 232, 214, 0.78); color: #F1E8D6 !important; }
+.pocatek .tlacitko-obrys:hover { background: #F1E8D6; color: #241E3E !important; }
 
 .pocatek-dolu {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 18px;
+  translate: -50% 0;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  align-self: center;
-  margin-top: 24px;
   color: #FFFBF2;
   text-decoration: none;
   font-family: var(--f-display);
@@ -143,11 +256,34 @@
 }
 .pocatek-dolu svg { width: 14px; height: 24px; animation: dolu 2.2s ease-in-out infinite; }
 
-@media (max-width: 920px) {
-  .pocatek { padding-top: 92px; }
-  .pocatek-mriz { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 1000px) {
+  .pocatek {
+    --kx: 50%;
+    --strana: min(150cqw, 78svh);
+    height: auto;
+    container-type: inline-size;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 92px 20px 76px;
+  }
+  .pocatek-text { display: contents; }
+  .pocatek-hlava { order: 1; position: relative; z-index: 4; }
+  .pk-jeviste {
+    order: 2;
+    position: relative;
+    top: auto;
+    left: auto;
+    flex: none;
+    width: var(--strana);
+    height: var(--strana);
+    margin: -4% 0 -4% calc(50% - var(--strana) / 2);
+  }
+  .pocatek-zbytek { order: 3; position: relative; z-index: 4; }
   .pocatek-tategaki { display: none; }
-  .pocatek-scena { width: min(86vw, 460px); }
+  /* Strop garáže nad trubkou by zakryl oblohu za nadpisem — nahoře se kresba ořízne na jeviště */
+  .pk-kresba { clip-path: inset(0 -200% -200% -200%); }
+  .pocatek-nadpis { font-size: clamp(40px, 11vw, 66px); margin-bottom: 8px; }
+  .pk-poznamka { font-size: clamp(16px, 4.2vw, 22px); }
 }
 
 /* ——— Svitek ——— */
@@ -644,14 +780,13 @@
 /* ——— Méně pohybu ——— */
 
 @media (prefers-reduced-motion: reduce) {
-  .bezi .pocatek-kapka-roste,
-  .bezi .pocatek-kapka-pada,
-  .bezi .pocatek-kruh,
-  .bezi .pocatek-sprsk,
+  .pk-bokeh-k,
+  .pk-odraz-enso,
+  .pk-trpyt,
+  .pkw-svit,
   .pocatek-dolu svg,
   .zlato-supinka,
   .zalito .ks-lesk,
   .foto-vysledek.vyjizdi { animation: none !important; }
-  .stoji .pocatek-enso { transition: none; }
   .rukopisy.ceka .kakejiku { transition: none; }
 }

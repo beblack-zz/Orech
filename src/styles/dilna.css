@@ -882,10 +882,15 @@ a.d-stitek:focus-visible .d-stitek-papir { box-shadow: 0 0 0 3px var(--rumelka);
   align-items: start;
 }
 .d-vypal-obraz { display: grid; gap: 16px; }
-@media (min-width: 1001px) and (min-height: 760px) {
+@media (min-width: 1001px) and (min-height: 540px) {
+  /* Křivka s pecí je na výšku asi 1,1× šířka sloupce. Aby se celá vešla
+     pod menu i na nízkém notebooku, zúží se sloupec podle výšky okna. */
+  .d-vypal-mriz { grid-template-columns: minmax(0, min(57.5%, calc(90vh - 95px))) minmax(0, 1fr); }
   .d-vypal-obraz { position: sticky; top: 76px; }
+  /* Rezerva pod poslední proměnou: 1 280 se rozsvítí, dokud obraz ještě drží */
+  .d-milniky { padding-bottom: max(0px, calc(38vh - 150px)); }
 }
-.d-vypal-graf { position: relative; margin: 0; }
+.d-vypal-graf { position: relative; margin: 0; container-type: inline-size; }
 .d-vypal-odecet {
   position: absolute;
   right: 2%;
@@ -898,7 +903,7 @@ a.d-stitek:focus-visible .d-stitek-papir { box-shadow: 0 0 0 3px var(--rumelka);
   text-shadow: 0 0 24px rgba(255, 180, 80, 0.55);
   pointer-events: none;
 }
-.d-vypal-odecet b { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 144; font-weight: 600; font-size: clamp(30px, 3.6vw, 52px); line-height: 1; font-variant-numeric: tabular-nums; }
+.d-vypal-odecet b { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 144; font-weight: 600; font-size: clamp(26px, 7.5cqi, 52px); line-height: 1; font-variant-numeric: tabular-nums; }
 .d-vypal-odecet span { font-family: var(--f-display); font-size: 18px; opacity: 0.8; }
 .d-vypal-pec { position: relative; margin: 0; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 10px; align-items: center; }
 .d-zaromerky { position: relative; display: grid; }
@@ -980,36 +985,6 @@ a.d-stitek:focus-visible .d-stitek-papir { box-shadow: 0 0 0 3px var(--rumelka);
 .d-heslo dt { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 36; font-weight: 600; font-size: 18px; line-height: 1.2; }
 .d-heslo dt [lang] { font-family: var(--f-kanji); font-weight: 400; font-size: 15px; color: var(--rumelka); margin-left: 4px; }
 .d-heslo dd { margin: 2px 0 0; font-size: 15px; line-height: 1.5; color: var(--inkoust-2); }
-
-/* ——— Otázky ——— */
-
-.d-otazky-papir { width: min(900px, 100%); margin: 0 auto; }
-.d-chat { display: grid; gap: 12px; margin-top: 8px; }
-.d-chat-q {
-  justify-self: end;
-  max-width: 82%;
-  margin: 0;
-  padding: 8px 15px;
-  border-radius: 18px 18px 6px 18px;
-  background: var(--inkoust);
-  color: var(--papir);
-  font-family: var(--f-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: 15.5px;
-}
-.d-chat-a { display: flex; align-items: flex-end; gap: 8px; margin-top: 6px; }
-.d-chat-kami { flex: none; width: 48px; }
-.d-chat-kami svg { width: 100%; height: auto; display: block; }
-.d-chat-a p {
-  margin: 0;
-  padding: 8px 14px 10px;
-  border-radius: 18px 18px 18px 6px;
-  background: #FFFDF6;
-  box-shadow: 0 8px 18px -14px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(43, 36, 32, 0.08);
-  font-size: 15px;
-  line-height: 1.45;
-}
-.d-chat-a b { display: block; font-family: var(--f-display); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rumelka); }
 
 /* ——— Konec ——— */
 
@@ -1106,7 +1081,6 @@ a.d-stitek:focus-visible .d-stitek-papir { box-shadow: 0 0 0 3px var(--rumelka);
 
 @media (max-width: 480px) {
   .d-nadpis em { font-size: 0.7em; }
-  .d-chat-q { max-width: 92%; }
   .d-osa-krok[data-kdo] .d-osa-karta { flex-direction: column; align-items: flex-start; }
   .d-osa-kus { width: 60px; }
   .d-listecek { width: 124px; font-size: 16.5px; right: -4px; top: -2px; }

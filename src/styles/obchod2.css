@@ -4,8 +4,9 @@
  * Staví na parta2.css (barvy, písmo, papír, obloha, hlavička, kami,
  * bubliny, oznámení, dialog) a přidává, co potřebuje japonský obchod
  * s nádobím: prkénko před papírovým oknem shōji s otáčecím kusem, dřevěný
- * regál, tokonomu, bednu s krabicemi z paulovnie, šátek furoshiki
- * a noční ulici s tanukim. Míry a zaoblení drží řeč ostatních stránek.
+ * regál, tokonomu, bednu s krabicemi z paulovnie a šátek furoshiki.
+ * Krámek sám (průčelí s kamerou) je v kramek.css. Míry a zaoblení drží
+ * řeč ostatních stránek.
  */
 
 .o2 .sr-only {
@@ -39,8 +40,14 @@
   text-underline-offset: 3px;
 }
 .o2 .tlacitko.v-satku { background: #2E4A78; border-color: #2E4A78; }
+/* parta2.css nuluje tlačítkům pozadí, rámeček, odsazení i písmo selektorem .p2 button
+   a ten nad samotnou třídou vyhraje — <button class="tlacitko"> (Do šátku v detailu kusu)
+   by zůstal holý text. Tady se mu to vrací, jako Dílna s .d2 a U mistra s :where(.zk). */
+:where(.o2) button.tlacitko { padding: 13px 24px; border: 1.5px solid var(--inkoust); background: var(--inkoust); font-family: var(--f-display); font-weight: 600; font-size: 15.5px; line-height: 1.2; }
+:where(.o2) button.tlacitko-obrys { background: transparent; }
+:where(.o2) button.tlacitko-maly { padding: 8px 16px; font-size: 14px; }
 
-/* Roční období pro noční ulici (Fasada z Úvodu 2) — stejné proměnné jako uvod2.css */
+/* Roční období pro strom za krámkem — stejné proměnné jako uvod2.css */
 [data-sezona] {
   --sak-1: #D98C8A;
   --sak-2: #EBA9A6;
@@ -610,12 +617,197 @@
   .o2-nalepka-adresa { margin-left: 0; }
 }
 
-/* ——— Šátek ——— */
+/* ——— Šátek: pult pod lampou, po zavírací hodině ——— */
 
-.o2-satek-mriz { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
-.o2-satek-kresba { position: relative; }
-.o2-satek-svg { width: 100%; max-width: 440px; height: auto; display: block; margin: 0 auto; overflow: visible; }
-.o2-satek-prazdno { margin: 6px auto 0; max-width: 32ch; text-align: center; font-family: var(--f-ruka); font-size: 22px; line-height: 1.15; color: var(--inkoust-2); }
+.o2-pult-sekce { position: relative; z-index: 2; padding: 0 20px 12vh; }
+/* Lampa visí z horní hrany sekce, kužel světla padá na pult */
+.o2-pult-lampa { position: relative; width: min(1180px, 100%); height: clamp(120px, 16vh, 170px); margin: 0 auto; pointer-events: none; }
+.o2-pult-lampa-snura { position: absolute; left: 50%; top: 0; width: 2px; height: 72%; margin-left: -1px; background: linear-gradient(#0B1026, #3A2E28); }
+.o2-pult-lampa-stinidlo {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 120px;
+  height: 30%;
+  margin-left: -60px;
+  border-radius: 60px 60px 6px 6px / 46px 46px 6px 6px;
+  background: linear-gradient(90deg, #8E2C1A, #C4432B 45%, #A9361F);
+  box-shadow: inset 0 -5px 0 #2B2420;
+}
+.o2-pult-lampa-stinidlo::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 30px;
+  height: 14px;
+  margin-left: -15px;
+  border-radius: 50%;
+  background: radial-gradient(#FFFBEA, #FFD58A 60%, rgba(255, 213, 138, 0));
+}
+.o2-pult-lampa-zar {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: min(1100px, 130vw);
+  height: 900px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 50% 46% at 50% 0%, rgba(255, 214, 150, 0.42), rgba(255, 190, 110, 0.12) 55%, rgba(255, 190, 110, 0) 75%);
+  pointer-events: none;
+}
+
+.o2-pult-hlava { position: relative; z-index: 2; width: min(760px, 100%); margin: 14px auto 0; text-align: center; transform: rotate(-0.4deg); }
+.o2-pult-perex { margin: 0 auto; max-width: 62ch; color: var(--inkoust-2); }
+
+.o2-pult { position: relative; z-index: 1; width: min(1180px, 100%); margin: clamp(-18px, -1.5vw, -8px) auto 0; }
+/* Deska pultu shora: tmavé dřevo s letokruhy, teplé světlo z lampy uprostřed */
+.o2-pult-deska {
+  position: relative;
+  padding: clamp(40px, 5vw, 64px) clamp(16px, 3vw, 44px) clamp(26px, 3vw, 40px);
+  border-radius: 18px 18px 6px 6px;
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 0%, rgba(255, 210, 140, 0.34), rgba(255, 210, 140, 0) 70%),
+    repeating-linear-gradient(176deg, rgba(255, 230, 190, 0.05) 0 2px, transparent 2px 23px),
+    repeating-linear-gradient(181deg, rgba(20, 8, 2, 0.12) 0 1px, transparent 1px 41px),
+    linear-gradient(#7A5236, #6A4529 55%, #553722);
+  box-shadow: inset 0 3px 0 rgba(255, 220, 180, 0.28), 0 30px 60px -30px rgba(5, 8, 25, 0.8);
+}
+/* Přední hrana desky */
+.o2-pult-deska::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  bottom: -14px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(#A27450, #7A5236 50%, #4E321F);
+  box-shadow: 0 6px 10px rgba(5, 8, 25, 0.45);
+}
+
+.o2-satek-mriz { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 44px); align-items: start; }
+.o2-satek-kresba { position: relative; display: grid; justify-items: center; }
+.o2-satek-svg { width: 100%; max-width: 440px; height: auto; display: block; margin: 0 auto; overflow: visible; filter: drop-shadow(0 18px 14px rgba(20, 8, 2, 0.35)); }
+.o2-satek-prazdno { margin: 6px auto 0; max-width: 30ch; text-align: center; font-family: var(--f-ruka); font-size: 22px; line-height: 1.15; color: #F6E7C8; }
+.o2-pult-veci { display: flex; align-items: flex-end; justify-content: center; gap: 22px; width: 100%; margin-top: 16px; }
+.o2-pult-veci svg { display: block; width: 100%; height: auto; }
+.o2-pult-soroban { width: clamp(130px, 16vw, 200px); transform: rotate(-3deg); }
+.o2-pult-zvonek { width: clamp(44px, 5vw, 60px); }
+
+/* Účtenka: papír s červenými linkami, nahoře お会計, dole razítko */
+.o2-uctenka-pult {
+  position: relative;
+  padding: 22px clamp(18px, 2.4vw, 30px) 26px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 31px, rgba(196, 67, 43, 0.16) 31px 32px),
+    #FBF7EC;
+  color: var(--inkoust);
+  box-shadow: 0 22px 34px -18px rgba(20, 8, 2, 0.7), 0 2px 0 #E6DCC6;
+  transform: rotate(1.2deg);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), 96% 100%, 92% calc(100% - 10px), 88% 100%, 84% calc(100% - 10px), 80% 100%, 76% calc(100% - 10px), 72% 100%, 68% calc(100% - 10px), 64% 100%, 60% calc(100% - 10px), 56% 100%, 52% calc(100% - 10px), 48% 100%, 44% calc(100% - 10px), 40% 100%, 36% calc(100% - 10px), 32% 100%, 28% calc(100% - 10px), 24% 100%, 20% calc(100% - 10px), 16% 100%, 12% calc(100% - 10px), 8% 100%, 4% calc(100% - 10px), 0 100%);
+}
+.o2-uctenka-pult::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 7px;
+  background: repeating-linear-gradient(90deg, #C4432B 0 10px, transparent 10px 14px);
+  opacity: 0.55;
+}
+.o2-uctenka-pult-hlava { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 6px; padding-bottom: 8px; border-bottom: 2px solid var(--rumelka); }
+.o2-uctenka-pult-hlava [lang="ja"] { font: 400 26px / 1 var(--f-kanji); letter-spacing: 0.24em; color: var(--rumelka); }
+.o2-uctenka-pult-hlava span:last-child { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--inkoust-3); }
+.o2-uctenka-pult-razitko {
+  position: absolute;
+  right: 22px;
+  bottom: 30px;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border: 2.5px solid var(--rumelka);
+  border-radius: 6px;
+  color: var(--rumelka);
+  font: 400 14px / 1 var(--f-kanji);
+  writing-mode: vertical-rl;
+  opacity: 0.55;
+  transform: rotate(-9deg);
+  pointer-events: none;
+}
+
+.o2-satek-nadpis { margin: 4px 0 8px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 48; font-weight: 500; font-size: 22px; }
+.o2-satek-polozky { list-style: none; display: grid; gap: 6px; margin: 0 0 12px; padding: 0; }
+.o2-satek-polozky:empty::before { content: "Zatím nic."; font-family: var(--f-ruka); font-size: 21px; color: var(--inkoust-3); }
+.o2-satek-polozka { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 32px; gap: 10px; align-items: center; padding: 5px 4px 5px 4px; border-bottom: 1px dashed rgba(43, 36, 32, 0.22); animation: o2-vic 0.35s ease-out; }
+.o2-satek-polozka-obr { width: 44px; height: 44px; display: block; }
+.o2-satek-polozka-text { display: grid; line-height: 1.25; }
+.o2-satek-polozka-text b { font-family: var(--f-ruka); font-weight: 600; font-size: 21px; line-height: 1; }
+.o2-satek-polozka-text small { font-size: 12.5px; color: var(--inkoust-3); }
+.o2-satek-polozka-cena { font-family: var(--f-ruka); font-weight: 600; font-size: 21px; color: var(--rumelka); white-space: nowrap; }
+.o2-satek-pryc { width: 32px; height: 32px; border-radius: 50% !important; font-size: 20px !important; line-height: 1; color: var(--inkoust-3) !important; transition: background 0.2s, color 0.2s; }
+.o2-satek-pryc:hover { background: rgba(196, 67, 43, 0.12) !important; color: var(--rumelka) !important; }
+.o2-satek-celkem { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 16px; padding-top: 8px; border-top: 2px double rgba(43, 36, 32, 0.5); }
+.o2-satek-celkem span { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--inkoust-3); }
+.o2-satek-celkem b { font-family: var(--f-ruka); font-weight: 600; font-size: 38px; line-height: 1; color: var(--rumelka); }
+.o2-satek-doprava { margin: 0 0 14px; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.o2-satek-doprava legend { margin-bottom: 8px; font-size: 14px; color: var(--inkoust-2); }
+.o2-pilulka { position: relative; cursor: pointer; }
+.o2-pilulka input { position: absolute; opacity: 0; pointer-events: none; }
+.o2-pilulka span { display: inline-block; padding: 7px 14px; border: 1.5px dashed rgba(196, 67, 43, 0.5); border-radius: 6px; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 14.5px; transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s; }
+.o2-pilulka input:checked + span { border: 1.5px solid var(--rumelka); background: var(--rumelka); color: #FFF6E8; transform: rotate(-1.5deg); }
+.o2-pilulka input:focus-visible + span { outline: 2px solid var(--inkoust); outline-offset: 2px; }
+.o2-pole { display: grid; gap: 4px; margin: 0 0 12px; font-size: 14px; color: var(--inkoust-2); }
+.o2-pole small { color: var(--inkoust-3); }
+.o2-pole input,
+.o2-pole textarea { width: 100%; padding: 6px 2px 5px; border: 0; border-bottom: 1.5px solid rgba(43, 36, 32, 0.45); border-radius: 0; background: transparent; color: var(--inkoust); font: 600 22px / 1.2 var(--f-ruka); }
+.o2-pole textarea { resize: vertical; }
+.o2-pole input:focus,
+.o2-pole textarea:focus { outline: none; border-bottom-color: var(--rumelka); box-shadow: 0 2px 0 rgba(196, 67, 43, 0.25); }
+.o2-satek-akce { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.o2-zavazat { cursor: pointer; }
+.o2-zavazat[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; transform: none; }
+.o2-satek-pozn { margin: 12px 0 0; padding-right: 64px; font-size: 13.5px; color: var(--inkoust-3); }
+
+/* Čelo pultu: tři kroky na dřevěných tabulkách */
+.o2-pult-celo {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.6vw, 20px);
+  margin: 14px 0 0;
+  padding: clamp(28px, 3vw, 40px) clamp(14px, 2.4vw, 36px) clamp(22px, 2.4vw, 30px);
+  border-radius: 0 0 14px 14px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px clamp(90px, 12vw, 150px)),
+    linear-gradient(#553722, #3E2819);
+  box-shadow: 0 30px 60px -30px rgba(5, 8, 25, 0.8);
+}
+.o2-pult-celo li {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 14px 16px 15px;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(180deg, rgba(120, 80, 30, 0.1) 0 1px, transparent 1px 6px),
+    linear-gradient(#E3C697, #DCBD8F 50%, #CDA977);
+  color: #3E2819;
+  box-shadow: inset 0 0 0 1px rgba(120, 80, 30, 0.25), 0 8px 12px -6px rgba(5, 3, 1, 0.6);
+}
+.o2-pult-celo li:nth-child(1) { transform: rotate(-0.8deg); }
+.o2-pult-celo li:nth-child(3) { transform: rotate(0.7deg); }
+.o2-krok-cislo { grid-row: span 2; font-family: var(--f-kanji); font-size: 32px; line-height: 1; color: var(--rumelka); }
+.o2-kroky h3 { margin: 0 0 4px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 48; font-weight: 600; font-size: 18px; }
+.o2-kroky p { margin: 0; font-size: 14.5px; line-height: 1.4; color: #5A3E28; }
+@media (max-width: 820px) {
+  .o2-satek-mriz { grid-template-columns: minmax(0, 1fr); }
+  .o2-pult-celo { grid-template-columns: minmax(0, 1fr); }
+  .o2-uctenka-pult { transform: none; }
+}
+
+/* Zavazování: rohy se přeloží, nahoře uzel, šátek se zhoupne */
 .o2-roh { transform-box: view-box; transition: transform 0.6s cubic-bezier(0.5, 0, 0.3, 1); }
 .o2-roh-nahore { transform-origin: 200px 108px; }
 .o2-roh-dole { transform-origin: 200px 292px; }
@@ -642,49 +834,6 @@
 @keyframes o2-vec { from { opacity: 0; transform: translateY(-14px) scale(0.6); } }
 .o2-satek-vic { font-family: var(--f-display); font-weight: 600; font-size: 22px; fill: #F3EAD8; }
 .prazdny .o2-satek-latka { opacity: 0.55; }
-
-.o2-satek-nadpis { margin: 0 0 8px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 48; font-weight: 500; font-size: 22px; }
-.o2-satek-polozky { list-style: none; display: grid; gap: 6px; margin: 0 0 12px; padding: 0; }
-.o2-satek-polozky:empty::before { content: "Zatím nic."; font-family: var(--f-ruka); font-size: 21px; color: var(--inkoust-3); }
-.o2-satek-polozka { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 32px; gap: 10px; align-items: center; padding: 6px 6px 6px 8px; border-radius: 12px; background: var(--papir-2); animation: o2-vic 0.35s ease-out; }
-.o2-satek-polozka-obr { width: 44px; height: 44px; display: block; }
-.o2-satek-polozka-text { display: grid; line-height: 1.25; }
-.o2-satek-polozka-text b { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-size: 15.5px; }
-.o2-satek-polozka-text small { font-size: 12.5px; color: var(--inkoust-3); }
-.o2-satek-polozka-cena { font-family: var(--f-display); font-weight: 600; font-size: 15.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.o2-satek-pryc { width: 32px; height: 32px; border-radius: 50% !important; font-size: 20px !important; line-height: 1; color: var(--inkoust-3) !important; transition: background 0.2s, color 0.2s; }
-.o2-satek-pryc:hover { background: rgba(196, 67, 43, 0.12) !important; color: var(--rumelka) !important; }
-.o2-satek-celkem { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 16px; padding-top: 10px; border-top: 1px dashed rgba(43, 36, 32, 0.25); }
-.o2-satek-celkem span { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--inkoust-3); }
-.o2-satek-celkem b { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 32px; font-variant-numeric: tabular-nums; }
-.o2-satek-doprava { margin: 0 0 14px; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.o2-satek-doprava legend { margin-bottom: 8px; font-size: 14px; color: var(--inkoust-2); }
-.o2-pilulka { position: relative; cursor: pointer; }
-.o2-pilulka input { position: absolute; opacity: 0; pointer-events: none; }
-.o2-pilulka span { display: inline-block; padding: 8px 16px; border-radius: 999px; background: var(--papir-2); font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 14.5px; transition: background 0.2s, color 0.2s; }
-.o2-pilulka input:checked + span { background: var(--inkoust); color: var(--papir); }
-.o2-pilulka input:focus-visible + span { outline: 2px solid var(--rumelka); outline-offset: 2px; }
-.o2-pole { display: grid; gap: 6px; margin: 0 0 12px; font-size: 14.5px; color: var(--inkoust-2); }
-.o2-pole small { color: var(--inkoust-3); }
-.o2-pole input,
-.o2-pole textarea { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid rgba(43, 36, 32, 0.22); background: #FFFDF6; color: var(--inkoust); font: inherit; font-size: 16px; }
-.o2-pole textarea { resize: vertical; }
-.o2-pole input:focus,
-.o2-pole textarea:focus { outline: none; border-color: var(--rumelka); box-shadow: 0 0 0 3px rgba(196, 67, 43, 0.15); }
-.o2-satek-akce { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
-.o2-zavazat { cursor: pointer; }
-.o2-zavazat[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; transform: none; }
-.o2-satek-pozn { margin: 12px 0 0; font-size: 13.5px; color: var(--inkoust-3); }
-
-.o2-kroky { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 34px 0 0; padding: 22px 0 0; border-top: 1px dashed rgba(43, 36, 32, 0.25); }
-.o2-kroky li { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 12px; }
-.o2-krok-cislo { grid-row: span 2; font-family: var(--f-kanji); font-size: 34px; line-height: 1; color: var(--rumelka); }
-.o2-kroky h3 { margin: 0 0 4px; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 48; font-weight: 500; font-size: 20px; }
-.o2-kroky p { margin: 0; font-size: 15px; color: var(--inkoust-2); }
-@media (max-width: 820px) {
-  .o2-satek-mriz { grid-template-columns: minmax(0, 1fr); }
-  .o2-kroky { grid-template-columns: minmax(0, 1fr); }
-}
 
 /* Plovoucí šátek a kus v letu */
 .o2-satek-tlacitko {
@@ -726,30 +875,10 @@
 .o2-let { position: fixed; left: 0; top: 0; z-index: 95; width: 56px; height: 56px; pointer-events: none; }
 .o2-let svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 8px 10px rgba(28, 20, 44, 0.35)); }
 
-/* ——— Noc ——— */
-
-.o2-noc { position: relative; z-index: 2; padding: 12vh 20px 12vh; }
-.o2-noc-scena { position: relative; width: min(980px, 100%); margin: 0 auto; aspect-ratio: 1000 / 800; }
-.o2-noc-fasada { position: absolute; inset: 0; width: 100%; height: 100%; display: block; filter: drop-shadow(0 30px 50px rgba(5, 8, 25, 0.6)); }
-.o2-noc-tanuki { position: absolute; z-index: 2; left: 25.5%; bottom: 3.8%; width: 10%; }
-.o2-noc-tanuki svg { width: 100%; height: auto; display: block; filter: brightness(0.72) saturate(0.8); }
-.o2-lucerna { position: absolute; z-index: 2; right: 3%; top: 0; width: 7%; height: auto; transform-origin: 50% 0; animation: o2-lucerna 6s ease-in-out infinite; filter: drop-shadow(0 0 22px rgba(255, 180, 90, 0.65)); }
-@keyframes o2-lucerna { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
-.o2-noc-karta { position: relative; width: min(660px, 100%); margin: -8% auto 0; text-align: center; }
-.o2-noc-kami { width: 104px; margin: -86px auto 6px; }
-.o2-noc-text { margin: 0 auto 18px; max-width: 48ch; color: var(--inkoust-2); }
-.o2-noc-akce { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.o2-noc-adresa { margin: 18px 0 0; font-size: 15px; color: var(--inkoust-2); }
-.o2-noc-dal { margin: 14px 0 0; font-size: 15px; color: var(--inkoust-3); }
-@media (max-width: 700px) {
-  .o2-noc-karta { margin-top: 4%; }
-}
-
 /* ——— Méně pohybu ——— */
 
 @media (prefers-reduced-motion: reduce) {
   .o2-dolu svg,
-  .o2-lucerna,
   .o2-cenovka.houpe,
   .o2-satek-vec,
   .zavazano .o2-satek-latka { animation: none !important; }

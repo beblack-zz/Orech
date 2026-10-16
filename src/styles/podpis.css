@@ -1,0 +1,372 @@
+/*
+ * ——— Podpisový kus: zadní místnost krámku 奥の間 (Obchod 2) ———
+ *
+ * Třetí část interiéru pod vitrínami (components/obchod2/Podpis.astro,
+ * kresba components/obchod2/kresba/tokonoma.ts). Stejná technika jako
+ * vitríny (styles/vitrina.css): sekce i kresba jdou přes celou šířku,
+ * uprostřed je jádro široké jako svět kresby (1400 jednotek, na telefonu
+ * 560) a v něm leží HTML — hrnek, štít, odkaz svitku, poznámka a lístek
+ * 折紙. Každý prvek nese polohu pro obě rozvržení (--l1 … --h2), velikosti
+ * jdou z jednotky kresby --u, písmo nespadne pod čitelnou mez.
+ *
+ * Místnost je v šeru: světlo dělá jen paprsek z okénka (s prášinkami)
+ * a lampa andon. Pohyb běží, jen když je místnost na obrazovce
+ * (třída o2t-videt ze scripts/obchod2/podpis.ts), a vypne ho
+ * prefers-reduced-motion. Modrá #2E4A78 je modrá šátku.
+ */
+
+.o2t {
+  --ai: #284472;
+  --f-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --washi: #FBF7EC;
+  /* jak vysoko se podlaha rozplyne do noci nad šátkem */
+  --dole: 2.8%;
+  position: relative;
+  z-index: 2;
+  overflow: clip;
+  background: #4E3020;
+  -webkit-mask: linear-gradient(#000 calc(100% - var(--dole)), transparent);
+  mask: linear-gradient(#000 calc(100% - var(--dole)), transparent);
+}
+
+.o2t-jadro {
+  position: relative;
+  width: min(100%, 1400px);
+  margin: 0 auto;
+  aspect-ratio: var(--a1);
+  container-type: inline-size;
+  /* jedna jednotka kresby v pixelech */
+  --u: calc(100cqw / 1400);
+}
+.o2t-kresba { position: absolute; top: 0; height: 100%; display: block; overflow: visible; pointer-events: none; }
+.o2t-uzka { display: none; }
+
+.o2t-misto { position: absolute; left: var(--l1); top: var(--t1); width: var(--w1); height: var(--h1); }
+
+/* ——— Pohyb v kresbě: noren se vlní, lampa a paprsek dýchají, prášinky plují ——— */
+
+.o2t .o2t-noren { transform-box: fill-box; transform-origin: 50% 0; animation: o2t-vitr 7s ease-in-out infinite; }
+.o2t .o2t-zar { animation: o2t-dech 5.5s ease-in-out infinite alternate; }
+.o2t .o2t-paprsek { animation: o2t-dech 12s ease-in-out infinite alternate; }
+.o2t .o2t-prach { opacity: 0; animation: o2t-prach var(--t) linear var(--z) infinite; }
+.o2t:not(.o2t-videt) :is(.o2t-noren, .o2t-zar, .o2t-paprsek, .o2t-prach) { animation-play-state: paused; }
+@keyframes o2t-vitr { 0%, 100% { transform: skewX(0deg); } 40% { transform: skewX(-1.4deg); } 75% { transform: skewX(0.9deg); } }
+@keyframes o2t-dech { from { opacity: 0.8; } to { opacity: 1; } }
+@keyframes o2t-prach {
+  0% { opacity: 0; transform: translate(0, 0); }
+  18% { opacity: var(--o); }
+  82% { opacity: var(--o); }
+  100% { opacity: 0; transform: translate(var(--x), var(--y)); }
+}
+
+/* ——— Futatsu: jde vzít do ruky ——— */
+
+/* Hrnek je bez z-index jako kusy ve vitrínách: přední kresba (paprsek, prášinky)
+   leží přes něj. Rámeček podobizny je větší než hrnek (místo na výstupky a stín);
+   kde se kryje se svitkem, má přednost odkaz svitku (končí nad okrajem hrnku). */
+.o2t-otoc {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 38%;
+}
+.o2t-otoc:active { cursor: grabbing; }
+.o2t-otoc:focus-visible { outline: 3px solid #F2C27A; outline-offset: calc(-40 * var(--u)); }
+.o2t-otoc svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* Poznámka u hrnku: zmizí, jakmile ho člověk chytí */
+.o2t-rada {
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25em;
+  margin: 0;
+  font: 600 max(16px, calc(26 * var(--u))) / 1 var(--f-ruka);
+  color: #F1E3C4;
+  text-shadow: 0 1px 3px rgba(20, 8, 2, 0.7);
+  white-space: nowrap;
+  pointer-events: none;
+  rotate: -3deg;
+  transition: opacity 0.6s;
+}
+.o2t-rada span { display: inline-block; animation: o2t-sem-tam 2.4s ease-in-out infinite; }
+@keyframes o2t-sem-tam { 0%, 100% { translate: -0.12em 0; } 50% { translate: 0.12em 0; } }
+.o2t.v-ruce .o2t-rada { opacity: 0; }
+
+/* ——— Štít: nadpis v desce hengaku ——— */
+
+.o2t-stit { z-index: 4; display: flex; flex-direction: column; justify-content: center; padding: 0 calc(18 * var(--u)); color: #F6E9CF; }
+.o2t-nadpis {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: max(22px, calc(42 * var(--u)));
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.o2t-stit-pod { margin: calc(6 * var(--u)) 0 0; font: 600 max(14px, calc(21 * var(--u))) / 1.1 var(--f-ruka); color: #D9B45A; white-space: nowrap; }
+
+/* ——— Svitek: odkaz na celý výkres ——— */
+
+.o2t-svitek { z-index: 3; display: block; border-radius: 4px; -webkit-tap-highlight-color: transparent; }
+.o2t-svitek:focus-visible { outline: 3px solid #F2C27A; outline-offset: 4px; }
+.o2t-svitek-pozn {
+  position: absolute;
+  left: 100%;
+  top: 22%;
+  margin-left: calc(14 * var(--u));
+  font: 600 max(15px, calc(23 * var(--u))) / 1 var(--f-ruka);
+  color: #F1E3C4;
+  white-space: nowrap;
+  opacity: 0;
+  translate: -0.3em 0;
+  transition: opacity 0.3s, translate 0.3s;
+  pointer-events: none;
+}
+.o2t-svitek:hover .o2t-svitek-pozn,
+.o2t-svitek:focus-visible .o2t-svitek-pozn { opacity: 1; translate: 0 0; }
+.o2t .o2t-svitek-svetlo { opacity: 0; transition: opacity 0.35s; }
+.o2t:has(.o2t-svitek:hover, .o2t-svitek:focus-visible) .o2t-svitek-svetlo { opacity: 0.1; }
+
+/* Barvy modrotisku ve svitku (třídy fk- z futatsu/kresba.ts) */
+.o2t .fk-svg {
+  --c-cara: #EAF0F8;
+  --c-tlum: rgba(234, 240, 248, 0.62);
+  --c-bg: var(--ai);
+  --c-hiiro: #F2905A;
+  --c-zrno: rgba(28, 50, 89, 0.5);
+  --c-sklo: rgba(234, 240, 248, 0.15);
+  --c-mriz: rgba(234, 240, 248, 0.07);
+  color: var(--c-cara);
+  font-family: var(--f-mono);
+}
+.o2t .fk-c { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+.o2t .fk-bg { fill: var(--c-bg); }
+.o2t .fk-h { fill: var(--c-hiiro); }
+.o2t .fk-hl { fill: none; stroke: var(--c-hiiro); stroke-linecap: round; }
+.o2t .fk-d { fill: none; stroke: var(--c-tlum); }
+.o2t .fk-sip { fill: var(--c-tlum); }
+.o2t .fk-sklo { fill: var(--c-sklo); }
+.o2t .fk-zrno { fill: var(--c-zrno); }
+.o2t .fk-tec { fill: currentColor; opacity: 0.42; }
+.o2t .fk-tecka, .o2t .fk-dt { fill: currentColor; }
+.o2t .fk-sub { fill: var(--c-tlum); }
+.o2t .fk-tit { fill: currentColor; font-weight: 600; }
+.o2t .fk-halo { paint-order: stroke; stroke: var(--c-bg); stroke-linejoin: round; }
+.o2t .fk-ruka { fill: var(--c-hiiro); font-family: var(--f-ruka); }
+.o2t .fk-kanji { font-family: var(--f-kanji); }
+.o2t .fk-nazev { fill: currentColor; font-family: var(--f-display); font-weight: 500; }
+.o2t .fk-mriz { fill: none; stroke: var(--c-mriz); }
+.o2t .fk-hanko { fill: none; stroke: var(--c-hiiro); }
+.o2t .fk-hanko-t { fill: var(--c-hiiro); font-family: var(--f-kanji); }
+
+/* ——— Lístek 折紙: přeložený washi stojí na tatami vedle polštáře ——— */
+
+.o2t-origami {
+  --pole: calc(108 * var(--u));
+  z-index: 4;
+  /* roste nahoru: spodní hrana stojí na rohoži */
+  top: calc(var(--t1) + var(--h1));
+  height: auto;
+  min-height: calc(var(--h1) * 0.9);
+  translate: 0 -100%;
+  display: grid;
+  grid-template-columns: var(--pole) minmax(0, 1fr);
+  border-radius: 2px;
+  /* washi v šeru: levé pole odvrácené od světla, v přehybu stín, pravé pole chytá paprsek */
+  background:
+    linear-gradient(90deg, #DED1B6, #EAE0CA calc(var(--pole) - 14px), #D2C3A4 calc(var(--pole) - 1px), #FBF6EA var(--pole), #F5EEDF calc(var(--pole) + 40px), #EFE6D3);
+  color: var(--inkoust);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    calc(10 * var(--u)) calc(18 * var(--u)) calc(30 * var(--u)) calc(-8 * var(--u)) rgba(10, 4, 0, 0.7);
+  rotate: -1.2deg;
+  transform-origin: 50% 100%;
+}
+.o2t-origami-pole {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(14 * var(--u));
+  padding: calc(24 * var(--u)) 0 calc(22 * var(--u));
+}
+.o2t-origami-ja,
+.o2t-origami-jmeno { margin: 0; writing-mode: vertical-rl; font-family: var(--f-kanji); line-height: 1; }
+.o2t-origami-ja { font-size: max(30px, calc(54 * var(--u))); letter-spacing: 0.06em; }
+.o2t-origami-jmeno { font-size: max(18px, calc(30 * var(--u))); color: var(--inkoust-2); }
+/* pečeť dílny, otištěná rumělkou */
+.o2t-pecet {
+  margin-top: auto;
+  padding: 0.3em 0.16em;
+  border: 2px solid var(--rumelka);
+  border-radius: 3px;
+  color: var(--rumelka);
+  font: 400 max(11px, calc(16 * var(--u))) / 1 var(--f-kanji);
+  writing-mode: vertical-rl;
+  letter-spacing: 0.08em;
+  rotate: -5deg;
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+}
+
+.o2t-origami-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: calc(22 * var(--u)) calc(24 * var(--u)) calc(20 * var(--u)) calc(22 * var(--u)); }
+.o2t-origami-stitek {
+  margin: 0;
+  font: 600 max(11px, calc(13 * var(--u))) / 1 var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--rumelka);
+}
+.o2t-origami-stitek [lang="ja"] { font-family: var(--f-kanji); font-weight: 400; letter-spacing: 0.06em; font-size: 1.2em; }
+.o2t-nazev {
+  margin: calc(10 * var(--u)) 0 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 300;
+  font-size: max(32px, calc(48 * var(--u)));
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+}
+.o2t-heslo {
+  margin: calc(8 * var(--u)) 0 0;
+  font-family: var(--f-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 48;
+  font-size: max(17px, calc(23 * var(--u)));
+  line-height: 1.15;
+  color: var(--rumelka);
+}
+.o2t-perex { margin: calc(12 * var(--u)) 0 0; font-size: max(15px, calc(17.5 * var(--u))); line-height: 1.38; color: var(--inkoust-2); text-wrap: pretty; }
+
+/* údaje jako v osvědčení: popisek malými písmeny nad hodnotou psanou strojově */
+.o2t-fakta {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  justify-content: start;
+  gap: calc(10 * var(--u)) calc(30 * var(--u));
+  width: 100%;
+  margin: calc(14 * var(--u)) 0 0;
+  padding: calc(10 * var(--u)) 0 calc(11 * var(--u));
+  border-block: 1px solid rgba(43, 36, 32, 0.16);
+}
+.o2t-fakta div { display: flex; flex-direction: column; gap: calc(3 * var(--u)); }
+.o2t-fakta dt { font: 600 max(10px, calc(11.5 * var(--u))) / 1 var(--f-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--inkoust-3); }
+.o2t-fakta dd { margin: 0; font: 500 max(12.5px, calc(14.5 * var(--u))) / 1.2 var(--f-mono); color: var(--inkoust); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* cena a šátek na jednom řádku */
+.o2t-koupit { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: calc(10 * var(--u)) calc(16 * var(--u)); width: 100%; margin-top: calc(14 * var(--u)); }
+.o2t-cena {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3em;
+  margin: 0;
+  font: 400 max(20px, calc(26 * var(--u))) / 1 var(--f-display);
+  color: var(--inkoust-2);
+  white-space: nowrap;
+}
+.o2t-cena b { font-size: 1.75em; font-weight: 500; color: var(--inkoust); font-variant-numeric: lining-nums tabular-nums; letter-spacing: -0.01em; }
+/* 代 — hodnota, jako v osvědčení */
+.o2t-dai {
+  align-self: center;
+  margin-right: 0.15em;
+  padding: 0.18em 0.2em 0.22em;
+  border-radius: 3px;
+  background: var(--rumelka);
+  color: #FFF3E2;
+  font: 400 0.72em / 1 var(--f-kanji);
+}
+
+/* .o2t před třídou: samotná třída by prohrála s .p2 button z parta2.css (nuluje pozadí, rámeček, odsazení i písmo) */
+.o2t .o2t-do-satku {
+  padding: 0.7em 1.3em 0.75em;
+  border: 1.5px solid var(--inkoust);
+  border-radius: 999px;
+  background: var(--inkoust);
+  color: var(--washi);
+  font: 600 max(14px, calc(16 * var(--u))) / 1.1 var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, translate 0.2s;
+}
+.o2t-do-satku:hover { background: #000; translate: 0 -2px; }
+.o2t-do-satku.v-satku { border-color: #2E4A78; background: #2E4A78; color: #FFF7EC; }
+.o2t-do-satku:focus-visible { outline: 3px solid var(--rumelka); outline-offset: 2px; }
+.o2t-cely {
+  margin-top: calc(12 * var(--u));
+  color: var(--inkoust);
+  font: 600 max(14px, calc(16 * var(--u))) / 1.1 var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+.o2t-cely:hover { color: var(--rumelka); }
+.o2t-cely:focus-visible { outline: 2px solid var(--rumelka); outline-offset: 3px; border-radius: 2px; }
+.o2t-pozn { margin: calc(12 * var(--u)) 0 0; font-size: max(12px, calc(13.5 * var(--u))); line-height: 1.35; color: var(--inkoust-3); }
+.o2t-pozn [lang="ja"] { font-family: var(--f-kanji); }
+
+/* kus v šátku: indigové razítko přes roh lístku */
+.o2t-v-satku {
+  position: absolute;
+  top: calc(18 * var(--u));
+  right: calc(18 * var(--u));
+  padding: 0.3em 0.6em 0.35em;
+  border: 2px solid #2E4A78;
+  border-radius: 4px;
+  color: #2E4A78;
+  font: 700 max(11px, calc(13 * var(--u))) / 1 var(--f-display);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  rotate: 8deg;
+  mix-blend-mode: multiply;
+}
+.o2t-v-satku[hidden] { display: none; }
+
+/* Užší monitory se širokou kresbou: písmo lístku už se nezmenšuje s kresbou (spodní meze v px),
+   lístek by rostl přes výklenek — bez poznámky o 折紙付き, na nejužších i bez perexu (je na stránce kusu) */
+@media (min-width: 1000px) and (max-width: 1199px) {
+  .o2t-pozn { display: none; }
+}
+@media (min-width: 1000px) and (max-width: 1099px) {
+  .o2t-perex { display: none; }
+}
+
+/* ——— Úzké rozvržení: telefon, jádro 560 jednotek ——— */
+
+@media (max-width: 999px) {
+  .o2t { --dole: 2%; }
+  .o2t-jadro { width: min(100%, 560px); aspect-ratio: var(--a2); --u: calc(100cqw / 560); }
+  .o2t-siroka { display: none; }
+  .o2t-uzka { display: block; }
+  .o2t-misto { left: var(--l2); top: var(--t2); width: var(--w2); height: var(--h2); }
+  /* lístek přes celou šířku roste dolů po rohoži */
+  .o2t-origami { --pole: calc(100 * var(--u)); top: var(--t2); translate: none; min-height: calc(var(--h2) * 0.8); rotate: -0.6deg; transform-origin: 50% 0; }
+  .o2t-origami-text { padding: calc(24 * var(--u)) calc(26 * var(--u)) calc(22 * var(--u)) calc(22 * var(--u)); }
+  .o2t-perex { font-size: max(15px, calc(19 * var(--u))); }
+  .o2t-nadpis { font-size: max(21px, calc(42 * var(--u))); }
+  .o2t-rada { font-size: max(16px, calc(24 * var(--u))); rotate: -2deg; }
+  /* na telefonu není kam najet myší; při ovládání klávesnicí se poznámka ukáže vlevo od svitku */
+  .o2t-svitek-pozn { left: auto; right: 100%; margin: 0 calc(10 * var(--u)) 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o2t .o2t-noren,
+  .o2t .o2t-zar,
+  .o2t .o2t-paprsek,
+  .o2t .o2t-prach,
+  .o2t-rada span { animation: none !important; }
+  .o2t .o2t-prach { opacity: var(--o); }
+  .o2t-do-satku,
+  .o2t-svitek-pozn,
+  .o2t .o2t-svitek-svetlo { transition: none !important; }
+}

@@ -1,0 +1,113 @@
+---
+/**
+ * Podpisový kus — třetí část interiéru pod vitrínami: zadní místnost
+ * krámku 奥の間 s tokonomou. Po dvou plných stěnách (Vitrina.astro) přijde
+ * ticho, šero a jeden kus: Futatsu na lakovaném podstavci v paprsku
+ * z okénka, nad ním svitek, ve kterém je místo kaligrafie jeho modrotisk.
+ *
+ * Kresba je components/obchod2/kresba/tokonoma.ts a jde stejně jako
+ * u vitrín: SVG přes celou šířku dvakrát (široká a úzká), HTML jednou
+ * s polohami --l1…--h2 v procentech jádra a jednotkou kresby --u.
+ * Vrstvy: zadní kresba → hrnek (podobizna.ts; jde vzít do ruky,
+ * scripts/obchod2/futatsu-otoc.ts) → přední kresba (paprsek, prášinky,
+ * noren) → štít v desce hengaku, svitek jako odkaz na výkres, poznámka
+ * a lístek 折紙 — osvědčení s cenou, šátkem a proklikem na stránku kusu.
+ *
+ * Kusy s `podpis` v data/obchod.ts ve výloze ani ve vitríně nestojí,
+ * žijí jen tady a na své stránce (ta sem vede přes kotvu #podpis).
+ * Styly: styles/podpis.css, drobnosti kolem: scripts/obchod2/podpis.ts.
+ */
+import "@fontsource-variable/jetbrains-mono";
+import "../../styles/podpis.css";
+import { podpisove, cenovka } from "../../data/kramek";
+import { tokonoma } from "./kresba/tokonoma";
+import type { Obdelnik } from "./kresba/zaklad";
+import { PODOBIZNA, podobizna } from "./futatsu/podobizna";
+import { V } from "./futatsu/kresba";
+
+const kus = podpisove[0];
+const ceny = kus ? cenovka(kus.cena) : null;
+
+const S = { siroka: tokonoma("siroka"), uzka: tokonoma("uzka") };
+const g1 = S.siroka.g;
+const g2 = S.uzka.g;
+const pr = (v: number, z: number) => `${((v / z) * 100).toFixed(3)}%`;
+/** Poloha prvku v obou rozvrženích (procenta jádra) */
+const poloha = (a: Obdelnik, b: Obdelnik) =>
+  `--l1:${pr(a.x, g1.W)};--t1:${pr(a.y, g1.H)};--w1:${pr(a.w, g1.W)};--h1:${pr(a.h, g1.H)};` +
+  `--l2:${pr(b.x, g2.W)};--t2:${pr(b.y, g2.H)};--w2:${pr(b.w, g2.W)};--h2:${pr(b.h, g2.H)}`;
+/** SVG přes celou šířku: jádro W, kresba i s kusy za kraji */
+const kresba = (g: typeof g1) => `left:${pr(-g.ext, g.W)};width:${pr(g.W + 2 * g.ext, g.W)}`;
+/* Výchozí natočení: oba výstupky k divákovi, kousek z boku (jako výkres) */
+const natoceni = { uhel: 62, nadhled: 14 };
+---
+{kus && kus.podpis && ceny && (
+  <section class="o2t" id="podpis" data-hodina="23" aria-labelledby="podpis-nadpis">
+    <div class="o2t-jadro" style={`--a1:${g1.W} / ${g1.H};--a2:${g2.W} / ${g2.H}`}>
+      <svg class="o2t-kresba o2t-siroka" viewBox={S.siroka.viewBox} style={kresba(g1)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.siroka.zadni} />
+      <svg class="o2t-kresba o2t-uzka" viewBox={S.uzka.viewBox} style={kresba(g2)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.uzka.zadni} />
+
+      {/* Štít: nadpis leží v desce hengaku vedle zlacených znaků 逸品 (nad kresbou díky z-index) */}
+      <header class="o2t-misto o2t-stit" style={poloha(g1.stit, g2.stit)}>
+        <h2 id="podpis-nadpis" class="o2t-nadpis">Podpisový kus</h2>
+        <p class="o2t-stit-pod">ippin — to nejlepší z krámku</p>
+      </header>
+
+      {/* Svitek s modrotiskem vede na celý výkres (v DOM před hrnkem kvůli pořadí čtení, nad ním je díky z-index) */}
+      <a class="o2t-misto o2t-svitek" style={poloha(g1.svitekObd, g2.svitekObd)} href={`${kus.podpis}#vykres`} aria-label={`Výkres hrnku ${kus.nazev} — celý na jeho stránce`}>
+        <span class="o2t-svitek-pozn" aria-hidden="true">celý výkres →</span>
+      </a>
+
+      {/* Futatsu na lakovaném podstavci: tah do strany (nebo šipky) ho otočí */}
+      <div class="o2t-misto o2t-hrnek" style={poloha(g1.hrnek, g2.hrnek)}>
+        <div
+          class="o2t-otoc"
+          data-futatsu-otoc
+          data-id="fpt"
+          data-uhel={natoceni.uhel}
+          data-nadhled={natoceni.nadhled}
+          data-svetlo="vlevo"
+          data-vstup
+          tabindex="0"
+          role="img"
+          aria-label={`${kus.nazev}, hrnek na čaj bez ouška se dvěma výstupky na boku. Táhni do strany nebo použij šipky a otoč si ho.`}
+        >
+          <svg viewBox={PODOBIZNA.viewBox} aria-hidden="true" set:html={podobizna({ id: "fpt", ...natoceni, svetlo: "vlevo" })} />
+        </div>
+      </div>
+
+      <svg class="o2t-kresba o2t-siroka" viewBox={S.siroka.viewBox} style={kresba(g1)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.siroka.predni} />
+      <svg class="o2t-kresba o2t-uzka" viewBox={S.uzka.viewBox} style={kresba(g2)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.uzka.predni} />
+
+      <p class="o2t-misto o2t-rada" style={poloha(g1.rada, g2.rada)} aria-hidden="true">vezmi ho do ruky <span>↔</span></p>
+
+      {/* Lístek 折紙: přeložený washi, vlevo znaky a pečeť, vpravo všechno podstatné */}
+      <article class="o2t-misto o2t-origami" style={poloha(g1.listek, g2.listek)} data-satek-kus={kus.id} aria-labelledby="podpis-nazev">
+        <div class="o2t-origami-pole" aria-hidden="true">
+          <p class="o2t-origami-ja" lang="ja">折紙</p>
+          <p class="o2t-origami-jmeno" lang="ja">二つ</p>
+          <span class="o2t-pecet" lang="ja">ジロ作</span>
+        </div>
+        <div class="o2t-origami-text">
+          <p class="o2t-origami-stitek"><span lang="ja">折紙</span> · osvědčení</p>
+          <h3 id="podpis-nazev" class="o2t-nazev">{kus.nazev}</h3>
+          <p class="o2t-heslo">Ouško nemá. Má podpis.</p>
+          <p class="o2t-perex">Hrnek na čaj bez ouška, točený u nás v Ořechu. Na boku má dva hrbolky seříznuté naplocho a holá hlína v řezu zrudla v peci do barvy ohně.</p>
+          <dl class="o2t-fakta">
+            <div><dt>rozměr</dt><dd>⌀ 84 × 76 mm</dd></div>
+            <div><dt>objem</dt><dd>≈ {V.objem} ml</dd></div>
+            <div><dt>glazura</dt><dd>shino</dd></div>
+            <div><dt>výpal</dt><dd>1 280 °C</dd></div>
+          </dl>
+          <div class="o2t-koupit">
+            <p class="o2t-cena"><span class="o2t-dai" lang="ja" aria-hidden="true" title="dai — hodnota">代</span><span class="sr-only">Cena</span> <b>{ceny.castka}</b> {ceny.mena}</p>
+            <button type="button" class="o2t-do-satku" data-satek-pridat data-satek-id={kus.id} data-pridat="Do šátku" data-vyndat="✓ V šátku" aria-describedby="podpis-nazev">Do šátku</button>
+          </div>
+          <a class="o2t-cely" href={kus.podpis}>Prohlédnout celý <span aria-hidden="true">→</span></a>
+          <p class="o2t-pozn">Origami <span lang="ja">折紙</span> je přeložený papír, kterým se v Japonsku stvrzovala hodnota mečů a čajového náčiní. Odtud <span lang="ja">折紙付き</span>: s osvědčením.</p>
+        </div>
+        <span class="o2t-v-satku" data-v-satku hidden>v šátku</span>
+      </article>
+    </div>
+  </section>
+)}

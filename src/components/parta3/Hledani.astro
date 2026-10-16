@@ -1,0 +1,94 @@
+---
+/**
+ * Na schovávanou (隠れん坊 kakurenbo) — malá sekce o hře na hledání kami,
+ * mezi obsazením a svítáním. Kdo partu právě poznal, dozví se, že se
+ * všichni schovávají po webu, jak je najít a co za ně dostane.
+ *
+ *   vlevo   tři kroky: hledej (jak vypadají — ukázka černých a bílých
+ *           miniatur na schovávanou, místa se neprozrazují),
+ *           klepni (závěs pod hlavičkou a brána s přehledem),
+ *           otevři komnaty (prahy a jména z data/kami.ts — komnaty)
+ *   vpravo  klíčenka — závěs s kami z hlavičky nakreslený velký
+ *           s očíslovanými popisky (Klicenka.astro); nad ní kolik kami
+ *           má hráč doopravdy (scripts/parta3/hledani.ts)
+ *   dole    kam ještě klepnout — drobná tajemství po webu
+ */
+import Klicenka from "./Klicenka.astro";
+import Kachlik from "../characters/schovka/Kachlik.astro";
+import Kapka from "../characters/schovka/Kapka.astro";
+import Samotka from "../characters/schovka/Samotka.astro";
+import Hlinka from "../characters/schovka/Hlinka.astro";
+import Bublinka from "../characters/schovka/Bublinka.astro";
+import Cedulka from "../characters/schovka/Cedulka.astro";
+import { parta } from "../../data/parta";
+import { komnaty } from "../../data/kami";
+
+const vsech = parta.length;
+
+const tipy = [
+  { kde: "Na kami", co: "Každý ti něco řekne — a podruhé něco jiného." },
+  { kde: "Do kreseb", co: "V dílně na úvodu se roztočí kruh, zapálí pec, pustí voda i rozsvítí lampa." },
+  { kde: "Na lampiony", co: "Pod střechou chrámu tady nahoře — rozsvítíš jiného z party." },
+  { kde: "Na O nás", co: "V každém měsíci roku dílny se někde třpytí šupinka zlata na kintsugi." },
+  { kde: "Na Vázičku", co: "Sedí v rohu každé stránky. Na úvodu ti prozradí jedno tajemství." },
+];
+---
+<section class="hledani" id="hledani" data-hodina="25.4" aria-labelledby="hledani-nadpis" data-hledani data-vsech={vsech}>
+  <div class="hledani-karta papir">
+    <div class="hledani-text">
+      <p class="stitek"><span lang="ja">隠れん坊</span> · na schovávanou</p>
+      <h2 id="hledani-nadpis" class="nadpis-2">Přes den se celá parta schovává po webu.</h2>
+      <p class="hledani-perex">
+        Všech {vsech} kami, které jsi tu právě poznal, se ráno rozběhne po stránkách JIRO saku. Jsou malí,
+        černí nebo bílí a vykukují zpoza věcí. Kdo je najde, něco dostane.
+      </p>
+
+      <ol class="hledani-kroky">
+        <li>
+          <b>Hledej</b>
+          <span>Koukej do kreseb a za věci: do okna vlaku, nad svitek, na opěradlo židle, za vitrínu. Na každé stránce se někdo může skrývat. Takhle vypadají:</span>
+          <div class="hledani-ukazka" aria-hidden="true">
+            <div class="hledani-ukazka-pas svetly">
+              <Kachlik barva="cerna" poza="vykukuje" size={40} />
+              <Kapka barva="cerna" poza="stoji" size={34} />
+              <Samotka barva="cerna" poza="vykukuje" size={42} />
+              <small>černí — na světlém</small>
+            </div>
+            <div class="hledani-ukazka-pas tmavy">
+              <Hlinka barva="pruhledna" poza="stoji" size={36} />
+              <Bublinka barva="pruhledna" poza="vykukuje" size={40} />
+              <Cedulka barva="pruhledna" poza="stoji" size={36} />
+              <small>bílí — na tmavém</small>
+            </div>
+          </div>
+        </li>
+        <li>
+          <b>Klepni</b>
+          <span>Kdo se najde, navlékne se na klíčenku pod hlavičkou — vpravo je, jak funguje.</span>
+        </li>
+        <li>
+          <b>Otevři komnaty</b>
+          <span>Za každé tři nalezené se otevře jedna:</span>
+          <ul class="hledani-komnaty">
+            {komnaty.map((k) => (
+              <li><a href={k.kam}><i aria-hidden="true">{k.prah}</i><b>{k.nazev}</b><small>{k.popis}</small></a></li>
+            ))}
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="hledani-parta" aria-labelledby="hledani-klicenka">
+      <p class="hledani-klicenka-nadpis" id="hledani-klicenka">Klíčenka pod hlavičkou <small>visí na každé stránce vlevo vedle zvonkohry</small></p>
+      <Klicenka />
+      <p class="hledani-pocet" aria-live="polite"></p>
+    </div>
+
+    <div class="hledani-tipy">
+      <p class="hledani-tipy-nadpis">Kam ještě klepnout</p>
+      <ul>
+        {tipy.map((t) => <li><b>{t.kde}</b> {t.co}</li>)}
+      </ul>
+    </div>
+  </div>
+</section>

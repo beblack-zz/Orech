@@ -17,7 +17,7 @@
  *               jako tři svislé nabídky — tentýž luxusní lístek v zelené,
  *               červené a modré desce; jméno a vzkaz se píšou rovnou na
  *               jízdenku, zabalí se a objednávka odejde mailem
- *   v noci      vlak se vrací, poslední odeslaná jízdenka, kontakt
+ *   v noci      vlak se vrací, jízdenky člena, telefon pro přístup a kontakt
  *
  * Pravidla jsou z data/rezervace.ts: úterý a pátek od 9 do 18, odjezdy
  * po hodině a půl, cena za člověka a odjezd. Odjezd je buď volný, nebo obsazený
@@ -75,10 +75,10 @@ import Jizdenka from "../components/rezervace/Jizdenka.astro";
 import Darky from "../components/rezervace/Darky.astro";
 import Noc from "../components/rezervace/Noc.astro";
 
-import { rezervace, cenaOdjezdu } from "../data/rezervace";
+import { rezervace, rozpetiJizdneho } from "../data/rezervace";
 import { kontakt } from "../data/uvod2";
 
-const cena = cenaOdjezdu.toLocaleString("cs-CZ");
+const cena = `${rozpetiJizdneho.od}–${rozpetiJizdneho.do}`;
 
 /* Štětcové písmo jen pro svislý nápis na první obrazovce (Nadrazi.astro) — jiné japonské znaky tu nejsou */
 const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent("胡桃行き")}`;
@@ -89,7 +89,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Rezervace · JIRO saku</title>
-    <meta name="description" content={`Rezervuj si čas v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, odjezdy po hodině a půl, ${cena} Kč za člověka. Jízdenku jde i darovat.`} />
+    <meta name="description" content={`Rezervuj si čas v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, odjezdy po hodině a půl, ${cena} Kč za člověka podle velikosti skupiny. Jízdenku jde i darovat.`} />
     <meta name="theme-color" content="#6F8FC8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -105,7 +105,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
     <VlakKresby />
     <Hlavicka sber="zadny" />
 
-    <main data-rezervace data-cena={cenaOdjezdu} data-email={kontakt.email}>
+    <main data-rezervace data-telefon={kontakt.telefonOdkaz}>
       <Nadrazi />
 
       <section class="rz-sekce rz-hala" id="rz-pokladna" aria-labelledby="rz-pokladna-nadpis">

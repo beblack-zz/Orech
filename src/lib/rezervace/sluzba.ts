@@ -52,7 +52,7 @@ function zDb(e: unknown): Vysledek<Odpoved> {
 const PRAZDNO: Volno = { zive: false, obsazeno: [], zavreno: [], kurzy: [], permanentky: [], clen: null, moje: [] };
 
 interface VolnoDb {
-  obsazeno: { den: string; cas: string }[];
+  obsazeno: { den: string; cas: string; osob: number }[];
   zavreno: { den: string; cas: string | null }[];
   kurzy: Volno["kurzy"];
   permanentky: { dt: number; cas: string; osob: number; do: string }[];
@@ -69,7 +69,7 @@ export async function volno(n: Nastaveni | null, token: string | undefined, nyni
       stav: 200,
       telo: {
         zive: true,
-        obsazeno: v.obsazeno.map((o) => ({ den: o.den, h: zCasu(o.cas) })),
+        obsazeno: v.obsazeno.map((o) => ({ den: o.den, h: zCasu(o.cas), osob: o.osob })),
         zavreno: v.zavreno.map((z) => ({ den: z.den, h: z.cas === null ? null : zCasu(z.cas) })),
         kurzy: v.kurzy,
         permanentky: v.permanentky.map((p) => ({ dt: p.dt, h: zCasu(p.cas), osob: p.osob, do: p.do })),
@@ -99,7 +99,8 @@ export async function rezervuj(n: Nastaveni | null, token: string | undefined, t
   if (!jeUuid(token)) return ne("neznamy");
   const z = over(telo, nyni);
   if (!z) return ne("spatne");
-  let r: { jmeno: string; email: string; kurz: string | null };
+  /* vyluk = kolik týdnů permanentky má výluku (jede kurz) — ty se neplatí */
+  let r: { jmeno: string; email: string; kurz: string | null; vyluk: number | null };
   try {
     r = await rpc(n.db, "rezervuj", {
       p_token: token,
@@ -108,14 +109,15 @@ export async function rezervuj(n: Nastaveni | null, token: string | undefined, t
       p_hodiny: z.hodiny.map(naCas),
       p_osob: z.osob,
       p_den_do: z.druh === "permanentka" ? konecPermanentky(z.den) : null,
-      p_mist: z.druh === "permanentka" ? P.mist : null,
+      /* Kolik míst má odjezd nebo spoj permanentky — kurz má svá v tabulce kurzů */
+      p_mist: z.druh === "permanentka" ? P.mist : z.druh === "odjezd" ? R.mist : null,
       p_poznamka: z.poznamka ?? null,
     });
   } catch (e) {
     return zDb(e);
   }
   /* Zamluveno je, i kdyby mail neodešel — ten je jen potvrzení */
-  if (n.posta) await posli(n.posta, potvrzeni(r, z, r.kurz, web));
+  if (n.posta) await posli(n.posta, potvrzeni(r, z, r.kurz, web, r.vyluk ?? 0));
   return ANO;
 }
 

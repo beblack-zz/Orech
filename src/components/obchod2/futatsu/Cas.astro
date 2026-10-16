@@ -1,0 +1,72 @@
+---
+/**
+ * 四 Čas — 04:36, svítá. Hrnek, který stárne s tebou (器を育てる).
+ *
+ * Velký pohled do Futatsu shora na dřevěném podšálku (kresba cas.ts):
+ * krakelé uvnitř, na dně poslední doušek čaje, nad ním pára. Jezdcem
+ * a čtyřmi malými pohledy se jde v čase — „Nový z pece · Po prvním čaji ·
+ * Po roce · Po pěti letech“ — a síť prasklinek tmavne čajem. Ke každé
+ * zastávce patří kousek péče z dřívější stránky Futatsu. Skript: initCas
+ * ve scripts/obchod2/futatsu-noc.ts. Bez skriptu je vidět nový hrnek
+ * a všechny texty pod sebou.
+ */
+import "../../../styles/futatsu-noc.css";
+import Postavicka from "../../characters/Postavicka.astro";
+import { pohledShora, nahledStari, stariZ, ZASTAVKY_CASU } from "./cas";
+
+const TEXTY = [
+  "Síťka prasklinek je zatím skoro neviditelná, jen tenké světlé čáry ve skle glazury. Chceš, aby tmavla pomalu? Před prvním čajem hrnek povař dvacet minut v rýžové vodě, škrob zaplní póry. Japonci tomu říkají medome.",
+  "Chceš, aby tmavla hned? Nalij rovnou čaj. Síťka začne pomalu chytat jeho barvu.",
+  "Síťka už je vidět. Jak rychle tmavne, záleží na čaji: černý čaj a pu-erh barví víc než zelený.",
+  "Z nového hrnku je tvůj hrnek. Myj ho ručně v teplé vodě, do myčky ho raději nedávej a bělidlem ho nečisti — smylo by roky pití.",
+];
+const zastavky = ZASTAVKY_CASU.map((z, i) => ({ ...z, ...stariZ(z.v), text: TEXTY[i] }));
+---
+<section class="ft-kap ft-kap-cas ftn-cas" id="cas" data-hodina="28.6" aria-labelledby="cas-nadpis" data-cas>
+  <p class="ft-kap-znak" lang="ja" aria-hidden="true">育</p>
+  <header class="ft-kap-hlava">
+    <p class="stitek"><span class="ft-kap-cislo" lang="ja">四</span> <span lang="ja">器を育てる</span> · utsuwa o sodateru</p>
+    <h2 class="ft-kap-nazev" id="cas-nadpis">Hrnek, který stárne s tebou</h2>
+    <p class="ft-kap-podtitul">krakelé si časem vezme barvu čaje</p>
+  </header>
+
+  <div class="ftn-svitani">
+    <figure class="ftn-shora ftn-scena">
+      <div class="ftn-shora-kresba" role="img" aria-label="Futatsu shora na dřevěném podšálku. Uvnitř je síť jemných prasklinek v glazuře, krakelé, a na dně zbytek čaje. Jezdcem vedle se mění, jak je hrnek starý." set:html={pohledShora(0, 0)} />
+    </figure>
+
+    <div class="ftn-cas-bok">
+      <p class="ftn-cas-uvod">Krakelé uvnitř časem nasaje barvu čaje. Síťka prasklinek pomalu tmavne a z nového hrnku je za pár let tvůj hrnek. V Japonsku se tomu říká vychovat si nádobu.</p>
+
+      <div class="ftn-stari" role="group" aria-label="Jak je hrnek starý">
+        <ol class="ftn-stari-zastavky">
+          {zastavky.map((z, i) => (
+            <li>
+              <button type="button" class={`ftn-stari-z${i === 0 ? " ted" : ""}`} data-v={z.v} aria-pressed={i === 0 ? "true" : "false"}>
+                <span class="ftn-stari-nahled" aria-hidden="true" set:html={nahledStari(z.stari, z.caj)} />
+                <span class="ftn-stari-nazev">{z.nazev}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+        <label class="ftn-stari-jezdec">
+          <span class="sr-only">Čas od výpalu</span>
+          <input type="range" min="0" max="100" step="1" value="0" aria-valuetext={zastavky[0].nazev} data-stari />
+        </label>
+        <output class="ftn-stari-popis" data-stari-popis>{zastavky[0].nazev}</output>
+      </div>
+
+      <div class="ftn-stari-texty">
+        {zastavky.map((z, i) => (
+          <p class={`ftn-stari-text${i === 0 ? " ted" : ""}`} data-i={i}><b>{z.nazev}.</b> {z.text}</p>
+        ))}
+      </div>
+      <p class="ftn-drobne">Kresba je jen pro představu.</p>
+    </div>
+  </div>
+
+  <div class="ft-tip ftn-tip">
+    <span class="ft-tip-kami" aria-hidden="true"><Postavicka id="vazicka" size={64} varianta="kami" /></span>
+    <p><b>Vázička radí</b>Ty praskliny v glazuře? Kannyū. Stárnu stylově.</p>
+  </div>
+</section>

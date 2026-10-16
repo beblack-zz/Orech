@@ -363,6 +363,8 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
+  /* Vlastní vrstva: když jede za myší, papír pod ním se nepřekresluje */
+  will-change: transform;
 }
 .rz-darky-karta.uv .rz-darky-svetlo.sviti { opacity: 1; }
 .rz-darky-karta > :not(.rz-darky-svetlo) { position: relative; z-index: 1; }

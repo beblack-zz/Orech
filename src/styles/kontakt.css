@@ -1,0 +1,99 @@
+/*
+ * Kontakt (/kontakt). Karta na obloze s lístky (telefon, e-mail, adresa,
+ * otevřeno), pod ní Zeptej se dílny (otázky jako rozhovor s partou)
+ * a pak porovnání a Kudy k nám z úvodu — ty mají styly v domek2.css.
+ * Staví na parta2.css.
+ */
+
+.ko-uvod {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 110px 16px 64px;
+}
+.ko-karta { width: min(900px, 100%); padding: clamp(24px, 3.6vw, 52px); transform: rotate(-0.4deg); }
+.ko-nadpis {
+  margin: 12px 0 14px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: clamp(40px, min(5.2vw, 9vh), 76px);
+  line-height: 0.97;
+  letter-spacing: -0.022em;
+}
+.ko-nadpis em { display: block; color: var(--rumelka); font-weight: 300; }
+.ko-perex { margin: 0; max-width: 52ch; font-size: clamp(16px, 1.2vw, 18px); color: var(--inkoust-2); }
+
+/* Lístky: dva sloupce, telefon první a výrazný — tudy se dává přístup k rezervacím */
+.ko-listky { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 26px 0 24px; }
+.ko-listek { padding: 16px 18px 17px; border-radius: 16px; background: var(--papir-2); }
+.ko-listek h2 {
+  margin: 0 0 6px;
+  font-family: var(--f-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--inkoust-3);
+}
+.ko-listek p { margin: 6px 0 0; font-size: 14.5px; line-height: 1.45; color: var(--inkoust-2); }
+.ko-listek .ko-hlavni {
+  display: block;
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "opsz" 48;
+  font-size: clamp(21px, 2vw, 27px);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--inkoust);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.ko-listek a.ko-hlavni:hover { color: var(--rumelka); }
+.ko-listek-tel { background: #FBE9DD; box-shadow: inset 0 0 0 2px var(--rumelka); }
+.ko-listek-tel h2 { color: var(--rumelka); }
+.ko-listek-tel .ko-hlavni { font-variant-numeric: tabular-nums; }
+
+.ko-dal { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ——— Zeptej se dílny: otázka černá bublina vpravo, odpověď krémová s kami ——— */
+.ko-otazky { position: relative; z-index: 2; padding: 6vh 16px 9vh; scroll-margin-top: 64px; }
+.ko-otazky-papir { width: min(900px, 100%); margin: 0 auto; }
+.ko-chat { display: grid; gap: 12px; margin-top: 8px; }
+.ko-chat-q {
+  justify-self: end;
+  max-width: 82%;
+  margin: 0;
+  padding: 8px 15px;
+  border-radius: 18px 18px 6px 18px;
+  background: var(--inkoust);
+  color: var(--papir);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 15.5px;
+}
+.ko-chat-a { display: flex; align-items: flex-end; gap: 8px; margin-top: 6px; }
+.ko-chat-kami { flex: none; width: 48px; }
+.ko-chat-kami svg { width: 100%; height: auto; display: block; }
+.ko-chat-a p {
+  margin: 0;
+  padding: 8px 14px 10px;
+  border-radius: 18px 18px 18px 6px;
+  background: #FFFDF6;
+  box-shadow: 0 8px 18px -14px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(43, 36, 32, 0.08);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.ko-chat-a b { display: block; font-family: var(--f-display); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rumelka); }
+
+@media (max-width: 680px) {
+  .ko-uvod { padding: 90px 16px 48px; align-items: flex-start; }
+  .ko-karta { transform: none; }
+  .ko-listky { grid-template-columns: minmax(0, 1fr); }
+  .ko-otazky { padding: 5vh 14px 7vh; }
+  .ko-chat-q { max-width: 92%; }
+}

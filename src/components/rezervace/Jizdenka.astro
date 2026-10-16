@@ -6,14 +6,15 @@
  * a v oknech tvoje postavičky vedle stínů ostatních cestujících. Obloha
  * obrázku je obloha první vybrané hodiny (scripts/rezervace/jizdenka.ts).
  *
- * Údaje se vyplňují samy, jméno se píše rovnou na jízdenku. Tlačítko
- * Označit a poslat: průvodčí cvakne kleštěmi (do jízdenky se vystřihne
- * ořech), dopadne razítko Odesláno a vláček odjede — pak se otevře e-mail.
- * Telefon a poznámka jsou vedle, jízdenka by s nimi byla přeplněná.
+ * Údaje se vyplňují samy. Zamluvit smí jen člen, který přišel přes svůj
+ * odkaz: jméno známe, tlačítko Označit a zamluvit — průvodčí cvakne
+ * kleštěmi (do jízdenky se vystřihne ořech), dopadne razítko Zamluveno
+ * a vláček odjede. Poznámka je vedle, jízdenka by s ní byla přeplněná.
  *
- * Člen, který přišel přes svůj odkaz, e-mail nepíše: tlačítko zamluví
- * rovnou, razítko říká Zamluveno a jméno i telefon už známe (nápisy
- * přepisuje scripts/rezervace/hlavni.ts).
+ * Ostatním se jízdenka poskládá taky, ať vidí, co by měli a za kolik,
+ * ale tlačítko je telefon: přístup se dává po telefonu (nadiktovat
+ * e-mail, odkaz přijde mailem). Mailem se jízdenky neposílají. Nápisy
+ * podle toho přepisuje scripts/rezervace/hlavni.ts.
  *
  * Jízdenka má tři podoby a skript mezi nimi přepíná třídou na .rz-listek:
  *
@@ -25,9 +26,11 @@
  *                dne platnost a pod údaji všechny jízdy, na které platí
  *                (dny kurzů jsou přeškrtnuté — výluka)
  */
-import { cenaOdjezdu } from "../../data/rezervace";
+import { rozpetiJizdneho } from "../../data/rezervace";
+import { kontakt } from "../../data/uvod2";
 
-const cena = cenaOdjezdu.toLocaleString("cs-CZ");
+/* Než skript vyplní jízdenku: jízdné záleží na tom, kolik lidí na odjezdu nakonec sedí */
+const jizdne = `${rozpetiJizdneho.od}–${rozpetiJizdneho.do} Kč za člověka podle toho, kolik vás v dílně bude`;
 
 /* Ochranný podtisk (japonsky jimon) z drobných vlnek — jako na jízdenkách JR */
 const jimon = (barva: string) =>
@@ -100,7 +103,7 @@ const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};-
             <div><dt class="rz-l-den-popis">Den</dt><dd class="rz-l-den">ještě nevybraný</dd></div>
             <div><dt class="rz-l-hodiny-popis">Odjezd</dt><dd class="rz-l-hodiny">ještě nevybraný</dd></div>
             <div><dt>Cestující</dt><dd class="rz-l-lide">1 člověk</dd></div>
-            <div><dt>Jízdné</dt><dd class="rz-l-cena">{cena} Kč za člověka a hodinu a půl</dd></div>
+            <div><dt>Jízdné</dt><dd class="rz-l-cena">{jizdne}</dd></div>
           </dl>
           {/* Mapa trasy zvláštního vlaku: program kurzu jako zastávky — kreslí skript */}
           <ol class="rz-listek-program" aria-label="Trať zvláštního vlaku — program kurzu" hidden></ol>
@@ -113,8 +116,8 @@ const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};-
             <span class="rz-listek-jmeno-popis">Jméno</span>
             <input type="text" name="jmeno" maxlength="40" autocomplete="name" spellcheck="false" placeholder="Tvoje jméno" />
           </label>
-          <p class="rz-listek-platnost">Platí pro uvedený den a odjezd, až ji potvrdíme.</p>
-          <span class="rz-listek-razitko" aria-hidden="true"><b>Odesláno</b><small>čeká na potvrzení</small></span>
+          <p class="rz-listek-platnost">Zamluvit si ji můžeš, až od nás budeš mít přístup.</p>
+          <span class="rz-listek-razitko" aria-hidden="true"><b>Zamluveno</b><small>platí</small></span>
         </div>
 
         <div class="rz-listek-utrzek" aria-hidden="true">
@@ -125,12 +128,11 @@ const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};-
       </div>
 
       <div class="rz-nastup-pole">
-        <label class="rz-pole">Telefon <small>nepovinné, kdybychom něco potřebovali</small><input type="tel" name="telefon" autocomplete="tel" inputmode="tel" /></label>
-        <label class="rz-pole">Poznámka <small>nepovinné</small><textarea name="poznamka" rows="3" maxlength="300" placeholder="Třeba že přijdete poprvé."></textarea></label>
+        <label class="rz-pole" hidden>Poznámka <small>nepovinné</small><textarea name="poznamka" rows="3" maxlength="300" placeholder="Třeba že přijdete poprvé."></textarea></label>
         <p class="rz-cena"><span>Celkem</span> <b>0 Kč</b></p>
-        <p class="rz-cena-vypocet">{cena} Kč za člověka a hodinu a půl</p>
-        <a class="tlacitko rz-odeslat" aria-disabled="true" role="link">Označit a poslat</a>
-        <p class="rz-pozn">Otevře se e-mail s vybranými odjezdy. Jízdenka platí, až ji potvrdíme.</p>
+        <p class="rz-cena-vypocet">{jizdne}; platí se na místě</p>
+        <a class="tlacitko rz-odeslat" href={`tel:${kontakt.telefonOdkaz}`}>Zavolat a získat přístup</a>
+        <p class="rz-pozn">Rezervovat si můžou ti, kdo od nás mají přístup. Zavolej, nadiktuj nám e-mail a pošleme ti odkaz — pak už si jízdenku označíš sám.</p>
         <p class="rz-chybi" aria-live="polite"></p>
         <p class="rz-hotovo" aria-live="polite"></p>
       </div>

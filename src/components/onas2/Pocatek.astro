@@ -1,67 +1,122 @@
 ---
 /**
- * Začátek O nás 2 — noc v garáži. Z prasklé trubky kape do kaluže, po
- * kapce se rozejdou kruhy a z posledního kruhu se postaví ensō ze
- * značky (scripts/onas2/pocatek.ts). Dílna začala vodovodní havárií —
- * a Kapka u kaluže tvrdí, že s tím nemá nic společného.
+ * Začátek O nás 2 — „Svět v kapce“. Makro záběr v noci: pod stropem garáže
+ * praskla trubka a z praskliny visí obří kapka. Uvnitř, vzhůru nohama jako
+ * v každé opravdové kapce, svítá nad Ořechem celý budoucí svět dílny —
+ * dům v Luční, ořech, lampiony a světlo ve sklepě (kresba/svet.ts).
  *
- * S omezeným pohybem nic nepadá: ensō stojí rovnou a kaluž je klidná.
+ * Kapka se po chvíli utrhne sama (nebo když na ni někdo klepne), dopadne
+ * do černé hladiny a vyhodí korunku s perlami na cípech, z prostředka
+ * vystřelí sloupek a po vodě se rozejdou kruhy. Za kapkou se přitom jako
+ * slunce na obzoru namaluje ensō ze značky a ve vodě se objeví jeho odraz.
+ * Pak z praskliny nateče další kapka. Klepnutím na hladinu spadne malá
+ * kapka i jinam. Na trubce stojí Kapka a tvrdí, že to nebyla ona.
+ *
+ * Kresby: kresba/miry.ts (míry jeviště a tvar kapky), kresba/kapka.ts
+ * (kapka, hladina, rozostřená světla), kresba/svet.ts, kresba/trubka.ts.
+ * Pohyb: scripts/onas2/pocatek.ts, fyzika v scripts/onas2/kapka-fyzika.ts.
+ * Jeviště je čtverec 1000 × 1000 na výšku sekce s osou kapky na --kx
+ * (onas2.css); trubka a hladina z něj přesahují přes celou šířku.
+ *
+ * S omezeným pohybem kapka jen visí, ensō stojí a hladina je klidná.
  */
 import Enso from "../navrhy-loga/Enso.astro";
 import Kami from "../parta2/Kami.astro";
 import { oDilne } from "../../data/uvod2";
+import { kapkaDefs, kapka, hladinaDefs, hladina, bokeh } from "./kresba/kapka";
+import { svetVKapce } from "./kresba/svet";
+import { trubka } from "./kresba/trubka";
+import { KAPKA_KAMI_X, TRUBKA_Y, TRUBKA_R, ENSO_Y, ENSO_R, OSA_X, PRASKLINA_Y, KAPKA_R, OBZOR_Y } from "./kresba/miry";
+
+const svet = svetVKapce();
+const tr = trubka();
+const defs = kapkaDefs() + hladinaDefs() + svet.defs + tr.defs;
+
+/* Polohy HTML vrstev v procentech jeviště — z týchž měr jako kresba */
+const pct = (n: number) => `${(n / 10).toFixed(2)}%`;
+const kamiW = 74;
+const stylKami = `left:${pct(KAPKA_KAMI_X - kamiW / 2)};bottom:${pct(1000 - (TRUBKA_Y - TRUBKA_R) - 6)};width:${pct(kamiW)}`;
+/* Kruh ensō má v logu poloměr 68 z 200 */
+const stylEnso = `left:${pct(OSA_X)};top:${pct(ENSO_Y)};width:${pct((ENSO_R / 68) * 200)}`;
+const stylPustit = `left:${pct(OSA_X - KAPKA_R * 1.08)};top:${pct(PRASKLINA_Y)};width:${pct(KAPKA_R * 2.16)};height:${pct(KAPKA_R * 3.05)}`;
+/* Odraz: zrcadlo leží na obzoru, vrstva odrazu začíná na něm a je vysoká 600 jednotek */
+const stylOdraz = `top:${(((OBZOR_Y - ENSO_Y) / 600) * 100).toFixed(2)}%;width:${pct((ENSO_R / 68) * 200)}`;
+/* Poznámka visí pod trubkou vlevo od kapky (nad trubkou by ji na nízkých obrazovkách schovala hlavička), šipka míří nahoru ke Kapce */
+const stylPoznamka = `right:${pct(1000 - KAPKA_KAMI_X + 22)};top:${pct(PRASKLINA_Y + 26)}`;
 ---
-<section class="pocatek" id="pocatek" data-hodina="3.6" aria-labelledby="pocatek-nadpis">
+<section class="pocatek" id="pocatek" data-hodina="3.6" data-pocatek aria-labelledby="pocatek-nadpis">
+  <div class="pk-svet" aria-hidden="true">
+    <div class="pk-bokeh" set:html={bokeh()} />
+  </div>
+
+  <div class="pk-jeviste">
+    {/* Společné přechody, ořezy a tvar kapky pro všechny tři vrstvy kresby */}
+    <svg class="pk-defs" width="0" height="0" aria-hidden="true" focusable="false"><defs set:html={defs} /></svg>
+
+    <div class="pk-enso" style={stylEnso} aria-hidden="true">
+      <Enso size={480} soumrak tema="tmave" class="pk-enso-logo" />
+    </div>
+
+    {/* Úplně vzadu: zadní trubka a hladina */}
+    <svg class="pk-kresba pk-kresba-voda" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">
+      <g class="pk-zadni" set:html={tr.zadni} />
+      <g class="pk-hladina" set:html={hladina()} />
+    </svg>
+
+    {/* Odraz ensō ve vodě: totéž logo vzhůru nohama, rozbité vlnkami (maska v onas2.css) */}
+    <div class="pk-odraz" aria-hidden="true">
+      <div class="pk-odraz-enso" style={stylOdraz}>
+        <Enso size={480} soumrak tema="tmave" maly class="pk-enso-logo" />
+      </div>
+    </div>
+
+    {/* Nad hladinou: kruhy, zadní půlka korunky a sloupek */}
+    <svg class="pk-kresba pk-kresba-zad" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">
+      <g class="pk-kruhy"><g class="pk-kruhy-dol" fill="none" stroke="#02040E" /><g class="pk-kruhy-hor" fill="none" /></g>
+      <g class="pk-sprsk-zad">
+        <g class="pk-z-stena" fill="url(#pk-koruna-zad)" />
+        <g class="pk-z-hrana" fill="none" stroke="#FFFFFF" stroke-width="1.4" />
+        <g class="pk-z-perly" fill="url(#pk-perla)" />
+        <g class="pk-sloupy" fill="url(#pk-sloup)" />
+      </g>
+    </svg>
+
+    {/* Kapka ve vlastní vrstvě — v klidu jen dýchá transformací a nepřekresluje se */}
+    <svg class="pk-kresba pk-kresba-kapka" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false" set:html={kapka(svet.svg)} />
+
+    {/* Vpředu: trubka (schová vršek kapky), přední půlka korunky, perly a záblesk */}
+    <svg class="pk-kresba pk-kresba-pred" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">
+      <g class="pk-trubka" set:html={tr.svg} />
+      <g class="pk-sprsk-pred">
+        <g class="pk-p-stena" fill="url(#pk-koruna)" />
+        <g class="pk-p-hrana" fill="none" stroke="#FFFFFF" stroke-width="1.8" />
+        <g class="pk-p-odlesky" fill="none" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" />
+        <g class="pk-p-perly" fill="url(#pk-perla)" />
+      </g>
+      <g class="pk-zablesky" fill="url(#pk-zablesk)" />
+    </svg>
+
+    <Kami id="kapka" class="pk-kami" style={stylKami} />
+    <p class="pk-poznamka" style={stylPoznamka} aria-hidden="true">
+      Kapka tvrdí,<br />že to nebyla ona.
+      <svg viewBox="0 0 40 60" focusable="false"><path d="M6 54 C16 44 28 30 32 8 M32 8 L23 15 M32 8 L37 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </p>
+    <button class="pk-pustit" type="button" style={stylPustit} aria-label="Pustit kapku" hidden></button>
+  </div>
+
   <p class="pocatek-tategaki" lang="ja" aria-hidden="true">工房物語</p>
-  <div class="pocatek-mriz">
-    <div class="pocatek-text papir">
-      <p class="stitek">O nás · dílna v Ořechu</p>
-      <h1 id="pocatek-nadpis" class="pocatek-nadpis">Všechno začalo <em>jednou kapkou.</em></h1>
+
+  <div class="pocatek-text">
+    <div class="pocatek-hlava">
+      <p class="stitek stitek-svetly">O nás · dílna v Ořechu</p>
+      <h1 id="pocatek-nadpis" class="pocatek-nadpis">Všechno začalo <em>jednou kapkou<span class="pk-tecka">.</span></em></h1>
+    </div>
+    <div class="pocatek-zbytek">
       <p class="pocatek-perex">{oDilne.zacatek}</p>
       <div class="pocatek-akce">
         <a class="tlacitko" href="#rok">Projít rok dílny</a>
         <a class="tlacitko tlacitko-obrys" href="#lide">Kdo tu točí</a>
       </div>
-      <p class="pocatek-pokyn">Kapka tvrdí, že to nebyla ona.</p>
-    </div>
-
-    <div class="pocatek-scena" data-pocatek>
-      <svg class="pocatek-kresba" viewBox="0 0 600 600" aria-hidden="true">
-        <defs>
-          <radialGradient id="pocatek-kaluz" cx="0.5" cy="0.45" r="0.6">
-            <stop offset="0" stop-color="#3B4A78" />
-            <stop offset="0.7" stop-color="#1E2648" />
-            <stop offset="1" stop-color="#141A36" stop-opacity="0" />
-          </radialGradient>
-          <linearGradient id="pocatek-trubka" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#9AA3A8" />
-            <stop offset="0.5" stop-color="#5E676D" />
-            <stop offset="1" stop-color="#3A4246" />
-          </linearGradient>
-        </defs>
-        {/* Trubka pod stropem a prasklina, ze které kape */}
-        <rect x="0" y="40" width="600" height="26" fill="url(#pocatek-trubka)" />
-        <rect x="140" y="34" width="22" height="38" rx="3" fill="#4E565B" />
-        <rect x="438" y="34" width="22" height="38" rx="3" fill="#4E565B" />
-        <path d="M292 64 L300 74 L306 64" stroke="#2A3034" stroke-width="2" fill="none" />
-        <ellipse class="pocatek-kapka-roste" cx="300" cy="74" rx="6" ry="8" fill="#9CC3DA" />
-        <ellipse class="pocatek-kapka-pada" cx="300" cy="74" rx="6" ry="9" fill="#BFE0F2" />
-        {/* Kaluž s odleskem měsíce */}
-        <ellipse cx="300" cy="500" rx="270" ry="56" fill="url(#pocatek-kaluz)" />
-        <ellipse cx="368" cy="492" rx="40" ry="6" fill="#FFF6DA" opacity="0.28" />
-        <g class="pocatek-kruhy" fill="none" stroke="#CFE6F4">
-          <ellipse class="pocatek-kruh pocatek-kruh-1" cx="300" cy="496" rx="120" ry="24" />
-          <ellipse class="pocatek-kruh pocatek-kruh-2" cx="300" cy="496" rx="120" ry="24" />
-          <ellipse class="pocatek-kruh pocatek-kruh-3" cx="300" cy="496" rx="120" ry="24" />
-        </g>
-        <g class="pocatek-sprsk" fill="#CFE6F4">
-          <circle cx="288" cy="488" r="3" /><circle cx="312" cy="486" r="2.4" /><circle cx="300" cy="480" r="2" />
-        </g>
-      </svg>
-      <div class="pocatek-enso">
-        <Enso size={300} soumrak anim class="pocatek-enso-logo" />
-      </div>
-      <Kami id="kapka" class="pocatek-kapka-kami" />
     </div>
   </div>
 

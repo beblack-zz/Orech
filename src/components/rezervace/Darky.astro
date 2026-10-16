@@ -26,7 +26,7 @@
  * z dilna.ts, platnost dárku ze staré stránky Kurzy (darky v rezervace.ts).
  * Na jízdenkách cena není — dárek ukazuje, co obdarovaný dostane.
  */
-import { rezervace, permanentka, kurzy, hhmm, cenaOdjezdu, darky, odjezduDarku, odjezdy } from "../../data/rezervace";
+import { rezervace, permanentka, kurzy, hhmm, cenaOdjezdu, cenaPermanentky, darky, odjezduDarku, odjezdy } from "../../data/rezervace";
 import { cinnosti } from "../../data/dilna";
 import { kontakt } from "../../data/uvod2";
 import { sklonuj } from "../../data/pocty";
@@ -88,9 +88,9 @@ const nabidky: Nabidka[] = [
     fakta: [
       { co: "co dělá", html: `<b>cokoli</b> — ${volby.join(", ")}; lektor ukáže a poradí, když o něj stojí` },
       { co: "kdy", html: `${spolu(rezervace.dny.map((d) => V_DEN[d]), "nebo")} ${rezervace.od}–${rezervace.do}; odjezdy si vybere sám — po sobě, nebo každý jindy` },
-      { co: "s kým", html: "sám — odjezd se zamlouvá celý, takže je jen jeho" },
+      { co: "s kým", html: `má jedno místo; odjezd jich má ${rezervace.mist}, takže tvoří s dalšími — a kdo přijde s ním, koupí si své` },
     ],
-    cena: kc(n * cenaOdjezdu),
+    cena: kc(n * cenaOdjezdu(1)),
     lic: lic({
       druh: "hodiny",
       titul: velke(hodin),
@@ -133,7 +133,7 @@ const nabidky: Nabidka[] = [
       },
       { co: "s kým", html: `má své místo; na spoji jsou ${sklonuj(permanentka.mist, "místo", "místa", "míst")} a den i spoj si vybere tam, kde je volno` },
     ],
-    cena: kc(permanentka.cena),
+    cena: kc(cenaPermanentky()),
     lic: lic({
       druh: "pas",
       titul: "PERMANENTKA",

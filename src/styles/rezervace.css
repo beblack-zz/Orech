@@ -453,9 +453,50 @@
 .rz-pokladna { padding: clamp(22px, 2.6vw, 36px); transform: rotate(-0.4deg); }
 .rz-pokladna .nadpis-2 { font-size: clamp(28px, 2.6vw, 40px); }
 /* Kdo se dívá — člen se svým odkazem, nebo host; jen když jsou rezervace zapojené */
-.rz-clen { margin: 14px 0 0; padding: 12px 16px; border-radius: 14px; background: #EEF1E4; box-shadow: inset 0 0 0 1.5px #3E6E68; font-size: 15px; color: var(--inkoust-2); }
+/* Kdo se dívá — pod nadpisem první obrazovky. Host: výrazná rumělková cedulka s telefonem; člen: klidná zelená */
+.rz-clen { margin: 0 0 16px; padding: 13px 16px 14px; border-radius: 14px; background: #FBE9DD; box-shadow: inset 0 0 0 2px var(--rumelka); font-size: 15px; line-height: 1.45; color: var(--inkoust-2); }
 .rz-clen p { margin: 0; }
+.rz-clen p + p { margin-top: 4px; }
+.rz-clen[data-co="clen"] { background: #EEF1E4; box-shadow: inset 0 0 0 1.5px #3E6E68; }
+.rz-clen-titul { display: flex; align-items: center; gap: 8px; font-family: var(--f-display); font-size: 17.5px; font-weight: 600; color: var(--rumelka); }
+.rz-clen-titul svg { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.rz .rz-clen-tel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 16px 8px 12px;
+  border-radius: 999px;
+  background: var(--rumelka);
+  color: #FFF8EE;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+}
+.rz-clen-tel svg { width: 18px; height: 18px; fill: currentColor; }
+.rz-clen-tel:hover { background: #A8362A; transform: translateY(-1px); }
 .rz-clen-jmeno { font-family: var(--f-ruka); font-size: 1.55em; font-weight: 600; line-height: 1; color: var(--inkoust); }
+
+/* Dětská jízdenka: štítek pod volbou „kolik vás pojede“ */
+.rz-detska {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: #FBF0D4;
+  box-shadow: inset 0 0 0 1.5px #E0B04A;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--inkoust);
+}
+.rz-detska svg { flex: none; width: 20px; height: 24px; fill: #E8B440; }
+.rz-detska b { font-family: var(--f-display); font-weight: 600; color: #8A5A16; }
+.rz-detska small { display: block; font-size: 12.5px; color: var(--inkoust-3); }
 .rz-krok + .rz-krok { margin-top: 26px; }
 .rz-otazka {
   display: flex;
@@ -1108,6 +1149,8 @@
 .rz-o.pas .rz-o-stav .flap-t { color: var(--pas-svit); }
 .rz-o.pas.plno .rz-o-stav .flap-t,
 .rz-o.pas.malo .rz-o-stav .flap-t { color: #FF8A6A; }
+/* Na odjezd už se celá skupina nevejde — volné místo tam je, jen málo */
+.rz-o.malo:not(.pas) .rz-o-stav .flap-t { color: #F2B36A; }
 .rz-o.pas.pryc .rz-o-stav .flap-t { color: rgba(237, 230, 214, 0.42); }
 .rz-o.pas.vybrana .rz-o-stav .flap-t { color: #8EF0A8; }
 .rz-o.malo .rz-o-cas,
@@ -1204,6 +1247,13 @@
 /* Tabule v den kurzu: řádky jsou zastávky na trati — tečka na lince, znak, jméno na klapce a co se tam děje */
 .rz-o-trasa { display: none; position: relative; align-self: stretch; align-items: center; gap: 9px; }
 .rz-o-co { display: none; }
+/* Jízdné u odjezdu: kolik by to teď stálo za člověka — drobně vedle klapky. Klapka se zúží, ať se cena vejde do sloupce */
+.rz-o-stav:has(.rz-o-jizdne:not(:empty)) { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.rz .rz-o-stav:has(.rz-o-jizdne:not(:empty)) .flap { flex: 1 1 0; min-width: 0; }
+.rz-o-jizdne { flex: none; font-size: 12.5px; line-height: 1.15; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; color: rgba(237, 230, 214, 0.62); }
+.rz-o-jizdne small { display: block; font-size: 10px; letter-spacing: 0.06em; opacity: 0.8; }
+.rz-o-jizdne:empty { display: none; }
+.rz-o.vybrana .rz-o-jizdne { color: #8EF0A8; }
 .rz-tabule.je-kurz .rz-o-mista { display: none; }
 .rz-tabule.je-kurz .rz-o-trasa { display: flex; }
 .rz-o-trasa::before {
@@ -1541,6 +1591,7 @@
 .rz-rad-k-pas-pruh { fill: rgba(168, 54, 42, 0.1); }
 .rz-rad-k-pas { fill: var(--prukaz); }
 .rz-rad-k-pas-obs { fill: none; stroke: #D4BBB5; stroke-width: 5; }
+.rz-rad-k-obs { fill: none; stroke: #B7CBC2; stroke-width: 5; }
 .rz-rad-k-tyden { fill: #FFFFFF; stroke: rgba(168, 54, 42, 0.55); stroke-width: 2.4; }
 .rz-rad-k-fajfka { fill: none; stroke: var(--rumelka); stroke-width: 5.5; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -1607,6 +1658,15 @@
 }
 .rz-rad-jizdne span { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--inkoust-3); }
 .rz-rad-jizdne b { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-size: 18px; font-weight: 700; }
+/* Skupinové jízdné: řada políček jako ceník tarifních pásem nad automatem */
+.rz-rad-tarif { margin-top: 8px; }
+.rz-rad-tarif ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; border: 1px solid var(--rad-linka); border-radius: 8px; overflow: hidden; }
+.rz-rad-tarif li { display: grid; justify-items: center; gap: 1px; padding: 5px 4px 6px; }
+.rz-rad-tarif li + li { border-left: 1px solid var(--rad-linka); }
+.rz-rad-tarif li span { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--inkoust-3); }
+.rz-rad-tarif li b { font-family: var(--f-display); font-variation-settings: "SOFT" 0, "opsz" 36; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rz-rad-tarif li:last-child { background: rgba(47, 141, 118, 0.1); }
+.rz-rad-tarif p { margin: 4px 0 0; font-size: 11.5px; color: var(--inkoust-3); }
 
 
 /* ——— Displej nad dveřmi: co bude dál ——— */
@@ -1803,6 +1863,11 @@
   .rz-o-volba { grid-template-columns: auto 34px auto minmax(0, 1fr) 10px; column-gap: 6px; }
   .rz-o-prijezd { display: none; }
   .rz-o-okno { width: 34px; }
+  /* Na úzkém displeji se cena vedle klapky nevejde — jde pod ni */
+  .rz-o-stav:has(.rz-o-jizdne:not(:empty)) { flex-direction: column; align-items: stretch; gap: 2px; }
+  .rz .rz-o-stav:has(.rz-o-jizdne:not(:empty)) .flap { flex: none; width: 100%; }
+  .rz-o-jizdne { text-align: center; font-size: 11px; }
+  .rz-o-jizdne small { display: inline; margin-left: 3px; font-size: 9.5px; }
 }
 
 /* ——— Méně pohybu ——— */

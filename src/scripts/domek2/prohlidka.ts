@@ -83,9 +83,19 @@ export function prohlidka() {
     nastavAktivni(karty[t > 0.8 ? Math.min(i + 1, karty.length - 1) : i].dataset.stanice ?? "");
   });
 
-  /* Klávesnicí po kresbě: zaměřené místo z jiné zastávky přiveze svou kartu */
+  /* Klávesnicí po kresbě: zaměřené místo z jiné zastávky přiveze svou kartu.
+     Jen z klávesnice — kliknutí myší věc taky zaměří, ale stránka se kvůli němu hýbat nemá */
   rez.addEventListener("focusin", (e) => {
-    const s = (e.target as HTMLElement).closest<HTMLElement>("[data-stanice]")?.dataset.stanice;
+    const cil = e.target as HTMLElement;
+    let zKlavesnice = true;
+    try {
+      zKlavesnice = cil.matches(":focus-visible");
+    } catch {
+      /* prohlížeč :focus-visible nezná — radši nerolovat */
+      zKlavesnice = false;
+    }
+    if (!zKlavesnice) return;
+    const s = cil.closest<HTMLElement>("[data-stanice]")?.dataset.stanice;
     if (s && s !== aktivni) {
       document.getElementById(`stanice-${s}`)?.scrollIntoView({ behavior: klid ? "auto" : "smooth", block: "center" });
     }

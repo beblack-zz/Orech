@@ -1,0 +1,69 @@
+---
+/**
+ * 結 Závěr — 07:12, ráno. Rozloučení: Futatsu stojí na rozprostřeném
+ * indigovém šátku (kresba furoshiki.ts) — stejný šátek je košík webu.
+ * Vedle cena a Do šátku. Když kus leží v šátku, šátek se kolem hrnku
+ * zaváže na uzel, když ho vyndáš, rozváže se (initZaver ve
+ * scripts/obchod2/futatsu-noc.ts). Jestli v šátku leží, pozná skript
+ * stejně jako satek.ts: kresba má data-satek-kus a satek.ts jí přepíná
+ * třídu v-satku — i po načtení stránky.
+ *
+ * Co se po vložení děje dál, je přesně podle šátku na pultu (Satek.astro):
+ * zavážeš ho tam, otevře se e-mail se seznamem a dílna potvrdí, jestli je
+ * kus ještě k mání. Nic víc se tu neslibuje.
+ */
+import "../../../styles/futatsu-noc.css";
+import { podobizna, PODOBIZNA, obrys } from "./podobizna";
+import { satekScena, SATEK, KUS_SATEK, NADHLED_SATEK } from "./furoshiki";
+import { podpisove, cenovka } from "../../../data/kramek";
+
+const kus = podpisove.find((k) => k.podpis === "/obchod-2/futatsu")!;
+const { castka, mena } = cenovka(kus.cena);
+const { zadni, predni } = satekScena(0, obrys({ uhel: 62, nadhled: NADHLED_SATEK }));
+
+/* Hrnek mezi vrstvami šátku: na šířku je kresba celá, na telefonu se ořízne na čtverec uprostřed */
+const UZKA = { x0: -SATEK.h / 2, w: SATEK.h };
+const proc = (n: number) => `${n.toFixed(3)}%`;
+const poloha =
+  `--kx:${proc(((KUS_SATEK.x - SATEK.x) / SATEK.w) * 100)};--ky:${proc(((KUS_SATEK.y - SATEK.y) / SATEK.h) * 100)};` +
+  `--kw:${proc((KUS_SATEK.w / SATEK.w) * 100)};--kh:${proc((KUS_SATEK.h / SATEK.h) * 100)};` +
+  `--kx2:${proc(((KUS_SATEK.x - UZKA.x0) / UZKA.w) * 100)};--kw2:${proc((KUS_SATEK.w / UZKA.w) * 100)};--pomer:${SATEK.w} / ${SATEK.h}`;
+---
+<section class="ftn-zaver" id="zaver" data-hodina="31.2" aria-labelledby="zaver-nadpis" data-zaver>
+  <p class="ft-kap-znak ftn-zaver-znak" lang="ja" aria-hidden="true">結</p>
+  <div class="ftn-zaver-mriz">
+    <figure class="ftn-satek ftn-scena" data-satek-kus={kus.id} style={poloha}>
+      <div class="ftn-satek-vrstva" set:html={zadni} />
+      <div class="ftn-satek-kus" data-kus>
+        <div
+          class="ftn-satek-hrnek"
+          data-futatsu-otoc
+          data-id="fpz"
+          data-uhel="62"
+          data-nadhled={NADHLED_SATEK}
+          data-svetlo="vlevo"
+          tabindex="0"
+          role="img"
+          aria-label="Futatsu na rozprostřeném šátku. Táhni do strany nebo použij šipky a hrnek se otočí."
+        >
+          <svg viewBox={PODOBIZNA.viewBox} set:html={podobizna({ id: "fpz", uhel: 62, nadhled: NADHLED_SATEK, svetlo: "vlevo" })} />
+        </div>
+      </div>
+      <div class="ftn-satek-vrstva ftn-satek-predni" set:html={predni} />
+      <figcaption class="sr-only">Ráno u okna: Futatsu stojí na rozprostřeném indigovém šátku se vzorem vln. Když je v šátku, šátek se kolem něj zaváže na uzel.</figcaption>
+    </figure>
+
+    <div class="ftn-zaver-text">
+      <p class="stitek"><span lang="ja">結び</span> · musubi</p>
+      <h2 class="ftn-zaver-nazev" id="zaver-nadpis">Ráno je hotový</h2>
+      <p class="ftn-zaver-perex">Prošel ohněm, přes noc vychladl a teď čeká na první čaj. Každý Futatsu vyjde z pece trochu jiný a tenhle je originál.</p>
+      <div class="ftn-zaver-cena">
+        <p class="ftn-cenovka">{castka} <small>{mena}</small></p>
+        <button type="button" class="tlacitko" data-satek-pridat data-satek-id={kus.id} data-pridat="Do šátku" data-vyndat="✓ V šátku">Do šátku</button>
+      </div>
+      <p class="ftn-zaver-jak" data-zaver-prazdny>Šátek je náš košík. Až ho dole na pultu zavážeš, otevře se e-mail se seznamem a my potvrdíme, jestli je Futatsu ještě k mání.</p>
+      <p class="ftn-zaver-jak" data-zaver-plny hidden>Futatsu leží v šátku. Zavázat ho můžeš <a href="#satek">dole na pultu</a> — otevře se e-mail se seznamem, potvrdíme, jestli je ještě k mání, a domluvíme platbu.</p>
+      <a class="ftn-zpet" href="/obchod-2#podpis">Zpátky do krámku</a>
+    </div>
+  </div>
+</section>

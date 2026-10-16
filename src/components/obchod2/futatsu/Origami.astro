@@ -1,0 +1,95 @@
+---
+/**
+ * 五 Origami 折紙 — 6:12, svítá. Celé osvědčení kusu na jednom přeloženém
+ * listu washi (kresba origami.ts): vlevo co je zač (parametry a péče),
+ * vpravo Futatsu ve skutečné velikosti a dole cena s pečetí ジロ作.
+ * Hlavička kapitoly (ft-kap-hlava) je tu přímo na papíře, v levém horním
+ * rohu listu vedle 折紙 štětcem — osvědčení se tak vejde na obrazovku.
+ *
+ * Skutečná velikost: pohled zepředu (kresba.ts velikost) se kreslí
+ * v milimetrech — napřed podle obvyklé obrazovky, a kdo chce přesně,
+ * rozbalí kalibraci: platební karta přiložená k obrazovce řekne, kolik
+ * pixelů má milimetr, a prohlížeč si to zapamatuje. Natočení bere
+ * z výkresu. Logika je ve scripts/obchod2/futatsu.ts.
+ */
+import Postavicka from "../../characters/Postavicka.astro";
+import * as K from "./kresba";
+import { washi, pecet } from "./origami";
+import { podpisove, cenovka } from "../../../data/kramek";
+
+const kus = podpisove.find((k) => k.podpis === "/obchod-2/futatsu")!;
+const { castka, mena } = cenovka(kus.cena);
+const { objem, napln, hmotnost } = K.V;
+---
+<section class="ft-kap ft-kap-origami" id="origami" data-hodina="30.2" aria-labelledby="origami-nadpis">
+  <p class="ft-kap-znak" lang="ja" aria-hidden="true">折</p>
+  <div class="ft-washi">
+    <svg class="ft-washi-papir" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false" set:html={washi()} />
+    <div class="ft-washi-obsah">
+      <div class="ft-washi-strana ft-washi-leva">
+        <header class="ft-kap-hlava ft-washi-hlava">
+          <p class="ft-washi-znaky" lang="ja" aria-hidden="true"><span>折紙</span><span>二つ</span></p>
+          <div>
+            <p class="stitek"><span class="ft-kap-cislo" lang="ja">五</span> <span lang="ja">折紙</span> · origami</p>
+            <h2 class="ft-kap-nazev" id="origami-nadpis">Osvědčení</h2>
+            <p class="ft-kap-podtitul">Futatsu, yunomi z dílny JIRO saku</p>
+            <p class="ft-washi-puvod">
+              Vzácné meče a čajové náčiní se v Japonsku dodávaly s přeloženým papírem — <i lang="ja-Latn">origami</i>,
+              osvědčením s popisem a odhadem ceny. Odtud rčení <i lang="ja-Latn">origami-tsuki</i>, „s osvědčením“.
+            </p>
+          </div>
+        </header>
+
+        <h3 class="ft-washi-nadpis">Parametry</h3>
+        <dl class="ft-param">
+          <div><dt>Rozměry</dt><dd>⌀ 84 × 76 mm, patka ⌀ 71 mm</dd></div>
+          <div><dt>Objem</dt><dd>≈ {objem} ml po okraj, ≈ {napln} ml běžně nalitého čaje</dd></div>
+          <div><dt>Hmotnost</dt><dd>≈ {hmotnost} g</dd></div>
+          <div><dt>Materiál</dt><dd>kamenina, točená na kruhu</dd></div>
+          <div><dt>Glazura</dt><dd>shino <span lang="ja">志野</span>, uvnitř krakelé</dd></div>
+          <div><dt>Výpal</dt><dd>ostrý, 1 280 °C</dd></div>
+          <div><dt>Dno</dt><dd>obrobená patka bez glazury</dd></div>
+          <div><dt>Z dílny</dt><dd>JIRO saku, Ořech</dd></div>
+        </dl>
+
+        <h3 class="ft-washi-nadpis">Péče</h3>
+        <div class="ft-pece">
+          <div class="ft-pece-r"><h4>Mytí</h4><p>Ručně, v teplé vodě a měkkou houbičkou. Do myčky ho raději nedávej, krakelé by zbytečně zešedlo.</p></div>
+          <div class="ft-pece-r"><h4>Krakelé</h4><p>Časem chytne barvu čaje a tak to má být. Bělidlem ho nečisti, smylo by roky pití.</p></div>
+          <div class="ft-pece-r"><h4>Před prvním čajem</h4><p>Chceš, aby krakelé tmavlo pomalu? Povař hrnek dvacet minut v rýžové vodě, škrob zaplní póry. Japonci tomu říkají <span lang="ja">目止め</span> medome. Chceš, aby tmavlo hned? Nalij rovnou čaj.</p></div>
+        </div>
+      </div>
+
+      <div class="ft-washi-strana ft-washi-prava">
+        <h3 class="ft-washi-nadpis"><span lang="ja">原寸</span> Ve skutečné velikosti</h3>
+        <p class="ft-skut-jak">Kreslený v milimetrech, takže na obrazovce stojí tak velký, jako bude stát na stole. Na milimetr to sedí, až obrazovku doladíš platební kartou.</p>
+        <div class="ft-skut">
+          <div class="ft-skut-obal ft-vykres-papir" id="skut-obal" role="img" aria-label="Futatsu zepředu ve skutečné velikosti s pravítkem" set:html={K.velikost({ a: 62 })}></div>
+          <p class="ft-drobne" id="skut-pozn" hidden>Na tomhle displeji se celý nevejde, Futatsu je širší než telefon. Posuň ho prstem do strany.</p>
+        </div>
+        <details class="ft-kal-detail">
+          <summary><span class="ft-kal-souhrn" data-kal-souhrn>Doladit platební kartou</span></summary>
+          <div class="ft-kal">
+            <div class="ft-kal-karta" id="kal-karta"><span class="ft-kal-cip" aria-hidden="true"></span><span class="ft-kal-txt">sem přilož kartu</span></div>
+            <div class="ft-kal-ovladani">
+              <p>Přilož k obrazovce platební kartu na výšku a posuň jezdcem, až obrys sedí s kartou. Dívej se zpříma, ne ze strany. Prohlížeč si to zapamatuje.</p>
+              <label class="ft-rozsah" for="kal-sirka"><span>Šířka karty</span><input id="kal-sirka" type="range" min="120" max="480" step="0.5" value="204" /><output id="kal-txt" for="kal-sirka">1 mm = 3,78 px</output></label>
+            </div>
+          </div>
+        </details>
+        <p class="ft-tolerance">Tolerance je ruka. Každý kus se od výkresu liší o pár milimetrů a tečky i oranžová vyjdou z pece pokaždé jinak.</p>
+
+        <div class="ft-hodnota">
+          <p class="ft-dai"><span class="ft-dai-znak" lang="ja">代</span><span class="ft-cenovka">{castka} <small>{mena}</small></span></p>
+          <button type="button" class="tlacitko" data-satek-pridat data-satek-id={kus.id} data-pridat="Do šátku" data-vyndat="✓ V šátku">Do šátku</button>
+          <svg class="ft-pecet" viewBox="0 0 64 64" role="img" aria-label="Pečeť dílny ジロ作" set:html={pecet()} />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ft-tip ft-tip-origami">
+    <span class="ft-tip-kami" aria-hidden="true"><Postavicka id="stripek" size={64} varianta="kami" /></span>
+    <p><b>Střípek radí</b>Nad dlažbou ho drž oběma rukama. Já to tehdy nevěděl.</p>
+  </div>
+</section>

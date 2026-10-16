@@ -4,8 +4,8 @@
  * bubliny (tah.ts) a závěs s nalezenými kami pod pruhem (zaves.ts), který
  * otevírá omamori (omamori.ts). Sdílí
  * ji všechny stránky nového vzhledu, a proto spouští i tušový flek, který
- * je s patičkou na každé stránce (scripts/flek/flek.ts), a na stránkách,
- * kde létá, Vázičku jako společnici (spolecnice.ts, seznam stránek je tam).
+ * je s patičkou na každé stránce (scripts/flek/flek.ts), a průvodce —
+ * Vázičku v pravém dolním rohu, která poradí a ukáže (pruvodce.ts).
  *
  * Při přechodu mezi stránkami (prechody.ts) se tlačítko se zvonkohrou
  * přenáší do nové stránky (transition:persist), takže zvonkohra a zvuk se
@@ -21,7 +21,7 @@ import { nacti, uloz } from "./stav";
 import { trvale } from "./prechody";
 import { ukazMistra } from "./mistr";
 import { initFlek } from "../flek/flek";
-import { spolecnice } from "./spolecnice";
+import { pruvodce } from "./pruvodce";
 
 const KLIC_ZTLUMENO = "zvuk-ztlumeno";
 /** Den, nebo noc v hlavičce — čte ho i skript hned za hlavičkou (Hlavicka.astro), ať noc neproblikne */
@@ -52,7 +52,12 @@ export function hlavicka() {
   ukazMistra();
   initTah({ zavadi: (sila) => zk?.cukni(sila) });
   initFlek();
-  spolecnice();
+  /* Průvodce je navíc — kdyby selhal, stránka musí běžet dál */
+  try {
+    pruvodce();
+  } catch (e) {
+    console.error("[pruvodce]", e);
+  }
 }
 
 function initMenu() {

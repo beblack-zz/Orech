@@ -17,8 +17,11 @@
  *
  * Na jízdence je vždycky jen jedna ze tří věcí:
  *
- *   odjezdy      po hodině a půl; buď volné, nebo obsazené, zamlouvají se celé: kolik vás
- *                pojede (1–4), mění jen cenu a jízdenku, ne to, co je volné
+ *   odjezdy      po hodině a půl, každý s pár místy; kolik vás pojede (1–4),
+ *                rozhoduje, kam se vejdete. Jízdné je skupinové podle toho,
+ *                kolik lidí na odjezdu nakonec sedí, a platí se na místě —
+ *                jízdenka proto ukazuje cenu „teď“, která už jen klesá
+ *                (dětské jízdenky se spočítají až tam)
  *   kurz         zvláštní vlak na celý den s pár místy — tady se počítá,
  *                jestli se vaše skupina ještě vejde
  *   permanentka  první nebo poslední spoj dne na tři měsíce, taky s místy;
@@ -27,21 +30,23 @@
  *
  * Když si člověk vezme jednu, ostatní z jízdenky zmizí a tabule to ohlásí.
  *
- * Odeslat jde jízdenka dvojím způsobem. Člen, který přišel přes svůj odkaz
- * z pozvánky, ji označí a má zamluveno (/api/rezervuj); své jízdenky vidí
- * dole v noci a může je tam zrušit. Všem ostatním se otevře e-mail a
- * domluví se s dílnou — ta je pak zapíše mezi členy a pošle jim odkaz.
+ * Rezervovat smí jen člen: kdo přišel přes svůj odkaz z pozvánky, jízdenku
+ * označí a má zamluveno (/api/rezervuj); své jízdenky vidí dole v noci
+ * a může je tam zrušit. Ostatní si můžou všechno projít a jízdenku si
+ * poskládat, ale tlačítko je u nich telefon: zavolají, nadiktují e-mail,
+ * dílna je zapíše mezi členy (Supabase) a odkaz jim přijde mailem.
+ * Mailem se jízdenky neposílají.
  *
  * Celé se to spustí při každé návštěvě stránky, i po přechodu bez
  * načtení (parta2/prechody.ts) — proto je import přechodů první.
  */
 import { stranka } from "../parta2/prechody";
-import { spust, vyzadej, klid, nacti, uloz } from "../parta2/stav";
+import { spust, vyzadej, klid } from "../parta2/stav";
 import { initNebe } from "../parta2/nebe";
 import { hlavicka } from "../parta2/hlavicka";
 import { Klapka, cesta } from "../parta2/klapka";
 import * as zvuk from "../parta2/zvuk";
-import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu, cenaZaCloveka, rozpisOdjezdu, cenaPermanentky } from "../../data/rezervace";
 import { sekkiDne } from "../../data/koyomi";
 import { sklonuj, zPoctu, volnaMista, jenMist, zbyvaMist } from "../../data/pocty";
 import { volneHodiny, volnoVKurzu, platnostPermanentky } from "./simulace";
@@ -61,7 +66,6 @@ const V_DEN = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrt
 const ZKR = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
 const MESICE = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"];
 const MESICE_2 = ["ledna", "února", "března", "dubna", "května", "června", "července", "srpna", "září", "října", "listopadu", "prosince"];
-const KLIC_POSLEDNI = "rezervace-posledni";
 
 const kc = (n: number) => `${n.toLocaleString("cs-CZ")} Kč`;
 const lidi = (n: number) => (n === 1 ? "1 člověk" : `${n} lidi`);
@@ -69,27 +73,20 @@ const odjezdu = (n: number) => sklonuj(n, "odjezd", "odjezdy", "odjezdů");
 const jizd = (n: number) => sklonuj(n, "jízda", "jízdy", "jízd");
 const dvoj = (x: number) => String(x).padStart(2, "0");
 const datumKratce = (d: Date) => `${d.getDate()}. ${d.getMonth() + 1}.`;
-const datumRok = (d: Date) => `${datumKratce(d)} ${d.getFullYear()}`;
 const datumDlouze = (d: Date) => `${d.getDate()}. ${MESICE_2[d.getMonth()]}`;
 const iso = (d: Date) => `${d.getFullYear()}-${dvoj(d.getMonth() + 1)}-${dvoj(d.getDate())}`;
 const spojPermanentky = (h: number) => P.spoje.find((s) => s.h === h);
 const spojeSlovy = (hodiny: number[]) => hodiny.map((h) => `${spojPermanentky(h)?.nazev ?? ""} ${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ");
 
-interface Posledni {
-  text: string;
-  /** Den rezervace — po něm se vzkaz schová */
-  den: string;
-}
-
 function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
-  const email = koren.dataset.email ?? "";
-  const cena = Number(koren.dataset.cena ?? cenaOdjezdu);
+  /* Kdo není mezi členy, dostane místo označení jízdenky telefon — přístup dáváme po telefonu */
+  const telefon = koren.dataset.telefon ?? "";
   const dnyEl = koren.querySelector<HTMLElement>(".rz-dny")!;
   const sekceNebe = koren.querySelector<HTMLElement>("[data-rz-nebe]");
   const jmenoEl = koren.querySelector<HTMLInputElement>('input[name="jmeno"]')!;
-  const telEl = koren.querySelector<HTMLInputElement>('input[name="telefon"]')!;
   const poznEl = koren.querySelector<HTMLTextAreaElement>('textarea[name="poznamka"]')!;
   const cenaEl = koren.querySelector<HTMLElement>(".rz-cena b")!;
+  const cenaStitek = koren.querySelector<HTMLElement>(".rz-cena span");
   const vypocetEl = koren.querySelector<HTMLElement>(".rz-cena-vypocet");
   const odeslat = koren.querySelector<HTMLAnchorElement>(".rz-odeslat")!;
   const odeslatPozn = koren.querySelector<HTMLElement>(".rz-pozn");
@@ -97,7 +94,6 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   const dnesEl = koren.querySelector<HTMLElement>(".rz-dnes");
   const pristiEl = koren.querySelector<HTMLButtonElement>("[data-rz-nejblizsi]");
   const pristiKurzEl = koren.querySelector<HTMLButtonElement>("[data-rz-kurz-pristi]");
-  const posledniEl = koren.querySelector<HTMLElement>(".rz-posledni");
   const clenEl = koren.querySelector<HTMLElement>(".rz-clen");
   const hotovoEl = koren.querySelector<HTMLElement>(".rz-hotovo");
   const mojeEl = koren.querySelector<HTMLElement>(".rz-moje");
@@ -127,7 +123,8 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
 
   const vyber = (): Vyber => ({ osob, hodiny: vybrane, pasy, kurz: kurzVybran, pasObsazeno: pasDne(dny[den]) });
   const druh = () => (kurzVybran ? "kurz" : pasy.size ? "pas" : "hodiny");
-  const volnych = (d: Den) => volneHodiny(d).length;
+  /** Kolik odjezdů toho dne je volných pro vás všechny */
+  const volnych = (d: Den) => volneHodiny(d, osob).length;
   /** Spoje permanentky, na které se ten den dá nastoupit a je na nich ještě místo */
   const volnePasy = (d: Den) => (d.kurz ? [] : d.hodiny.filter((h) => h.pas && !h.probehlo && volnoNaSpoji({ pasObsazeno: pasDne(d) }, h.h) > 0));
   /** Dá se ten den vůbec něco koupit? */
@@ -168,7 +165,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   const nebeVychozi = () => {
     const d = dny[den];
     /* Zvláštní vlak jede celý den — když se na nic neukazuje, je nad mořem poledne */
-    const h = d?.kurz ? 12 : posledniVybrana ?? (d ? volneHodiny(d)[0]?.h : undefined) ?? 10;
+    const h = d?.kurz ? 12 : posledniVybrana ?? (d ? volneHodiny(d, osob)[0]?.h : undefined) ?? 10;
     nebeNa(h + R.blok / 2);
   };
 
@@ -401,7 +398,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       posledniVybrana = vybrane.size ? Math.max(...vybrane) : null;
       zvuk.drevo(0.8);
     } else {
-      if (stavHodiny(hod) !== "volno") return;
+      if (stavHodiny(hod, osob) !== "volno") return;
       if (pasy.size) {
         const stare = [...pasy];
         pasy.clear();
@@ -465,7 +462,6 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
         den: d,
         hodiny: [...vybrane],
         osob,
-        cena,
         kurz: kurzVybran ? d?.kurz : undefined,
         pas: d && pasy.size ? { spoje: [...pasy].sort((a, b) => a - b), platnost: platnost(d.datum), obsazeno: pasDne(d) } : undefined,
         hned: !!clen(),
@@ -474,60 +470,49 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     );
   };
 
-  /* ——— Souhrn, displej nad dveřmi a e-mail ——— */
+  /* ——— Souhrn a displej nad dveřmi ——— */
 
   /** Co je na jízdence slovy a v korunách — podle toho, co člověk vybral */
   const sepis = () => {
     const d = dny[den];
     if (!d) return null;
-    const kdy = `${DNY[d.datum.getDay()]} ${datumRok(d.datum)}`;
     const zkratka = `${ZKR[d.datum.getDay()]} ${datumKratce(d.datum)}`;
     if (kurzVybran && d.kurz) {
       const c = d.kurz.kurz;
-      const hodinyKurzu = c.program.map((z) => z.h);
-      const cas = `${hhmm(Math.min(...hodinyKurzu))}–${hhmm(Math.max(...hodinyKurzu) + R.blok)}`;
       const celkem = osob * c.cena;
       return {
         celkem,
         vypocet: `${lidi(osob)} × ${kc(c.cena)} za celý den`,
         kratce: `${zkratka} · ${c.nazev} · ${lidi(osob)} · ${kc(celkem)}`,
-        predmet: `Kurz: ${c.nazev}, ${zkratka} ${d.datum.getFullYear()}, ${lidi(osob)}`,
-        uvod: "Ahoj, chci se přihlásit na kurz:",
-        radky: [`${c.nazev} (zvláštní vlak „${c.vlak}“)`, `${kdy}, ${cas}`, `Počet lidí: ${osob}`, `Cena: ${kc(celkem)} (${kc(c.cena)} za člověka)`],
-        posledni: { text: `${DNY[d.datum.getDay()]} ${datumDlouze(d.datum)}, kurz ${c.nazev} · ${lidi(osob)} · ${kc(celkem)}`, den: iso(d.datum) },
       };
     }
     if (pasy.size) {
       const spoje = [...pasy].sort((a, b) => a - b);
       const pl = platnost(d.datum);
       const pocet = pl.jizdy.filter((j) => !j.vyluka).length;
-      const celkem = spoje.length * osob * P.cena;
+      const zaSpoj = cenaPermanentky(pocet);
+      const celkem = spoje.length * osob * zaSpoj;
       return {
         celkem,
-        vypocet: `${spoje.length > 1 ? `${spoje.length} spoje × ` : ""}${lidi(osob)} × ${kc(P.cena)} na ${P.mesicu} měsíce`,
+        vypocet: `${spoje.length > 1 ? `${spoje.length} spoje × ` : ""}${lidi(osob)} × ${jizd(pocet)} po ${kc(P.cenaJizdy)}`,
         kratce: `Permanentka ${NA_DNY[d.datum.getDay()]} · ${spojeSlovy(spoje)} · od ${datumKratce(d.datum)} · ${lidi(osob)} · ${kc(celkem)}`,
-        predmet: `Permanentka ${NA_DNY[d.datum.getDay()]}: ${spojeSlovy(spoje)}, od ${datumRok(d.datum)}, ${lidi(osob)}`,
-        uvod: "Ahoj, chci si pořídit permanentku do dílny:",
-        radky: [
-          `Den a spoj: ${KAZDY[d.datum.getDay()]}, ${spojeSlovy(spoje)}`,
-          `Platnost: od ${datumRok(pl.od)} do ${datumRok(pl.do)} (${jizd(pocet)}; v den kurzu se nejede)`,
-          `Počet lidí: ${osob}`,
-          `Cena: ${kc(celkem)} (${kc(P.cena)} za člověka, jeden den v týdnu a jeden spoj)`,
-        ],
-        posledni: { text: `permanentka ${NA_DNY[d.datum.getDay()]}, ${spojeSlovy(spoje)}, od ${datumDlouze(pl.od)} do ${datumDlouze(pl.do)} · ${lidi(osob)} · ${kc(celkem)}`, den: iso(pl.do) },
       };
     }
     if (!vybrane.size) return null;
-    const hodiny = [...vybrane];
-    const celkem = hodiny.length * osob * cena;
+    const hodiny = [...vybrane].sort((a, b) => a - b);
+    /* Jízdné podle toho, kolik lidí na odjezdu už sedí; platí se na místě a s každým dalším klesá */
+    const ostatni = (h: number) => R.mist - (d.hodiny.find((x) => x.h === h)?.volno ?? R.mist);
+    const celkem = hodiny.reduce((a, h) => a + cenaOdjezdu(osob, ostatni(h)), 0);
+    const nejmin = hodiny.length * cenaOdjezdu(osob, R.mist - osob);
+    const klesne = celkem > nejmin;
+    const ted = hodiny.length === 1
+      ? `${rozpisOdjezdu(osob, ostatni(hodiny[0]))}${ostatni(hodiny[0]) ? ` (s vámi už ${ostatni(hodiny[0]) === 1 ? "sedí 1 další" : `sedí ${ostatni(hodiny[0])} další`})` : ""}`
+      : `${odjezdu(hodiny.length)} podle toho, kdo už na nich sedí`;
     return {
       celkem,
-      vypocet: `${odjezdu(hodiny.length)} × ${lidi(osob)} × ${kc(cena)}`,
-      kratce: `${zkratka} · ${useky(hodiny)} · ${lidi(osob)} · ${kc(celkem)}`,
-      predmet: `Rezervace: ${zkratka} ${d.datum.getFullYear()}, ${useky(hodiny)}, ${lidi(osob)}`,
-      uvod: "Ahoj, chci si rezervovat čas v dílně:",
-      radky: [`${kdy}, ${useky(hodiny)}`, `Počet lidí: ${osob}`, `Cena: ${kc(celkem)} (${kc(cena)} za člověka a hodinu a půl)`],
-      posledni: { text: `${DNY[d.datum.getDay()]} ${datumDlouze(d.datum)}, ${useky(hodiny)} · ${lidi(osob)} · ${kc(celkem)}`, den: iso(d.datum) },
+      klesne,
+      vypocet: `${ted}. Platí se na místě podle toho, kolik vás v dílně opravdu bude${klesne ? ` — když přisednou další, bude to míň, při plné dílně ${kc(nejmin)}` : ""}.`,
+      kratce: `${zkratka} · ${useky(hodiny)} · ${lidi(osob)} · ${klesne ? "nejvýš " : ""}${kc(celkem)}`,
     };
   };
 
@@ -535,34 +520,28 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     const d = dny[den];
     const s = sepis();
     cenaEl.textContent = kc(s?.celkem ?? 0);
+    if (cenaStitek) cenaStitek.textContent = s && "klesne" in s && s.klesne ? "Teď nejvýš" : "Celkem";
     if (vypocetEl) {
-      vypocetEl.textContent = s?.vypocet ?? (d?.kurz ? `${kc(d.kurz.kurz.cena)} za člověka a celý den` : `${kc(cena)} za člověka a hodinu a půl`);
+      vypocetEl.textContent = s?.vypocet ?? (d?.kurz ? `${kc(d.kurz.kurz.cena)} za člověka a celý den` : `Od ${kc(cenaZaCloveka(1))} za člověka, když jsi na odjezdu sám, po ${kc(cenaZaCloveka(R.mist))}, když je plno — platí se na místě.`);
     }
     if (odeslatPozn) {
       odeslatPozn.textContent = clen()
         ? "Jízdenka platí hned, jak ji označíš. Potvrzení ti přijde mailem."
-        : kal.zive
-          ? "Otevře se e-mail s tím, co máš vybrané. Napoprvé se domluvíme — pak ti pošleme odkaz a příště si zamluvíš rovnou."
-          : druh() === "kurz"
-            ? "Otevře se e-mail s přihláškou na kurz. Místo ve vlaku platí, až ho potvrdíme."
-            : druh() === "pas"
-              ? "Otevře se e-mail s objednávkou permanentky. Platí, až ji potvrdíme."
-              : "Otevře se e-mail s vybranými odjezdy. Jízdenka platí, až ji potvrdíme.";
+        : "Rezervovat si můžou ti, kdo od nás mají přístup. Zavolej, nadiktuj nám e-mail a pošleme ti odkaz — pak už si jízdenku označíš sám.";
     }
     if (displej && displejSouhrn) {
       displej.hidden = !s || jizdenkaVidet;
       displejSouhrn.textContent = s?.kratce ?? "";
     }
-    if (!s) {
-      odeslat.removeAttribute("href");
-      odeslat.setAttribute("aria-disabled", "true");
+    /* Host volá kdykoli; člen označí, až má něco na jízdence */
+    if (!clen()) {
+      odeslat.href = `tel:${telefon}`;
+      odeslat.removeAttribute("aria-disabled");
       return;
     }
-    const radky = [s.uvod, "", ...s.radky, "", `Jméno: ${jmenoEl.value.trim()}`, `Telefon: ${telEl.value.trim()}`];
-    if (poznEl.value.trim()) radky.push(`Poznámka: ${poznEl.value.trim()}`);
-    radky.push("", "Díky!");
-    odeslat.href = `mailto:${email}?subject=${encodeURIComponent(s.predmet)}&body=${encodeURIComponent(radky.join("\n"))}`;
-    odeslat.removeAttribute("aria-disabled");
+    odeslat.removeAttribute("href");
+    if (s) odeslat.removeAttribute("aria-disabled");
+    else odeslat.setAttribute("aria-disabled", "true");
   };
 
   /* ——— Člen: kdo přišel přes svůj odkaz, rezervuje rovnou ——— */
@@ -587,7 +566,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     if (clenEl) {
       const neplatny = !c && new URLSearchParams(window.location.search).get("odkaz") === "neplatny";
       const co = c ? "clen" : neplatny ? "neplatny" : "host";
-      clenEl.hidden = !kal.zive;
+      clenEl.dataset.co = co;
       clenEl.querySelectorAll<HTMLElement>("[data-clen]").forEach((p) => (p.hidden = p.dataset.clen !== co));
       const jm = clenEl.querySelector(".rz-clen-jmeno");
       if (jm) jm.textContent = c?.jmeno ?? "";
@@ -595,17 +574,13 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     /* Poznámka v patičce, že je obsazenost jen simulovaná, platí jen pro ukázku */
     const pata = document.querySelector<HTMLElement>(".pata-poznamka");
     if (pata && kal.zive) pata.hidden = true;
-    /* Člena známe jménem i telefonem z tabulky — na jízdenku se nepíše znovu */
+    /* Člena známe jménem z tabulky — na jízdenku se nepíše znovu. Poznámku k jízdence posílá jen on, host nic neposílá */
     if (c) jmenoEl.value = c.jmeno;
     jmenoEl.readOnly = !!c;
-    const telPole = telEl.closest<HTMLElement>(".rz-pole");
-    if (telPole) telPole.hidden = !!c;
-    odeslat.textContent = c ? "Označit a zamluvit" : "Označit a poslat";
-    const razitko = koren.querySelector(".rz-listek-razitko");
-    const velke = razitko?.querySelector("b");
-    const male = razitko?.querySelector("small");
-    if (velke) velke.textContent = c ? "Zamluveno" : "Odesláno";
-    if (male) male.textContent = c ? "platí" : "čeká na potvrzení";
+    const poznPole = poznEl.closest<HTMLElement>(".rz-pole");
+    if (poznPole) poznPole.hidden = !c;
+    odeslat.textContent = c ? "Označit a zamluvit" : "Zavolat a získat přístup";
+    souhrn();
   };
 
   /** Znovu načte, co je volné — po zamluvení, zrušení, nebo když server řekl, že je to jinak */
@@ -620,7 +595,6 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     const i = zustat ? dny.findIndex((d) => d.klic === zustat && jdeVybrat(d)) : -1;
     vyberDen(i >= 0 ? i : vychoziDen());
     dnesek(true);
-    ukazPosledni();
     kresliMoje();
   };
 
@@ -731,6 +705,8 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   };
 
   odeslat.addEventListener("click", (e) => {
+    /* Host: odkaz na telefon udělá své — rezervovat smí jen člen */
+    if (!clen()) return;
     e.preventDefault();
     const d = dny[den];
     const s = sepis();
@@ -748,44 +724,27 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       return;
     }
     if (chybi) chybi.textContent = "";
-    if (clen()) {
-      void zamluv(d);
-      return;
-    }
-    const href = odeslat.href;
-    jizdenka?.oznac();
-    uloz(KLIC_POSLEDNI, s.posledni satisfies Posledni);
-    ukazPosledni();
-    window.setTimeout(() => {
-      window.location.href = href;
-    }, klid ? 0 : 1100);
+    void zamluv(d);
   });
-
-  const ukazPosledni = () => {
-    if (!posledniEl) return;
-    const p = nacti<Posledni | null>(KLIC_POSLEDNI, null);
-    const platne = !!p && typeof p.text === "string" && typeof p.den === "string" && p.den >= iso(dnes);
-    /* Člen má dole své skutečné jízdenky — vzkaz o odeslaném mailu by mátl */
-    posledniEl.hidden = !platne || !!clen();
-    const t = posledniEl.querySelector(".rz-posledni-text");
-    if (t && platne) t.textContent = p!.text;
-  };
 
   jmenoEl.addEventListener("input", () => {
     if (chybi && jmenoEl.value.trim()) chybi.textContent = "";
-    souhrn();
   });
-  telEl.addEventListener("input", souhrn);
-  poznEl.addEventListener("input", souhrn);
 
   koren.querySelectorAll<HTMLInputElement>('input[name="osoby"]').forEach((r) =>
     r.addEventListener("change", () => {
-      /* Hodina je celá vaše, ať vás jede kolik chce — mění se jen cena a jízdenka.
-         U kurzu a permanentky se ale počítají místa: když se nevejdete, jízdenka se vrátí. */
+      /* S počtem lidí se mění jízdné — a všude se počítají místa: na odjezdu, v kurzu
+         i na permanentce. Kam se všichni nevejdete, to z jízdenky vypadne. */
       osob = Number(r.value);
       zvuk.cink();
       const d = dny[den];
       let hlaseni = "";
+      const nevejdou = d ? [...vybrane].filter((h) => (d.hodiny.find((x) => x.h === h)?.volno ?? 0) < osob) : [];
+      if (nevejdou.length) {
+        nevejdou.forEach((h) => vybrane.delete(h));
+        posledniVybrana = vybrane.size ? Math.max(...vybrane) : null;
+        hlaseni = `${nevejdou.length === 1 ? `Na odjezd v ${hhmm(nevejdou[0])}` : `Na odjezdy v ${nevejdou.map(hhmm).join(" a ")}`} se všichni nevejdete — vyndal jsem ${nevejdou.length === 1 ? "ho" : "je"} z jízdenky.`;
+      }
       if (kurzVybran && d?.kurz && volnoVKurzu(d.kurz) < osob) {
         kurzVybran = false;
         hlaseni = `Ve zvláštním vlaku ${zbyvaMist(volnoVKurzu(d.kurz))} — všichni už se nevejdete, tak jsem vás zase vysadil.`;
@@ -796,6 +755,8 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
         hlaseni = `Na ${spojPermanentky(h)?.nazev ?? ""} spoj už není dost permanentek pro všechny — vyndal jsem ji z jízdenky.`;
       }
       if (!pasy.size && !vybrane.size) posledniVybrana = null;
+      /* Dny ukazují, kolik odjezdů je volných pro vás všechny */
+      kresliDny();
       tabule?.zobraz(d, vyber(), false);
       tabule?.hlas(hlaseni);
       poZmene();
@@ -823,7 +784,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
 
   const nejblizsi = () => {
     for (let i = 0; i < dny.length; i++) {
-      const h = volneHodiny(dny[i])[0];
+      const h = volneHodiny(dny[i], osob)[0];
       if (h) return { i, h: h.h };
     }
     return null;
@@ -929,7 +890,6 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   obnovJizdenku(false);
   souhrn();
   dnesek(false, klid);
-  ukazPosledni();
   kresliMoje();
   nebeVychozi();
 }

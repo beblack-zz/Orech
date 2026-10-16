@@ -1,0 +1,154 @@
+---
+/**
+ * Klíčenka — závěs s kami z hlavičky (parta2/Zaves.astro), nakreslený
+ * velký a s očíslovanými popisky, ať je jasné, co ten přívěsek pod
+ * hlavičkou je. Geometrie i klidová poloha jsou tytéž jako u skutečného
+ * závěsu (scripts/parta2/zaves-fyzika.ts), jen nic nehoupe.
+ *
+ * Je to ukázka, ne stav hráče: první šňůrka je plná (lístek 一 svítí),
+ * na druhé visí dva kami, třetí je prázdná — ať je vidět všechno najednou.
+ * Kolik má kdo doopravdy, píše nad ní skript (scripts/parta3/hledani.ts).
+ *
+ * Přechody mají vlastní id (hlv-), aby se nepotkaly se skutečným závěsem
+ * v hlavičce (zv-, zvk-).
+ */
+import { parta } from "../../data/parta";
+import type { PostavaId } from "../../data/parta";
+import { zaves, MIST, MISTO, LISTEK, KOTVY, KOTVA_Y } from "../../scripts/parta2/zaves-fyzika";
+import { KROUZEK_R } from "../../scripts/parta2/zvonkohra-fyzika";
+import type { SchovkaVolby } from "../characters/schovka/pecinka";
+import { pecinkaSchovka } from "../characters/schovka/pecinka";
+import { bublinkaSchovka } from "../characters/schovka/bublinka";
+import { stripekSchovka } from "../characters/schovka/stripek";
+import { hlinkaSchovka } from "../characters/schovka/hlinka";
+import { cedulkaSchovka } from "../characters/schovka/cedulka";
+import { kachlikSchovka } from "../characters/schovka/kachlik";
+import { samotkaSchovka } from "../characters/schovka/samotka";
+import { vazickaSchovka } from "../characters/schovka/vazicka";
+import { kapkaSchovka } from "../characters/schovka/kapka";
+import { komnaty } from "../../data/kami";
+
+const KRESBY: Record<PostavaId, (v: SchovkaVolby) => string> = {
+  hlinka: hlinkaSchovka, kapka: kapkaSchovka, pecinka: pecinkaSchovka, stripek: stripekSchovka, vazicka: vazickaSchovka,
+  bublinka: bublinkaSchovka, kachlik: kachlikSchovka, cedulka: cedulkaSchovka, samotka: samotkaSchovka,
+};
+/** Ukázka: kdo visí na které šňůrce (prázdné místo = korálek) */
+const UKAZKA: (PostavaId | null)[][] = [
+  ["hlinka", "kapka", "pecinka"],
+  ["stripek", "vazicka", null],
+  [null, null, null],
+];
+/* Generátor vrací celé <svg>; zbyde z něj skupina vystředěná na místo na šňůrce (jako v Zaves.astro) */
+const kresba = (id: PostavaId) => {
+  const svg = KRESBY[id]({ barva: "logo", velikost: MISTO, id: `hlv-${id}` });
+  const m = svg.match(/^<svg[^>]*?class="([^"]*)"[^>]*?viewBox="0 0 ([\d.]+) ([\d.]+)"[^>]*?style="([^"]*)"[^>]*>([\s\S]*)<\/svg>$/);
+  if (!m) throw new Error(`Klicenka: kresba ${id} má jiný obal, než se čekalo`);
+  const [, trida, w, h, styl, obsah] = m;
+  const k = MISTO / Number(w);
+  return { trida, styl, obsah, transform: `translate(${-MISTO / 2} ${(-Number(h) * k) / 2}) scale(${k})` };
+};
+
+const p = zaves().poloha();
+const f = (n: number) => Math.round(n * 100) / 100;
+const lw = LISTEK.sirka / 2;
+const ZNAKY = ["一", "二", "三"];
+const pismo = "Yuji Syuku, Yu Mincho, serif";
+const mosaz = "#B98D3E";
+const snura = { fill: "none", stroke: "#5C5047", "stroke-width": 0.8, "stroke-linecap": "round", "stroke-linejoin": "round" };
+
+/* Popisky: kde je číslo a kam vede jeho čárka (souřadnice kresby) */
+const m00 = p.snury[0].mista[1];
+const m20 = p.snury[2].mista[0];
+const l0 = p.snury[0].listek;
+const znacky = [
+  { n: 1, x: 33, y: 2, kx: 24, ky: 7.5 },
+  { n: 2, x: m20.x + 13, y: m20.y, kx: m20.x + 4.2, ky: m20.y },
+  { n: 3, x: m00.x - 14, y: m00.y + 3, kx: m00.x - 6, ky: m00.y + 1 },
+  { n: 4, x: l0.x - 14, y: l0.y + LISTEK.vyska * 0.6, kx: l0.x - lw - 0.6, ky: l0.y + LISTEK.vyska * 0.5 },
+];
+const nazvyKomnat = komnaty.map((k, i) => `${ZNAKY[i]} ${k.nazev}`).join(", ");
+---
+<div class="klicenka">
+  <svg class="klicenka-kresba" viewBox="-46 -12 92 142" role="img" aria-label="Závěs s kami: červená brána torii, pod ní tři šňůrky po třech místech a na konci každé lístek s číslem komnaty. Na první šňůrce visí tři kami a její lístek svítí, na druhé dva, třetí je prázdná.">
+    <defs>
+      <linearGradient id="hlv-papir" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#C0708A" /><stop offset="0.3" stop-color="#7A5E8E" /><stop offset="0.62" stop-color="#4E4A84" /><stop offset="1" stop-color="#2A2C5E" />
+      </linearGradient>
+      <linearGradient id="hlv-hlina" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAD9BC" /><stop offset="1" stop-color="#B99A72" /></linearGradient>
+      <linearGradient id="hlv-lak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9573A" /><stop offset="1" stop-color="#A93522" /></linearGradient>
+    </defs>
+
+    {/* hrana hlavičky, ze které klíčenka visí */}
+    <path d="M-44 -9.6 H44" stroke="#2B2420" stroke-width="0.8" stroke-dasharray="1.6 1.6" opacity="0.35" />
+    <ellipse cx="0" cy="-6.6" rx="2.4" ry="0.8" fill={mosaz} />
+    <path d={`M0 -6.2 V${-KROUZEK_R}`} stroke={mosaz} stroke-width="1.1" />
+    <circle cx="0" cy="0" r={KROUZEK_R} fill="none" stroke={mosaz} stroke-width="1.1" />
+
+    {p.snury.map((s, i) => (
+      <g>
+        <polyline points={s.body.map(f).join(" ")} {...snura} />
+        {s.mista.slice(0, MIST).map((m, j) => {
+          const kdo = UKAZKA[i][j];
+          const k = kdo ? kresba(kdo) : null;
+          return (
+            <g transform={`translate(${f(m.x)} ${f(m.y)}) rotate(${f(m.uhel)})`}>
+              {k ? (
+                <g class={k.trida} style={k.styl} transform={k.transform} fill="none" set:html={k.obsah} />
+              ) : (
+                <g>
+                  <ellipse cx="0" cy="0" rx="3.7" ry="3.3" fill="url(#hlv-hlina)" stroke="#8E7352" stroke-width="0.7" />
+                  <ellipse cx="0" cy="-3" rx="1.2" ry="0.5" fill="#6B5540" />
+                  <path d="M-2.2 -1 Q-1.6 -2.2 -0.2 -2.3" stroke="#FFF8EA" stroke-width="0.7" fill="none" stroke-linecap="round" opacity="0.8" />
+                </g>
+              )}
+            </g>
+          );
+        })}
+        <g transform={`translate(${f(s.listek.x)} ${f(s.listek.y)}) rotate(${f(s.listek.uhel)})`}>
+          {UKAZKA[i].every(Boolean) ? (
+            <g>
+              <rect x={-lw} y="0" width={LISTEK.sirka} height={LISTEK.vyska} rx="0.8" fill="url(#hlv-papir)" />
+              <rect x={-lw + 0.3} y="0.3" width={LISTEK.sirka - 0.6} height={LISTEK.vyska - 0.6} rx="0.6" fill="none" stroke="#FBE9B7" stroke-opacity="0.45" stroke-width="0.6" />
+              <text x="0" y={LISTEK.vyska * 0.7} text-anchor="middle" font-size="7.4" font-family={pismo} fill="#FBE9B7" lang="ja">{ZNAKY[i]}</text>
+            </g>
+          ) : (
+            <g>
+              <rect x={-lw} y="0" width={LISTEK.sirka} height={LISTEK.vyska} rx="0.8" fill="#F1E8D6" stroke="#B9AB95" stroke-width="0.5" />
+              <text x="0" y={LISTEK.vyska * 0.7} text-anchor="middle" font-size="7.4" font-family={pismo} fill="#8A7C70" opacity="0.75" lang="ja">{ZNAKY[i]}</text>
+            </g>
+          )}
+          <circle cx="0" cy="2" r="0.75" fill="#5C5047" opacity="0.7" />
+        </g>
+      </g>
+    ))}
+
+    {/* Břevno torii — tatáž kresba jako v hlavičce */}
+    <g>
+      <line x1="0" y1={KROUZEK_R} x2="0" y2="6.6" stroke="#5C5047" stroke-width="0.8" stroke-linecap="round" />
+      <path d="M-14.6 9 V16 M14.6 9 V16" stroke="url(#hlv-lak)" stroke-width="3" />
+      <rect x="-3" y="9.6" width="6" height="4.6" rx="0.6" fill="#F1E8D6" stroke="#8E2C1C" stroke-width="0.6" />
+      <circle cx="0" cy="11.9" r="1" fill="#C4432B" />
+      <rect x="-23" y="13.6" width="46" height="2.8" rx="0.7" fill="url(#hlv-lak)" />
+      <path d="M-25.4 6.9 Q0 10.5 25.4 6.9 L25 10 Q0 12.6 -25 10 Z" fill="url(#hlv-lak)" />
+      <path d="M-27.6 4.6 Q0 8.8 27.6 4.6 L26.6 7.5 Q0 11 -26.6 7.5 Z" fill="#2B2420" />
+      <path d="M-25.6 5.6 Q0 9.3 25.6 5.6" stroke="#FFF5E6" stroke-width="0.5" fill="none" opacity="0.35" />
+      {KOTVY.map((k) => <circle cx={k} cy={KOTVA_Y} r="0.9" fill={mosaz} />)}
+    </g>
+
+    {/* Očíslované popisky */}
+    {znacky.map((z) => (
+      <g class="klicenka-znacka">
+        <line x1={f(z.x)} y1={f(z.y)} x2={f(z.kx)} y2={f(z.ky)} stroke="#C4432B" stroke-width="0.6" stroke-dasharray="1.2 0.9" />
+        <circle cx={f(z.x)} cy={f(z.y)} r="3.6" fill="#C4432B" />
+        <text x={f(z.x)} y={f(z.y + 1.75)} text-anchor="middle" font-size="5" font-weight="700" fill="#FFF8EE" font-family="Fraunces, Georgia, serif">{z.n}</text>
+      </g>
+    ))}
+  </svg>
+
+  <ol class="klicenka-popis">
+    <li><b>Brána</b> Klepni na ni — kdekoli na webu. Otevře se omamori: kdo už se našel a kdo ti ještě chybí.</li>
+    <li><b>Prázdné místo</b> Hliněný korálek. Na každé ze tří šňůrek jsou tři.</li>
+    <li><b>Nalezený kami</b> Koho najdeš, navlékne se na šňůrku místo korálku — v pořadí, jak je nacházíš.</li>
+    <li><b>Lístek komnaty</b> Plná šňůrka ho rozsvítí a komnata se otevře: {nazvyKomnat}.</li>
+  </ol>
+</div>

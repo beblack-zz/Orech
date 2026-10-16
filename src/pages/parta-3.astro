@@ -9,6 +9,8 @@
  *   obsazení  kdo je kdo: pod střechou chrámového jeviště devět lampionů,
  *             kdo svítí, toho list visí pod nimi — živá podoba Kami, popis
  *             z Party 2 a v textu původní malá kami (Obsazeni.astro)
+ *   hledání   na schovávanou: kde se parta přes den schovává, jak ji
+ *             najít a co otevře tři, šest a devět nálezů (Hledani.astro)
  *   závěr     svítání, parta je zpátky dole pod ořechem — obrázek z úvodu
  *             Party 2 se zeleným domem z Domku 2 (Zaver.astro)
  *
@@ -40,6 +42,7 @@ import Paticka from "../components/parta2/Paticka.astro";
 import Uvod from "../components/parta3/Uvod.astro";
 import Pruvod from "../components/parta3/Pruvod.astro";
 import Obsazeni from "../components/parta3/Obsazeni.astro";
+import Hledani from "../components/parta3/Hledani.astro";
 import Zaver from "../components/parta3/Zaver.astro";
 import { cesta } from "../data/kami";
 
@@ -53,7 +56,7 @@ const pridej = (s: string) => {
   for (const ch of s) if (/[　-ヿ一-鿿]/.test(ch)) znaky.add(ch);
 };
 cesta.forEach((c) => { pridej(c.znak); pridej(c.cislo); });
-pridej("高天原提灯行列顔ぶれ夜明け");
+pridej("高天原提灯行列顔ぶれ夜明け隠れん坊");
 pridej("円相顔筆奉納稲荷五隹止矢");
 const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap&text=${encodeURIComponent([...znaky].join(""))}`;
 ---
@@ -80,6 +83,7 @@ const pismoZnaku = `https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=
       <Uvod />
       <Pruvod />
       <Obsazeni />
+      <Hledani />
       <Zaver />
     </main>
 

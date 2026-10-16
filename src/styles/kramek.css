@@ -1,754 +1,594 @@
 /*
  * ——— Krámek (Obchod 2) ———
  *
- * Malý japonský obchod s nádobím, jak ho člověk vidí z ulice: střecha,
- * vývěsní štít, noren a za ním zboží. Nic tu není vyrovnané: bedny stojí
- * nakřivo, cenovky visí na provázcích, jména jsou fixou na lepicí pásce.
- * Zboží samo (fotky) je ale rovné a čisté, aby bylo dobře vidět.
+ * Průčelí japonského obchodu s nádobím ve scéně na jednu obrazovku, po
+ * kterém jezdí kamera od zastávky k zastávce podle jízdenky dole
+ * (components/obchod2/Kramek.astro, scripts/obchod2/scena.ts).
+ * Kresba je ve vrstvách nad sebou: denní a noční kopie (noční prolíná
+ * --tma), mezi nimi HTML zboží, navrchu světla, která se rozsvěcují po
+ * jednom (.sviti). Svět má 3200 × 2000 px — všechno uvnitř je v jeho
+ * pixelech, kamera ho jen posune a zvětší (--s je její zvětšení).
  *
- * Dřevo, sláma, karton a papír jsou z přechodů v CSS, krámy jsou SVG
- * (components/obchod2/Kram.astro). Staví na parta2.css (barvy, písmo,
- * dialog) a obchod2.css (šátek, noční ulice).
+ * Staví na parta2.css (barvy, písmo, papír, tlačítka, kami) a
+ * obchod2.css (šátek, období pro strom).
  */
 
-.o2k {
+.krm { position: relative; z-index: 2; }
+.krm-scena {
   position: relative;
-  z-index: 2;
-  padding: 92px 20px 7vh;
-  --drevo-tmave: #4E321F;
-  --drevo: #6E4A30;
-  --drevo-svetle: #8E6342;
-  --borovice: #DCBD8F;
-  --borovice-tmave: #B98F58;
-  --omitka: #ECE1CA;
-  --papir-cenovky: #FBF7EC;
-  --fixa: #2B2420;
-  --odsazeni: clamp(12px, 2.4vw, 28px);
-  /* Jak vysoko věci před krámkem zakrývají spodek domu */
-  --prekryv: clamp(78px, 10vw, 118px);
+  height: 100vh;
+  height: 100svh;
+  min-height: 480px;
+  overflow: clip;
+  /* Tah prstem do strany obsluhuje skript (další zastávka), svisle se scrolluje dál */
+  touch-action: pan-y pinch-zoom;
+  --tma: 0;
+  --zavreno: 0;
+  --noren: 0;
 }
-.o2k-dum {
-  position: relative;
-  width: min(1180px, 100%);
-  margin: 0 auto;
-}
+.krm-svet { position: absolute; left: 0; top: 0; transform-origin: 0 0; --s: 1; transition: opacity 0.5s; }
+.krm-svet.jede { will-change: transform; }
+/* Dokud kamera nenastaví první záběr, svět by stál levým horním rohem v okně */
+.krm-svet:not([style*="transform"]) { opacity: 0; }
 
-/* ——— Střecha a vývěsní štít ——— */
-
-.o2k-strecha {
-  position: relative;
-  z-index: 3;
-  height: clamp(36px, 4.6vw, 54px);
-  margin: 0 calc(-1 * clamp(8px, 2vw, 24px));
-  border-radius: 8px 8px 2px 2px;
-  background:
-    repeating-linear-gradient(90deg, rgba(60, 14, 6, 0.22) 0 2px, transparent 2px 38px),
-    repeating-linear-gradient(180deg, transparent 0 12px, rgba(60, 14, 6, 0.28) 12px 14px),
-    linear-gradient(#C65A3C, #B84A30 60%, #A33C27);
-  box-shadow: inset 0 3px 0 rgba(255, 220, 190, 0.25), 0 16px 18px -12px rgba(30, 14, 8, 0.6);
-}
-/* Kulaté čelní tašky po spodní hraně */
-.o2k-strecha::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -9px;
-  height: 14px;
-  background: radial-gradient(circle at 19px 4px, #A33C27 0 8.5px, #7E2C1B 9px 10px, transparent 10.5px) 0 0 / 38px 14px repeat-x;
-}
-.o2k-strecha::before {
-  content: "";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  top: -8px;
-  height: 10px;
-  border-radius: 99px;
-  background: linear-gradient(#7E2C1B, #5E2014);
-}
-
-.o2k-preklad {
-  position: relative;
-  z-index: 4;
-  display: flex;
-  justify-content: center;
-  padding: 18px 16px 12px;
-  background:
-    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 9px),
-    linear-gradient(var(--drevo-svetle), var(--drevo) 55%, var(--drevo-tmave));
-  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
-}
-.o2k-stit {
-  display: inline-flex;
-  align-items: center;
-  gap: clamp(10px, 1.6vw, 18px);
-  max-width: 100%;
-  padding: 10px clamp(16px, 3vw, 34px) 12px clamp(10px, 1.4vw, 14px);
-  border-radius: 6px;
-  background:
-    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 6px),
-    linear-gradient(#3E2A1D, #2A1C13);
-  box-shadow: inset 0 0 0 3px #7A5236, inset 0 0 0 5px #24170F, 0 10px 18px -8px rgba(20, 10, 5, 0.75);
-  color: #F3E7CF;
-  transform: rotate(-0.6deg);
-}
-.o2k-stit-pecet {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: clamp(34px, 4vw, 46px);
-  aspect-ratio: 1;
-  border-radius: 6px;
-  background: var(--rumelka);
-  color: #FBF3E2;
-  font: 400 clamp(22px, 2.8vw, 32px) / 1 var(--f-kanji);
-  transform: rotate(-5deg);
-  box-shadow: inset 0 0 0 2px rgba(255, 240, 220, 0.35);
-}
-.o2k-nadpis {
-  margin: 0;
-  font-family: "Zodiak", var(--f-display), Georgia, serif;
-  font-weight: 700;
-  font-size: clamp(24px, 3.6vw, 42px);
-  line-height: 1.05;
-  letter-spacing: 0.01em;
-  text-wrap: balance;
-}
-.o2k-nadpis em { font-weight: 400; font-style: italic; color: #F0A58E; }
-
-/* ——— Otvor do krámku: dva sloupy a mezi nimi vnitřek ——— */
-
-.o2k-otvor {
-  position: relative;
-  display: grid;
-  grid-template-columns: clamp(10px, 2.2vw, 26px) minmax(0, 1fr) clamp(10px, 2.2vw, 26px);
-}
-.o2k-sloup {
-  position: relative;
-  z-index: 6;
-  background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 1px, transparent 1px 5px),
-    linear-gradient(90deg, #3E2819, var(--drevo-svetle) 40%, var(--drevo) 70%, #3A2517);
-  box-shadow: 0 0 14px rgba(20, 10, 5, 0.35);
-}
-.o2k-lucerna {
-  position: absolute;
-  top: 6px;
-  right: -26px;
-  width: clamp(38px, 5vw, 64px);
-  transform-origin: 50% 0;
-  animation: o2k-houpani 6s ease-in-out infinite;
-  filter: drop-shadow(0 8px 10px rgba(30, 10, 5, 0.35));
-}
-.o2k-lucerna svg { display: block; width: 100%; height: auto; }
-@keyframes o2k-houpani { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2.5deg); } }
-
-.o2k-vnitrek {
-  position: relative;
-  padding: 0 var(--odsazeni);
-  background:
-    linear-gradient(rgba(40, 22, 10, 0.42), rgba(40, 22, 10, 0.12) 130px, transparent 220px),
-    radial-gradient(140% 70% at 50% 100%, rgba(120, 80, 40, 0.16), transparent 60%),
-    repeating-linear-gradient(90deg, rgba(120, 90, 50, 0.025) 0 3px, transparent 3px 11px),
-    var(--omitka);
-}
-
-/* Noren: krátký závěs u horní hrany otvoru, na každém dílu jeden znak */
-.o2k-noren {
-  position: relative;
-  z-index: 5;
-  display: flex;
-  gap: clamp(3px, 0.5vw, 6px);
-  height: clamp(62px, 8vw, 96px);
-  margin: 0 calc(-1 * var(--odsazeni));
-  padding: 0 1.2%;
-}
-.o2k-noren::before {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 8px;
-  background: linear-gradient(#B08A62, #6E5236);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
-}
-.o2k-noren-dil {
-  position: relative;
-  flex: 1;
-  display: grid;
-  place-items: center;
-  border-radius: 0 0 8px 8px;
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 4px, transparent 4px 10px),
-    linear-gradient(#30407D, #212C5C);
-  box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.2), 0 10px 16px -10px rgba(10, 10, 30, 0.7);
-  color: #F6F1E6;
-  font: 400 clamp(24px, 3.4vw, 44px) / 1 var(--f-kanji);
-  transform-origin: 50% 0;
-  animation: o2k-vitr 5.6s ease-in-out infinite;
-}
-.o2k-noren-dil:nth-child(2n) { animation-duration: 4.7s; animation-delay: -1.9s; }
-.o2k-noren-dil:nth-child(3n) { animation-delay: -3.1s; }
-.o2k-noren-dil span { margin-top: 6px; }
-@keyframes o2k-vitr { 0%, 100% { transform: skewX(0deg); } 35% { transform: skewX(-2.4deg); } 70% { transform: skewX(1.6deg); } }
-
-/* ——— Stěna nad regálem: hodiny, kartonová cedule, krabice ——— */
-
-.o2k-stena {
-  position: relative;
-  z-index: 3;
-  display: grid;
-  grid-template-columns: clamp(64px, 8vw, 100px) minmax(0, 1fr) clamp(150px, 19vw, 220px);
-  align-items: end;
-  gap: clamp(10px, 2vw, 24px);
-  margin-top: -14px;
-}
-.o2k-hodiny {
-  position: relative;
-  align-self: start;
-  margin-top: 26px;
-  transform: rotate(3deg);
-  filter: drop-shadow(0 6px 6px rgba(40, 20, 10, 0.25));
-}
-.o2k-hodiny svg,
-.o2k-krabice svg { display: block; width: 100%; height: auto; }
-/* Bílý Střípek v ciferníku: spodek kresby leží na dolním okraji číselníku */
-.skryty.o2k-stripek { transform-origin: 50% 100%; }
-
-.o2k-karton-obal {
-  justify-self: center;
-  max-width: 600px;
-  margin: 18px 0 30px;
-  filter: drop-shadow(0 10px 10px rgba(40, 20, 10, 0.28));
-}
-.o2k-karton {
-  position: relative;
-  padding: 16px clamp(16px, 2.4vw, 28px) 18px;
-  background:
-    repeating-linear-gradient(90deg, rgba(120, 80, 30, 0.08) 0 2px, transparent 2px 7px),
-    linear-gradient(170deg, #D9B47B, #C9A26B 60%, #BE955D);
-  color: var(--fixa);
-  clip-path: polygon(0 3%, 2% 0, 36% 2%, 62% 0, 98% 1%, 100% 5%, 99% 60%, 100% 96%, 97% 100%, 58% 98%, 30% 100%, 2% 99%, 0 94%, 1% 40%);
-  transform: rotate(-1.4deg);
-}
-.o2k-karton::before,
-.o2k-karton::after {
-  content: "";
-  position: absolute;
-  top: -2px;
-  width: 54px;
-  height: 18px;
-  background: rgba(244, 236, 214, 0.78);
-}
-.o2k-karton::before { left: 12px; transform: rotate(-8deg); }
-.o2k-karton::after { right: 14px; transform: rotate(6deg); }
-.o2k-karton-nadpis {
-  margin: 4px 0 6px;
-  font-family: var(--f-ruka);
-  font-weight: 600;
-  font-size: clamp(30px, 3.6vw, 44px);
-  line-height: 1;
-  color: var(--rumelka);
-}
-.o2k-karton-text {
-  margin: 0;
-  font-family: var(--f-ruka);
-  font-size: clamp(19px, 1.8vw, 23px);
-  line-height: 1.22;
-}
-
-.o2k-krabice {
-  position: relative;
-  margin-bottom: -3px;
-}
-
-/* ——— Starý tmavý regál: keramika z Japonska ——— */
-
-.o2k-regal {
-  position: relative;
-  z-index: 2;
-  padding: 14px 7px 0;
-  border-radius: 3px 3px 0 0;
-  background:
-    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 7px),
-    linear-gradient(90deg, #3E2819, var(--drevo-tmave) 8%, var(--drevo-tmave) 92%, #3E2819);
-  box-shadow: 0 22px 26px -18px rgba(30, 15, 5, 0.65);
-}
-.o2k-police {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.o2k-cedule-letecky {
-  position: absolute;
-  z-index: 5;
-  left: clamp(14px, 3vw, 34px);
-  top: 0;
-  margin: 0;
-  padding: 7px 14px 7px;
-  border: 5px solid transparent;
-  border-image: repeating-linear-gradient(-45deg, #C4432B 0 7px, #FBF7EC 7px 11px, #2E4A78 11px 18px, #FBF7EC 18px 22px) 5;
-  background: #FBF7EC;
-  color: var(--inkoust);
-  font-family: "Zodiak", var(--f-display), Georgia, serif;
-  font-weight: 700;
-  font-size: clamp(13px, 1.3vw, 16px);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  transform: translateY(-64%) rotate(-2.4deg);
-  box-shadow: 0 6px 10px -4px rgba(30, 15, 5, 0.45);
-}
-.o2k-cedule-letecky [lang="ja"] { font-family: var(--f-kanji); font-weight: 400; letter-spacing: 0.04em; color: var(--rumelka); margin-right: 4px; }
-.o2k-cedule-letecky small { font-family: var(--f-ruka); font-size: 1.15em; letter-spacing: 0; text-transform: none; color: var(--inkoust-3); margin-left: 6px; }
-
-/* ——— Kus: okno s fotkou nebo balíkem, hrana police, cenovka ——— */
-
-.o2k-kus {
-  position: relative;
-  display: grid;
-  grid-template-rows: auto auto;
-}
-.o2k .o2k-okno {
-  position: relative;
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  padding: 0;
-  overflow: hidden;
-  border: 0;
-  background: #2A1D14;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.o2k-kus-japonsko .o2k-okno {
-  box-sizing: border-box;
-  border: 7px solid var(--drevo-tmave);
-  border-bottom: 0;
-}
-/* Stín přihrádky: nahoře od police, po stranách od přepážek */
-.o2k-okno::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  box-shadow:
-    inset 0 18px 20px -12px rgba(0, 0, 0, 0.6),
-    inset 12px 0 14px -12px rgba(0, 0, 0, 0.45),
-    inset -12px 0 14px -12px rgba(0, 0, 0, 0.45);
-}
-.o2k-foto {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
-}
-.o2k-okno:hover .o2k-foto { transform: scale(1.05); }
-.o2k-okno:focus-visible { outline: 3px solid var(--rumelka); outline-offset: -3px; }
-.o2k-okno-pokyn {
-  position: absolute;
-  z-index: 2;
-  left: 50%;
-  bottom: 14px;
-  padding: 7px 14px 8px;
-  border-radius: 999px;
-  background: rgba(43, 36, 32, 0.86);
-  color: #FBF7EE;
-  font: 600 13px / 1 var(--f-text);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translate(-50%, 8px);
-  transition: opacity 0.25s, transform 0.25s;
-  pointer-events: none;
-}
-.o2k-okno:hover .o2k-okno-pokyn,
-.o2k-okno:focus-visible .o2k-okno-pokyn { opacity: 1; transform: translate(-50%, 0); }
-
-/* Hrana police: lepicí páska se jménem a tlačítko do šátku */
-.o2k-hrana {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px 8px;
-  min-height: 50px;
-  padding: 6px 10px 8px;
-  background:
-    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 6px),
-    linear-gradient(#A27450, var(--drevo-svetle) 30%, var(--drevo) 80%, #553722);
-  box-shadow: inset 0 2px 0 rgba(255, 230, 200, 0.3), inset 0 -3px 0 rgba(0, 0, 0, 0.25);
-}
-.o2k-paska {
-  display: inline-flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 4px 12px 5px 10px;
-  background: rgba(246, 238, 216, 0.94);
-  color: var(--fixa);
-  font-family: var(--f-ruka);
-  font-weight: 600;
-  font-size: clamp(16px, 1.5vw, 19px);
-  line-height: 1;
-  clip-path: polygon(0 6%, 4% 0, 9% 5%, 14% 0, 100% 0, 97% 30%, 100% 62%, 98% 100%, 6% 100%, 2% 92%, 3% 50%);
-  transform: rotate(-1.6deg);
-}
-.o2k-paska small {
-  margin-top: 2px;
-  font-weight: 400;
-  font-size: 0.82em;
-  color: var(--inkoust-2);
-}
-.o2k .o2k-do-satku {
-  flex: none;
-  padding: 7px 12px 8px;
-  border-radius: 999px;
-  background: rgba(251, 247, 236, 0.14);
-  box-shadow: inset 0 0 0 1.5px rgba(251, 247, 236, 0.6);
-  color: #FBF7EC;
-  font: 600 12.5px / 1 var(--f-text);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  transition: background 0.2s, box-shadow 0.2s;
-}
-.o2k .o2k-do-satku:hover { background: rgba(251, 247, 236, 0.3); }
-.o2k .o2k-do-satku.v-satku { background: #2E4A78; box-shadow: inset 0 0 0 1.5px #8FA6CF; }
-
-/* Cenovka na provázku, visí z hrany police */
-.o2k-cenovka {
-  position: absolute;
-  z-index: 4;
-  right: 16%;
-  top: calc(100% - 6px);
-  transform: rotate(var(--u-cenovky, -7deg));
-  transform-origin: 14px -16px;
-  filter: drop-shadow(0 5px 5px rgba(30, 15, 5, 0.35));
-  transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
-}
-.o2k-kus:nth-child(2n) .o2k-cenovka { --u-cenovky: 5deg; right: 22%; }
-.o2k-kus:nth-child(3n) .o2k-cenovka { --u-cenovky: -3deg; right: 12%; }
-.o2k-kus:hover .o2k-cenovka { transform: rotate(calc(var(--u-cenovky, -7deg) * -1)); }
-.o2k-cenovka::before {
-  content: "";
-  position: absolute;
-  left: 13px;
-  top: -18px;
-  width: 1.5px;
-  height: 24px;
-  background: #C4432B;
-  transform: rotate(-12deg);
-  transform-origin: 50% 100%;
-}
-.o2k-cenovka-listek {
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
-  padding: 7px 12px 7px 24px;
-  background: var(--papir-cenovky);
-  color: var(--rumelka);
-  font-family: var(--f-ruka);
-  white-space: nowrap;
-  clip-path: polygon(13px 0, 100% 0, 100% 100%, 13px 100%, 0 50%);
-}
-.o2k-cenovka-listek::before {
-  content: "";
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  margin-top: -3px;
-  border-radius: 50%;
-  background: #8A7C70;
-  box-shadow: inset 0 0 0 1.5px #5C5047;
-}
-.o2k-cenovka-listek b { font-weight: 600; font-size: clamp(21px, 2vw, 26px); line-height: 1; }
-.o2k-cenovka-listek small { font-size: 15px; color: var(--inkoust-2); }
-
-/* Ruční reklamní kartička (POP), jak je v japonských obchodech všude */
-.o2k-pop {
-  position: absolute;
-  z-index: 4;
-  left: -4px;
-  top: -12px;
-  display: grid;
-  justify-items: center;
-  padding: 6px 9px 7px;
-  border-radius: 3px;
-  background: #F6DD4A;
-  color: var(--rumelka);
-  font: 600 15px / 1 var(--f-ruka);
-  transform: rotate(-10deg);
-  box-shadow: 0 6px 10px -4px rgba(30, 15, 5, 0.45);
-}
-.o2k-pop [lang="ja"] { font: 400 17px / 1.1 var(--f-kanji); color: var(--inkoust); }
-
-.o2k-v-satku {
-  position: absolute;
-  z-index: 3;
-  right: 12px;
-  top: 12px;
-  padding: 5px 10px 6px;
-  border-radius: 999px;
-  background: #2E4A78;
-  color: #F6F1E6;
-  font: 600 12px / 1 var(--f-text);
-  box-shadow: 0 4px 10px -4px rgba(10, 20, 50, 0.6);
-}
-.o2k-v-satku[hidden] { display: none; }
-
-/* ——— Dílna: prkno s cedulí a bedny ——— */
-
-.o2k-dilna { position: relative; z-index: 1; margin-top: clamp(52px, 6vw, 72px); }
-.o2k-dilna-cedule {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 18px;
-  margin: 0 0 18px clamp(4px, 2vw, 22px);
-}
-.o2k-prkno {
-  margin: 0;
-  padding: 8px 18px 9px;
-  border-radius: 3px;
-  background:
-    repeating-linear-gradient(180deg, rgba(120, 80, 30, 0.12) 0 1px, transparent 1px 6px),
-    linear-gradient(#E3C697, var(--borovice) 50%, #CDA977);
-  color: var(--drevo-tmave);
-  font-family: "Zodiak", var(--f-display), Georgia, serif;
-  font-weight: 700;
-  font-size: clamp(14px, 1.4vw, 17px);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transform: rotate(1.6deg);
-  box-shadow: inset 0 0 0 1px rgba(120, 80, 30, 0.25), 0 8px 12px -6px rgba(30, 15, 5, 0.45);
-}
-.o2k-prkno [lang="ja"] { font-family: var(--f-kanji); font-weight: 400; letter-spacing: 0.04em; color: var(--rumelka); margin-right: 6px; }
-.o2k-prkno small { font-family: var(--f-ruka); font-size: 1.15em; letter-spacing: 0; text-transform: none; color: #7A5236; margin-left: 6px; }
-.o2k-listek-pozn {
-  max-width: 46ch;
-  margin: 0;
-  padding: 8px 14px 9px;
-  background: var(--papir-cenovky);
-  color: var(--inkoust-2);
-  font-family: var(--f-ruka);
-  font-size: clamp(17px, 1.5vw, 20px);
-  line-height: 1.15;
-  transform: rotate(-1deg);
-  box-shadow: 0 6px 10px -6px rgba(30, 15, 5, 0.4);
-}
-
-.o2k-bedny {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  row-gap: clamp(46px, 5vw, 62px);
-}
-/* Bedna z borovice: rám, uvnitř tmavší zadní prkna; na prkně pod ní hrana */
-.o2k-kus-dilna .o2k-okno,
-.o2k-bedna-kram-okno {
-  box-sizing: border-box;
-  width: calc(100% - clamp(8px, 1.4vw, 16px));
-  margin: 0 auto;
-  border: clamp(6px, 0.8vw, 9px) solid var(--borovice);
-  border-image: linear-gradient(160deg, #E8CC9E, var(--borovice) 40%, #C9A06A) 1;
-  background:
-    repeating-linear-gradient(180deg, rgba(110, 70, 30, 0.16) 0 2px, transparent 2px 34px),
-    linear-gradient(#C7A06B, #B48D59);
-  transform: rotate(var(--naklon, 0deg));
-  box-shadow: 0 10px 12px -8px rgba(30, 15, 5, 0.5);
-}
-.o2k-kus-dilna .o2k-okno::after,
-.o2k-bedna-kram-okno::after {
-  box-shadow: inset 0 14px 14px -10px rgba(40, 20, 5, 0.5);
-}
-.o2k-balik {
-  display: block;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
-}
-.o2k-okno:hover .o2k-balik { transform: translateY(-4px) rotate(-1.5deg); }
-.o2k-kus-dilna .o2k-hrana,
-.o2k-bedna-kram-hrana {
-  margin-top: -2px;
-  background:
-    repeating-linear-gradient(180deg, rgba(120, 80, 30, 0.1) 0 1px, transparent 1px 5px),
-    linear-gradient(#D2AE78, var(--borovice-tmave) 60%, #9C7446);
-  box-shadow: inset 0 2px 0 rgba(255, 240, 210, 0.45), inset 0 -3px 0 rgba(0, 0, 0, 0.18);
-}
-.o2k .o2k-kus-dilna .o2k-do-satku { background: rgba(43, 36, 32, 0.8); box-shadow: none; }
-.o2k .o2k-kus-dilna .o2k-do-satku:hover { background: var(--inkoust); }
-.o2k .o2k-kus-dilna .o2k-do-satku.v-satku { background: #2E4A78; }
-
-.o2k-bedna-kram { position: relative; display: grid; align-content: start; }
-.o2k-bedna-kram-okno {
-  position: relative;
-  aspect-ratio: 1;
-  display: grid;
-  align-items: end;
-  padding: 10% 6% 4%;
-  overflow: hidden;
-}
-.o2k-bedna-kram-okno .kram { display: block; width: 100%; height: auto; }
-.o2k-bedna-kram-hrana { display: block; height: 50px; }
-.o2k-bedna-slama .o2k-bedna-kram-okno { padding: 0 0 2%; overflow: visible; }
-.o2k-slama-predni {
-  position: absolute;
-  z-index: 5;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: auto;
-  pointer-events: none;
-}
-
-/* ——— Pult ——— */
-
-.o2k-pult {
-  position: relative;
-  z-index: 3;
-  margin: clamp(48px, 5vw, 66px) calc(-1 * var(--odsazeni)) 0;
-}
-.o2k-pult-veci {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  gap: clamp(10px, 2vw, 28px);
-  padding: 0 clamp(16px, 4vw, 54px);
-  min-height: 90px;
-}
-.o2k-pult-veci > div svg { display: block; width: 100%; height: auto; }
-.o2k-soroban { position: relative; width: clamp(130px, 17vw, 210px); margin-bottom: -3px; transform: rotate(-2deg); }
-.o2k-zvonek { position: relative; width: clamp(44px, 5vw, 62px); margin-bottom: -2px; }
-.o2k-kytka { position: relative; width: clamp(84px, 10vw, 130px); margin-left: auto; margin-bottom: -3px; }
-.o2k-cedulka { position: relative; width: clamp(64px, 7vw, 92px); margin-bottom: -6px; }
-
-.o2k-uctenka {
-  position: relative;
-  display: grid;
-  gap: 4px;
-  max-width: 230px;
-  margin: 0 0 12px;
-  padding: 10px 16px 14px;
-  background: var(--papir-cenovky);
-  color: var(--inkoust) !important;
-  font-family: var(--f-ruka);
-  font-weight: 600;
-  font-size: clamp(18px, 1.7vw, 22px);
-  line-height: 1.1;
-  text-decoration: none;
-  transform: rotate(-3deg);
-  box-shadow: 0 8px 12px -6px rgba(30, 15, 5, 0.45);
-  clip-path: polygon(0 0, 100% 0, 100% 92%, 94% 100%, 88% 92%, 82% 100%, 76% 92%, 70% 100%, 64% 92%, 58% 100%, 52% 92%, 46% 100%, 40% 92%, 34% 100%, 28% 92%, 22% 100%, 16% 92%, 10% 100%, 4% 92%, 0 100%);
-  transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
-}
-.o2k-uctenka:hover { transform: rotate(-1deg) translateY(-3px); }
-.o2k-uctenka:focus-visible { outline: 3px solid var(--rumelka); outline-offset: 3px; }
-.o2k-uctenka-hlava {
-  padding-bottom: 4px;
-  border-bottom: 1.5px dashed rgba(43, 36, 32, 0.3);
-  color: var(--rumelka);
-  font: 400 15px / 1 var(--f-kanji);
-  letter-spacing: 0.2em;
-}
-
-.o2k-pult-deska {
-  position: relative;
-  height: calc(var(--prekryv) + 8px);
-  background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px clamp(70px, 9vw, 120px)),
-    linear-gradient(var(--drevo), var(--drevo-tmave));
-}
-/* Vrchní deska pultu */
-.o2k-pult-deska::before {
-  content: "";
-  position: absolute;
-  left: -6px;
-  right: -6px;
-  top: -12px;
-  height: 14px;
-  border-radius: 3px;
-  background: linear-gradient(#B98B60, var(--drevo-svetle) 50%, var(--drevo));
-  box-shadow: 0 4px 6px rgba(20, 10, 5, 0.35);
-}
-
-/* ——— Před krámkem ——— */
-
-.o2k-ulice {
-  position: relative;
-  z-index: 7;
-  display: flex;
-  align-items: flex-end;
-  gap: clamp(10px, 2.4vw, 32px);
-  height: calc(var(--prekryv) + 30px);
-  margin: calc(-1 * var(--prekryv)) calc(-1 * clamp(8px, 2vw, 24px)) 0;
-  padding: 0 clamp(14px, 4vw, 54px) 16px;
-}
-/* Kamenný práh a ulička */
-.o2k-ulice::before {
+/* Země pod světem a do stran — na úzké obrazovce je pod silnicí ještě kus místa */
+.krm-svet::before {
   content: "";
   position: absolute;
   z-index: -1;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 30px;
-  border-radius: 0 0 16px 16px;
-  background:
-    radial-gradient(circle at 20% 40%, rgba(90, 80, 70, 0.25) 0 1.5px, transparent 2px) 0 0 / 23px 13px,
-    radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.35) 0 1.2px, transparent 1.8px) 0 0 / 17px 11px,
-    linear-gradient(#C9BFAD, #B5AA96);
-  box-shadow: 0 18px 30px -16px rgba(20, 15, 10, 0.55);
-}
-.o2k-ulice > div svg { display: block; width: 100%; height: auto; }
-.o2k-destniky { position: relative; width: clamp(50px, 6.4vw, 84px); margin-bottom: 6px; }
-.o2k-kosik { width: clamp(90px, 11vw, 140px); margin-bottom: 6px; }
-.o2k-noviny { position: relative; width: clamp(100px, 12vw, 150px); margin-left: auto; margin-right: clamp(30px, 5vw, 64px); margin-bottom: 6px; }
-.o2k-smetak {
-  position: absolute;
-  right: clamp(4px, 1.2vw, 16px);
-  bottom: 14px;
-  width: clamp(26px, 3.4vw, 40px);
-  transform: rotate(9deg);
-  transform-origin: 50% 100%;
+  left: -3200px;
+  right: -3200px;
+  top: 1995px;
+  height: 2400px;
+  /* Asfalt ve dne a v noci (scena.ts → nocni) */
+  background: color-mix(in srgb, #292D59 calc(var(--tma) * 100%), #5E5D63);
 }
 
-/* Stojan s cedulí (立て看板), psaný křídou */
-.o2k-stojan {
-  position: relative;
-  max-width: 300px;
-  margin-bottom: 14px;
-  padding: 14px 18px 16px;
-  border-radius: 4px;
-  background: linear-gradient(#34403A, #2A332E);
-  box-shadow: inset 0 0 0 5px var(--drevo-svetle), inset 0 0 0 7px var(--drevo-tmave), 0 10px 14px -8px rgba(20, 15, 10, 0.6);
-  color: #EFEBDF;
-  transform: rotate(-1deg);
+.krm-vrstva { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none; }
+.krm-noc { opacity: var(--tma); }
+.je-den .krm-noc,
+.je-noc .krm-den { visibility: hidden; }
+.krm-den .krm-jen-noc,
+.krm-noc .krm-jen-den { display: none; }
+
+/* Strom za domem v noci: stejný vzorec jako noční přebarvení kresby (scena.ts → nocni) */
+.krm-noc .sak-1 { fill: color-mix(in srgb, var(--sak-1) 29%, #141736); }
+.krm-noc .sak-2 { fill: color-mix(in srgb, var(--sak-2) 29%, #141736); }
+.krm-noc .sak-3 { fill: color-mix(in srgb, var(--sak-3) 29%, #141736); }
+
+/* ——— Světla ——— */
+
+.krm-svetla .krm-s { opacity: 0; transition: opacity 0.9s ease; }
+.krm-svetla .krm-s.sviti { opacity: 1; }
+.krm-svetla .krm-neon.blika { animation: krm-neon 1.5s linear both; }
+@keyframes krm-neon {
+  0% { opacity: 0; }
+  7% { opacity: 0.9; }
+  11% { opacity: 0.08; }
+  19% { opacity: 1; }
+  24% { opacity: 0.2; }
+  36% { opacity: 0.95; }
+  41% { opacity: 0.45; }
+  52%, 100% { opacity: 1; }
 }
-.o2k-stojan::before,
-.o2k-stojan::after {
+/* Můry kolem lampy */
+.krm-mury > * { transform-box: fill-box; transform-origin: 50% 50%; animation: krm-mura 2.6s ease-in-out infinite; }
+.krm-mury > :nth-child(2n) { animation-duration: 1.9s; animation-direction: reverse; }
+.krm-mury > :nth-child(3n) { animation-duration: 3.3s; animation-delay: -1.1s; }
+@keyframes krm-mura {
+  0%, 100% { translate: 0 0; }
+  25% { translate: 14px -10px; }
+  50% { translate: -6px -18px; }
+  75% { translate: -14px 4px; }
+}
+
+/* ——— Pohyb v kresbě ——— */
+
+/* Lampiony se jemně kývají ve větru; pod myší se rozhoupou (.kyv). Osa je háček
+   na přední hraně stříšky (zaklad.ts: x = 1140 + i · 920/6, y = 1235) — denní,
+   noční i svítící dvojník kolem téhož bodu. */
+.krm-lampion { transform-box: view-box; transform-origin: 1140px 1235px; animation: krm-vitr-lampion 7s ease-in-out infinite; }
+.krm-lampion[data-i="1"] { transform-origin: 1293.3px 1235px; animation-delay: -1.3s; }
+.krm-lampion[data-i="2"] { transform-origin: 1446.7px 1235px; animation-delay: -2.9s; }
+.krm-lampion[data-i="3"] { transform-origin: 1600px 1235px; animation-delay: -0.6s; }
+.krm-lampion[data-i="4"] { transform-origin: 1753.3px 1235px; animation-delay: -4.1s; }
+.krm-lampion[data-i="5"] { transform-origin: 1906.7px 1235px; animation-delay: -2.2s; }
+.krm-lampion[data-i="6"] { transform-origin: 2060px 1235px; animation-delay: -5.3s; }
+.krm-lampion.kyv { animation: krm-kyv 2.2s cubic-bezier(0.3, 0.6, 0.4, 1); }
+@keyframes krm-vitr-lampion { 0%, 100% { rotate: -1.2deg; } 50% { rotate: 1.4deg; } }
+@keyframes krm-kyv {
+  0% { rotate: 0deg; }
+  14% { rotate: 9deg; }
+  32% { rotate: -6.5deg; }
+  50% { rotate: 4deg; }
+  68% { rotate: -2.2deg; }
+  84% { rotate: 1deg; }
+  100% { rotate: 0deg; }
+}
+
+/* Látky ve větru (noren, prapor) */
+.krm-vitr { transform-box: fill-box; transform-origin: 50% 0; animation: krm-vitr 5.6s ease-in-out infinite; }
+@keyframes krm-vitr { 0%, 100% { transform: skewX(0deg); } 35% { transform: skewX(-1.8deg); } 70% { transform: skewX(1.3deg); } }
+
+/* Noren: každý pruh se vlní zvlášť kolem své horní hrany (kresba/prizemi.ts) */
+.krm-noren.krm-vitr { animation: none; }
+.krm-pr-noren-dil { transform-box: fill-box; transform-origin: 50% 0; animation: krm-vitr 5.2s ease-in-out infinite; }
+.krm-pr-noren-dil[data-i="1"] { animation-duration: 4.6s; animation-delay: -1.7s; }
+.krm-pr-noren-dil[data-i="2"] { animation-duration: 5.8s; animation-delay: -3.2s; }
+
+/* Zavírání: noren se uklidí, cedulka se otočí, spadne roleta — a světla krámku
+   (výlohy, lampa nad pultem, světlo na prahu: krm-pr-provoz) zhasínají, jak roleta
+   jede dolů; lampiony, štít, neon a lampička vývěsky svítí dál */
+.krm-noren { transform-box: view-box; transform-origin: 1600px 1334px; translate: 0 calc(var(--noren) * -60px); scale: 1 calc(1 - var(--noren) * 0.9); opacity: calc(1 - var(--noren)); }
+.krm-roleta { transform: translateY(calc((var(--zavreno) - 1) * 400px)); }
+.krm-svetla .krm-pr-provoz.sviti { opacity: calc(1 - var(--zavreno)); }
+.krm-otevreno,
+.krm-zavreno { transform-box: fill-box; transform-origin: 50% 0; transition: opacity 0.35s, scale 0.35s; }
+.krm-zavreno { opacity: 0; scale: 0 1; }
+.zavira .krm-otevreno { opacity: 0; scale: 0 1; }
+.zavira .krm-zavreno { opacity: 1; scale: 1 1; transition-delay: 0.3s; }
+
+/* Vrány na drátech večer odletí */
+.krm-vrana { transform-box: fill-box; transition: translate 2.6s cubic-bezier(0.5, 0, 0.8, 0.4), opacity 2.2s ease-in 0.4s; }
+.vecer .krm-vrana { translate: 420px -520px; opacity: 0; }
+.vecer .krm-vrana:nth-child(2n) { translate: -380px -460px; }
+.vecer .krm-vrana:nth-child(3n) { translate: 260px -600px; transition-delay: 0.3s; }
+
+/* Kočka: ocas se pomalu hýbe, po kliknutí mrskne */
+.krm-kocka-ocas { transform-box: fill-box; animation: krm-ocas 4.8s ease-in-out infinite; }
+.krm-kocka-ocas.mrska { animation: krm-mrsk 0.9s cubic-bezier(0.3, 1.4, 0.5, 1); }
+@keyframes krm-ocas { 0%, 100% { rotate: 0deg; } 50% { rotate: 7deg; } }
+@keyframes krm-mrsk { 0% { rotate: 0deg; } 30% { rotate: 22deg; } 60% { rotate: -10deg; } 100% { rotate: 0deg; } }
+
+/* ——— Zboží ——— */
+
+/* V noci jsou kusy v teplém světle lampy, jako vnitřek krámku */
+.krm-zbozi { position: absolute; inset: 0; pointer-events: none; }
+.krm-scena:not(.je-den) .krm-zbozi { filter: brightness(calc(1 - var(--tma) * 0.22)) sepia(calc(var(--tma) * 0.38)); }
+.krm-zbozi > * { pointer-events: auto; }
+
+.krm-kus { position: absolute; display: block; --kus: 150px; --hrana: 26px; }
+.krm .krm-kus-okno {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: var(--kus);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Kus z Japonska stojí ve výklenku s obloukem — fotka je jeho zadní stěna */
+.krm-kus-japonsko .krm-kus-okno {
+  overflow: hidden;
+  border-radius: 50% 50% 5px 5px / 24% 24% 5px 5px;
+  background: #2A1D14;
+  box-shadow: 0 0 0 4px #4E321F, 0 14px 16px -10px rgba(20, 10, 5, 0.6);
+}
+.krm-kus-japonsko .krm-kus-okno::after {
   content: "";
   position: absolute;
-  bottom: -12px;
-  width: 7px;
-  height: 18px;
-  background: var(--drevo);
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 16px 18px -10px rgba(0, 0, 0, 0.55), inset 10px 0 14px -10px rgba(0, 0, 0, 0.35), inset -10px 0 14px -10px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
 }
-.o2k-stojan::before { left: 14px; transform: rotate(8deg); }
-.o2k-stojan::after { right: 14px; transform: rotate(-8deg); }
-.o2k-stojan-nadpis {
-  margin: 0 0 4px;
-  font: 600 clamp(20px, 2vw, 25px) / 1 var(--f-ruka);
-  color: #F3D27A;
+.krm-foto { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale 0.6s cubic-bezier(0.2, 0.8, 0.3, 1); }
+.krm-kus-okno:hover .krm-foto { scale: 1.06; }
+.krm-balik { display: block; width: 100%; height: 100%; overflow: visible; transition: translate 0.45s cubic-bezier(0.3, 1.5, 0.5, 1), rotate 0.45s; }
+.krm-kus-okno:hover .krm-balik { translate: 0 -5px; rotate: -1.5deg; }
+.krm-kus-okno:focus-visible { outline: 3px solid var(--rumelka); outline-offset: 3px; }
+
+/* Cenovka visí na provázku z pravého horního rohu */
+.krm-cenovka {
+  position: absolute;
+  z-index: 3;
+  right: -8px;
+  top: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 3px 7px 4px 13px;
+  background: #FBF7EC;
+  color: var(--rumelka);
+  font-family: var(--f-ruka);
+  white-space: nowrap;
+  clip-path: polygon(9px 0, 100% 0, 100% 100%, 9px 100%, 0 50%);
+  transform: rotate(7deg);
+  transform-origin: 70% -16px;
+  filter: drop-shadow(0 3px 3px rgba(30, 15, 5, 0.3));
+  transition: transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+  pointer-events: none;
 }
-.o2k-stojan-text { margin: 0; font: 400 clamp(17px, 1.6vw, 20px) / 1.2 var(--f-ruka); }
+.krm-cenovka::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: #8A7C70;
+}
+.krm-cenovka b { font-weight: 600; font-size: calc(var(--kus) * 0.13); line-height: 1; }
+.krm-cenovka small { font-size: calc(var(--kus) * 0.085); color: var(--inkoust-2); }
+.krm-kus:hover .krm-cenovka { transform: rotate(-5deg); }
+
+/* Páska se jménem na hraně police */
+.krm-paska {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: calc(var(--kus) + 4px);
+  height: calc(var(--hrana) - 7px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 0 4px;
+  background: rgba(246, 238, 216, 0.95);
+  color: var(--inkoust);
+  font: 600 calc(var(--hrana) * 0.6) / 1 var(--f-ruka);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  clip-path: polygon(0 8%, 5% 0, 10% 6%, 15% 0, 100% 0, 97% 34%, 100% 66%, 98% 100%, 4% 100%, 1% 88%, 2% 50%);
+  transform: rotate(-1.2deg);
+  pointer-events: none;
+}
+
+/* Do šátku: malé tlačítko na kusu */
+.krm .krm-do-satku {
+  position: absolute;
+  z-index: 4;
+  left: 5px;
+  bottom: calc(var(--hrana) + 5px);
+  padding: 4px 8px 5px;
+  border-radius: 999px;
+  background: rgba(43, 36, 32, 0.84);
+  color: #FBF7EC;
+  font: 600 calc(var(--kus) * 0.085) / 1 var(--f-text);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: 0 3px 6px -2px rgba(20, 10, 5, 0.45);
+  opacity: 0.92;
+  transition: background 0.2s, opacity 0.2s, translate 0.2s;
+}
+.krm .krm-do-satku:hover,
+.krm .krm-do-satku:focus-visible { background: var(--inkoust); opacity: 1; translate: 0 -2px; }
+.krm .krm-do-satku.v-satku { background: #2E4A78; opacity: 1; }
+.krm-v-satku { display: none; }
+
+/* Ruční kartička „novinka“ (POP), jak je v japonských obchodech všude */
+.krm-pop {
+  position: absolute;
+  z-index: 3;
+  left: -6px;
+  top: 2px;
+  display: grid;
+  justify-items: center;
+  padding: 4px 6px 5px;
+  border-radius: 2px;
+  background: #F6DD4A;
+  color: var(--rumelka);
+  font: 600 calc(var(--kus) * 0.1) / 1 var(--f-ruka);
+  transform: rotate(-9deg);
+  box-shadow: 0 4px 6px -3px rgba(30, 15, 5, 0.45);
+  pointer-events: none;
+}
+.krm-pop [lang="ja"] { font: 400 calc(var(--kus) * 0.11) / 1.1 var(--f-kanji); color: var(--inkoust); }
+
+/* Hodiny na zadní stěně (v ciferníku vykukuje Střípek), Cedulka na pultu, účtenka */
+.krm-hodiny { position: absolute; filter: drop-shadow(2px 5px 4px rgba(40, 20, 10, 0.3)); }
+.krm-hodiny svg { display: block; width: 100%; height: auto; }
+.skryty.o2k-stripek { transform-origin: 50% 100%; }
+.krm .krm-cedulka { position: absolute; }
+.krm-uctenka {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  width: 104px;
+  padding: 6px 8px 9px;
+  background: #FBF7EC;
+  color: var(--inkoust) !important;
+  font: 600 13px / 1.1 var(--f-ruka);
+  text-decoration: none;
+  transform: rotate(-5deg);
+  box-shadow: 0 5px 8px -4px rgba(30, 15, 5, 0.45);
+  clip-path: polygon(0 0, 100% 0, 100% 92%, 92% 100%, 84% 92%, 76% 100%, 68% 92%, 60% 100%, 52% 92%, 44% 100%, 36% 92%, 28% 100%, 20% 92%, 12% 100%, 4% 92%, 0 100%);
+  transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.krm-uctenka:hover { transform: rotate(-2deg) translateY(-3px); }
+.krm-uctenka:focus-visible { outline: 3px solid var(--rumelka); outline-offset: 2px; }
+.krm-uctenka-hlava { padding-bottom: 2px; border-bottom: 1px dashed rgba(43, 36, 32, 0.3); color: var(--rumelka); font: 400 10px / 1 var(--f-kanji); letter-spacing: 0.2em; }
+
+/* ——— Nad kresbou: tabule, letáky, automat, zóny ——— */
+
+.krm-nad { position: absolute; inset: 0; pointer-events: none; }
+.krm-nad > * { pointer-events: auto; }
+.krm-tabule {
+  position: absolute;
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 6px 8px;
+  color: #EFEBDF;
+  font-family: var(--f-ruka);
+  opacity: calc(1 - var(--tma) * 0.45);
+  pointer-events: none !important;
+}
+.krm-tabule-nadpis { margin: 0 0 2px; font: 600 19px / 1 var(--f-ruka); color: #F3D27A; transform: rotate(-2deg); }
+.krm-tabule ol { margin: 0; padding: 0 0 0 16px; font-size: 15px; line-height: 1.12; }
+.krm-tabule li::marker { color: #F3D27A; }
+
+.krm-plakat,
+.krm-automat,
+.krm-zona {
+  position: absolute;
+  padding: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  transition: box-shadow 0.25s, background 0.25s;
+  -webkit-tap-highlight-color: transparent;
+}
+.krm-plakat:hover,
+.krm-plakat:focus-visible,
+.krm-automat:hover,
+.krm-automat:focus-visible,
+.krm-zona:hover,
+.krm-zona:focus-visible {
+  outline: none;
+  background: rgba(255, 246, 220, 0.12);
+  box-shadow: 0 0 0 calc(2px / var(--s)) rgba(255, 252, 240, 0.95), 0 0 calc(18px / var(--s)) calc(3px / var(--s)) rgba(255, 210, 130, 0.75);
+}
+.krm-lampion-zona { position: absolute; pointer-events: auto; }
+
+/* Automat: po kliknutí vypadne plechovka */
+.krm-automat-plechovka {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  width: 22px;
+  height: 36px;
+  margin-left: -11px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #B8C4CC, #F2F6F8 40%, #9AA6AE);
+  box-shadow: inset 0 9px 0 #C4432B, inset 0 -6px 0 #8E979E;
+  opacity: 0;
+  pointer-events: none;
+}
+.krm-automat.vydava .krm-automat-plechovka { animation: krm-plechovka 1s cubic-bezier(0.5, 0, 0.6, 1.4) both; }
+@keyframes krm-plechovka {
+  0% { opacity: 0; transform: translateY(-120px) rotate(0deg); }
+  20% { opacity: 1; }
+  70% { opacity: 1; transform: translateY(0) rotate(80deg); }
+  100% { opacity: 0; transform: translateY(0) rotate(90deg); }
+}
+
+/* Bublina (kočka, automat) — stejně velká, ať je kamera jakkoli blízko */
+.krm-bublina {
+  position: absolute;
+  z-index: 8;
+  max-width: calc(320px / var(--s));
+  margin: 0;
+  padding: calc(9px / var(--s)) calc(14px / var(--s)) calc(10px / var(--s));
+  border-radius: calc(14px / var(--s));
+  background: #FBF7EC;
+  color: var(--inkoust);
+  font: 600 calc(19px / var(--s)) / 1.15 var(--f-ruka);
+  box-shadow: 0 calc(10px / var(--s)) calc(22px / var(--s)) calc(-10px / var(--s)) rgba(20, 15, 40, 0.6);
+  transform: translate(-50%, calc(-100% - 14px / var(--s))) scale(0.85);
+  transform-origin: 50% 100%;
+  opacity: 0;
+  pointer-events: none !important;
+  transition: opacity 0.25s, transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.krm-bublina.je { opacity: 1; transform: translate(-50%, calc(-100% - 14px / var(--s))); }
+.krm-bublina::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(-8px / var(--s));
+  width: calc(16px / var(--s));
+  height: calc(16px / var(--s));
+  margin-left: calc(-8px / var(--s));
+  background: inherit;
+  transform: rotate(45deg);
+}
+
+/* ——— Karty, popisky a jízdenka nad scénou ——— */
+
+.krm-karta {
+  position: absolute;
+  z-index: 6;
+  left: max(16px, 3.4vw);
+  top: 50%;
+  width: min(440px, 35vw);
+  margin: 0;
+  padding: clamp(20px, 2.2vw, 30px) clamp(20px, 2.2vw, 30px) clamp(18px, 2vw, 26px);
+}
+/* Úvodní karta odjede nahoru, jakmile kamera vyrazí z celku, a vrátí se, když se do celku vrací */
+.krm-uvod {
+  transform: translateY(-50%) rotate(-0.6deg);
+  transition: opacity 0.45s, transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1), visibility 0s;
+}
+.bez-uvodu .krm-uvod {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(calc(-50% - 60px)) rotate(-0.6deg);
+  transition: opacity 0.35s, transform 0.45s ease-in, visibility 0s 0.45s;
+}
+.krm-nadpis {
+  margin: 10px 0 14px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: clamp(38px, min(4.4vw, 7.4vh), 72px);
+  line-height: 0.96;
+  letter-spacing: -0.02em;
+}
+.krm-nadpis em { display: block; color: var(--rumelka); font-weight: 300; }
+.krm-perex { margin: 0 0 12px; color: var(--inkoust-2); font-size: clamp(15px, 1.1vw, 17px); }
+.krm-ruka { margin: 0 0 18px; font: 600 clamp(21px, 1.7vw, 25px) / 1.1 var(--f-ruka); color: var(--rumelka); transform: rotate(-1.4deg); }
+.krm-akce { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.krm-konec {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(calc(-50% + 30px)) rotate(0.5deg);
+  transition: opacity 0.6s, transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1), visibility 0s 0.7s;
+}
+.krm-konec.je { opacity: 1; visibility: visible; transform: translateY(-50%) rotate(0.5deg); transition-delay: 0s; }
+.krm-konec-nadpis {
+  margin: 8px 0 12px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: clamp(30px, 3vw, 46px);
+  line-height: 1;
+}
+.krm-konec-text { margin: 0 0 16px; color: var(--inkoust-2); }
+.krm-konec-adresa { margin: 14px 0 0; font-size: 14.5px; color: var(--inkoust-2); }
+.krm-konec-adresa a { color: inherit; }
+
+.krm-popisek {
+  position: absolute;
+  z-index: 5;
+  left: max(16px, 3.4vw);
+  bottom: 22px;
+  /* vpravo vedle něj je jízdenka */
+  width: min(470px, calc(100% - 2 * max(16px, 3.4vw) - 420px));
+  margin: 0;
+  padding: 12px 18px 13px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--papir) 94%, transparent);
+  box-shadow: 0 14px 30px -16px rgba(28, 20, 44, 0.6);
+  font-size: 15px;
+  line-height: 1.4;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity 0.4s, transform 0.5s cubic-bezier(0.3, 1.3, 0.5, 1), visibility 0s 0.5s;
+  pointer-events: none;
+}
+.krm-popisek.je { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.krm-popisek p { margin: 0; }
+/* Odkaz dolů do nabídky — jediné, na co se v popisku dá kliknout */
+.krm-popisek-odkaz { font-weight: 600; color: var(--rumelka); text-underline-offset: 3px; white-space: nowrap; }
+.krm-popisek.je .krm-popisek-odkaz { pointer-events: auto; }
+.krm-popisek-hlava { margin-bottom: 3px !important; font-family: var(--f-display); font-weight: 600; font-size: 17px; letter-spacing: 0.02em; }
+.krm-popisek-hlava [lang="ja"] { font-family: var(--f-kanji); font-weight: 400; color: var(--rumelka); margin-right: 6px; }
+.krm-popisek-hlava small { font-family: var(--f-ruka); font-size: 1.2em; font-weight: 600; color: var(--inkoust-3); margin-left: 6px; }
+
+/* Jízdenka: zpátky, hodiny krámku s názvem zastávky, a dál — vpravo dole */
+.krm-cesta {
+  position: absolute;
+  z-index: 7;
+  right: max(16px, 3.4vw);
+  bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--papir) 94%, transparent);
+  box-shadow: 0 14px 30px -16px rgba(28, 20, 44, 0.6), 0 0 0 1px rgba(43, 36, 32, 0.06);
+}
+.krm-cesta button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--inkoust);
+  font: 600 15px / 1 var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, opacity 0.2s;
+}
+.krm-cesta button:focus-visible { outline: 3px solid var(--rumelka); outline-offset: 2px; }
+.krm-cesta svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: translate 0.2s; }
+.krm-cesta-zpet:hover:not(:disabled) { background: rgba(43, 36, 32, 0.08); }
+.krm-cesta-zpet:disabled { opacity: 0.25; cursor: default; }
+.krm-cesta .krm-cesta-dal { padding: 0 12px 0 18px; background: var(--inkoust); color: var(--papir); }
+.krm-cesta .krm-cesta-dal:hover { background: #000; }
+.krm-cesta .krm-cesta-dal:hover svg { translate: 2px 0; }
+/* Na konci dne vede dál zase ráno */
+.krm-cesta .krm-cesta-dal.znovu { background: var(--rumelka); }
+/* Než se poprvé vyjede, šipka dál jemně pobízí */
+.krm-cesta.zve .krm-cesta-dal svg { animation: krm-zve 2.6s ease-in-out 1.4s infinite; }
+@keyframes krm-zve { 0%, 64%, 100% { translate: 0 0; } 76% { translate: 5px 0; } 88% { translate: -1px 0; } }
+
+/* Hodiny krámku: kolik je, když kamera jede dnem */
+.krm-cas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 12px 0 4px;
+  font: 600 15px / 1 var(--f-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--inkoust);
+  white-space: nowrap;
+}
+.krm-cas-text { min-width: 2.9em; }
+.krm-cesta-kde { font: 600 20px / 1 var(--f-ruka); color: var(--rumelka); }
+.krm-cas-cifernik { position: relative; width: 26px; height: 26px; border-radius: 50%; background: #FBF7EC; box-shadow: inset 0 0 0 2px var(--inkoust); }
+.krm-cas-cifernik i,
+.krm-cas-cifernik b { position: absolute; left: 50%; bottom: 50%; width: 2px; margin-left: -1px; border-radius: 2px; background: var(--inkoust); transform-origin: 50% 100%; }
+.krm-cas-cifernik i { height: 7px; transform: rotate(calc(var(--hod, 0) * 1deg)); }
+.krm-cas-cifernik b { height: 10px; width: 1.5px; background: var(--rumelka); transform: rotate(calc(var(--min, 0) * 1deg)); }
+
+
+/* ——— Úzká obrazovka: jízdenka přes celou šířku dole, karty nad ní přes ulici ——— */
+
+[data-rozvrzeni="uzka"] .krm-karta {
+  left: 10px;
+  right: 10px;
+  top: auto;
+  bottom: 72px;
+  width: auto;
+  max-height: 47svh;
+  overflow: auto;
+  padding: 18px 18px 16px;
+}
+[data-rozvrzeni="uzka"] .krm-uvod { transform: none; }
+[data-rozvrzeni="uzka"] .bez-uvodu .krm-uvod { transform: translateY(60px); }
+[data-rozvrzeni="uzka"] .krm-konec { transform: translateY(30px); }
+[data-rozvrzeni="uzka"] .krm-konec.je { transform: none; }
+[data-rozvrzeni="uzka"] .krm-nadpis { font-size: clamp(32px, 9vw, 44px); margin: 6px 0 10px; }
+[data-rozvrzeni="uzka"] .krm-perex { font-size: 14.5px; margin-bottom: 8px; }
+[data-rozvrzeni="uzka"] .krm-ruka { font-size: 20px; margin-bottom: 12px; }
+[data-rozvrzeni="uzka"] .krm-popisek { left: 10px; right: 10px; bottom: 72px; width: auto; padding: 10px 14px 11px; font-size: 14px; }
+[data-rozvrzeni="uzka"] .krm-cesta { left: 10px; right: 10px; bottom: 10px; justify-content: space-between; }
+[data-rozvrzeni="uzka"] .krm-cesta button { height: 44px; min-width: 44px; }
+[data-rozvrzeni="uzka"] .krm-cesta .krm-cesta-dal { padding: 0; }
+[data-rozvrzeni="uzka"] .krm-cesta-dal-text { display: none; }
+[data-rozvrzeni="uzka"] .krm-cas { font-size: 14px; padding: 0 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .krm-lampion,
+  .krm-vitr,
+  .krm-mury > *,
+  .krm-kocka-ocas,
+  .krm-cesta svg { animation: none !important; }
+  .krm-vrana,
+  .krm-svetla .krm-s,
+  .krm-foto,
+  .krm-balik,
+  .krm-cenovka,
+  .krm-uctenka { transition: none !important; }
+}
 
 /* ——— Detail kusu ——— */
 
@@ -879,47 +719,6 @@
 }
 .o2k-poradi { color: var(--inkoust-3); font-variant-numeric: tabular-nums; }
 
-/* ——— Menší obrazovky ——— */
-
-@media (max-width: 1000px) {
-  .o2k-bedny { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .o2k-police { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .o2k-stena { grid-template-columns: clamp(64px, 9vw, 90px) minmax(0, 1fr); }
-  .o2k-krabice { display: none; }
-}
-
 @media (max-width: 700px) {
-  .o2k { padding: 84px 10px 6vh; }
-  .o2k-preklad { padding: 12px 10px 10px; }
-  .o2k-stena { grid-template-columns: minmax(0, 1fr); margin-top: -8px; }
-  .o2k-hodiny { position: absolute; right: 4px; top: 4px; width: 54px; margin: 0; z-index: 1; }
-  .o2k-karton-obal { margin: 22px 0 34px; }
-  .o2k-karton { padding-right: 56px; }
-  .o2k-bedny { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 44px; }
-  .o2k-bedna-provazek { display: none; }
-  .o2k-hrana { padding: 6px 7px 8px; }
-  .o2k-paska { width: 100%; }
-  .o2k-do-satku { width: 100%; }
-  .o2k-cenovka { right: 8%; }
-  .o2k-pult-veci { flex-wrap: wrap; padding: 0 12px; }
-  .o2k-soroban { width: 120px; }
-  .o2k-uctenka { order: -1; max-width: none; width: 100%; margin-bottom: 18px; }
-  .o2k-cedulka { display: none; }
-  /* Věci před krámkem pod sebou — stojí před dřevěnou spodní stěnou domu, aby nevisely ve vzduchu */
-  .o2k-ulice {
-    height: auto;
-    margin: 0 calc(-1 * clamp(8px, 2vw, 24px)) 0;
-    flex-wrap: wrap;
-    padding: 4px clamp(18px, 6vw, 30px) 18px;
-    background: linear-gradient(var(--drevo), var(--drevo-tmave)) clamp(8px, 2vw, 24px) 0 / calc(100% - 2 * clamp(8px, 2vw, 24px)) calc(100% - 30px) no-repeat;
-  }
-  .o2k-pult-deska { height: 30px; }
-  .o2k-kosik { display: none; }
-  .o2k-stojan { order: -1; max-width: none; width: 100%; margin-bottom: 18px; }
   .o2k-detail { grid-template-columns: minmax(0, 1fr); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .o2k-noren-dil, .o2k-lucerna { animation: none; }
-  .o2k-foto, .o2k-balik, .o2k-cenovka, .o2k-uctenka { transition: none; }
 }

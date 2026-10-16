@@ -12,6 +12,7 @@
  *   tycinka   02 Tušový lem — dokud hoří tyčinka: tančí s vějířem a kouř se za ním stáčí do tvarů (id vg2-)
  *   destnik   02 Tušový lem — hadí oko: v dešti na můstku pod deštníkem janome, zezadu (id vg3-)
  *   lampion   03 Lampion — jde na večer s papírovou lucernou (id vgl-)
+ *   pruvodce  01 Kami v letu jako průvodce v rohu každé stránky (id vgp-, smí vedle všech)
  *
  * Stavba je stejná jako u Střípka (scripts/stripek-zlato): čisté generátory
  * SVG bez DOM — dostanou čas, stav simulace a vstup a vrátí značky. Běží
@@ -29,7 +30,7 @@
  * posune přes krok(). Zvuky, které má běh zahrát, krok přidá do dyn.zvuk.
  */
 import { f } from "./spolecne.js";
-import { kamiKvety, kamiLet } from "./kami-kvety.js";
+import { kamiKvety, kamiLet, kamiPruvodce } from "./kami-kvety.js";
 import { lemTycinka } from "./lem-tycinka.js";
 import { lemDestnik } from "./lem-destnik.js";
 import { lampion } from "./lampion.js";
@@ -74,4 +75,4 @@ export const pretoc = (V, t, vstup = {}, krokS = 1 / 60) => {
   return dyn;
 };
 
-export const kresby = { kvety: kamiKvety, let: kamiLet, tycinka: lemTycinka, destnik: lemDestnik, lampion };
+export const kresby = { kvety: kamiKvety, let: kamiLet, pruvodce: kamiPruvodce, tycinka: lemTycinka, destnik: lemDestnik, lampion };

@@ -65,6 +65,14 @@ const vsech = kroky.length + 1;
       ))}
     </ol>
 
+    {/* Šipky po stranách: o měsíc zpět a dál (scripts/uvod2/rok.ts) */}
+    <button type="button" class="rok-sipka rok-sipka-zpet" aria-label="Předchozí měsíc" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" /></svg>
+    </button>
+    <button type="button" class="rok-sipka rok-sipka-dal" aria-label="Další měsíc">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L16 12 L9 19" /></svg>
+    </button>
+
     <figure class="rok-foto">
       <Image src={dilnaFoto} alt="Dílna doopravdy: velký stůl s modrými židlemi, kuchyňka se zelenými miskami na polici, regál, nerezová pec a vpředu kruhy" width={1100} widths={[480, 760, 1100]} sizes="(min-width: 861px) 30vw, 72vw" format="webp" />
       <figcaption>A takhle to v dílně vypadá doopravdy.</figcaption>

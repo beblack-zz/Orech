@@ -23,13 +23,13 @@ const kapitola = (kam: string) => kapitoly.find((k) => `#${k.id}` === kam)?.naze
       <h1 id="d-nadpis" class="d-nadpis">Jak to v dílně chodí <em>a jak se z hroudy stane hrnek</em></h1>
       <p class="d-perex">
         Dílna je v suterénu zeleného domu v Ořechu. Každé {kdy.dny} od {kdy.hodiny.replace("–", " do ")} hodin si
-        tu zamluvíš hodinu — {kdy.cena} za člověka — a celá dílna je ta hodina vaše. Lektor je v ceně, a když ho
+        tu zamluvíš místo na hodinu — {kdy.cena} za člověka, čím víc lidí v dílně, tím míň. Lektor je v ceně, a když ho
         nepotřebuješ, je to open studio. Kafe je samozřejmost.
       </p>
       <dl class="d-zaklad">
         <div><dt>Kdy</dt><dd>{kdy.dny}, {kdy.hodiny}</dd></div>
         <div><dt>Za kolik</dt><dd>{kdy.cena} {kdy.zaCo} <small>hodina u nás trvá {kdy.minut} minut</small></dd></div>
-        <div><dt>S kým</dt><dd>{kdy.skupina}</dd></div>
+        <div><dt>S kým</dt><dd>{kdy.skupina} <small>na hodinu jsou v dílně {kdy.mist} místa</small></dd></div>
         <div><dt>Hotový kus</dt><dd>za {celkem}</dd></div>
       </dl>
       <nav class="d-obsah" aria-label="Co je na stránce">

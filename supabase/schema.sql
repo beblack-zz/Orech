@@ -13,7 +13,8 @@
 --               udělá v SQL Editoru
 --                 update clenove set token = gen_random_uuid(), pozvanka_odeslana = null where email = '…';
 --               starý tím přestane platit a nový odejde mailem.
---   rezervace   Co je zamluvené. Zrušit = vyplnit sloupec zruseno (now()).
+--   rezervace   Co je zamluvené: odjezd má místa (na webu 4) a jedna
+--               rezervace je jedna skupina. Zrušit = vyplnit sloupec zruseno (now()).
 --               Rezervaci po telefonu jde zapsat ručně novým řádkem.
 --   kurzy       Vypsané termíny kurzů: den, který kurz (kruh, glazury — jak
 --               se jmenují na webu) a kolik míst; web umí nakreslit nejvýš
@@ -82,8 +83,10 @@ create table if not exists rezervace (
     or (druh = 'permanentka' and cas is not null and den_do is not null and den_do >= den)
   )
 );
-/* Odjezd se zamlouvá celý: dvě platné rezervace na stejný den a čas být nemůžou */
-create unique index if not exists rezervace_odjezd on rezervace (den, cas) where druh = 'odjezd' and zruseno is null;
+/* Databáze z doby před 16. 10. 2026, kdy se odjezd zamlouval celý: zrušit index,
+   který na jeden odjezd pouštěl jen jednu rezervaci. Odjezd má teď místa
+   a plní se po skupinách — hlídá to rezervuj(). */
+drop index if exists rezervace_odjezd;
 create index if not exists rezervace_den on rezervace (den);
 
 create table if not exists nastaveni (
@@ -128,7 +131,7 @@ revoke all on kdo_prijde, odkazy from anon, authenticated;
 /* ——— Funkce, které volá web ——— */
 
 /**
- * Co je zamluvené ode dneška dál — bez jmen. Když přijde platný token,
+ * Co je zamluvené ode dneška dál — bez jmen. U odjezdů kolik míst je pryč. Když přijde platný token,
  * přibude jméno člena a jeho vlastní jízdenky.
  */
 create or replace function volno(p_od date, p_token uuid default null)
@@ -139,8 +142,9 @@ declare
 begin
   v := jsonb_build_object(
     'obsazeno', coalesce((
-      select jsonb_agg(jsonb_build_object('den', den, 'cas', to_char(cas, 'HH24:MI')))
-        from rezervace where druh = 'odjezd' and zruseno is null and den >= p_od), '[]'::jsonb),
+      select jsonb_agg(jsonb_build_object('den', den, 'cas', to_char(cas, 'HH24:MI'), 'osob', osob))
+        from (select den, cas, sum(osob) as osob from rezervace
+               where druh = 'odjezd' and zruseno is null and den >= p_od group by den, cas) o), '[]'::jsonb),
     'zavreno', coalesce((
       select jsonb_agg(jsonb_build_object('den', den, 'cas', to_char(cas, 'HH24:MI')))
         from zavreno where den >= p_od), '[]'::jsonb),
@@ -175,12 +179,13 @@ returns text language sql stable as $$
 $$;
 
 /**
- * Zamluví odjezdy, místa v kurzu nebo permanentku. Kontrola i zápis jsou
- * pod jedním zámkem, takže poslední místo dostane jen jeden.
+ * Zamluví místa na odjezdech, v kurzu nebo na permanentce. Kontrola i zápis
+ * jsou pod jedním zámkem, takže poslední místo dostane jen jeden. Kolik
+ * míst má odjezd a spoj permanentky, posílá web (p_mist).
  *
  * Dny v týdnu, hodiny a jak daleko dopředu hlídá web; tady se hlídá to,
  * co ví jen databáze: jestli je člen, jestli je otevřeno a jestli je volno.
- * Chyby: neznamy, zavreno, vyluka, nejede, obsazeno, plno.
+ * Chyby: neznamy, zavreno, vyluka, nejede, plno.
  */
 create or replace function rezervuj(
   p_token uuid,
@@ -219,14 +224,14 @@ begin
   elsif p_druh in ('odjezd', 'permanentka') then
     if v_je_kurz then raise exception 'vyluka'; end if;
     if coalesce(array_length(p_hodiny, 1), 0) = 0 then raise exception 'nic'; end if;
-    if p_druh = 'permanentka' and (p_den_do is null or p_mist is null) then raise exception 'nic'; end if;
+    if p_mist is null or (p_druh = 'permanentka' and p_den_do is null) then raise exception 'nic'; end if;
 
     foreach v_cas in array p_hodiny::time[] loop
       if exists (select 1 from zavreno where den = p_den and cas = v_cas) then raise exception 'zavreno'; end if;
       if p_druh = 'odjezd' then
-        if exists (select 1 from rezervace where druh = 'odjezd' and den = p_den and cas = v_cas and zruseno is null) then
-          raise exception 'obsazeno';
-        end if;
+        select coalesce(sum(osob), 0) into v_obsazeno from rezervace
+         where druh = 'odjezd' and den = p_den and cas = v_cas and zruseno is null;
+        if v_obsazeno + p_osob > p_mist then raise exception 'plno'; end if;
         insert into rezervace (clen_id, druh, den, cas, osob, poznamka, jizdenka)
           values (v_clen.id, 'odjezd', p_den, v_cas, p_osob, p_poznamka, v_jizdenka);
       else
@@ -245,7 +250,10 @@ begin
     raise exception 'nic';
   end if;
 
-  return jsonb_build_object('jizdenka', v_jizdenka, 'jmeno', v_clen.jmeno, 'email', v_clen.email, 'kurz', v_kurz.kurz);
+  return jsonb_build_object('jizdenka', v_jizdenka, 'jmeno', v_clen.jmeno, 'email', v_clen.email, 'kurz', v_kurz.kurz,
+    /* Týdny permanentky, kdy jede kurz — výluka, ty se neplatí */
+    'vyluk', case when p_druh = 'permanentka' then (
+      select count(*) from kurzy k where k.den between p_den and p_den_do and extract(dow from k.den) = extract(dow from p_den)) end);
 end $$;
 
 /**

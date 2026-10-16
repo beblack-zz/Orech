@@ -2,10 +2,9 @@
 /**
  * Noc na konci Rezervace — poslední vlak. Vlak se po moři vrací
  * k nástupišti s rozsvícenými okny (More.astro, more.ts) a pod kartou
- * je pro něj volné místo, ať je vidět celý. Na kartě poslední odeslaná
- * jízdenka (dopisuje skript z prohlížeče), kontakt pro ty, kdo radši
- * volají. Člen, který přišel přes svůj odkaz, tu místo ní má všechny své
- * zamluvené jízdenky a může je zrušit.
+ * je pro něj volné místo, ať je vidět celý. Na kartě je telefon, přes
+ * který se dává přístup k rezervacím, a kontakt. Člen, který přišel přes
+ * svůj odkaz, tu má všechny své zamluvené jízdenky a může je zrušit.
  */
 import { kontakt, mapa } from "../../data/uvod2";
 import { rezervace } from "../../data/rezervace";
@@ -14,11 +13,6 @@ import { rezervace } from "../../data/rezervace";
   <div class="rz-noc-karta papir">
     <p class="stitek">poslední vlak</p>
     <h2 id="rz-noc-nadpis" class="nadpis-2">Jízdenka počká do rána.</h2>
-    <div class="rz-posledni" hidden>
-      <p class="rz-posledni-nadpis">Naposledy odeslaná jízdenka</p>
-      <p class="rz-posledni-text"></p>
-      <p class="rz-posledni-pozn">Platí, až ji potvrdíme. Kdyby odpověď dlouho nepřicházela, ozvi se.</p>
-    </div>
     <div class="rz-moje" hidden>
       <p class="rz-posledni-nadpis">Tvoje jízdenky</p>
       <ul class="rz-moje-seznam"></ul>
@@ -26,10 +20,10 @@ import { rezervace } from "../../data/rezervace";
       <p class="rz-posledni-pozn">Zrušit jde nejpozději {rezervace.zrusitHodinPredem} hodin předem, permanentku jen přes nás.</p>
       <p class="rz-moje-stav" aria-live="polite"></p>
     </div>
-    <p class="rz-noc-text">Radši zavoláš, nebo napíšeš rovnou? Taky dobře.</p>
+    <p class="rz-noc-text">Ještě nemáš přístup? Zavolej, nadiktuj nám e-mail a odkaz ti přijde. Na cokoli dalšího nám klidně napiš.</p>
     <div class="rz-noc-akce">
-      <a class="tlacitko" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
-      <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+      <a class="tlacitko" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+      <a class="tlacitko tlacitko-obrys" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
     </div>
     <p class="rz-noc-adresa">
       {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·

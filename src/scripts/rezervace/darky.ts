@@ -18,7 +18,7 @@
  * pokračování, jen se rovnou ukáže výsledek.
  */
 import { vlakKurz, ZNAK_KTERYKOLI } from "../../components/rezervace/darky";
-import { rezervace as R, permanentka as P, kurzy, cenaOdjezdu, darky as D, odjezduDarku } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, kurzy, cenaOdjezdu, cenaPermanentky, darky as D, odjezduDarku } from "../../data/rezervace";
 import { sklonuj } from "../../data/pocty";
 import { klid, omez, nacti, uloz } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
@@ -48,7 +48,7 @@ const kurzPodle = (id: string) => kurzy.find((k) => k.id === id) ?? null;
 
 /** Cena dárku. Na kterýkoli kurz se počítá ten nejdražší, ať jízdenka pokryje každý. */
 const cenaZa = (dar: Dar, kurz: string) =>
-  dar === "hodiny" ? odjezduDarku * cenaOdjezdu : dar === "pas" ? P.cena : (kurzPodle(kurz)?.cena ?? Math.max(...kurzy.map((k) => k.cena)));
+  dar === "hodiny" ? odjezduDarku * cenaOdjezdu(1) : dar === "pas" ? cenaPermanentky() : (kurzPodle(kurz)?.cena ?? Math.max(...kurzy.map((k) => k.cena)));
 
 /* ——— Měření písma: jméno, podpis a kurz se vejdou podle skutečné šířky ——— */
 
@@ -334,26 +334,55 @@ export function initDarky() {
     const kruh = s.querySelector<SVGCircleElement>(".rzd-uv-kruh");
     return { svg: s.querySelector<SVGSVGElement>(".rzd-strana-lic .rzd-listek"), kruh, dx: Number(kruh?.dataset.dx ?? 0), dy: Number(kruh?.dataset.dy ?? 0) };
   });
-  /** Posvítí lampou na místo v okně: kruh na papíře a v každé jízdence maska na stejné místo */
-  const posvit = (x: number, y: number) => {
+  /** Kruhy, které právě svítí — ostatní jsou schované a nesahá se na ně */
+  const sviti = new Set<SVGCircleElement>();
+  let lampa: { x: number; y: number } | null = null;
+  let snimekLampy = 0;
+  /**
+   * Posvítí lampou na místo v okně: kruh na papíře a maska v jízdence, nad
+   * kterou lampa je. Pohyb myši se zpracuje jednou za snímek a nejdřív se
+   * všechno změří, teprve pak se zapisuje — a jízdenky, kam kruh nedosáhne,
+   * se nepřekreslují. Každé překreslení masky totiž znovu rozmazává záři.
+   */
+  const krokLampy = () => {
+    snimekLampy = 0;
+    if (!lampa) return;
+    const { x, y } = lampa;
     const r = koren.getBoundingClientRect();
+    const zmerene = kruhy.map((k) => {
+      const box = k.svg?.getBoundingClientRect();
+      /* Kruh má poloměr 150 v jednotkách kresby — na obrazovce zhruba tolik, kolik je jízdenka zmenšená; rezerva stačí */
+      const blizko = !!box && x > box.left - 200 && x < box.right + 200 && y > box.top - 200 && y < box.bottom + 200;
+      return { ...k, m: blizko && typeof DOMPoint !== "undefined" ? k.svg?.getScreenCTM?.() ?? null : null };
+    });
     if (svetlo) {
       svetlo.style.transform = `translate(${(x - r.left).toFixed(0)}px, ${(y - r.top).toFixed(0)}px)`;
       svetlo.classList.add("sviti");
     }
-    if (typeof DOMPoint === "undefined") return;
-    for (const { svg, kruh, dx, dy } of kruhy) {
-      const m = svg?.getScreenCTM?.();
-      if (!m || !kruh) continue;
+    for (const { kruh, m, dx, dy } of zmerene) {
+      if (!kruh) continue;
+      if (!m) {
+        if (sviti.delete(kruh)) kruh.setAttribute("cx", "-999");
+        continue;
+      }
       /* Kruh je v souřadnicích jízdenky, ne desky — jízdenka v desce leží posunutá o dx, dy */
       const p = new DOMPoint(x, y).matrixTransform(m.inverse());
       kruh.setAttribute("cx", (p.x - dx).toFixed(1));
       kruh.setAttribute("cy", (p.y - dy).toFixed(1));
+      sviti.add(kruh);
     }
   };
+  const posvit = (x: number, y: number) => {
+    lampa = { x, y };
+    if (!snimekLampy) snimekLampy = requestAnimationFrame(krokLampy);
+  };
   const zhasni = () => {
+    lampa = null;
+    if (snimekLampy) cancelAnimationFrame(snimekLampy);
+    snimekLampy = 0;
     svetlo?.classList.remove("sviti");
-    for (const { kruh } of kruhy) kruh?.setAttribute("cx", "-999");
+    for (const k of sviti) k.setAttribute("cx", "-999");
+    sviti.clear();
   };
   uvTlacitko?.addEventListener("click", () => {
     uv = !uv;
