@@ -11,6 +11,7 @@
  *               ne, na plotě se ospale ozve a uvnitř je potmě a nezvedá nikdo
  *   visačky     otázky z Dílny; stažená odjede k domu a vrátí se odpověď
  *               od toho z party, kdo ji říká, na její místo přijede další
+ *               (všechny otázky s odpověďmi jsou i pod první obrazovkou)
  *   dopis       napíše se na papír v dialogu, otevře se pošta a lístek se
  *               zalepenou 〆 mezitím odjede po provázku na kladce
  *   kudy k nám  tlačítko i klik na dům sjedou k sekci pod první obrazovkou
@@ -184,7 +185,8 @@ export function scena() {
     sezona = sezonaMesice(nyni.getMonth() + 1);
     stav = s.text;
     sekce!.classList.toggle("otevreno", otevreno);
-    document.querySelectorAll<HTMLElement | SVGElement>(".ko-venku, .ko-kudy").forEach((x) => (x.dataset.sezona = sezona));
+    document.querySelectorAll<HTMLElement | SVGElement>(".ko-venku, .ko-dole").forEach((x) => (x.dataset.sezona = sezona));
+    document.querySelector(".ko-dole")?.classList.toggle("soumrak", noc > 0.04);
     return zmena;
   }
 
@@ -647,20 +649,20 @@ export function scena() {
 
   /* ——— panel a dialogy ——— */
   const dlgDopis = document.querySelector<HTMLDialogElement>(".ko-dopis");
-  const dlgOtazky = document.querySelector<HTMLDialogElement>(".ko-otazky");
-  /** Kudy k nám: sjet k sekci pod první obrazovkou (odkaz #kudy funguje i bez skriptu) */
-  function kNam(e?: Event) {
-    const cil = document.getElementById("kudy");
+  /** Sjet k sekci pod první obrazovkou — Kudy k nám, nebo otázky (odkazy #kudy a #otazky fungují i bez skriptu) */
+  function sjed(kam: string, e?: Event) {
+    const cil = document.getElementById(kam);
     /* bez scrollIntoView zůstane obyčejný odkaz #kudy */
     if (!cil || typeof cil.scrollIntoView !== "function") return;
     e?.preventDefault();
     cil.scrollIntoView({ behavior: klidne ? "auto" : "smooth", block: "start" });
   }
+  const kNam = (e?: Event) => sjed("kudy", e);
   sekce.querySelector(".ko-zvednout")?.addEventListener("click", zvedni);
   sekce.querySelector(".ko-zavesit")?.addEventListener("click", ven);
   sekce.querySelector(".ko-ven")?.addEventListener("click", ven);
   sekce.querySelector(".ko-kudy-tl")?.addEventListener("click", kNam);
-  sekce.querySelector(".ko-otazky-tl")?.addEventListener("click", () => dlgOtazky?.showModal?.());
+  sekce.querySelector(".ko-otazky-tl")?.addEventListener("click", (e) => sjed("otazky", e));
   sekce.querySelector(".ko-psat")?.addEventListener("click", (e) => {
     if (!dlgDopis?.showModal) return;
     e.preventDefault();

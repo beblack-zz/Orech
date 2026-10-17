@@ -1,15 +1,19 @@
 ---
 /**
- * Kudy k nám — sekce pod první obrazovkou Kontaktu. Vlevo karta s adresou,
- * cestou ke dveřím a odkazem na mapu (mapa se do stránky nevkládá, tahala
- * by cizí skripty), vpravo kresba domu z ulice přesně přes fotku 6670
- * s táhlem — ať se dům na místě pozná. Nahoře travnatý lem navazuje na
- * louku z první obrazovky; barvy louky jdou s ročním obdobím (data-sezona
- * přepisuje scripts/kontakt/scena.ts) a v noci louka potemní (--ko-noc).
- * Táhlo obsluhuje scripts/kontakt/kudy.ts.
+ * Kudy k nám — vývěska 高札 (kōsatsu) na louce pod otázkami. Pod stříškou
+ * jsou na desce připíchnuté tři papíry: nakreslená mapa Ořechu s cestou
+ * od autobusu (kresba/mapa.ts, podklad z OpenStreetMap), kresba domu
+ * z ulice přesně přes fotku 6670 s táhlem a lístek s adresou a cestou
+ * ke dveřím. U nohou vývěsky stojí Cedulka a Kachlík.
+ *
+ * Mapa se nevkládá z mapového serveru (tahala by cizí skripty) — odkaz
+ * „Ukázat na mapě“ vede na Mapy.cz. Přiblížení mapy a šňůrku, která
+ * jednou doběhne od zastávky k domu, obsluhuje scripts/kontakt/kudy.ts,
+ * stejně jako táhlo kresby a fotky.
  */
 import { Image } from "astro:assets";
 import { ulice, ULICE } from "../domek2/kresba/ulice";
+import { mapa as kresbaMapy, MAPA_BLIZKO } from "./kresba/mapa";
 import { trava } from "../parta2/tvary";
 import { kontakt, mapa, type Sezona } from "../../data/uvod2";
 import { porovnani } from "../../data/domek2";
@@ -22,40 +26,85 @@ interface Props {
 const { sezona } = Astro.props;
 const F = ULICE.foto;
 const kresba = ulice({ id: "ko-ul", nebe: true });
-/* lem trávy přes spodní okraj první obrazovky */
-const zadni = trava(1600, 64, 44, 300, 9711);
-const predni = trava(1600, 64, 30, 180, 9712);
+const m = kresbaMapy({ id: "ko-mp" });
+const travaNohy = [trava(1200, 40, 34, 150, 9811).join(" "), trava(1200, 40, 22, 96, 9812).join(" ")];
 ---
-<section class="ko-kudy" id="kudy" data-sezona={sezona} aria-labelledby="ko-kudy-nadpis">
-  <svg class="ko-kudy-lem ko-venku" data-sezona={sezona} viewBox="0 0 1600 64" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-    <rect y="54" width="1600" height="12" class="ko-kudy-lem-zem" />
-    <path class="svt-trava-1" d={zadni.join(" ")} />
-    <path class="svt-trava-3" d={predni.join(" ")} />
-  </svg>
+<section class="ko-kudy" id="kudy" aria-labelledby="ko-kudy-nadpis">
+  <div class="ko-vyveska" data-trava="12">
+    <svg class="ko-vyveska-strecha" viewBox="0 0 1000 96" aria-hidden="true">
+      <defs>
+        <linearGradient id="ko-vy-taska" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A4034" /><stop offset="1" stop-color="#3A2A22" /></linearGradient>
+      </defs>
+      <path d="M8 86 Q500 70 992 86 L944 30 Q500 14 56 30 Z" fill="#2E211B" opacity="0.25" transform="translate(0 6)" />
+      <path d="M8 84 Q500 66 992 84 L944 28 Q500 10 56 28 Z" fill="url(#ko-vy-taska)" />
+      {Array.from({ length: 34 }, (_, i) => {
+        const x = 70 + i * 26.4;
+        return <path d={`M${x} 26 Q${x - 2} 56 ${x - 4 + (i - 17) * 0.9} 82`} stroke="#6E5244" stroke-width="2.4" fill="none" opacity="0.8" />;
+      })}
+      <path d="M56 28 Q500 10 944 28" stroke="#7A5A48" stroke-width="5" fill="none" stroke-linecap="round" />
+      <path d="M8 84 Q500 66 992 84" stroke="#241913" stroke-width="5" fill="none" stroke-linecap="round" />
+      <rect x="40" y="2" width="920" height="16" rx="6" fill="#4A352B" />
+      <rect x="40" y="2" width="920" height="5" rx="2.5" fill="#6E5244" />
+      <circle cx="40" cy="10" r="10" fill="#3A2A22" /><circle cx="960" cy="10" r="10" fill="#3A2A22" />
+      <circle cx="40" cy="10" r="4" fill="#C9A86E" /><circle cx="960" cy="10" r="4" fill="#C9A86E" />
+      {/* šňůra s papírovými klikatkami shide pod okapem */}
+      <path d="M120 92 Q500 112 880 92" stroke="#E9DDBF" stroke-width="5" fill="none" />
+      <path d="M120 92 Q500 112 880 92" stroke="#B9A57A" stroke-width="1.4" stroke-dasharray="6 5" fill="none" />
+      {[300, 500, 700].map((x) => <path d={`M${x} ${x === 500 ? 102 : 99} l10 0 l-8 10 l10 0 l-8 10 l10 0 l-8 10`} stroke="#FBF7EE" stroke-width="5" fill="none" stroke-linejoin="round" />)}
+    </svg>
 
-  <div class="ko-kudy-obsah">
-    <div class="ko-kudy-karta papir">
-      <p class="stitek"><span lang="ja">道順</span> · kudy k nám</p>
-      <h2 id="ko-kudy-nadpis" class="nadpis-2">{kudy.nadpis}</h2>
-      <p class="ko-kudy-adresa">{kontakt.ulice} · {kontakt.psc} {kontakt.obec}</p>
-      <ol class="ko-kudy-kroky">
-        {kudy.kroky.map((k) => <li>{k}</li>)}
-      </ol>
-      <a class="tlacitko" href={mapa} target="_blank" rel="noopener">Ukázat na mapě</a>
+    <div class="ko-vyveska-deska">
+      <header class="ko-vyveska-hlava">
+        <p class="stitek"><span lang="ja">道順</span> · kudy k nám</p>
+        <h2 id="ko-kudy-nadpis" class="nadpis-2">{kudy.nadpis}</h2>
+        <p class="ko-kudy-adresa">{kontakt.ulice} · {kontakt.psc} {kontakt.obec}</p>
+      </header>
+
+      <div class="ko-vyveska-obsah">
+        <figure class="ko-mapa ko-pripichnuto">
+          <div class="ko-mapa-ram" style={`--cx:${MAPA_BLIZKO.cx.toFixed(2)}%;--cy:${MAPA_BLIZKO.cy.toFixed(2)}%`}>
+            <svg class="ko-mapa-svg" viewBox={m.viewBox} role="img" aria-label="Mapa Ořechu: od zastávky Ořech, K Ovčínu po Karlštejnské k ulici Dlouhá, Dlouhou k Luční a Luční až k bráně domu číslo 235." set:html={m.svg} />
+            <button type="button" class="ko-mapa-prepinac" aria-pressed="false">
+              <span class="ko-mapa-prepinac-blizko">Přiblížit k domu</span>
+              <span class="ko-mapa-prepinac-celek">Celý Ořech</span>
+            </button>
+          </div>
+          <figcaption><b>Pěšky od autobusu asi čtyři minuty.</b> Ze zastávky Ořech, K Ovčínu jdi po Karlštejnské k Dlouhé, Dlouhou k Luční a Luční až k bráně.</figcaption>
+        </figure>
+
+        <div class="ko-vyveska-vpravo">
+          <figure class="ko-srovnani ko-pripichnuto" data-srovnani style="--deleni:58%">
+            <div class="ko-srovnani-plocha">
+              <Image class="ko-srovnani-foto" src={foto6670} alt={porovnani.ulice.alt} width={900} widths={[420, 640, 900]} sizes="(min-width: 1000px) 400px, 92vw" format="webp" loading="lazy" />
+              <div class="ko-srovnani-kresba">
+                <svg viewBox={`${F.x} ${F.y} ${F.w} ${F.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" set:html={kresba} />
+              </div>
+              <span class="ko-srovnani-stitek ko-srovnani-stitek-kresba" aria-hidden="true">kresba</span>
+              <span class="ko-srovnani-stitek ko-srovnani-stitek-foto" aria-hidden="true">fotka</span>
+              <div class="ko-srovnani-tahlo" aria-hidden="true"><span></span></div>
+              <input class="ko-srovnani-posuvnik" type="range" min="0" max="100" value="58" aria-label="Dům z ulice: kolik je vidět kresby a kolik fotky" />
+            </div>
+            <figcaption><b>Takhle nás poznáš z ulice.</b> Kresba leží přesně na fotce — táhlem odkryješ, co je co.</figcaption>
+          </figure>
+
+          <div class="ko-kudy-listek ko-pripichnuto">
+            <ol class="ko-kudy-kroky">
+              {kudy.kroky.map((k) => <li>{k}</li>)}
+            </ol>
+            <a class="tlacitko" href={mapa} target="_blank" rel="noopener">Ukázat na mapě</a>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <figure class="ko-srovnani" data-srovnani style="--deleni:58%">
-      <div class="ko-srovnani-plocha">
-        <Image class="ko-srovnani-foto" src={foto6670} alt={porovnani.ulice.alt} width={900} widths={[420, 640, 900]} sizes="(min-width: 1000px) 440px, 92vw" format="webp" loading="lazy" />
-        <div class="ko-srovnani-kresba">
-          <svg viewBox={`${F.x} ${F.y} ${F.w} ${F.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" set:html={kresba} />
-        </div>
-        <span class="ko-srovnani-stitek ko-srovnani-stitek-kresba" aria-hidden="true">kresba</span>
-        <span class="ko-srovnani-stitek ko-srovnani-stitek-foto" aria-hidden="true">fotka</span>
-        <div class="ko-srovnani-tahlo" aria-hidden="true"><span></span></div>
-        <input class="ko-srovnani-posuvnik" type="range" min="0" max="100" value="58" aria-label="Dům z ulice: kolik je vidět kresby a kolik fotky" />
-      </div>
-      <figcaption><b>Takhle nás poznáš z ulice.</b> Kresba leží přesně na fotce — táhlem odkryješ, co je co.</figcaption>
-    </figure>
+    <div class="ko-vyveska-nohy" aria-hidden="true"><span></span><span></span></div>
+    <div class="ko-vyveska-parta" aria-hidden="true">
+      <svg class="ko-vyveska-kami ko-vyveska-kami-l" viewBox="0 0 180 180"><use href="#ko-k-cedulka" /></svg>
+      <svg class="ko-vyveska-kami ko-vyveska-kami-p" viewBox="0 0 180 180"><use href="#ko-k-kachlik" /></svg>
+      <svg class="ko-vyveska-trava ko-venku" data-sezona={sezona} viewBox="0 0 1200 44" preserveAspectRatio="xMidYMax slice">
+        <path class="svt-trava-2" d={travaNohy[0]} />
+        <path class="svt-trava-3" d={travaNohy[1]} />
+      </svg>
+    </div>
   </div>
 </section>

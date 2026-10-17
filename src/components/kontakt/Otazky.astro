@@ -1,0 +1,73 @@
+---
+/**
+ * Na co se lidi ptají — otázky z Dílny pod první obrazovkou Kontaktu
+ * (dřív Zeptej se dílny, components/kontakt/Otazky.astro v 1dfcceb).
+ * Každá otázka je visačka jako ty na provázku, pod ní papírová bublina
+ * s odpovědí a pod bublinou stojí v trávě ten z party, kdo odpovídá.
+ * Na konci se dá zeptat po svém: tlačítko otevře dopis z první obrazovky.
+ *
+ * Louku pod nimi kreslí scripts/kontakt/louka.ts podle data-trava (kam
+ * kami došlápne), postupné ožívání při příjezdu do obrazovky a skok po
+ * kliknutí obstarává scripts/kontakt/otazky.ts. Otázky a odpovědi jsou
+ * v data/dilna.ts (otazky), protože čtou ceny a časy z jednoho místa.
+ */
+import { otazky } from "../../data/dilna";
+import { parta, type PostavaId } from "../../data/parta";
+import { kontakt, type Sezona } from "../../data/uvod2";
+import { trava } from "../parta2/tvary";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
+/* tráva přes nohy kami — přední stébla, ať nestojí na čáře */
+const predni = (seed: number) => [trava(200, 40, 30, 22, seed).join(" "), trava(200, 40, 20, 14, seed + 50).join(" ")];
+const polozky: { q: string; a: string; kdo: PostavaId }[] = otazky;
+---
+<section class="ko-ot" id="otazky" aria-labelledby="ko-ot-nadpis">
+  <header class="ko-ot-hlava">
+    <div class="ko-ot-cedule">
+      <p class="stitek"><span lang="ja">質問</span> · otázky</p>
+      <h2 id="ko-ot-nadpis" class="nadpis-2">Na co se lidi ptají</h2>
+      <p class="ko-ot-perex">Odpovídá parta z dílny — každý na to, čemu rozumí nejlíp.</p>
+    </div>
+  </header>
+
+  <ol class="ko-ot-seznam">
+    {polozky.map((o, i) => {
+      const [t1, t2] = predni(8100 + i * 7);
+      return (
+        <li class="ko-ot-polozka" data-trava="16" data-kdo={o.kdo} style={`--i:${i}`}>
+          <h3 class="ko-ot-q"><span class="ko-ot-visacka">{o.q}</span></h3>
+          <div class="ko-ot-a">
+            <div class="ko-ot-bublina"><p><b class="ko-ot-jmeno">{jmeno(o.kdo)}</b> {o.a}</p></div>
+            <button type="button" class="ko-ot-kami" aria-label={`${jmeno(o.kdo)} poskočí`}>
+              <svg viewBox="0 0 180 180" aria-hidden="true"><use href={`#ko-k-${o.kdo}`} /></svg>
+            </button>
+          </div>
+          <svg class="ko-ot-trava ko-venku" data-sezona={sezona} viewBox="0 0 200 44" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+            <path class="svt-trava-2" d={t1} />
+            <path class="svt-trava-3" d={t2} />
+          </svg>
+        </li>
+      );
+    })}
+    <li class="ko-ot-polozka ko-ot-vlastni" data-trava="16" data-kdo="bublinka" style={`--i:${polozky.length}`}>
+      <h3 class="ko-ot-q"><span class="ko-ot-visacka ko-ot-visacka-prazdna">A na co se chceš zeptat ty?</span></h3>
+      <div class="ko-ot-a">
+        <div class="ko-ot-bublina">
+          <p><b class="ko-ot-jmeno">{jmeno("bublinka")}</b> Napiš to na papír a pošli po provázku. Já to slyším první.</p>
+          <a class="tlacitko tlacitko-maly ko-ot-psat" href={`mailto:${kontakt.email}`}>Napsat dopis</a>
+        </div>
+        <button type="button" class="ko-ot-kami" aria-label={`${jmeno("bublinka")} poskočí`}>
+          <svg viewBox="0 0 180 180" aria-hidden="true"><use href="#ko-k-bublinka" /></svg>
+        </button>
+      </div>
+      <svg class="ko-ot-trava ko-venku" data-sezona={sezona} viewBox="0 0 200 44" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+        <path class="svt-trava-2" d={predni(8199)[0]} />
+        <path class="svt-trava-3" d={predni(8199)[1]} />
+      </svg>
+    </li>
+  </ol>
+</section>

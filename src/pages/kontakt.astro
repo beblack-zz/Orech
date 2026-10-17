@@ -23,18 +23,19 @@ import { ClientRouter } from "astro:transitions";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/kontakt.css";
+import "../styles/kontakt-dole.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
 import Postavicka from "../components/characters/Postavicka.astro";
 import KudyKNam from "../components/kontakt/KudyKNam.astro";
+import Otazky from "../components/kontakt/Otazky.astro";
 import { svitaniStyly } from "../components/domek2/kresba/svitani";
 import { kontakt, mapa, sezonaMesice } from "../data/uvod2";
 import { kdy, otazky } from "../data/dilna";
 import { parta, type PostavaId } from "../data/parta";
 
-const jmeno = (id: string) => parta.find((p) => p.id === id)?.name ?? id;
 const KAMI: PostavaId[] = ["kapka", "pecinka", "bublinka", "cedulka", "kachlik", "hlinka", "samotka", "stripek", "vazicka"];
 /** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška */
 const sezona = sezonaMesice(new Date().getMonth() + 1);
@@ -101,7 +102,7 @@ const data = {
             <a class="tlacitko tlacitko-obrys ko-kudy-tl ko-jen-venku" href="#kudy">Kudy k nám</a>
           </div>
           <nav class="ko-dal ko-jen-venku" aria-label="Kam dál">
-            <button type="button" class="ko-otazky-tl">Na co se lidi ptají</button>
+            <a class="ko-otazky-tl" href="#otazky">Na co se lidi ptají</a>
             <a href="/rezervace#rz-darky">Darovat jízdenku</a>
             <a href="/dilna">Jak to v dílně chodí</a>
           </nav>
@@ -109,7 +110,11 @@ const data = {
         </div>
       </section>
 
-      <KudyKNam sezona={sezona} />
+      <div class="ko-dole" data-sezona={sezona}>
+        <div class="ko-louka-platno" aria-hidden="true"><svg class="ko-venku" data-sezona={sezona} xmlns="http://www.w3.org/2000/svg"></svg></div>
+        <Otazky sezona={sezona} />
+        <KudyKNam sezona={sezona} />
+      </div>
 
       <dialog class="ko-okno ko-dopis" aria-labelledby="ko-dopis-nadpis">
         <form method="dialog" class="ko-papir">
@@ -131,27 +136,6 @@ const data = {
         </form>
       </dialog>
 
-
-      <dialog class="ko-okno ko-otazky" aria-labelledby="ko-otazky-nadpis">
-        <form method="dialog" class="ko-papir">
-          <p class="stitek"><span lang="ja">質問</span> · otázky</p>
-          <h2 id="ko-otazky-nadpis" class="ko-okno-nadpis">Na co se lidi ptají</h2>
-          <div class="ko-chat">
-            {otazky.map((o) => (
-              <div class="ko-chat-radek">
-                <p class="ko-chat-q">{o.q}</p>
-                <div class="ko-chat-a">
-                  <svg class="ko-chat-kami" viewBox="0 0 180 180" aria-hidden="true"><use href={`#ko-k-${o.kdo}`} /></svg>
-                  <p><b>{jmeno(o.kdo)}</b>{o.a}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div class="ko-okno-akce">
-            <button type="submit" class="tlacitko tlacitko-obrys">Zavřít</button>
-          </div>
-        </form>
-      </dialog>
 
       <script type="application/json" id="ko-data" set:html={JSON.stringify(data)}></script>
 

@@ -1,0 +1,388 @@
+/*
+ * Kontakt pod první obrazovkou — louka po pásech, na ní parta s odpověďmi
+ * (components/kontakt/Otazky.astro) a vývěska 高札 s nakreslenou mapou,
+ * kresbou domu přes fotku a cestou ke dveřím (components/kontakt/KudyKNam.astro).
+ *
+ * Pásy louky kreslí scripts/kontakt/louka.ts podle toho, kde stojí kami
+ * a vývěska (data-trava); bez skriptu zůstane pod obsahem jen přechod.
+ * Barvy louky jdou s ročním obdobím (data-sezona na .ko-dole, třídy svt-*
+ * ze svitaniStyly) a v noci louka potemní stejně jako první obrazovka.
+ * Staví na parta2.css a kontakt.css.
+ */
+
+/* ═══ Louka pod první obrazovkou ═══ */
+.ko-dole {
+  --lz1: #9CA65A;
+  --lz2: #66733A;
+  position: relative;
+  z-index: 3;
+  isolation: isolate;
+  background: linear-gradient(to bottom, var(--lz2), var(--lz1) 30%, var(--lz2));
+}
+.ko-dole[data-sezona="leto"] { --lz1: #8DB35C; --lz2: #55803B; }
+.ko-dole[data-sezona="jaro"] { --lz1: #97C25E; --lz2: #5C8E3E; }
+.ko-dole[data-sezona="predjari"] { --lz1: #93A266; --lz2: #5F7040; }
+.ko-dole[data-sezona="zima"] { --lz1: #F1F4F8; --lz2: #C9D3E0; }
+.ko-louka-platno { position: absolute; z-index: -1; left: 0; right: 0; top: -60px; bottom: 0; overflow: hidden; pointer-events: none; }
+.ko-louka-platno svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
+.ko-dole.soumrak .ko-louka-platno { filter: brightness(calc(1 - var(--ko-noc, 0) * 0.56)) saturate(calc(1 - var(--ko-noc, 0) * 0.3)); }
+
+/* ═══ Mapa na vývěsce ═══ */
+.ko-mapa { margin: 0; }
+.ko-mapa-ram {
+  --s: 2;
+  position: relative;
+  aspect-ratio: 660 / 1010;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #F3E8CF;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 18px 30px -18px rgba(40, 24, 10, 0.65), 0 2px 4px rgba(40, 24, 10, 0.25);
+}
+.ko-mapa-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* zvětšení kolem bodu, který po přiblížení skončí uprostřed rámečku: O = (střed − s·C) / (1 − s) */
+  transform-origin: calc((50% - var(--s, 2) * var(--cx, 50%)) / (1 - var(--s, 2))) calc((50% - var(--s, 2) * var(--cy, 50%)) / (1 - var(--s, 2)));
+  transition: transform 0.7s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.ko-mapa-ram.blizko .ko-mapa-svg { transform: scale(var(--s, 2)); }
+.ko-m-z2 { opacity: 0; transition: opacity 0.4s; }
+.ko-mapa-ram.blizko .ko-m-z2 { opacity: 1; }
+.ko-mapa-ram.blizko .ko-m-z1:not(.ko-m-z2) { opacity: 0; }
+.ko-m-z1 { transition: opacity 0.4s; }
+
+.ko-m-ulice { font-family: var(--f-display); font-style: italic; font-variation-settings: "SOFT" 100, "opsz" 24; font-weight: 500; fill: #5C4A3A; letter-spacing: 0.04em; paint-order: stroke; stroke: #FBF6E8; stroke-width: 3px; stroke-linejoin: round; }
+.ko-m-ulice.ko-m-nase { fill: #A3321F; font-weight: 700; }
+.ko-m-misto { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "WONK" 1; font-weight: 600; fill: #3E3128; paint-order: stroke; stroke: #FBF6E8; stroke-width: 4px; stroke-linejoin: round; }
+.ko-m-pozn { font-family: var(--f-text); font-style: italic; fill: #5C5047; paint-order: stroke; stroke: #FBF6E8; stroke-width: 3px; stroke-linejoin: round; }
+.ko-m-zast, .ko-m-zast-mala { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 700; fill: #3E6E3A; paint-order: stroke; stroke: #FBF6E8; stroke-width: 4px; stroke-linejoin: round; }
+.ko-m-zast-mala { font-weight: 600; }
+.ko-m-pismo-tucne { font-family: var(--f-display); font-weight: 800; }
+.ko-m-my { font-family: var(--f-ruka); font-weight: 600; fill: #C4432B; paint-order: stroke; stroke: #FBF6E8; stroke-width: 4px; stroke-linejoin: round; }
+.ko-m-sipka { stroke: #C4432B; stroke-linecap: round; stroke-linejoin: round; }
+.ko-m-pesky { font-family: var(--f-ruka); font-weight: 600; fill: #7E1F12; paint-order: stroke; stroke: #FBF6E8; stroke-width: 4px; stroke-linejoin: round; }
+.ko-m-ven { stroke: #8E7A62; stroke-linecap: round; stroke-linejoin: round; }
+.ko-m-ven text { paint-order: stroke; stroke: #FBF6E8; stroke-width: 4px; fill: #6E5E4E; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; letter-spacing: 0.06em; }
+.ko-m-meritko text { font-family: var(--f-display); font-weight: 600; fill: #5C5047; }
+.ko-m-zdroj { font-family: var(--f-text); fill: #8A7C70; }
+.ko-m-snurka path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ko-m-snurka-stin { stroke: #3B2A1E; opacity: 0.18; }
+.ko-m-snurka-lem { stroke: #5E160B; }
+.ko-m-snurka-jadro { stroke: #B84A2B; }
+.ko-m-snurka-zkrut { stroke: #FBF7EE; opacity: 0.92; stroke-linecap: butt !important; }
+.ko-m-vlajka { transform-box: fill-box; transform-origin: 0 50%; animation: ko-m-vlaje 2.6s ease-in-out infinite alternate; }
+.ko-m-dum-kruh { transform-box: fill-box; transform-origin: center; animation: ko-m-tadyjsme 14s linear infinite; }
+@keyframes ko-m-vlaje { from { transform: skewY(-4deg) scaleX(0.94); } to { transform: skewY(5deg) scaleX(1.04); } }
+@keyframes ko-m-tadyjsme { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ko-m-vlajka, .ko-m-dum-kruh { animation: none; }
+  .ko-mapa-svg, .ko-m-z1, .ko-m-z2 { transition: none; }
+}
+
+/* ═══ Na co se lidi ptají ═══ */
+.ko-ot { position: relative; padding: clamp(64px, 10vh, 110px) 16px clamp(20px, 4vh, 44px); scroll-margin-top: 30px; }
+.ko-ot-hlava { display: flex; justify-content: center; margin-bottom: clamp(18px, 4vh, 44px); }
+.ko-ot-cedule {
+  position: relative;
+  max-width: 640px;
+  padding: 24px clamp(22px, 4vw, 40px) 26px;
+  border-radius: 18px;
+  background: var(--papir);
+  text-align: center;
+  box-shadow: 0 26px 50px -30px rgba(20, 30, 10, 0.75), 0 0 0 1px rgba(43, 36, 32, 0.06);
+  transform: rotate(-0.8deg);
+}
+/* připínáčky: dva na ceduli, jeden na každém papíru vývěsky */
+.ko-ot-cedule::before,
+.ko-ot-cedule::after,
+.ko-pripichnuto::before,
+.ko-mapa.ko-pripichnuto::after {
+  content: "";
+  position: absolute;
+  z-index: 6;
+  top: -7px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 32%, #F6A089, #C4432B 58%, #7E1F12);
+  box-shadow: 0 3px 3px rgba(20, 10, 5, 0.35);
+}
+.ko-ot-cedule::before { left: 26px; }
+.ko-ot-cedule::after { right: 26px; }
+.ko-ot-cedule .nadpis-2 { margin: 6px 0 8px; }
+.ko-ot-perex { margin: 0; font-size: 16.5px; color: var(--inkoust-2); }
+
+.ko-ot-seznam {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: clamp(10px, 2.4vh, 26px) clamp(26px, 3.2vw, 54px);
+  width: min(1260px, 100%);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.ko-ot-polozka { position: relative; min-width: 0; padding-top: 14px; }
+.ko-ot-polozka:nth-child(3n + 1) { --naklon: 2.2deg; }
+.ko-ot-polozka:nth-child(3n + 2) { --naklon: -2.6deg; }
+.ko-ot-polozka:nth-child(3n) { --naklon: 1.4deg; }
+.ko-ot-vlastni { grid-column: 2; }
+
+/* otázka: visačka s dírkou a provázkem vlevo, jako ty na provázku z první obrazovky */
+.ko-ot-q { display: flex; justify-content: flex-end; margin: 0 0 12px; padding: 0 4% 0 18%; font: inherit; }
+.ko-ot-visacka {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  padding: 9px 18px 10px 34px;
+  font-family: var(--f-ruka);
+  font-weight: 600;
+  font-size: clamp(21px, 1.7vw, 25px);
+  line-height: 1.08;
+  color: var(--inkoust);
+  transform: rotate(var(--naklon, 2deg));
+  transform-origin: 8% 50%;
+  filter: drop-shadow(3px 4px 0 rgba(30, 24, 16, 0.16));
+}
+.ko-ot-visacka::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: #FCF8EE;
+  clip-path: polygon(18px 0, 100% 0, 100% 100%, 18px 100%, 0 50%);
+}
+.ko-ot-visacka::after {
+  content: "";
+  position: absolute;
+  left: -34px;
+  top: 50%;
+  width: 62px;
+  height: 46px;
+  margin-top: -38px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 62 46'%3E%3Cpath d='M50 34 C38 30 22 20 4 2' stroke='%235E160B' stroke-width='4.4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M50 34 C38 30 22 20 4 2' stroke='%23B84A2B' stroke-width='2.6' fill='none' stroke-linecap='round'/%3E%3Cpath d='M50 34 C38 30 22 20 4 2' stroke='%23FBF7EE' stroke-width='2.2' fill='none' stroke-dasharray='1.4 3.2'/%3E%3Ccircle cx='51' cy='34' r='4.6' fill='none' stroke='%23C9A86E' stroke-width='2.2'/%3E%3Ccircle cx='51' cy='34' r='2' fill='%23B8AB96'/%3E%3C/svg%3E") no-repeat;
+  pointer-events: none;
+}
+.ko-ot-visacka-prazdna { color: var(--rumelka); }
+
+/* odpověď: kami vlevo stojí v trávě, bublina vedle něj s ocáskem k hlavě */
+.ko-ot-a { display: grid; grid-template-columns: clamp(92px, 8.6vw, 126px) minmax(0, 1fr); align-items: end; column-gap: 8px; }
+.ko-ot-bublina {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  margin-bottom: clamp(40px, 4vw, 58px);
+  padding: 13px 17px 15px;
+  border-radius: 20px;
+  background: #FFFDF6;
+  box-shadow: 0 18px 30px -22px rgba(16, 26, 8, 0.65), inset 0 0 0 1px rgba(43, 36, 32, 0.08);
+  transform-origin: 0 85%;
+}
+.ko-ot-bublina p { margin: 0; font-size: 16px; line-height: 1.5; }
+.ko-ot-bublina::after {
+  content: "";
+  position: absolute;
+  left: -13px;
+  bottom: 16px;
+  width: 20px;
+  height: 22px;
+  background: inherit;
+  clip-path: polygon(100% 0, 100% 100%, 0 78%);
+}
+/* „…“ — kami ťuká, než se ukáže odpověď (jen při ožívání) */
+.ko-ot-bublina::before {
+  content: "•  •  •";
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  margin-top: -16px;
+  font: 600 28px/1 var(--f-ruka);
+  color: var(--inkoust-3);
+  opacity: 0;
+  pointer-events: none;
+}
+.ko-ot-jmeno { display: block; margin-bottom: 1px; font-family: var(--f-display); font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rumelka); }
+.ko-ot-psat { margin-top: 10px; }
+.ko-ot .ko-ot-kami {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.ko-ot-kami svg { width: 100%; height: 100%; display: block; overflow: visible; transform-origin: 50% 94%; animation: ko-ot-dech 3.8s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -0.73s); }
+.ko-ot .ko-ot-kami:focus-visible { outline-offset: -6px; }
+.ko-ot-kami.skok svg { animation: ko-ot-skok 0.65s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.ko-ot-trava { position: absolute; z-index: 2; left: -10px; bottom: -6px; width: clamp(120px, 11vw, 150px); height: auto; aspect-ratio: 200 / 44; pointer-events: none; }
+
+/* ožívání při příjezdu do obrazovky (třídu „ceka“ dává skript, bez něj je vše vidět) */
+.ko-ot.ceka .ko-ot-polozka:not(.je) :is(.ko-ot-visacka, .ko-ot-bublina, .ko-ot-kami) { opacity: 0; }
+.ko-ot-polozka.je .ko-ot-visacka { animation: ko-ot-visacka 0.95s cubic-bezier(0.3, 1.3, 0.5, 1) both; }
+.ko-ot-polozka.je .ko-ot-kami { animation: ko-ot-vyskoc 0.6s 0.15s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+.ko-ot-polozka.je .ko-ot-bublina { animation: ko-ot-bublina 0.42s 0.42s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+.ko-ot-polozka.je .ko-ot-bublina::before { animation: ko-ot-tecky 0.95s 0.5s both; }
+.ko-ot-polozka.je .ko-ot-bublina > * { animation: ko-ot-text 0.4s 1.3s both; }
+
+@keyframes ko-ot-visacka {
+  0% { opacity: 0; transform: translateY(-24px) rotate(-18deg); }
+  45% { opacity: 1; transform: translateY(3px) rotate(calc(var(--naklon, 2deg) + 6deg)); }
+  72% { transform: rotate(calc(var(--naklon, 2deg) - 3deg)); }
+  100% { opacity: 1; transform: rotate(var(--naklon, 2deg)); }
+}
+@keyframes ko-ot-vyskoc { 0% { opacity: 0; transform: translateY(20px) scale(0.92, 1.08); } 60% { opacity: 1; transform: translateY(-7px) scale(1.04, 0.96); } 100% { opacity: 1; transform: none; } }
+@keyframes ko-ot-bublina { from { opacity: 0; transform: scale(0.55); } to { opacity: 1; transform: none; } }
+@keyframes ko-ot-tecky { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ko-ot-text { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+@keyframes ko-ot-dech { 50% { transform: scale(1.022, 0.976); } }
+@keyframes ko-ot-skok {
+  0% { transform: none; }
+  28% { transform: translateY(-30px) scale(0.95, 1.06) rotate(-4deg); }
+  52% { transform: translateY(0) scale(1.1, 0.9); }
+  72% { transform: translateY(-8px) scale(0.98, 1.02) rotate(2deg); }
+  100% { transform: none; }
+}
+
+/* ═══ Kudy k nám: vývěska 高札 ═══ */
+.ko-kudy { position: relative; z-index: 1; padding: clamp(48px, 8vh, 90px) 16px 0; scroll-margin-top: 20px; }
+.ko-vyveska { position: relative; width: min(1120px, 100%); margin: 0 auto; padding-bottom: clamp(84px, 10vh, 112px); }
+.ko-vyveska-strecha { position: relative; z-index: 3; display: block; width: calc(100% + 40px); height: auto; margin: 0 -20px -20px; overflow: visible; filter: drop-shadow(0 12px 10px rgba(24, 16, 8, 0.28)); }
+.ko-vyveska-deska {
+  position: relative;
+  z-index: 2;
+  padding: clamp(26px, 3.2vw, 40px) clamp(14px, 3vw, 36px) clamp(22px, 3vw, 36px);
+  border: 10px solid #4A352B;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(60, 36, 18, 0.22), transparent 18%),
+    repeating-linear-gradient(90deg, transparent 0 calc(25% - 2px), rgba(98, 66, 40, 0.38) calc(25% - 2px) 25%),
+    repeating-linear-gradient(90deg, rgba(255, 238, 205, 0.1) 0 3px, transparent 3px 11px, rgba(120, 82, 50, 0.08) 11px 13px, transparent 13px 29px),
+    #CFAE84;
+  box-shadow: inset 0 0 0 2px #6E5244, inset 0 18px 30px -18px rgba(40, 24, 10, 0.55), 0 30px 50px -30px rgba(12, 18, 6, 0.8);
+}
+.ko-vyveska-hlava {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto clamp(20px, 3vw, 30px);
+  padding: 16px 28px 18px;
+  border-radius: 10px;
+  background: var(--papir);
+  text-align: center;
+  box-shadow: 0 12px 20px -14px rgba(40, 24, 10, 0.7);
+  transform: rotate(0.6deg);
+}
+.ko-vyveska-hlava .nadpis-2 { margin: 4px 0 6px; font-size: clamp(28px, 3.4vw, 46px); }
+.ko-vyveska-hlava .ko-kudy-adresa { margin: 0; }
+.ko-vyveska-obsah { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: clamp(20px, 2.6vw, 34px); align-items: start; }
+.ko-vyveska-vpravo { display: grid; gap: 26px; }
+.ko-pripichnuto { position: relative; }
+.ko-pripichnuto::before { left: 50%; margin-left: -8px; }
+.ko-mapa.ko-pripichnuto::before { left: 22px; margin-left: 0; }
+.ko-mapa.ko-pripichnuto::after { right: 22px; }
+.ko-mapa { transform: rotate(-0.5deg); }
+.ko-mapa figcaption,
+.ko-vyveska .ko-srovnani figcaption {
+  margin-top: 14px;
+  padding: 11px 15px 12px;
+  border-radius: 10px;
+  background: var(--papir);
+  color: var(--inkoust-2);
+  text-shadow: none;
+  font-size: 15px;
+  line-height: 1.45;
+  box-shadow: 0 10px 16px -12px rgba(40, 24, 10, 0.6);
+}
+.ko-mapa figcaption b,
+.ko-vyveska .ko-srovnani figcaption b { color: var(--inkoust); font-family: var(--f-display); }
+.ko-vyveska .ko-srovnani { transform: rotate(0.8deg); }
+.ko-vyveska .ko-srovnani-plocha { box-shadow: 0 22px 36px -24px rgba(20, 12, 6, 0.85), 0 0 0 7px #FFFDF8; }
+.ko-kudy-listek {
+  padding: 22px 24px 24px;
+  border-radius: 12px;
+  background: var(--papir);
+  box-shadow: 0 14px 24px -16px rgba(40, 24, 10, 0.7);
+  transform: rotate(-0.6deg);
+}
+.ko-kudy-listek .ko-kudy-kroky { margin: 0 0 18px; }
+.ko-mapa-ram .ko-mapa-prepinac {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  left: 12px;
+  padding: 7px 14px 8px;
+  border-radius: 999px;
+  background: rgba(251, 246, 232, 0.95);
+  box-shadow: 0 6px 14px -6px rgba(40, 24, 10, 0.55), inset 0 0 0 1px rgba(43, 36, 32, 0.12);
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--inkoust);
+}
+.ko-mapa-ram .ko-mapa-prepinac:hover { background: var(--inkoust); color: var(--papir); }
+.ko-mapa-ram.blizko .ko-mapa-prepinac-blizko,
+.ko-mapa-ram:not(.blizko) .ko-mapa-prepinac-celek { display: none; }
+/* šňůrka doběhne od zastávky k bráně, když mapa poprvé vjede do obrazovky */
+.ko-mapa.ceka .ko-m-odkryt { stroke-dasharray: 1 1; stroke-dashoffset: 1; }
+.ko-mapa.bezi .ko-m-odkryt { stroke-dasharray: 1 1; animation: ko-m-kresli 2.6s 0.3s cubic-bezier(0.45, 0, 0.3, 1) both; }
+@keyframes ko-m-kresli { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* nohy vývěsky v trávě a dva z party u nich */
+.ko-vyveska-nohy { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; height: clamp(110px, 13vh, 140px); pointer-events: none; }
+.ko-vyveska-nohy span { position: absolute; bottom: 4px; width: 26px; height: 100%; border-radius: 3px 3px 0 0; background: linear-gradient(90deg, #33241D, #5A4034 45%, #3E2C23); box-shadow: inset 0 -30px 24px -18px rgba(10, 6, 2, 0.5); }
+.ko-vyveska-nohy span:first-child { left: 9%; }
+.ko-vyveska-nohy span:last-child { right: 9%; }
+.ko-vyveska-parta { position: absolute; z-index: 4; left: 0; right: 0; bottom: 0; height: 150px; pointer-events: none; }
+.ko-vyveska-kami { position: absolute; bottom: 2px; width: clamp(100px, 11vw, 148px); height: auto; aspect-ratio: 1; overflow: visible; }
+.ko-vyveska-kami-l { left: calc(9% + 34px); }
+.ko-vyveska-kami-p { right: calc(9% + 34px); }
+.ko-vyveska-trava { position: absolute; left: -24px; bottom: -6px; width: calc(100% + 48px); height: 44px; }
+.ko-dole.soumrak :is(.ko-ot-trava, .ko-vyveska-trava) { filter: brightness(calc(1 - var(--ko-noc, 0) * 0.56)) saturate(calc(1 - var(--ko-noc, 0) * 0.3)); }
+.ko-dole.soumrak :is(.ko-ot-kami svg, .ko-vyveska-kami) { filter: brightness(calc(1 - var(--ko-noc, 0) * 0.3)); }
+
+/* ═══ Užší okna ═══ */
+@media (max-width: 1080px) {
+  .ko-ot-seznam { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ko-ot-vlastni { grid-column: auto; }
+  .ko-ot-polozka:nth-child(odd) { --naklon: 2deg; }
+  .ko-ot-polozka:nth-child(even) { --naklon: -2.4deg; }
+}
+@media (max-width: 860px) {
+  .ko-vyveska-obsah { grid-template-columns: minmax(0, 1fr); }
+  .ko-mapa, .ko-vyveska .ko-srovnani { width: min(520px, 100%); margin-inline: auto; }
+  .ko-vyveska-vpravo { justify-items: center; }
+  .ko-kudy-listek { width: min(520px, 100%); }
+}
+@media (max-width: 699px) {
+  .ko-ot-seznam { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .ko-ot-a { grid-template-columns: clamp(84px, 24vw, 104px) minmax(0, 1fr); }
+  /* na mobilu se kami střídají: lichý vlevo, sudý vpravo */
+  .ko-ot-polozka:nth-child(even) .ko-ot-a { grid-template-columns: minmax(0, 1fr) clamp(84px, 24vw, 104px); }
+  .ko-ot .ko-ot-polozka:nth-child(even) .ko-ot-kami { grid-column: 2; }
+  .ko-ot-polozka:nth-child(even) .ko-ot-bublina { grid-column: 1; transform-origin: 100% 85%; }
+  .ko-ot-polozka:nth-child(even) .ko-ot-bublina::after { left: auto; right: -13px; clip-path: polygon(0 0, 0 100%, 100% 78%); }
+  .ko-ot-polozka:nth-child(even) .ko-ot-q { justify-content: flex-start; padding: 0 18% 0 12%; }
+  .ko-ot-polozka:nth-child(even) .ko-ot-trava { left: auto; right: -10px; }
+  .ko-ot-bublina p { font-size: 15.5px; }
+  .ko-vyveska-deska { border-width: 7px; }
+  .ko-vyveska-strecha { width: calc(100% + 24px); margin: 0 -12px -12px; }
+  .ko-vyveska-hlava { padding: 14px 18px 16px; }
+  .ko-vyveska-kami { width: 96px; }
+  .ko-vyveska-kami-l { left: 2px; }
+  .ko-vyveska-kami-p { right: 2px; }
+  .ko-mapa-ram { --s: 2.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ko-ot-kami svg, .ko-ot-kami.skok svg { animation: none; }
+  .ko-ot-polozka.je :is(.ko-ot-visacka, .ko-ot-kami, .ko-ot-bublina, .ko-ot-bublina > *), .ko-ot-polozka.je .ko-ot-bublina::before { animation: none; }
+  .ko-mapa.bezi .ko-m-odkryt { animation: none; }
+}

@@ -7,7 +7,39 @@
  */
 const omez = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+/**
+ * Mapa na vývěsce: tlačítko přepíná celý Ořech a okolí domu (na úzké
+ * obrazovce začíná přiblížená, ať jdou přečíst ulice), a když mapa poprvé
+ * vjede do obrazovky, šňůrka kōhaku doběhne od zastávky k bráně.
+ */
+function mapaVyvesky() {
+  const fig = document.querySelector<HTMLElement>(".ko-mapa");
+  const ram = fig?.querySelector<HTMLElement>(".ko-mapa-ram");
+  if (!fig || !ram) return;
+  const tl = ram.querySelector<HTMLButtonElement>(".ko-mapa-prepinac");
+  const nastav = (blizko: boolean) => {
+    ram.classList.toggle("blizko", blizko);
+    tl?.setAttribute("aria-pressed", String(blizko));
+  };
+  nastav(matchMedia("(max-width: 699px)").matches);
+  tl?.addEventListener("click", () => nastav(!ram.classList.contains("blizko")));
+
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+  fig.classList.add("ceka");
+  const pozorovatel = new IntersectionObserver(
+    ([z]) => {
+      if (!z?.isIntersecting) return;
+      pozorovatel.disconnect();
+      fig.classList.remove("ceka");
+      fig.classList.add("bezi");
+    },
+    { threshold: 0.45 },
+  );
+  pozorovatel.observe(ram);
+}
+
 export function kudyKNam() {
+  mapaVyvesky();
   const fig = document.querySelector<HTMLElement>(".ko-srovnani");
   if (!fig) return;
   const plocha = fig.querySelector<HTMLElement>(".ko-srovnani-plocha")!;
