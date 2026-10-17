@@ -144,6 +144,8 @@ export function louka(o: LoukaVolby): string {
     s += drobnosti(B8, W, uzka, 6300 + i, sezona);
     s += stebla(B8, W, Math.round(W / (uzka ? 13 : 9)), vyska * 0.8, 6400 + i, ["svt-trava-2", "svt-trava-1", "ko-trava-sucha"], 26);
   });
-  s += `<rect x="0" y="0" width="${f(W)}" height="${f(H)}" fill="url(#ko-lk-svetlo)" pointer-events="none"/>`;
+  /* světlo až od švu — nad ním je první obrazovka (hrnek), sem přerůstají jen stébla */
+  const sev = hrany[0] ?? 0;
+  s += `<rect x="0" y="${f(sev)}" width="${f(W)}" height="${f(Math.max(0, H - sev))}" fill="url(#ko-lk-svetlo)" pointer-events="none"/>`;
   return s;
 }

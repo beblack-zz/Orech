@@ -2,7 +2,7 @@
  * Vstup pro /kontakt. Obloha, hlavička a klikací kami jsou společné
  * s ostatními stránkami nového vzhledu; provázkový telefon a ústředna
  * uvnitř dílny jsou v scena.ts a uvnitr.ts; pod první obrazovkou louka
- * po pásech (louka.ts), otázky s partou (otazky.ts) a vývěska s mapou
+ * po pásech (louka.ts), stojan ema s otázkami (ema.ts) a vývěska s mapou
  * a táhlem kresby a fotky domu (kudy.ts).
  */
 import { stranka } from "../parta2/prechody";
@@ -13,15 +13,17 @@ import { hlavicka } from "../parta2/hlavicka";
 import { scena } from "./scena";
 import { kudyKNam } from "./kudy";
 import { loukaPod } from "./louka";
-import { otazkyParta } from "./otazky";
+import { emaStojan } from "./ema";
+import { snuraLouky } from "./snura";
 
 stranka("kontakt", () => {
   hlavicka();
   initKami();
   initNebe();
   scena();
-  otazkyParta();
+  emaStojan();
   kudyKNam();
   loukaPod();
+  snuraLouky();
   spust();
 });

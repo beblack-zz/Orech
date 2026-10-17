@@ -17,7 +17,7 @@ import { pozdeji } from "../parta2/pozdeji";
 /** Roční období podle dneška — stránka je statická a období v ní je z buildu */
 function initSezona() {
   const s = sezonaMesice(new Date().getMonth() + 1);
-  document.querySelectorAll<HTMLElement>("#uvod, #ulice, #prohlidka").forEach((el) => (el.dataset.sezona = s));
+  document.querySelectorAll<HTMLElement>("#uvod, #ulice, #prohlidka, #kontakt").forEach((el) => (el.dataset.sezona = s));
 }
 
 /* Celé se to spustí při každé návštěvě stránky, i po přechodu bez načtení (prechody.ts) */

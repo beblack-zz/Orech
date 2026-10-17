@@ -106,6 +106,81 @@
 .ko-stav.otevreno { background: #E3EED3; color: #2F5A24; }
 .ko-stav.otevreno::before { background: #4E8A3A; box-shadow: 0 0 0 4px rgba(78, 138, 58, 0.18); }
 
+/* Karta 名刺: telefon a údaje na tuhém washi, svázané uzlem mizuhiki z téže
+   šňůrky kōhaku jako provázek; vpravo svisle 陶芸工房 a pečeť 二 (linka 二, Futatsu) */
+.ko-meishi {
+  position: relative;
+  max-width: 548px;
+  margin: 6px 0 22px;
+  padding: 20px 78px 17px 26px;
+  border-radius: 5px;
+  background: linear-gradient(162deg, #FFFCF5 0%, #FAF4E6 58%, #F3EAD5 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 0 1px rgba(120, 96, 64, 0.16),
+    0 3px 8px -4px rgba(40, 26, 12, 0.28),
+    0 22px 38px -20px rgba(40, 26, 12, 0.55);
+  color: var(--inkoust);
+  transform: rotate(-0.8deg);
+  transition: background 0.8s ease, box-shadow 0.8s ease;
+}
+/* tenký rumělkový rámeček uvnitř a svislá čára před sloupkem s kanji */
+.ko-meishi::before,
+.ko-meishi::after { content: ""; position: absolute; pointer-events: none; }
+.ko-meishi::before { inset: 7px; border: 1px solid rgba(196, 67, 43, 0.2); border-radius: 3px; }
+.ko-meishi::after { top: 18px; bottom: 18px; right: 60px; width: 1px; background: rgba(43, 36, 32, 0.13); }
+.ko-meishi-mizuhiki {
+  position: absolute;
+  z-index: 1;
+  top: -25px;
+  left: -22px;
+  width: 92px;
+  height: auto;
+  transform: rotate(-9deg);
+  filter: drop-shadow(0 3px 2px rgba(40, 26, 12, 0.28));
+  pointer-events: none;
+}
+.ko-meishi-tate {
+  position: absolute;
+  top: 18px;
+  right: 14px;
+  bottom: 16px;
+  width: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+.ko-meishi-tate-text { writing-mode: vertical-rl; font-family: var(--f-kanji); font-size: 19px; letter-spacing: 0.32em; color: var(--inkoust-2); }
+.ko-meishi-hanko {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  background: var(--rumelka);
+  box-shadow: inset 0 0 0 1.5px rgba(251, 243, 230, 0.5);
+  color: #FBF3E6;
+  font-family: var(--f-kanji);
+  font-size: 23px;
+  line-height: 1;
+  transform: rotate(4deg);
+  opacity: 0.93;
+}
+.ko-meishi .ko-cislo { font-size: clamp(32px, min(3.5vw, 6vh), 50px); line-height: 1.05; }
+/* údaje ve dvou sloupcích; stav (čip) pod hodinami, ať se řádky nerozjedou */
+.ko-meishi .ko-udaje { display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); margin: 12px 0 0; padding-top: 11px; border-top: 1px dashed rgba(43, 36, 32, 0.18); gap: 9px 30px; }
+.ko-meishi .ko-udaje dd { font-size: 18px; }
+.ko-meishi .ko-stav { display: flex; width: fit-content; margin: 4px 0 0; vertical-align: 0; }
+/* nízká široká okna (notebook): o něco menší nadpis a odsazení, ať se vejde i hrnek */
+@media (min-aspect-ratio: 6/5) and (min-width: 900px) and (max-height: 860px) {
+  .ko-panel { padding-top: 84px; }
+  .ko-nadpis { font-size: clamp(36px, min(4.6vw, 7vh), 64px); margin-bottom: 12px; }
+  .ko-meishi { margin-bottom: 16px; padding-top: 16px; padding-bottom: 14px; }
+  .ko-dal { margin-top: 12px; }
+}
+
 .ko-tlacitka { display: flex; flex-wrap: wrap; gap: 10px; }
 .ko-dal { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin-top: 16px; font-size: 15px; }
 .ko-dal a,
@@ -143,6 +218,14 @@
 .je-noc .ko-scena[data-zastavka="venku"] .ko-udaje dd a { border-color: rgba(241, 232, 214, 0.35); }
 .je-noc .ko-scena[data-zastavka="venku"] .ko-zvednout { background: var(--noc-krem, #F1E8D6); border-color: var(--noc-krem, #F1E8D6); color: #1E2448 !important; }
 .je-noc .ko-scena[data-zastavka="venku"] .tlacitko-obrys { border-color: var(--noc-krem, #F1E8D6); color: var(--noc-krem, #F1E8D6) !important; }
+/* karta zůstává papírem v teplém světle lucerny — písmo na ní tmavé */
+.je-noc .ko-scena[data-zastavka="venku"] .ko-meishi {
+  background: linear-gradient(162deg, #F6EBD2 0%, #EEDFC0 60%, #E2CFA8 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.7), 0 0 0 1px rgba(60, 40, 20, 0.3), 0 0 46px -12px rgba(255, 196, 120, 0.45), 0 22px 38px -20px rgba(0, 0, 10, 0.7);
+}
+.je-noc .ko-scena[data-zastavka="venku"] .ko-meishi :is(.ko-cislo, .ko-pozn) { color: var(--inkoust); }
+.je-noc .ko-scena[data-zastavka="venku"] .ko-meishi :is(.ko-popisek, .ko-udaje dt) { color: var(--inkoust-3); }
+.je-noc .ko-scena[data-zastavka="venku"] .ko-meishi .ko-udaje dd a { border-color: rgba(43, 36, 32, 0.2); }
 
 /* ——— Úzké rozvržení: panel nahoře přes celou šířku, scéna pod ním ——— */
 @media (max-aspect-ratio: 1199/1000), (max-width: 899px) {
@@ -157,9 +240,25 @@
   .ko-tlacitka { gap: 8px; }
   .ko-tlacitka .tlacitko { padding: 11px 18px; font-size: 15px; }
   .ko-dal { margin-top: 12px; font-size: 14.5px; }
+  .ko-meishi { margin: 4px 0 18px; padding: 17px 62px 14px 18px; }
+  .ko-meishi::after { right: 50px; }
+  .ko-meishi-tate { right: 10px; width: 30px; }
+  .ko-meishi-tate-text { font-size: 16px; }
+  .ko-meishi-hanko { width: 29px; height: 29px; font-size: 19px; border-radius: 6px; }
+  .ko-meishi-mizuhiki { top: -21px; left: -12px; width: 74px; }
+  .ko-meishi .ko-cislo { font-size: clamp(30px, 8.4vw, 40px); }
+  .ko-meishi .ko-udaje { grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); margin-top: 10px; padding-top: 10px; gap: 8px 24px; }
+  .ko-meishi .ko-udaje dd { font-size: 16.5px; }
+  /* uvnitř u ústředny zůstane z karty jen číslo — ústředna potřebuje místo na zdířky */
+  .ko-scena[data-zastavka="uvnitr"] :is(.ko-meishi .ko-pozn, .ko-meishi .ko-udaje) { display: none; }
+  .ko-scena[data-zastavka="uvnitr"] .ko-meishi { padding-bottom: 12px; margin-bottom: 12px; }
 }
 @media (max-width: 380px) {
   .ko-tlacitka .tlacitko { padding: 10px 15px; font-size: 14.5px; }
+  /* na nejužších displejích zůstane ze sloupku jen pečeť v rohu */
+  .ko-meishi { padding-right: 18px; }
+  .ko-meishi::after, .ko-meishi-tate-text { display: none; }
+  .ko-meishi-tate { bottom: auto; }
 }
 @media (max-width: 480px) {
   .ko-bublina { padding: 5px 12px 7px; border-radius: 13px; }
@@ -196,6 +295,12 @@
 .ko-nas-hrnek.zvoni .ko-hrnek-carky { opacity: 1; animation: ko-blik 0.28s steps(2, jump-none) 6; }
 .ko-okno-klik { fill: transparent; cursor: pointer; transition: fill 0.2s; }
 .ko-okno-klik:hover { fill: rgba(255, 214, 140, 0.28); }
+/* svátky na provázku (kresba/svatky.ts): ozdoby se kývou ve větru, lucerny v noci svítí */
+.ko-ozdoba { cursor: pointer; }
+.ko-svatek-vlaje { animation: ko-vlaje 2.8s ease-in-out calc(var(--i, 0) * -0.7s) infinite alternate; }
+.ko-svatek-kodomo .ko-svatek-vlaje { animation-duration: 1.9s; }
+.ko-svatek-zare-vrstva { pointer-events: none; opacity: calc(var(--ko-noc, 0) * 0.95); }
+@keyframes ko-vlaje { from { transform: rotate(-4deg); } to { transform: rotate(5deg); } }
 .ko-visacka { cursor: pointer; }
 .ko-visacka:hover .ko-visacka-papir { fill: #FFFFFF; stroke: var(--rumelka); }
 .ko-dum-klik { cursor: pointer; fill: transparent; }
@@ -244,30 +349,18 @@
 .ko-pozor { animation: ko-pozor 0.8s ease-in-out 3; }
 
 /* ——— Uvnitř: ústředna ——— */
-.ko-u-zvonek { transform-box: fill-box; transform-origin: 50% 0; }
-.ko-u-vlny { opacity: 0; }
-.ko-u-kontrolka { opacity: 0.4; }
 .ko-u-cink { opacity: 0; transition: opacity 0.2s; }
 .ko-u-cink.ted { opacity: 1; }
 .ko-u-para { animation: ko-para 3s ease-in-out infinite; }
-.ko-zvoni .ko-u-zvonek { animation: ko-zvonek 0.16s ease-in-out infinite alternate; }
-.ko-zvoni .ko-u-vlny { opacity: 1; animation: ko-blik 0.5s steps(2, jump-none) infinite; }
-.ko-zvoni .ko-u-kontrolka { opacity: 1; animation: ko-blik 0.7s steps(2, jump-none) infinite; }
-.ko-hovor .ko-u-kdo use { transform-box: fill-box; transform-origin: 50% 100%; animation: ko-naklon 1.6s ease-in-out infinite alternate; }
-.ko-hovor .ko-u-bublinka use { transform-box: fill-box; transform-origin: 50% 100%; animation: ko-naklon 1.3s ease-in-out -0.4s infinite alternate-reverse; }
 .ko-u-klavesa .ko-u-hlava { transition: transform 0.08s; }
 .ko-u-klavesa.dole .ko-u-hlava { transform: translateY(2.4px); }
 
-/* zavřeno: v dílně je potmě, kontrolka linky svítí do tmy, Bublinka vykukuje z hroudy */
+/* zavřeno: v dílně je potmě (ústředna sama je v kontakt-ustredna.css) */
 .ko-u-tma { opacity: calc(0.85 + var(--ko-noc, 0) * 0.15); pointer-events: none; }
 .ko-u-tma-noc { fill: #0B1030; opacity: calc(var(--ko-noc, 0) * 0.26); pointer-events: none; }
 .ko-u-paprsek { pointer-events: none; mix-blend-mode: screen; }
 .ko-u-paprsek-den { fill: url(#ko-u-paprsek-den); opacity: calc(1 - var(--ko-noc, 0)); }
 .ko-u-paprsek-noc { fill: url(#ko-u-paprsek-noc); opacity: var(--ko-noc, 0); }
-.ko-u-kontrolka-zare { opacity: 0.3; }
-.ko-zvoni .ko-u-kontrolka-zare { opacity: 1; animation: ko-blik 0.7s steps(2, jump-none) infinite; }
-.ko-u-vykuk { transform-box: fill-box; transform-origin: 50% 100%; transform: translateY(72%); transition: transform 0.7s cubic-bezier(0.3, 1.4, 0.5, 1); }
-.ko-vykukuje .ko-u-vykuk { transform: translateY(0); }
 .ko-u-zzz { fill: #F1E8D6; }
 
 /* ——— Bubliny řečí (HTML nad kresbou) ——— */
@@ -364,6 +457,15 @@
 .ko-okno-pozn { margin: 0 0 16px; font-size: 14.5px; color: var(--inkoust-2); }
 .ko-okno-akce { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 
+/* Odeslání: písmo zbledne, papír se dvakrát přeloží do proužku, zaváže se
+   na uzel 結び文 a ten spadne dolů k provázku (Element.animate ve scena.ts) */
+.ko-uzel-dopisu { position: absolute; left: 50%; top: 50%; width: 240px; height: 160px; margin: -80px 0 0 -120px; opacity: 0; pointer-events: none; }
+.ko-okno.sklada { overflow: visible; background: transparent; box-shadow: none; }
+.ko-okno.sklada .ko-papir { border-radius: 22px; background: #FBF6EA; box-shadow: 0 30px 70px -24px rgba(20, 14, 8, 0.55); transform-origin: 50% 50%; }
+.ko-okno.sklada .ko-papir > * { opacity: 0; transition: opacity 0.22s ease; }
+.ko-okno.sklada::backdrop { transition: opacity 0.5s ease; }
+.ko-okno.odchazi::backdrop { opacity: 0; }
+
 /* ——— Kudy k nám: lístek s cestou a kresba domu přes fotku (vývěska je v kontakt-dole.css) ——— */
 .ko-kudy-adresa { margin: 0 0 14px; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 19px; }
 .ko-kudy-kroky { margin: 0 0 22px; padding-left: 20px; font-size: 16px; line-height: 1.5; color: var(--inkoust-2); }
@@ -435,9 +537,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ko-padani { display: none; }
-  .ko-konec.spi .ko-sluzba use, .ko-zzz text, .ko-zvoni .ko-u-zvonek, .ko-zvoni .ko-u-vlny, .ko-zvoni .ko-u-kontrolka,
-  .ko-hovor .ko-u-kdo use, .ko-hovor .ko-u-bublinka use, .ko-u-para, .ko-okno[open], .ko-cesta-ukaz.ukaz, .ko-pozor, .ko-zvoni .ko-u-kontrolka-zare,
+  .ko-svatek-vlaje { animation: none; }
+  .ko-konec.spi .ko-sluzba use, .ko-zzz text, .ko-u-para, .ko-okno[open], .ko-cesta-ukaz.ukaz, .ko-pozor,
   .ko-nas-hrnek.zvoni, .ko-nas-hrnek.zvoni .ko-hrnek-carky { animation: none; }
-  .ko-u-vykuk { transition: none; }
   .ko-bublina, .ko-nas-hrnek { transition: none; }
 }

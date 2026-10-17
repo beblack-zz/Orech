@@ -18,9 +18,9 @@ import type { PostavaId } from "./parta";
  * Obojí je níž.
  *
  * Co je zamluvené, je v Supabase (supabase/schema.sql) a stránka si to bere
- * z /api/volno; rezervovat smí jen členové z databáze. Přístup se dává po
- * telefonu: člověk nadiktuje e-mail, dílna ho zapíše a odkaz mu přijde
- * mailem. Dokud klíče k Supabase nejsou nastavené, je obsazenost SIMULOVANÁ
+ * z /api/volno; rezervovat smí jen členové z databáze. Člověk se na
+ * /rezervace zaregistruje jménem a e-mailem, registraci potvrdí odkazem
+ * z mailu a pak se přihlašuje e-mailem, bez hesla. Dokud klíče k Supabase nejsou nastavené, je obsazenost SIMULOVANÁ
  * (scripts/rezervace/simulace.ts) a rezervovat nejde. Stejná
  * čísla hlídá i server (src/lib/rezervace/pravidla.ts).
  */
@@ -44,6 +44,10 @@ export const rezervace = {
   kurzuNaraz: 2,
   /** Kolik hodin před začátkem jde jízdenka ještě zrušit přes web. ODHAD — čeká na potvrzení. */
   zrusitHodinPredem: 24,
+  /** Jak dlouho platí odkaz a kód z přihlašovacího mailu, v minutách */
+  prihlaseniMinut: 15,
+  /** Jak dlouho platí odkaz a kód z mailu, kterým se potvrzuje registrace — mail se čte později než přihlašovací, tak déle */
+  registraceMinut: 60,
 };
 
 /** Začátky odjezdů během dne jako hodiny s půlkou: 9, 10.5, 12… */

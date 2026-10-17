@@ -20,6 +20,7 @@ import type { PostavaId } from "../../../data/parta";
 import {
   type Bod, f, omez, lerp, chomac, nahoda, vzorkuj, hladka, vyskaNa,
   hreben, plocha, les, pole, vesnice, strom, briza, pesina, cedulkaBrany, noren, kami, hrnek, list,
+  provazek, provazekSvg,
 } from "./zaklad";
 
 export type Rezim = "siroka" | "uzka";
@@ -32,6 +33,8 @@ export interface VenkuVolby {
   /** Pravý a dolní okraj textu v jednotkách scény */
   panel: { prava: number; dolni: number };
   otevreno: boolean;
+  /** Hodiny telefonu: ten na plotě je vzhůru (jinak spí) */
+  vzhuru: boolean;
   /** Kdo sedí na plotě s druhým hrnkem */
   kdo: PostavaId;
 }
@@ -72,12 +75,15 @@ export interface VenkuBody {
   dopisM: number;
   /** Měřítko drobností (vrabci, dopis, světélka) vůči počítači */
   m: number;
+  /** Kde druhá šňůra od paty Futatsu přechází přes spodní okraj na louku, a její šířka */
+  sestup: Bod;
+  sestupW: number;
 }
 
 const KAMI_DUM = { x: 150, y: 276 };
 
 export function venku(o: VenkuVolby) {
-  const { W, H, rezim, panel, otevreno, kdo } = o;
+  const { W, H, rezim, panel, otevreno, vzhuru, kdo } = o;
   const siroka = rezim === "siroka";
   const R = nahoda(4401);
 
@@ -93,11 +99,16 @@ export function venku(o: VenkuVolby) {
     DS = omez((W - panel.prava - 140) / 560, 0.72, 1.15);
     DX = W - 64 - 470 * DS;
     const volno = H - panel.dolni;
-    const s = 3.55 * omez(volno / 378, 0.62, 1.08);
-    const y = Math.max(742, panel.dolni + 24 + 47.9 * s);
-    cup = { x: 60 + 72 * s, y, s, rot: -104, uhel: 62 };
-    const dy = y - 742;
-    louka = [[-60, 792], [90, 780], [250, 788], [420, 814], [560, 852], [660, 900], [720, 960]].map(([x, yy]) => [x * (s / 3.55), yy + dy] as Bod);
+    /* pod textem je místo na hrnek, nebo si lehne vedle karty (nízká okna, dlouhý panel) */
+    const pod = volno >= 24 + 87.9 * 3.55 * 0.62;
+    const s = 3.55 * (pod ? omez(volno / 378, 0.62, 1.08) : 0.66);
+    const y = pod ? Math.max(742, panel.dolni + 24 + 47.9 * s) : H - 64 * s - 22;
+    const x = pod ? 60 + 72 * s : panel.prava + 64 * s;
+    cup = { x, y, s, rot: -104, uhel: 62 };
+    const dy = y - 742, dx = x - (60 + 72 * s);
+    louka = [[-60, 792], [90, 780], [250, 788], [420, 814], [560, 852], [660, 900], [720, 960]].map(([bx, yy]) => [bx * (s / 3.55) + dx, yy + dy] as Bod);
+    /* vedle karty: kopeček s hrnkem vybíhá zleva zdola, ať nemá useknutý kraj */
+    if (!pod) louka.unshift([-60, H + 30]);
   } else {
     const st = panel.dolni;
     const sh = Math.max(240, H - st);
@@ -208,7 +219,7 @@ export function venku(o: VenkuVolby) {
   const kamiX = kx - KV / 2, kamiY = ky - 158 * km;
   const druhy = hrnek({ id: "ko-h2", x: kamiX + 40 * km, y: kamiY + 92 * km, s: 0.3 * (DS / 1.15), rot: siroka ? 80 : 58, uhel: 62, nadhled: 12 });
   const konecBod = druhy.naObraz(0, 76);
-  const spi = !otevreno;
+  const spi = !vzhuru;
   const konecSvg = `<g class="ko-konec${spi ? " spi" : ""}">
     ${kami(kdo, kamiX, kamiY, KV, "ko-sluzba")}
     <g class="ko-druhy-hrnek">${druhy.svg}</g>
@@ -225,6 +236,19 @@ export function venku(o: VenkuVolby) {
   p += `<path class="ko-louka-lem" d="${hladka(vzorkuj(louka, 40), false)}" fill="none" stroke-width="${f(5 * cast)}"/>`;
   p += `<path class="svt-snih-blizko" d="${plocha(louka.map(([x, y]) => [x, y + 6] as Bod), H + 40)}"/>`;
   p += stebla(louka, -60, louka[louka.length - 2][0], siroka ? 220 : 110, 58 * cup.s / 3.55, 4101, ["svt-trava-1", "svt-trava-3", "ko-trava-sucha"], 0);
+  /* sestup: od uzlu na patě vede druhá šňůra trávou dolů přes okraj obrazovky na louku */
+  const w0 = siroka ? 6.6 : 4.4 * k;
+  const sestup: Bod = [pata[0] + 26 * cup.s / 3.55, H + 4];
+  const sestupTvar = (t: number): Bod => {
+    const u = 1 - t;
+    const c1: Bod = [pata[0] + 34 * cup.s / 3.55, pata[1] + (H - pata[1]) * 0.15];
+    const c2: Bod = [sestup[0] - 18 * cup.s / 3.55, lerp(pata[1], H, 0.7)];
+    return [
+      u * u * u * pata[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t * t * t * sestup[0],
+      u * u * u * pata[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t * t * t * sestup[1],
+    ];
+  };
+  p += provazekSvg(provazek(sestupTvar, w0 * 0.9, w0, 0, 60), "ko-sestup", w0);
   const [stx, sty] = nas.naObraz(30, 76);
   p += `<ellipse cx="${f(stx + 40 * cup.s)}" cy="${f(Math.max(sty, cup.y) + 34 * cup.s)}" rx="${f(52 * cup.s)}" ry="${f(6 * cup.s)}" fill="url(#ko-stin-hrnku)"/>`;
   /* čárky zvonění kolem otvoru — bliknou, když hrnek zvoní (pozvani ve scena.ts) */
@@ -253,7 +277,7 @@ export function venku(o: VenkuVolby) {
     konec: konecBod,
     prohyb: siroka ? 58 : 34 * k,
     napnuty: siroka ? 26 : 14 * k,
-    w0: siroka ? 6.6 : 4.4 * k,
+    w0,
     w1: siroka ? 1.6 : 1.4 * k,
     okno: naDum(232, 275),
     hlava: [kx, kamiY + 14 * km],
@@ -266,6 +290,8 @@ export function venku(o: VenkuVolby) {
     vrabci,
     dopisM: siroka ? 1.15 * m : 0.66 * k,
     m,
+    sestup,
+    sestupW: w0,
   };
   return { krajina, konec: konecSvg, popredi: p, body };
 

@@ -1,0 +1,311 @@
+/*
+ * Stojan ema 絵馬掛け na louce Kontaktu — kresba, rozvržení a vzhled destiček
+ * (components/kontakt/Otazky.astro + components/kontakt/kresba/ema.ts).
+ * Pohyb a stavy po kliknutí jsou v kontakt-ema-hra.css.
+ *
+ * Stojan je kontejner (container-type) s poměrem stran podle režimu; vše
+ * uvnitř leží v procentech z rozvrhu (inline proměnné s příponou -s/-m/-u,
+ * režim vybírají stejné hranice jako ve skriptech: 1080 a 700 px). Písmo
+ * na deskách je v cqw, aby vypadalo stejně na stojanu i zvětšené při čtení.
+ *
+ * Destičky se kývají vlastností `rotate` (klidový náklon --r), `translate`
+ * na .ko-ema je jen vystředění na bod úchytu — `transform` patří skriptu.
+ */
+
+/* ═══ Sekce a stojan ═══ */
+.ko-ema-sekce {
+  position: relative;
+  z-index: 1;
+  padding: clamp(56px, 8vh, 96px) 16px clamp(28px, 5vh, 56px);
+  scroll-margin-top: 30px;
+}
+.ko-ema-stojan {
+  position: relative;
+  width: min(100%, 1480px);
+  margin: 0 auto var(--pod-s);
+  aspect-ratio: var(--pomer-s);
+  container-type: inline-size;
+}
+/* každý prvek si bere hodnoty svého režimu */
+.ko-ema-stojan :is(.ko-ema, .ko-ema-kami, .ko-ema-zvonec, .ko-ema-zaves, .ko-ema-kotva, .ko-ema-hlava) {
+  --x: var(--x-s); --y: var(--y-s); --w: var(--w-s); --h: var(--h-s); --r: var(--r-s); --v: var(--v-s); --t: var(--t-s); --xn: var(--xn-s); --wn: var(--wn-s);
+}
+.ko-ema-hlava {
+  --sx: var(--sx-s); --sy: var(--sy-s); --sw: var(--sw-s); --sh: var(--sh-s);
+  --h2: var(--h2-s); --perex: var(--perex-s); --stk: var(--stk-s); --stp: var(--stp-s); --hp: var(--hp-s);
+}
+
+/* ═══ Kresba: tři varianty, vidět je jedna ═══ */
+.ko-ema-kresba, .ko-ema-sloupek, .ko-ema-popredi { position: absolute; inset: 0; pointer-events: none; }
+.ko-ema-kresba { z-index: 0; }
+/* kus sloupu přes Bublinku a tráva přes paty a nohy party */
+.ko-ema-sloupek { z-index: 5; }
+.ko-ema-popredi { z-index: 6; }
+.ko-ema-zasoba { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ko-ema-v { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: none; overflow: visible; }
+.ko-ema-v-siroka { display: block; }
+
+/* noc: stojan potemní modře, lucerny a světlušky se rozsvítí (--ko-noc 0–1 ze scena.ts) */
+.ko-ema-noc { opacity: calc(var(--ko-noc, 0) * 0.52); }
+.ko-ema-washi-noc { opacity: calc(var(--ko-noc, 0) * 0.22); }
+.ko-ema-zare { opacity: calc(var(--ko-noc, 0) * 0.95); }
+.ko-ema-svetlusky { opacity: var(--ko-noc, 0); }
+.ko-dole.soumrak .ko-ema-popredi { filter: brightness(calc(1 - var(--ko-noc, 0) * 0.5)) saturate(calc(1 - var(--ko-noc, 0) * 0.3)); }
+.ko-dole.soumrak .ko-ema-kami svg { filter: brightness(calc(1 - var(--ko-noc, 0) * 0.3)); }
+.ko-dole.soumrak :is(.ko-ema-malba, .ko-ema-drevo) { filter: brightness(calc(1 - var(--ko-noc, 0) * 0.2)); }
+
+/* zvonec a provaz se houpou kolem horního bodu (skript přidá rotate) */
+.ko-ema-suzu, .ko-ema-provaz-zvonu { transform-box: fill-box; transform-origin: 50% 0; }
+
+/* ═══ Nadpis: zlatý štítek na lakované desce 扁額, nadpis na washi pod ní ═══ */
+.ko-ema-hlava {
+  position: absolute;
+  z-index: 1;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--hp, 3cqw) 4% 0.8cqw;
+  text-align: center;
+}
+.ko-ema-hlava .stitek {
+  position: absolute;
+  left: var(--sx);
+  top: var(--sy);
+  width: var(--sw);
+  height: var(--sh);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1cqw;
+  font-size: max(10px, var(--stp, 0.95cqw));
+  line-height: 1;
+  letter-spacing: 0.24em;
+  color: #F0CF7A;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+}
+.ko-ema-hlava .stitek [lang="ja"] {
+  font-size: var(--stk, 2.7cqw);
+  letter-spacing: 0.12em;
+  margin-right: -0.12em;
+  color: #F6D888;
+  text-shadow: 0 0.12em 0 rgba(0, 0, 0, 0.55), 0 0 0.4em rgba(240, 190, 90, 0.25);
+}
+.ko-ema-hlava h2 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 96;
+  font-weight: 500;
+  font-size: max(20px, var(--h2, 2.75cqw));
+  line-height: 1.04;
+  letter-spacing: -0.012em;
+  color: var(--inkoust);
+  text-wrap: balance;
+}
+.ko-ema-perex {
+  margin: 0.35em 0 0;
+  font-size: max(14px, var(--perex, 1.2cqw));
+  line-height: 1.3;
+  font-style: italic;
+  color: var(--inkoust-2);
+  text-wrap: balance;
+}
+
+/* ═══ Destičky na šňůře ═══ */
+.ko-ema-seznam { position: absolute; inset: 0; z-index: 2; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+.ko-ema {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  translate: -50% 0;
+  pointer-events: auto;
+}
+.ko-ema-deska {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 200 / 180;
+  container-type: inline-size;
+  rotate: var(--r, 0deg);
+  transform-origin: 50% 0;
+  color: var(--inkoust);
+  text-decoration: none;
+}
+.ko-ema-lic {
+  position: absolute;
+  inset: 0;
+  display: block;
+  list-style: none;
+  cursor: pointer;
+  border-radius: 3cqw;
+}
+.ko-ema-lic::-webkit-details-marker { display: none; }
+.ko-ema-lic::marker { content: ""; }
+.ko-ema-lic:focus-visible { outline-offset: -1cqw; }
+/* malba na destičce je namalovaná — kami na ní stojí (a malba se nemusí překreslovat).
+   Pohyb z postavicky.css se do klonu <use> nedá vypnout selektorem, ale zděděná
+   proměnná tam projde. */
+:is(.char-breathe, .kapka-telo, .kapka-stin, .char-sway, .char-wobble, .zzz, .plamen, .bublinka-telo, .bublinka-stin, .kachlik-telo, .cedulka-telo, .samotka-zar, .jiskra, .kour, .kami-shide, .kami-vlnka, .kami-onibi, .kami-ohen, .kami-svetlo) { animation-play-state: var(--kami-pohyb, running); }
+.ko-ema-malba { --kami-pohyb: paused; }
+.ko-ema-malba, .ko-ema-drevo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+/* otázka velkým ručním písmem na holém dřevě pod malbou */
+.ko-ema-otazka {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 69%;
+  bottom: 4.6%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-ruka);
+  font-weight: 600;
+  font-size: 12.4cqw;
+  line-height: 0.94;
+  text-align: center;
+  text-wrap: balance;
+  color: #2B2420;
+}
+.ko-ema-prazdna .ko-ema-otazka { top: 38%; bottom: 14%; font-size: 13.4cqw; line-height: 1; color: var(--rumelka); }
+
+/* ——— rub: zadní strana téže destičky ——— */
+.ko-ema-rub { position: relative; container-type: inline-size; color: #2B2420; }
+.ko-ema-odpoved {
+  position: absolute;
+  left: 8.5%;
+  right: 8.5%;
+  top: 33%;
+  bottom: 19%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: var(--f-ruka);
+  font-weight: 600;
+  font-size: clamp(9px, calc(var(--pismo, 6.4) * 1cqw), 36px);
+  line-height: 1.1;
+  text-align: center;
+  text-wrap: pretty;
+}
+/* podpis vpravo dole vedle pečeti */
+.ko-ema-jmeno {
+  position: absolute;
+  right: 11.5cqw;
+  bottom: -8.5cqw;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: max(9px, 4.2cqw);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rumelka);
+  white-space: nowrap;
+}
+.ko-ema-jmeno::before { content: "— "; letter-spacing: 0; }
+.ko-ema-hanko {
+  position: absolute;
+  right: 5.5%;
+  bottom: 5.5%;
+  width: 12.5cqw;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 1.6cqw;
+  background: radial-gradient(circle at 35% 30%, #D9573A, #C4432B 55%, #A9341F);
+  color: #FBF1E6;
+  font-family: var(--f-kanji);
+  font-size: 8.6cqw;
+  line-height: 1;
+  rotate: 4deg;
+  box-shadow: inset 0 0 0 0.55cqw rgba(251, 241, 230, 0.8), inset 0 0 0 1.1cqw #C4432B;
+}
+
+/* bez skriptu: otevřená destička ukáže rub jako čitelnou kartu pod sebou, přes okolní */
+.ko-ema-sekce:not(.js) .ko-ema:has(> .ko-ema-deska[open]) { z-index: 40; }
+.ko-ema-sekce:not(.js) .ko-ema-deska[open] > .ko-ema-rub {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 6px);
+  /* karta je široká jako min(92 % stojanu, 420 px) a nevyjede ze stojanu: počty v jednotkách šířky destičky */
+  --kw: min(calc(92 / var(--wn) * 100%), 420px);
+  left: clamp(calc(-1 * (var(--xn) - var(--wn) / 2) / var(--wn) * 100%), calc(50% - var(--kw) / 2), calc((100 - var(--xn) + var(--wn) / 2) / var(--wn) * 100% - var(--kw)));
+  width: var(--kw);
+  aspect-ratio: 200 / 180;
+  rotate: calc(-1 * var(--r, 0deg));
+  filter: drop-shadow(0 18px 22px rgba(20, 12, 6, 0.45));
+}
+
+/* ═══ Parta v trávě ═══ */
+.ko-ema-parta { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.ko-ema-stojan .ko-ema-kami {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--v);
+  aspect-ratio: 1;
+  margin-left: calc(var(--v) / -2);
+  /* nohy kresby leží v rámu na --pata výšky: rám se posune, ať stojí v bodě --y */
+  margin-top: calc(var(--v) * var(--pata, 0.86) * -1);
+  padding: 0;
+  border-radius: 40%;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.ko-ema-kami svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.ko-ema-stojan .ko-ema-kami:focus-visible { outline-offset: -8%; }
+
+/* ═══ Zvonec, ozdoby svátků a kotvy šňůry ═══ */
+.ko-ema-stojan .ko-ema-zvonec {
+  position: absolute;
+  z-index: 3;
+  /* aspoň 40 px na šířku (dotyk), pořád vystředěný na provaz */
+  left: calc(var(--x) - max(var(--w), 40px) / 2);
+  top: calc(var(--y) - var(--h) / 2);
+  width: max(var(--w), 40px);
+  height: var(--h);
+  border-radius: 999px;
+}
+.ko-ema-zaves { position: absolute; z-index: 1; left: var(--x); top: var(--y); width: 0; height: 0; pointer-events: none; }
+.ko-ema-kotva {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: calc(var(--t) * 1cqw);
+  height: calc(var(--t) * 1cqw);
+  margin: calc(var(--t) * -0.5cqw) 0 0 calc(var(--t) * -0.5cqw);
+  pointer-events: none;
+}
+
+/* ═══ Režimy (stejné hranice jako ve skriptech) ═══ */
+@media (max-width: 1079px) {
+  .ko-ema-stojan { width: 100%; margin-bottom: var(--pod-m); aspect-ratio: var(--pomer-m); }
+  .ko-ema-stojan :is(.ko-ema, .ko-ema-kami, .ko-ema-zvonec, .ko-ema-zaves, .ko-ema-kotva, .ko-ema-hlava) {
+    --x: var(--x-m); --y: var(--y-m); --w: var(--w-m); --h: var(--h-m); --r: var(--r-m); --v: var(--v-m); --t: var(--t-m); --xn: var(--xn-m); --wn: var(--wn-m);
+  }
+  .ko-ema-hlava {
+    --sx: var(--sx-m); --sy: var(--sy-m); --sw: var(--sw-m); --sh: var(--sh-m);
+    --h2: var(--h2-m); --perex: var(--perex-m); --stk: var(--stk-m); --stp: var(--stp-m); --hp: var(--hp-m);
+  }
+  .ko-ema-v-siroka { display: none; }
+  .ko-ema-v-stredni { display: block; }
+}
+@media (max-width: 699px) {
+  .ko-ema-sekce { padding-left: max(16px, 4vw); padding-right: max(16px, 4vw); }
+  .ko-ema-stojan { width: min(100%, 540px); margin-bottom: var(--pod-u); aspect-ratio: var(--pomer-u); }
+  .ko-ema-stojan :is(.ko-ema, .ko-ema-kami, .ko-ema-zvonec, .ko-ema-zaves, .ko-ema-kotva, .ko-ema-hlava) {
+    --x: var(--x-u); --y: var(--y-u); --w: var(--w-u); --h: var(--h-u); --r: var(--r-u); --v: var(--v-u); --t: var(--t-u); --xn: var(--xn-u); --wn: var(--wn-u);
+  }
+  .ko-ema-hlava {
+    --sx: var(--sx-u); --sy: var(--sy-u); --sw: var(--sw-u); --sh: var(--sh-u);
+    --h2: var(--h2-u); --perex: var(--perex-u); --stk: var(--stk-u); --stp: var(--stp-u); --hp: var(--hp-u);
+  }
+  .ko-ema-v-stredni { display: none; }
+  .ko-ema-v-uzka { display: block; }
+}

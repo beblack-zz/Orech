@@ -13,9 +13,8 @@
  * jednu obrazovku a měsíce se přepínají kliknutím — tlačítky, šipkami po
  * stranách nebo na klávesnici; scroll s ní nehýbe (scripts/uvod2/rok.ts,
  * stejný skript jako na Úvodu 2).
- * V každém měsíci se schovává jedna šupinka zlata na kintsugi (data
- * v onas2.ts — sceny a zlato) a obloha nad rokem jde z noci do večera
- * jako dřív nad svitkem.
+ * Obloha nad rokem jde z noci do večera jako dřív nad svitkem (onas2.ts —
+ * sceny).
  *
  * Od dubna, kdy přijdou stoly a židle, sedí na černém opěradle židle vedle
  * kruhu schovaná Kapka — černá na černém a nehybná. Patří do hry na hledání kami
@@ -61,23 +60,6 @@ const kroky = [
   { m: 10, mesic: "Teď", text: ted, sezona: sezonaMesice(new Date().getMonth() + 1) },
 ];
 const vsech = kroky.length + 1;
-
-/* Šupinka zlata v měsíci: střed v kresbě (1600 × 1000) a natočení.
- * Kde přesně, říká nápověda v sešitě zlata (onas2.ts — zlato). */
-const zlatoMista: Record<number, [number, number, number]> = {
-  2: [930, 682, 18], // v kaluži, kde teklo
-  3: [1062, 656, -12], // v kbelíku s barvou
-  4: [700, 640, 8], // pod stolem z kanceláře
-  5: [450, 602, 0], // na skříňce linky
-  6: [1000, 458, -8], // v knihovně
-  7: [1352, 674, 14], // u zásuvky
-  8: [872, 392, 0], // mezi glazurami
-  9: [736, 716, -16], // mezi šlápotami
-  10: [1300, 398, 10], // na regálu s hotovými kusy
-};
-const ZLATO_W = 24;
-const zlatoStyl = ([x, y, u]: [number, number, number]) =>
-  `left:${(((x - ZLATO_W / 2) / W) * 100).toFixed(3)}%;top:${(((y - ZLATO_W / 2) / H) * 100).toFixed(3)}%;width:${((ZLATO_W / W) * 100).toFixed(3)}%;--u:${u}deg`;
 ---
 <section class="rok dm-rok" id="rok" aria-labelledby="rok-nadpis" style={`--kroku:${vsech}`}>
   {kroky.map((_, i) => (
@@ -101,21 +83,6 @@ const zlatoStyl = ([x, y, u]: [number, number, number]) =>
                 <KapkaSchovka barva="cerna" poza="vykukuje" size={30} class="schovka-staticka" />
               </button>
             </span>
-            {kroky.map((k, i) => {
-              const id = sceny[i]?.zlato;
-              const misto = zlatoMista[k.m];
-              if (!id || !misto) return null;
-              return (
-                <span class="rok-kami" data-od={k.m} data-do={k.m + 1}>
-                  <button type="button" class="skryty zlato-supinka" data-sbirka-cil={id} aria-label="Něco se tu třpytí" style={zlatoStyl(misto)}>
-                    <svg viewBox="0 0 40 40" aria-hidden="true">
-                      <path d="M5 15 L17 4 L33 9 L37 25 L23 36 L8 31 Z" fill="url(#zlato-plisek)" stroke="#B5862A" stroke-width="1.2" stroke-linejoin="round" />
-                      <path d="M12 15 L24 11 M15 24 L28 19" stroke="#FFF6D0" stroke-width="1.6" stroke-linecap="round" opacity="0.85" />
-                    </svg>
-                  </button>
-                </span>
-              );
-            })}
           </div>
         </div>
       </div>

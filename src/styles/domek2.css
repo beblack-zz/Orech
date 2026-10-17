@@ -257,6 +257,11 @@
 }
 .ulice-nadpis em { display: block; color: #A9321D; font-weight: 300; }
 .ulice-perex { margin: 0 0 22px; max-width: 40ch; font-size: clamp(16px, min(1.2vw, 2.2vh), 19px); }
+/*
+ * Na široké obrazovce leží odstavec přes nebe, na notebooku přes sousedovu
+ * hlohyni a stromy — měkký papírový opar za ním drží čitelnost a kresbu nezakryje.
+ */
+.ulice-perex { width: fit-content; border-radius: 28px; background: rgba(255, 249, 238, 0.58); box-shadow: 0 0 26px 20px rgba(255, 249, 238, 0.58); }
 .ulice-akce { display: flex; flex-wrap: wrap; gap: 10px; text-shadow: none; }
 .ulice-akce .tlacitko-obrys { background: color-mix(in srgb, var(--papir) 70%, transparent); }
 .ulice-dolu {
@@ -290,6 +295,21 @@
   pointer-events: none;
   background: radial-gradient(ellipse at 50% 55%, #FFFCF2 0%, #FFF1D2 45%, #F9DFAE 100%);
 }
+
+/* ——— Ulice: roční období ———
+ * Stromy a sníh berou barvy z dilna-rez.css. Navíc sousedova hlohyně:
+ * bobule od léta (zelené) přes podzim do zimy, v předjaří jich ubude,
+ * na jaře místo nich bíle kvete. Spadané listí třešně jen na podzim.
+ */
+.u-plody, .u-kvet, .u-listi { opacity: 0; transition: opacity 0.9s; }
+[data-sezona="leto"] .u-plody, [data-sezona="podzim"] .u-plody, [data-sezona="zima"] .u-plody { opacity: 1; }
+[data-sezona="predjari"] .u-plody { opacity: 0.45; }
+[data-sezona="leto"] .u-hrozen { fill: #94A64A; }
+[data-sezona="leto"] .u-bobule-1 { stroke: #A3B354; }
+[data-sezona="leto"] .u-bobule-2 { stroke: #C3C96B; }
+[data-sezona="leto"] .u-bobule-3 { stroke: #7E9340; }
+[data-sezona="jaro"] .u-kvet { opacity: 1; }
+[data-sezona="podzim"] .u-listi { opacity: 1; }
 
 @media (max-width: 860px) {
   .ulice { height: 230vh; height: 230svh; }
@@ -333,7 +353,9 @@
   box-shadow: 0 8px 16px -8px rgba(20, 14, 30, 0.5);
 }
 .dm-prohlidka .prohlidka-mapa { padding-top: 34px; }
-.dm-prohlidka .prohlidka-mapa a { padding-right: 12px; }
+@media (min-width: 861px) {
+  .dm-prohlidka .prohlidka-mapa a { padding-right: 12px; }
+}
 
 /* Fotka u zastávky — tohle je doopravdy */
 .dm-polaroid {
@@ -561,7 +583,8 @@
   width: var(--w);
   aspect-ratio: 3100 / 1390;
 }
-.dm-vecer-kresba { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* Ulice pokračuje doleva i za rám kresby — na širokém okně by jinak u levého kraje končila */
+.dm-vecer-kresba { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
 /* Parta jde po chodníku: ten je v kresbě 11 až 17 % nad spodkem */
 .dm-vecer .pruvod { z-index: 4; bottom: 10.5%; }
 /*

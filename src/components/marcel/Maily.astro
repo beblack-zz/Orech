@@ -1,0 +1,43 @@
+---
+/**
+ * Šest mailů k rezervacím na pracovní stránce Marcel — NÁVRH vzhledu.
+ * HTML skládá lib/rezervace/vzhled-mailu.ts, tady se jen ukáže v rámečku
+ * jako v poště: odesílatel, předmět a náhledový řádek, pod tím samotný mail.
+ * Výšku rámečků dorovná scripts/marcel/maily.ts.
+ */
+import { mailVitej, mailPrihlaseni, mailRegistrace, mailAdresa, mailPripominka, mailZruseni } from "../../lib/rezervace/vzhled-mailu";
+import type { JizdenkaMail, MailNavrh } from "../../lib/rezervace/vzhled-mailu";
+import { rezervace } from "../../data/rezervace";
+
+/* Ukázková data: odkazy míří na budoucí adresu webu, písma a značka se berou odsud */
+const z = { web: "https://jirosaku.cz", zdroje: "" };
+const osloveni = "Jano";
+const jizdenka: JizdenkaMail = { cislo: "0427", den: "2026-10-20", h: 10.5, osob: 2 };
+
+const maily: { cislo: string; nazev: string; mail: MailNavrh }[] = [
+  { cislo: "01", nazev: "Vítej", mail: mailVitej(z, { osloveni }) },
+  { cislo: "02", nazev: "Přihlášení", mail: mailPrihlaseni(z, { osloveni, odkaz: `${z.web}/k/q7Vx2LmP9sKd4RfT8nYb3HcW6uJe1AoZ5gNi0kXyS_E`, kod: "482017", minut: rezervace.prihlaseniMinut }) },
+  { cislo: "03", nazev: "Potvrzení registrace", mail: mailRegistrace(z, { osloveni, email: "jana.novakova@email.cz", odkaz: `${z.web}/k/Hc4nW8tRk2LqP7sVd1YbM9xJe3AoZ6gNi0uKyF5_TqE`, kod: "305918", minut: rezervace.registraceMinut }) },
+  { cislo: "04", nazev: "Potvrzení adresy", mail: mailAdresa(z, { osloveni, email: "jana.novakova@email.cz", odkaz: `${z.web}/adresa/5f1d2a90-3b7e-4c8a-9d61-0e2b7f4c8a13` }) },
+  { cislo: "05", nazev: "Den předem", mail: mailPripominka(z, { osloveni, jizdenka }) },
+  { cislo: "06", nazev: "Zrušená jízdenka", mail: mailZruseni(z, { osloveni, jizdenka }) },
+];
+
+/* V náhledu se odkazy otevírají v nové kartě, ne uvnitř rámečku */
+const nahled = (html: string) => html.replace("<head>", '<head><base target="_blank">');
+---
+<div class="mc-maily">
+  {maily.map((m) => (
+    <figure class="mc-mail">
+      <div class="mc-mail-okno">
+        <div class="mc-mail-hlava">
+          <p class="mc-mail-od"><b>JIRO saku</b> &lt;rezervace@jirosaku.cz&gt;</p>
+          <p class="mc-mail-predmet">{m.mail.predmet}</p>
+          <p class="mc-mail-nahled">{m.mail.nahled}</p>
+        </div>
+        <iframe class="mc-mail-ramec" srcdoc={nahled(m.mail.html)} title={`Návrh mailu: ${m.mail.predmet}`} loading="lazy" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+      </div>
+      <figcaption><span class="mc-cislo">{m.cislo}</span><span class="mc-nazev">{m.nazev}</span></figcaption>
+    </figure>
+  ))}
+</div>

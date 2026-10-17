@@ -14,9 +14,12 @@
  * zvláštní vlak (kurz), na který je ještě místo. Otevře jeho den a sjede
  * k tabuli — nastoupit už člověk musí sám.
  *
- * Hned pod nadpisem je cedulka, kdo se dívá: kdo nemá přístup, dozví se,
- * že rezervovat smí jen člen a přístup se dává po telefonu (s tlačítkem
- * na telefon); člena, který přišel přes svůj odkaz, pozdraví jménem.
+ * Hned pod nadpisem je cedulka, kdo se dívá, a zároveň registrace
+ * a přihlášení bez hesla (scripts/rezervace/prihlaseni.ts): kdo tu je
+ * poprvé, vyplní jméno a e-mail a přijde mu mail, kterým registraci
+ * potvrdí; kdo už zaregistrovaný je, zadá e-mail a přijde mu jednorázový
+ * odkaz. K oběma mailům je kód, který jde opsat sem. Přihlášeného pozdraví
+ * jménem a nabídne odhlášení. Bez skriptu je tu jen věta s telefonem.
  *
  * Druhé tlačítko vede k dárkovým jízdenkám za soumraku (Darky.astro).
  *
@@ -40,25 +43,63 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
     <p class="stitek">jízdenka do dílny</p>
     <h1 id="rz-nadpis" class="rz-nadpis">Vyber si hodinu v dílně. <em>Nastup.</em></h1>
 
-    {/* Kdo se dívá. Bez skriptu a v ukázce host — skript (hlavni.ts) přepne na člena, který přišel přes svůj odkaz, nebo na neplatný odkaz */}
-    <div class="rz-clen" data-co="host" aria-live="polite">
+    {/* Kdo se dívá, registrace a přihlášení. Bez skriptu host s telefonem — skript (prihlaseni.ts) přepíná podle toho, kdo je přihlášený a co se právě děje */}
+    <div class="rz-clen" id="prihlaseni" data-co="host" data-telefon={kontakt.telefon} aria-live="polite">
       <div data-clen="host">
-        <p class="rz-clen-titul">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.2" /><path d="M12.2 12 H21 M17.5 12 V15.5 M20.5 12 V14.5" /></svg>
-          Rezervace jen s přístupem
-        </p>
-        <p>Jsi tu poprvé? Zavolej, nadiktuj nám e-mail a pošleme ti odkaz — pak už si zamluvíš sám. Projít si volné hodiny a ceny můžeš i bez něj.</p>
+        <p class="rz-clen-titul"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7 H20 V10 A2 2 0 0 0 20 14 V17 H4 V14 A2 2 0 0 0 4 10 Z" /><path d="M9 7 V17" stroke-dasharray="1.6 1.8" /></svg> Rezervace s registrací</p>
+        <p>Zamlouvat si můžou ti, kdo jsou u nás zaregistrovaní. Registrace potřebuje skript — bez něj nám zavolej a zapíšeme tě. Projít si volné hodiny a ceny můžeš i tak.</p>
         <a class="rz-clen-tel" href={`tel:${kontakt.telefonOdkaz}`}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5 L9.4 3.2 L11 7.6 L8.9 9.2 C9.9 11.4 12.6 14.1 14.8 15.1 L16.4 13 L20.8 14.6 L20.5 17.4 C20.3 19 18.9 20.3 17.2 20.2 C10 19.6 4.4 14 3.8 6.8 C3.7 5.1 5 3.7 6.6 3.5 Z" /></svg>
           {kontakt.telefon}
         </a>
       </div>
-      <p data-clen="clen" hidden>Ahoj, <b class="rz-clen-jmeno"></b>! Máš přístup — jízdenka platí hned, jak ji označíš.</p>
-      <div data-clen="neplatny" hidden>
-        <p class="rz-clen-titul">Tenhle odkaz už neplatí</p>
-        <p>Zavolej nám nebo <a href={`mailto:${kontakt.email}`}>napiš</a> a pošleme ti nový.</p>
-        <a class="rz-clen-tel" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+
+      <div data-clen="registrace" hidden>
+        <p class="rz-clen-titul"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7 H20 V10 A2 2 0 0 0 20 14 V17 H4 V14 A2 2 0 0 0 4 10 Z" /><path d="M9 7 V17" stroke-dasharray="1.6 1.8" /></svg> Zaregistruj se</p>
+        <p>Stačí jméno a e-mail. Pošleme ti odkaz, kterým registraci potvrdíš — heslo nepotřebuješ. Projít si volné hodiny a ceny můžeš i bez toho.</p>
+        <form class="rz-clen-form rz-clen-reg" data-rz-registrace novalidate>
+          <label class="sr-only" for="rz-reg-jmeno">Jméno</label>
+          <input id="rz-reg-jmeno" type="text" name="jmeno" autocomplete="name" maxlength="60" required placeholder="Jméno" spellcheck="false" />
+          <label class="sr-only" for="rz-reg-email">E-mail</label>
+          <input id="rz-reg-email" type="email" name="email" autocomplete="email" inputmode="email" required placeholder="tvuj@email.cz" spellcheck="false" />
+          <button type="submit">Zaregistrovat</button>
+        </form>
+        <p class="rz-clen-drobne">Už jsi u nás? <button type="button" class="rz-clen-odkaz" data-rz-mam>Přihlas se e-mailem</button></p>
       </div>
+
+      <div data-clen="prihlasit neplatny" hidden>
+        <p class="rz-clen-titul" data-clen="prihlasit"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.2" /><path d="M12.2 12 H21 M17.5 12 V15.5 M20.5 12 V14.5" /></svg> Přihlas se e-mailem</p>
+        <p class="rz-clen-titul" data-clen="neplatny"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.2" /><path d="M12.2 12 H21 M17.5 12 V15.5 M20.5 12 V14.5" /></svg> Tenhle odkaz už neplatí</p>
+        <p data-clen="prihlasit">Zadej e-mail, se kterým ses registroval, a pošleme ti odkaz — heslo nepotřebuješ.</p>
+        <p data-clen="neplatny">Odkaz z mailu platí jen chvíli a jen jednou. Pošli si nový:</p>
+        <form class="rz-clen-form" data-rz-prihlas novalidate>
+          <label class="sr-only" for="rz-email">E-mail</label>
+          <input id="rz-email" type="email" name="email" autocomplete="email" inputmode="email" required placeholder="tvuj@email.cz" spellcheck="false" />
+          <button type="submit">Poslat odkaz</button>
+        </form>
+        <p class="rz-clen-drobne">Jsi tu poprvé? <button type="button" class="rz-clen-odkaz" data-rz-nova>Zaregistruj se</button></p>
+      </div>
+
+      <div data-clen="potvrdit poslano" hidden>
+        <p class="rz-clen-titul" data-clen="potvrdit"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3.8 6.6 L12 13 L20.2 6.6" /></svg> Potvrď registraci</p>
+        <p class="rz-clen-titul" data-clen="poslano"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3.8 6.6 L12 13 L20.2 6.6" /></svg> Mrkni do pošty</p>
+        <p data-clen="potvrdit">Na <b class="rz-clen-adresa"></b> jsme ti poslali mail. Klikni v něm na tlačítko, nebo sem opiš kód — registrace se tím potvrdí a jsi rovnou přihlášený.</p>
+        <p data-clen="poslano">Jestli je <b class="rz-clen-adresa"></b> mezi našimi členy, právě ti přišel odkaz. Klikni na něj, nebo sem opiš kód z mailu.</p>
+        <form class="rz-clen-form" data-rz-kod novalidate>
+          <label class="sr-only" for="rz-kod">Kód z mailu</label>
+          <input id="rz-kod" type="text" name="kod" autocomplete="one-time-code" inputmode="numeric" maxlength="7" required placeholder="123 456" class="rz-clen-kod" />
+          <button type="submit" data-clen="potvrdit">Potvrdit</button>
+          <button type="submit" data-clen="poslano">Přihlásit</button>
+        </form>
+        <p class="rz-clen-drobne">Nic nepřišlo? Mrkni do spamu, nebo <button type="button" class="rz-clen-odkaz" data-rz-znovu>pošli mail znovu</button> · <button type="button" class="rz-clen-odkaz" data-rz-jiny>jiný e-mail</button></p>
+      </div>
+
+      <div data-clen="clen" hidden>
+        <p>Ahoj, <b class="rz-clen-jmeno"></b>! Jsi přihlášený — jízdenka platí hned, jak ji označíš.</p>
+        <p class="rz-clen-drobne"><button type="button" class="rz-clen-odkaz" data-rz-odhlas>Odhlásit se</button></p>
+      </div>
+
+      <p class="rz-clen-chyba" role="alert" hidden></p>
     </div>
     <p class="rz-perex">
       Čas v dílně se tu kupuje jako jízdenka na vlak: vybereš den a hodinu v dílně (90 min) — jsou na ni {rezervace.mist} místa.

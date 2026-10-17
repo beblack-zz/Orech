@@ -12,8 +12,8 @@
  * a vláček odjede. Poznámka je vedle, jízdenka by s ní byla přeplněná.
  *
  * Ostatním se jízdenka poskládá taky, ať vidí, co by měli a za kolik,
- * ale tlačítko je telefon: přístup se dává po telefonu (nadiktovat
- * e-mail, odkaz přijde mailem). Mailem se jízdenky neposílají. Nápisy
+ * ale tlačítko vede k registraci a přihlášení e-mailem nahoře u nádraží
+ * (prihlaseni.ts). Mailem se jízdenky neposílají. Nápisy
  * podle toho přepisuje scripts/rezervace/hlavni.ts.
  *
  * Jízdenka má tři podoby a skript mezi nimi přepíná třídou na .rz-listek:
@@ -27,7 +27,6 @@
  *                (dny kurzů jsou přeškrtnuté — výluka)
  */
 import { rozpetiJizdneho } from "../../data/rezervace";
-import { kontakt } from "../../data/uvod2";
 
 /* Než skript vyplní jízdenku: jízdné záleží na tom, kolik lidí na odjezdu nakonec sedí */
 const jizdne = `${rozpetiJizdneho.od}–${rozpetiJizdneho.do} Kč za člověka podle toho, kolik vás v dílně bude`;
@@ -116,7 +115,7 @@ const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};-
             <span class="rz-listek-jmeno-popis">Jméno</span>
             <input type="text" name="jmeno" maxlength="40" autocomplete="name" spellcheck="false" placeholder="Tvoje jméno" />
           </label>
-          <p class="rz-listek-platnost">Zamluvit si ji můžeš, až od nás budeš mít přístup.</p>
+          <p class="rz-listek-platnost">Zamluvit si ji můžeš, až se u nás zaregistruješ.</p>
           <span class="rz-listek-razitko" aria-hidden="true"><b>Zamluveno</b><small>platí</small></span>
         </div>
 
@@ -131,8 +130,8 @@ const podtisky = `--jimon:${jimon("#3E8C84")};--jimon-kurz:${jimon("#B07A1C")};-
         <label class="rz-pole" hidden>Poznámka <small>nepovinné</small><textarea name="poznamka" rows="3" maxlength="300" placeholder="Třeba že přijdete poprvé."></textarea></label>
         <p class="rz-cena"><span>Celkem</span> <b>0 Kč</b></p>
         <p class="rz-cena-vypocet">{jizdne}; platí se na místě</p>
-        <a class="tlacitko rz-odeslat" href={`tel:${kontakt.telefonOdkaz}`}>Zavolat a získat přístup</a>
-        <p class="rz-pozn">Rezervovat si můžou ti, kdo od nás mají přístup. Zavolej, nadiktuj nám e-mail a pošleme ti odkaz — pak už si jízdenku označíš sám.</p>
+        <a class="tlacitko rz-odeslat" href="#prihlaseni">Zaregistrovat se</a>
+        <p class="rz-pozn">Zamlouvat si můžou ti, kdo jsou u nás zaregistrovaní — stačí jméno a e-mail, heslo nepotřebuješ. Už jsi? Přihlásíš se e-mailem.</p>
         <p class="rz-chybi" aria-live="polite"></p>
         <p class="rz-hotovo" aria-live="polite"></p>
       </div>

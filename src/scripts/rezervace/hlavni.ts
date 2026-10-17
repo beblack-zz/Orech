@@ -30,12 +30,12 @@
  *
  * Když si člověk vezme jednu, ostatní z jízdenky zmizí a tabule to ohlásí.
  *
- * Rezervovat smí jen člen: kdo přišel přes svůj odkaz z pozvánky, jízdenku
- * označí a má zamluveno (/api/rezervuj); své jízdenky vidí dole v noci
- * a může je tam zrušit. Ostatní si můžou všechno projít a jízdenku si
- * poskládat, ale tlačítko je u nich telefon: zavolají, nadiktují e-mail,
- * dílna je zapíše mezi členy (Supabase) a odkaz jim přijde mailem.
- * Mailem se jízdenky neposílají.
+ * Rezervovat smí jen člen: kdo se přihlásil e-mailem (jednorázový odkaz
+ * nebo kód z mailu, prihlaseni.ts), jízdenku označí a má zamluveno
+ * (/api/rezervuj); své jízdenky vidí dole v noci a může je tam zrušit.
+ * Ostatní si můžou všechno projít a jízdenku si poskládat, ale tlačítko
+ * je u nich registrace: skočí k cedulce nahoře, kde se zaregistrují
+ * jménem a e-mailem, nebo přihlásí (Supabase). Bez skriptu je to telefon.
  *
  * Celé se to spustí při každé návštěvě stránky, i po přechodu bez
  * načtení (parta2/prechody.ts) — proto je import přechodů první.
@@ -59,6 +59,7 @@ import { initOdjezdy, stavHodiny, volnoNaSpoji, KAZDY, NA_DNY } from "./odjezdy"
 import type { Vyber } from "./odjezdy";
 import { initJizdenka, useky } from "./jizdenka";
 import { initDarky } from "./darky";
+import { initPrihlaseni } from "./prihlaseni";
 import { schovej } from "../parta2/sber";
 
 const DNY = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
@@ -79,8 +80,6 @@ const spojPermanentky = (h: number) => P.spoje.find((s) => s.h === h);
 const spojeSlovy = (hodiny: number[]) => hodiny.map((h) => `${spojPermanentky(h)?.nazev ?? ""} ${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ");
 
 function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
-  /* Kdo není mezi členy, dostane místo označení jízdenky telefon — přístup dáváme po telefonu */
-  const telefon = koren.dataset.telefon ?? "";
   const dnyEl = koren.querySelector<HTMLElement>(".rz-dny")!;
   const sekceNebe = koren.querySelector<HTMLElement>("[data-rz-nebe]");
   const jmenoEl = koren.querySelector<HTMLInputElement>('input[name="jmeno"]')!;
@@ -110,8 +109,10 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   const dny = kal.dny;
   const pasDne = (d: Den | undefined) => kal.pas(d);
   const platnost = (od: Date) => platnostPermanentky(od, kal.jeKurz);
-  /** Člen, který přišel přes svůj odkaz: rezervuje rovnou, bez mailu */
+  /** Přihlášený člen: rezervuje rovnou, bez mailu */
   const clen = () => (kal.zive ? kal.clen : null);
+  /* Cedulka nahoře: přihlášení e-mailem; po přihlášení i odhlášení se kalendář načte znovu */
+  const prihlaseni = clenEl ? initPrihlaseni(clenEl, { zive: () => kal.zive, clen, poZmene: () => obnovKalendar(dny[den]?.klic) }) : null;
   let den = -1;
   let osob = 1;
   /* Co je na jízdence: hodiny, nebo spoje permanentky, nebo zvláštní vlak — vždycky jen jedno */
@@ -527,15 +528,15 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     if (odeslatPozn) {
       odeslatPozn.textContent = clen()
         ? "Jízdenka platí hned, jak ji označíš. Potvrzení ti přijde mailem."
-        : "Rezervovat si můžou ti, kdo od nás mají přístup. Zavolej, nadiktuj nám e-mail a pošleme ti odkaz — pak už si jízdenku označíš sám.";
+        : "Zamlouvat si můžou ti, kdo jsou u nás zaregistrovaní — stačí jméno a e-mail, heslo nepotřebuješ. Už jsi? Přihlásíš se e-mailem.";
     }
     if (displej && displejSouhrn) {
       displej.hidden = !s || jizdenkaVidet;
       displejSouhrn.textContent = s?.kratce ?? "";
     }
-    /* Host volá kdykoli; člen označí, až má něco na jízdence */
+    /* Host se zaregistruje nebo přihlásí kdykoli; člen označí, až má něco na jízdence */
     if (!clen()) {
-      odeslat.href = `tel:${telefon}`;
+      odeslat.href = "#prihlaseni";
       odeslat.removeAttribute("aria-disabled");
       return;
     }
@@ -544,7 +545,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     else odeslat.setAttribute("aria-disabled", "true");
   };
 
-  /* ——— Člen: kdo přišel přes svůj odkaz, rezervuje rovnou ——— */
+  /* ——— Člen: kdo je přihlášený, rezervuje rovnou ——— */
 
   const PROC: Partial<Record<Chyba, string>> = {
     obsazeno: "Tuhle hodinu si mezitím zamluvil někdo jiný. Tabule je načtená znovu — vyber jinou.",
@@ -553,24 +554,17 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     vyluka: "Ten den nově jede kurz, takže běžné hodiny nejsou. Tabule je načtená znovu.",
     nejede: "Kurz ten den už vypsaný není. Tabule je načtená znovu.",
     spatne: "Tohle už zamluvit nejde — nejspíš mezitím odjelo. Tabule je načtená znovu.",
-    neznamy: "Tvůj odkaz už neplatí. Napiš nám, pošleme ti nový.",
+    neznamy: "Přihlášení vypršelo. Přihlas se znovu e-mailem nahoře na stránce.",
     pozde: `Zrušit jde nejpozději ${R.zrusitHodinPredem} hodin předem. Zavolej nám, domluvíme se.`,
     permanentka: "Permanentka se tady zrušit nedá. Ozvi se nám.",
     nenalezeno: "Tahle jízdenka už zrušená je.",
   };
   const proc = (ch: Chyba) => PROC[ch] ?? "Nepovedlo se to odeslat. Zkus to za chvíli znovu, nebo nám napiš.";
 
-  /** Co se mění podle toho, kdo se dívá: uvítání v pokladně, jméno na jízdence, razítko a nápis na tlačítku */
+  /** Co se mění podle toho, kdo se dívá: cedulka s přihlášením, jméno na jízdence, razítko a nápis na tlačítku */
   const ukazClena = () => {
     const c = clen();
-    if (clenEl) {
-      const neplatny = !c && new URLSearchParams(window.location.search).get("odkaz") === "neplatny";
-      const co = c ? "clen" : neplatny ? "neplatny" : "host";
-      clenEl.dataset.co = co;
-      clenEl.querySelectorAll<HTMLElement>("[data-clen]").forEach((p) => (p.hidden = p.dataset.clen !== co));
-      const jm = clenEl.querySelector(".rz-clen-jmeno");
-      if (jm) jm.textContent = c?.jmeno ?? "";
-    }
+    prihlaseni?.ukaz();
     /* Věta pod odjezdy, že je obsazenost jen ukázková, platí jen pro ukázku */
     const ukazka = document.querySelector<HTMLElement>(".rz-simulace");
     if (ukazka && kal.zive) ukazka.hidden = true;
@@ -579,7 +573,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     jmenoEl.readOnly = !!c;
     const poznPole = poznEl.closest<HTMLElement>(".rz-pole");
     if (poznPole) poznPole.hidden = !c;
-    odeslat.textContent = c ? "Označit a zamluvit" : "Zavolat a získat přístup";
+    odeslat.textContent = c ? "Označit a zamluvit" : "Zaregistrovat se";
     souhrn();
   };
 
@@ -705,8 +699,14 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   };
 
   odeslat.addEventListener("click", (e) => {
-    /* Host: odkaz na telefon udělá své — rezervovat smí jen člen */
-    if (!clen()) return;
+    /* Host skočí k registraci nahoře — rezervovat smí jen člen */
+    if (!clen()) {
+      if (prihlaseni) {
+        e.preventDefault();
+        prihlaseni.kPrihlaseni();
+      }
+      return;
+    }
     e.preventDefault();
     const d = dny[den];
     const s = sepis();

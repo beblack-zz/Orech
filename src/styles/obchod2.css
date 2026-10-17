@@ -619,7 +619,8 @@
 
 /* ——— Šátek: pult pod lampou, po zavírací hodině ——— */
 
-.o2-pult-sekce { position: relative; z-index: 2; padding: 0 20px 12vh; }
+/* Kužel světla lampy je na telefonu širší než okno (130vw) — bez ořezu do strany by stránka přečuhovala, prohlížeč ji oddálil a Vázička s uzlíkem by spadla pod spodní okraj */
+.o2-pult-sekce { position: relative; z-index: 2; padding: 0 20px 12vh; overflow-x: clip; }
 /* Lampa visí z horní hrany sekce, kužel světla padá na pult */
 .o2-pult-lampa { position: relative; width: min(1180px, 100%); height: clamp(120px, 16vh, 170px); margin: 0 auto; pointer-events: none; }
 .o2-pult-lampa-snura { position: absolute; left: 50%; top: 0; width: 2px; height: 72%; margin-left: -1px; background: linear-gradient(#0B1026, #3A2E28); }
@@ -742,6 +743,11 @@
 .o2-satek-polozky:empty::before { content: "Zatím nic."; font-family: var(--f-ruka); font-size: 21px; color: var(--inkoust-3); }
 .o2-satek-polozka { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 32px; gap: 10px; align-items: center; padding: 5px 4px 5px 4px; border-bottom: 1px dashed rgba(43, 36, 32, 0.22); animation: o2-vic 0.35s ease-out; }
 .o2-satek-polozka-obr { width: 44px; height: 44px; display: block; }
+/* Číslo jako na visačce balíku: řádek a balík na šátku k sobě patří; najetí na jedno prosvětlí druhé */
+.o2-satek-polozka-obal { position: relative; display: block; width: 44px; height: 44px; }
+.o2-satek-polozka-cislo { position: absolute; left: -7px; top: -6px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--rumelka); color: #FFF6E8; font: 600 15px / 1 var(--f-ruka); box-shadow: 0 2px 4px -1px rgba(43, 20, 10, 0.4); }
+.o2-satek-polozka { transition: background 0.2s; }
+.o2-satek-polozka.najeto { background: rgba(196, 67, 43, 0.08); }
 .o2-satek-polozka-text { display: grid; line-height: 1.25; }
 .o2-satek-polozka-text b { font-family: var(--f-ruka); font-weight: 600; font-size: 21px; line-height: 1; }
 .o2-satek-polozka-text small { font-size: 12.5px; color: var(--inkoust-3); }
@@ -839,6 +845,48 @@
 @keyframes o2-vec { from { opacity: 0; transform: translateY(-14px) scale(0.6); } }
 .o2-satek-vic { font-family: var(--f-display); font-weight: 600; font-size: 22px; fill: #F3EAD8; }
 .prazdny .o2-satek-latka { opacity: 0.55; }
+
+/* Šátek ve 3D (scripts/obchod2/satek3d/): plátno přes kresbu, která drží místo; stíny na pult kreslí WebGL samo, CSS stín by je zdvojil */
+.o2-satek-kresba.zive .o2-satek-svg { visibility: hidden; }
+.o2-satek-platno,
+.o2-satek-vrstva { position: absolute; top: 0; left: 50%; width: min(100%, 440px); aspect-ratio: 1; transform: translateX(-50%); }
+.o2-satek-platno { display: block; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
+.o2-satek-platno[hidden], .o2-satek-vrstva[hidden] { display: none; }
+.o2-satek-platno.lze { cursor: grab; }
+.o2-satek-platno.tahne { cursor: grabbing; }
+.o2-satek-vrstva { pointer-events: none; }
+/* Kusy, které se na šátek nevejdou (víc než devět), jsou jen na účtence */
+.o2-satek-kus-vic { position: absolute; right: 14%; bottom: 16%; z-index: 2; font-family: var(--f-display); font-weight: 600; font-size: 22px; color: #F3EAD8; text-shadow: 0 2px 6px rgba(10, 4, 0, 0.6); }
+
+/* Vzorník: pět složených kousků látky pod šátkem, pod nimi co vybraný vzor přeje */
+.o2-vzory { width: 100%; max-width: 440px; margin: 16px auto 0; padding: 0; border: 0; text-align: center; }
+.o2-vzory legend { margin: 0 auto 8px; padding: 0; font-family: var(--f-ruka); font-size: 22px; line-height: 1.1; color: #F6E7C8; }
+.o2-vzory-volby { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(4px, 1.2vw, 12px); }
+.o2-vzor { position: relative; display: grid; justify-items: center; gap: 3px; padding: 2px 2px 12px; cursor: pointer; }
+.o2-vzor input { position: absolute; opacity: 0; pointer-events: none; }
+.o2-vzor svg { width: 56px; height: 56px; filter: drop-shadow(0 4px 4px rgba(10, 4, 0, 0.42)); transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.o2-vzor:hover svg { transform: translateY(-3px) rotate(-4deg); }
+.o2-vzor input:checked + svg { transform: translateY(-6px) scale(1.1) rotate(-2deg); }
+.o2-vzor input:focus-visible + svg { outline: 2px solid #F3D27A; outline-offset: 4px; border-radius: 6px; }
+.o2-vzor-nazev { font-size: 12.5px; letter-spacing: 0.04em; color: rgba(246, 231, 200, 0.72); transition: color 0.2s; }
+.o2-vzor:has(input:checked) .o2-vzor-nazev { color: #FFF8EA; }
+.o2-vzor:has(input:checked)::after { content: ""; position: absolute; bottom: 2px; width: 6px; height: 6px; border-radius: 50%; background: #F3D27A; box-shadow: 0 0 8px rgba(243, 210, 122, 0.8); }
+.o2-vzor-vyznam { max-width: 38ch; margin: 8px auto 0; font-family: var(--f-text); font-style: italic; font-size: 15px; line-height: 1.4; color: #F6E7C8; }
+.o2-vzor-vyznam b { font-family: var(--f-display); font-style: normal; font-weight: 600; }
+.o2-vzor-kanji { font-family: var(--f-kanji); font-style: normal; color: #F3D27A; }
+
+/* Účtenka: do jakého šátku */
+.o2-satek-zabal { margin: -2px 0 12px; font-size: 14px; color: var(--inkoust-2); }
+.o2-satek-zabal b { font-family: var(--f-ruka); font-weight: 600; font-size: 21px; color: var(--inkoust); }
+.o2-satek-zabal span { font-family: var(--f-kanji); color: var(--rumelka); }
+@media (max-width: 440px) {
+  .o2-vzory-volby { gap: 2px; }
+  .o2-vzor svg { width: 44px; height: 44px; }
+  .o2-vzor-nazev { font-size: 11.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .o2-vzor svg { transition: none !important; animation: none !important; }
+}
 
 /* Plovoucí šátek a kus v letu */
 .o2-satek-tlacitko {

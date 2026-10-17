@@ -409,7 +409,9 @@ export function orech(): OrechKresba {
       const tl = Math.max(...w);
       /* tenčí větve stačí kreslit přes každý druhý uzel — rovné úseky, poloviční cesta */
       if (!r.hlavni && tl < 24 && b.length > 3) {
-        const nech = (_: unknown, j: number) => j % 2 === 0 || j === b.length - 1;
+        /* délka napevno — b se přepíše dřív, než se podle stejného výběru vyfiltruje w */
+        const L = b.length;
+        const nech = (_: unknown, j: number) => j % 2 === 0 || j === L - 1;
         b = b.filter(nech);
         w = w.filter(nech);
       }

@@ -304,7 +304,7 @@ export function initJizdenka() {
       if (platnost) {
         /* Zamluvit si ji může jen člen — ostatním jízdenka jen ukáže, co by měli */
         platnost.textContent = !u.hned
-          ? "Zamluvit si ji můžeš, až od nás budeš mít přístup."
+          ? "Zamluvit si ji můžeš, až se u nás zaregistruješ."
           : druh === "kurz"
             ? "Platí na uvedený kurz."
             : druh === "pas"

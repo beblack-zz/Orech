@@ -14,13 +14,19 @@ import Lucernicka from "../parta2/Lucernicka.astro";
 import { ulice, ULICE } from "./kresba/ulice";
 import { kontakt, mapa, oDilne } from "../../data/uvod2";
 import type { PostavaId } from "../../data/parta";
+import type { Sezona } from "../../data/uvod2";
 
+interface Props {
+  /** Roční období jako ráno na ulici — stromy, hlohyně a sníh v kresbě */
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
 const V = ULICE.hero;
-const kresba = ulice({ id: "uln", noc: true });
+const kresba = ulice({ id: "uln", noc: true, pristavek: true });
 /** Pořadí v průvodu */
 const pruvod: PostavaId[] = ["vazicka", "kapka", "pecinka", "hlinka", "stripek", "cedulka", "bublinka"];
 ---
-<section class="noc dm-vecer" id="kontakt" data-hodina="22.6" aria-labelledby="vecer-nadpis">
+<section class="noc dm-vecer" id="kontakt" data-hodina="22.6" data-sezona={sezona} aria-labelledby="vecer-nadpis">
   <div class="noc-scena dm-vecer-scena">
     <div class="dm-vecer-dum">
       <svg class="dm-vecer-kresba" viewBox={`${V.x} ${V.y} ${V.w} ${V.h}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true" set:html={kresba} />

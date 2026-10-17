@@ -1,4 +1,4 @@
-/** POST /api/rezervuj — zamluví, co je na jízdence. Jen pro člena s cookie z /k/[token]. */
+/** POST /api/rezervuj — zamluví, co je na jízdence. Jen pro přihlášeného člena (cookie z /api/overit). */
 import type { APIRoute } from "astro";
 import { nastaveni, json, telo, odNas } from "../../lib/rezervace/nastaveni";
 import { rezervuj, COOKIE } from "../../lib/rezervace/sluzba";

@@ -35,9 +35,10 @@ const postava = (x: number, pata: number, w: number) =>
   `left:${procX(x - w / 2)}%;bottom:${(((V.y + V.h - pata - w * 0.12) / V.h) * 100).toFixed(3)}%;width:${((w / V.w) * 100).toFixed(3)}%`;
 
 const M = ULICE_MISTA;
-// Noren visí ve dveřích za bránou: kresba je ve dvou vrstvách a on mezi nimi
-const kresbaVzadu = ulice({ id: "ul", brana: true, vrstva: "vzadu" });
-const kresbaVpredu = ulice({ id: "ul", brana: true, vrstva: "vpredu" });
+// Noren visí ve dveřích za bránou: kresba je ve dvou vrstvách a on mezi nimi.
+// Přístavek se vchodem vlevo z fotky 6670 vidět není, z úhlu kresby ano.
+const kresbaVzadu = ulice({ id: "ul", brana: true, vrstva: "vzadu", pristavek: true });
+const kresbaVpredu = ulice({ id: "ul", brana: true, vrstva: "vpredu", pristavek: true });
 const castice = body(12, 518, 100, 100);
 /** Cíle kamery pro skript: brána a dveře v podílech rámu kresby */
 const cile = JSON.stringify({

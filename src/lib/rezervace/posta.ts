@@ -1,11 +1,14 @@
 /**
- * E-maily k rezervacím přes Resend: pozvánka s osobním odkazem, potvrzení
- * jízdenky a zrušení. Jen prostý text — dojde všude a nevypadá jako reklama.
+ * E-maily k rezervacím přes Resend: uvítání, přihlašovací odkaz s kódem,
+ * potvrzení registrace, potvrzení jízdenky a zrušení. Každý má prostý
+ * text; uvítání, přihlášení a registrace navíc HTML v noční edici (vzhled-mailu.ts) — pošta ukáže
+ * HTML, a kde ho neumí nebo nechce, text.
  *
  * ZNĚNÍ MAILŮ JE NÁVRH a čeká na potvrzení.
  */
-import { rezervace as R, permanentka as P, kurzy, hhmm, tarifSlovy, detskaSlovy, pravidloPrichodu, cenaPermanentky } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, kurzy, hhmm, tarifSlovy, detskaSlovy, pravidloPrichodu, cenaPermanentky, dnySlovy, otevrenoSlovy } from "../../data/rezervace";
 import { kontakt } from "../../data/uvod2";
+import { mailVitej, mailPrihlaseni, mailRegistrace } from "./vzhled-mailu";
 import { denVTydnu, konecPermanentky } from "./pravidla";
 import type { Zadost } from "./typy";
 
@@ -21,6 +24,8 @@ export interface Mail {
   komu: string;
   predmet: string;
   text: string;
+  /** Totéž jako HTML; pošta si vybere */
+  html?: string;
   /** Poslat skrytou kopii dílně */
   kopie?: boolean;
   /** Kam jde odpověď, když se na mail klikne Odpovědět — odesílatel bývá adresa, kterou nikdo nečte */
@@ -46,18 +51,70 @@ const useky = (hodiny: number[]) => {
   return casti.map(([a, b]) => `${hhmm(a)}–${hhmm(b)}`).join(", ");
 };
 
-export function pozvanka(clen: { jmeno: string; email: string }, odkaz: string): Mail {
+/** Uvítání nového člena: jak se přihlásit, jak to jezdí a jak zrušit */
+export function vitej(clen: { jmeno: string; email: string }, web: string): Mail {
+  const m = mailVitej({ web }, { osloveni: clen.jmeno });
   return {
     komu: clen.email,
-    predmet: "Tvůj odkaz na rezervace v dílně",
+    predmet: m.predmet,
+    html: m.html,
     text: [
       `Ahoj, ${clen.jmeno},`,
       "",
-      "tady je tvůj odkaz na rezervace v dílně:",
+      "vítej v dílně — zapsali jsme tě do rezervací.",
+      "",
+      `Přihlásíš se bez hesla na ${web}/rezervace: zadáš tuhle adresu a pošleme ti odkaz.`,
+      "",
+      "Jak to u nás jezdí:",
+      `1. Vyber odjezd — ${dnySlovy}, ${otevrenoSlovy}. Odjezd trvá hodinu a půl.`,
+      "2. Označ jízdenku — zamluvená je hned a potvrzení ti přijde mailem.",
+      `3. Přijď do dílny — ${kontakt.ulice}, ${kontakt.obec}. Jízdné se platí na místě.`,
+      `4. Nemůžeš? Jízdenku zrušíš na webu nejpozději ${R.zrusitHodinPredem} hodin předem, potom nám zavolej.`,
+      "",
+      PODPIS,
+    ].join("\n"),
+  };
+}
+
+/** Jednorázový odkaz a kód na přihlášení */
+export function prihlaseni(clen: { jmeno: string; email: string }, odkaz: string, kod: string, minut: number, web: string): Mail {
+  const m = mailPrihlaseni({ web }, { osloveni: clen.jmeno, odkaz, kod, minut });
+  return {
+    komu: clen.email,
+    predmet: m.predmet,
+    html: m.html,
+    text: [
+      `Ahoj, ${clen.jmeno},`,
+      "",
+      "tady je tvůj odkaz na přihlášení do rezervací:",
       odkaz,
       "",
-      "Stačí ho otevřít. Web si tě zapamatuje a příště už jen vybereš den a hodinu — jízdenka platí hned, nic se nepotvrzuje.",
-      "Odkaz je jen tvůj, tak ho nikomu neposílej. Kdyby se ztratil, ozvi se a pošleme nový.",
+      `Nebo na webu opiš kód: ${kod.slice(0, 3)} ${kod.slice(3)}`,
+      "",
+      `Odkaz i kód platí ${minut} minut a jen jednou. Pokud o přihlášení nevíš, mail klidně smaž — bez kliknutí se nikdo nepřihlásí.`,
+      "",
+      PODPIS,
+    ].join("\n"),
+  };
+}
+
+/** Potvrzení registrace z webu: odkaz a kód, kterým se registrace potvrdí a člověk rovnou přihlásí */
+export function registrace(clen: { jmeno: string; email: string }, odkaz: string, kod: string, minut: number, web: string): Mail {
+  const m = mailRegistrace({ web }, { osloveni: clen.jmeno, email: clen.email, odkaz, kod, minut });
+  return {
+    komu: clen.email,
+    predmet: m.predmet,
+    html: m.html,
+    text: [
+      `Ahoj, ${clen.jmeno},`,
+      "",
+      "díky za registraci do rezervací. Potvrď nám ještě, že tahle adresa patří tobě — klikni na odkaz:",
+      odkaz,
+      "",
+      `Nebo na webu opiš kód: ${kod.slice(0, 3)} ${kod.slice(3)}`,
+      "",
+      `Odkaz i kód platí ${minut} minut a jen jednou. Pak už si hodiny v dílně zamlouváš sám na ${web}/rezervace, bez hesla.`,
+      "Pokud o registraci nevíš, mail klidně smaž — bez kliknutí se nepotvrdí.",
       "",
       PODPIS,
     ].join("\n"),
@@ -153,6 +210,7 @@ export async function posli(p: Posta, m: Mail): Promise<boolean> {
         to: [m.komu],
         subject: m.predmet,
         text: m.text,
+        ...(m.html ? { html: m.html } : {}),
         ...(m.kopie && p.kopie ? { bcc: [p.kopie] } : {}),
         ...(m.odpovedet ? { reply_to: m.odpovedet } : {}),
       }),

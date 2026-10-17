@@ -25,12 +25,17 @@
  * Gesta k replikám: `vlasy` (přidrží si kanzashi), `ovivani`, `vejir`
  * (póza s vějířem bez otočky), `uklon` (přikrčí se k zemi), `spi`; dál
  * `mesic` (květy skutečného měsíce) a `bezOtocek` (sama se netočí).
+ * Šátek z krámku: `vstup.satek` = { vzor, pocet, cuk } jí dá do pravé ruky
+ * uzlík furoshiki (kreslí ho jen podoby průvodce, viz Šátek průvodce níž);
+ * kde uzlík zrovna visí, vrací kresba v `dyn.satekBod` a hned po kroku to
+ * pošle i do `vstup.uzlikJe`, když ho průvodce dal.
  */
 import {
   f, rng, clamp, lerp, smooth, rad, deg, mix, pt, kCili, pres, dosed, mrkani, kyvadlo, noveKyvadlo,
   VAZ, DEN, MESICE, KVETY_VETVE, polomer, vazDefs, kvetyDefs, vazTelo, vazTvarNa, vazSnury, vazVetvicka,
-  vazZa, vazPred, vazBoty, vazRukavy, klicRukavu, vazStin, kanzashiStred, kvet, listek,
+  vazZa, vazPred, vazBoty, vazRukavy, vazRuka, vazVejir, klicRukavu, vazStin, kanzashiStred, kvet, listek,
 } from "./spolecne.js";
+import { vzory, vzorPodleId, vzorPattern } from "../../data/furoshiki";
 
 const ID = "vg1";
 const P = DEN;
@@ -168,12 +173,17 @@ const novaDynamika = () => ({
   listky: [], akum: 0.4, nahoda: rng(4104), zvuk: [], pohled: [0, 0], vitr: 0, mx: null, uTvare: 0, stydi: 0, cinkl: -10, nejPred: 0,
   /* lucerna průvodce na špičce tyčky (jen v noci, `vstup.lucerna`) */
   lucerna: noveKyvadlo(),
+  /* uzlík šátku v pravé ruce (`vstup.satek`): kyvadlo, pružina, která ho pod dopadnutým kusem zhoupne dolů, jak moc ho drží (0…1),
+     poslední vzor a počet (ať zmizí ve stejné látce), kolikrát do něj kus dopadl a kde je jeho střed na plátně (čte pruvodce.ts) */
+  satek: noveKyvadlo(), satekPero: { y: 0, v: 0 }, nese: 0, satekVzor: null, satekPocet: 0, satekCuk: 0, satekBod: null,
   /* průvodce zvenku: ruka ke kanzashi, ovívání vějířem, dřímání, úklona, vějíř bez otočky (0…1) a měsíc podle kalendáře */
   vlasy: 0, ovivani: 0, spi: 0, uklon: 0, vejir: 0, mesic: null,
 });
 /* Kam jde ruka, když si přidrží vlasy (levá, ke kanzashi) a když se ovívá (pravá, vedle tváře) */
 const RUKA_VLASY = [60, 71];
 const RUKA_OVIVA = [123, 108];
+/* S uzlíkem šátku drží pravou ruku o kus výš a blíž k tělu, ať uzlík nevisí až k zemi */
+const RUKA_NESE = [-1.5, -5];
 /** Póza v čase: natočení, kde má ruce, co dělá vějíř. Čistá funkce času a `dyn`. */
 const poza = (d, t) => {
   const u = t - d.zmena;
@@ -200,11 +210,25 @@ const poza = (d, t) => {
   if (vl > 0.5) L.za = false;
   Pr.H = sm(Pr.H, RUKA_OVIVA, ov);
   if (ov > 0.5) Pr.za = false;
+  /* průvodce s uzlíkem šátku (`vstup.satek`) drží pravou ruku o kus výš v každé póze — i s vějířem, ať uzlík nevisí pod nohy */
+  const n = d.nese || 0;
+  if (n) Pr.H = [Pr.H[0] + RUKA_NESE[0] * n, Pr.H[1] + RUKA_NESE[1] * n];
   return {
     u, toci, yaw, vzlet, ukaz, L, Pr,
     vejir: { smer: lerp(lerp(lerp(78, -62, ukaz), -125, d.stydi), -78 + 16 * Math.sin(t * 7.5), ov), otevreni: Math.max(dosed(ukaz), 0.86 * d.stydi, 0.8 * ov) },
   };
 };
+/**
+ * Jak se hýbe celá postava (`pohyb` vrstev): dýchá, při otočce se nadnese,
+ * v póze se maličko ukloní; v dřímotě (průvodce, `vstup.spi`) trochu klesne
+ * a pomalu pokyvuje, při úkloně (`vstup.uklon`) se k zemi přikrčí.
+ */
+const figura = (d, p, t) => ({
+  x: 0,
+  y: 0.7 * Math.sin(t * 1.5) - 2.6 * p.vzlet + d.spi * (1.2 + Math.sin(t * 1.1)) + 3.6 * d.uklon,
+  r: 1.6 * p.ukaz - 1.2 * d.stydi + 0.5 * Math.sin(t * 0.8) + d.spi * 1.8 * Math.sin(t * 0.55),
+  sy: 1 - 0.1 * d.uklon,
+});
 const krok = (dyn, t, dt, vstup) => {
   const R = dyn.nahoda;
   const volno = () => t - dyn.zmena > KONEC;
@@ -219,6 +243,19 @@ const krok = (dyn, t, dt, vstup) => {
   dyn.spi = kCili(dyn.spi, vstup.spi ? 1 : 0, dt, vstup.spi ? 1.2 : 0.15);
   dyn.uklon = kCili(dyn.uklon, vstup.uklon ? 1 : 0, dt, 0.18);
   dyn.vejir = kCili(dyn.vejir, vstup.vejir ? 1 : 0, dt, 0.14);
+  /* průvodce: uzlík šátku se v ruce objeví a zase zmizí plynule; když do něj dopadne kus (`cuk` se zvětší), zhoupne se a klesne */
+  const sat = vstup.satek;
+  dyn.nese = kCili(dyn.nese, sat ? 1 : 0, dt, sat ? 0.13 : 0.1);
+  if (sat) {
+    dyn.satekVzor = sat.vzor;
+    dyn.satekPocet = sat.pocet;
+    const cuk = sat.cuk || 0;
+    if (cuk > dyn.satekCuk && dyn.nese > 0.5) {
+      dyn.satek.w += (dyn.satek.w >= 0 ? 1 : -1) * UZLIK.cuk.w;
+      dyn.satekPero.v += UZLIK.cuk.v;
+    }
+    dyn.satekCuk = cuk;
+  }
   if (vstup.kliky && vstup.kliky.length) {
     vstup.kliky.length = 0;
     if (volno()) zmen(dyn, t);
@@ -259,6 +296,16 @@ const krok = (dyn, t, dt, vstup) => {
   /* lucerna průvodce visí ze špičky tyčky v levé ruce — tu hýbe otočka i vítr */
   const lx = p.L.H[0];
   kyvadlo(dyn.lucerna, lx + clamp((lx - VAZ.cx) / 20, -1, 1) * 11, dt, { g: 44, c: 2.4, L: 12, vitr: vitr * 4 });
+  /* uzlík šátku visí z pravé dlaně: těžší a pomalejší než lucerna; pružina ho po dopadu kusu zhoupne dolů a zpátky */
+  kyvadlo(dyn.satek, p.Pr.H[0], dt, { g: 26, c: 2.3, L: 18, vitr: vitr * 3 });
+  const pero = dyn.satekPero;
+  if (dt > 0) {
+    pero.v += (-UZLIK.pero.k * pero.y - UZLIK.pero.c * pero.v) * dt;
+    pero.y += pero.v * dt;
+  }
+  dyn.satekBod = bodUzliku(dyn, p, t);
+  /* průvodce svůj snímek počítá obvykle dřív než kresba — ať jeho odkaz s počtem sedí na uzlíku už v tomhle snímku, ne až v dalším */
+  if (typeof vstup.uzlikJe === "function") vstup.uzlikJe(dyn.satekBod);
   /* plíšky na šňůrách cinknou, když se rozhoupou */
   const nej = Math.max(...dyn.snury.map((q) => Math.abs(q.w)));
   if (nej > 3 && dyn.nejPred <= 3 && t - dyn.cinkl > 0.2) {
@@ -315,14 +362,8 @@ const stav = (t, vstup = {}, dyn) => {
     kyv: { snury: d.snury.map((q) => deg(q.a)), masle: d.masle.a, vetev: deg(d.vetev.a) * 0.5, lucerna: deg(d.lucerna.a) },
     lucerna: !!vstup.lucerna,
     listky: d.listky, pohled: d.pohled, spi: d.spi,
-    /* dýchá, při otočce se nadnese, v póze se maličko ukloní */
-    /* v dřímotě (průvodce, `vstup.spi`) trochu klesne a pomalu pokyvuje; při úkloně (`vstup.uklon`) se k zemi přikrčí */
-    fig: {
-      x: 0,
-      y: 0.7 * Math.sin(t * 1.5) - 2.6 * p.vzlet + d.spi * (1.2 + Math.sin(t * 1.1)) + 3.6 * d.uklon,
-      r: 1.6 * p.ukaz - 1.2 * d.stydi + 0.5 * Math.sin(t * 0.8) + d.spi * 1.8 * Math.sin(t * 0.55),
-      sy: 1 - 0.1 * d.uklon,
-    },
+    fig: figura(d, p, t),
+    satek: uzlikVeStavu(d),
     mrk: mrkani(t, [1.9, 5.2, 5.45, 8.8], 10.2),
     zare: 0.8 + 0.12 * Math.sin(t * 0.9) + (maluje ? 0.25 * Math.sin(Math.PI * kp) : 0),
   };
@@ -427,6 +468,99 @@ const sLucernou = (vrstvy) =>
           ? [v, { id: "lucerna", kresli: vrstvaLucerna(false), klic: klicLucerny, pohyb }]
           : [v],
   );
+
+/*
+ * Šátek průvodce. Co si host v krámku vybral, to mu Vázička nese v uzlíku
+ * furoshiki (`vstup.satek` = { vzor, pocet, cuk }, scripts/parta2/pruvodce.ts):
+ * otsukai-tsutsumi — oblé tělo, nahoře uzel se dvěma oušky, za který ho
+ * svírá v pravé dlani. Látka má vzor, který si host vybral u šátku
+ * (data/furoshiki.ts), na ouškách vykukuje rub. Visí z dlaně jako kyvadlo,
+ * takže ho rozhoupe otočka i vítr; když do něj dopadne kus (`cuk` se
+ * zvětší), zhoupne se a pod tíhou klesne. S víc kusy je maličko plnější.
+ * Ve vrstvách je dvakrát jako lucerna: za tělem, když má pravou ruku za
+ * zády, jinak před ním — i s dlaní, která ho svírá. Číslo se nekreslí: je to
+ * odznak v HTML (pruvodce.ts), který se každý snímek posune na uzlík
+ * (`dyn.satekBod`, po kroku ho kresba pošle i do `vstup.uzlikJe`).
+ */
+/** Uzlík v souřadnicích postavy (počátek v dlani): střed těla pod dlaní, poloměr, velikost (s víc kusy roste), dopad kusu a pružina */
+const UZLIK = {
+  stred: 20,
+  r: 22.5,
+  vel: (n) => 1.15 * (1 + 0.05 * clamp((n || 1) - 1, 0, 4)),
+  cuk: { w: 1.5, v: 48 },
+  pero: { k: 180, c: 11 },
+};
+/** Jak velký a natočený je vzor na látce; čáry vzoru jsou zesílené, ať je vzor poznat i v rohu */
+const SATEK_VZOR = { meritko: { seigaiha: 0.42, asanoha: 0.4, shippo: 0.42, kikko: 0.42, yagasuri: 0.5 }, otoceni: -14, cary: 1.8 };
+const tucneCary = (s, k) => s.replace(/stroke-width="([\d.]+)"/g, (_, w) => `stroke-width="${f(Number(w) * k)}"`);
+const satekDefs = () =>
+  vzory.map((v) => `<pattern id="${ID}-satek-${v.id}" width="${v.w}" height="${v.h}" patternUnits="userSpaceOnUse" patternTransform="rotate(${SATEK_VZOR.otoceni}) scale(${SATEK_VZOR.meritko[v.id] ?? 0.42})">${tucneCary(vzorPattern(v), SATEK_VZOR.cary)}</pattern>`).join("") +
+  /* měkké světlo zleva shora a stín vpravo dole, přes každý kus látky zvlášť */
+  `<radialGradient id="${ID}-satek-svetlo" cx="0.34" cy="0.3" r="0.8"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.34"/><stop offset="0.42" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="0.76" stop-color="#1E1626" stop-opacity="0.1"/><stop offset="1" stop-color="#1E1626" stop-opacity="0.38"/></radialGradient>`;
+/* tělo: úzké hrdlo pod uzlem, dole kulaté a plné; sklady se sbíhají k uzlu */
+const UZLIK_TELO = "M-4.4 3.6 C-11 5.2 -21.8 10.6 -22.4 20.6 C-23 30.4 -13.6 36.4 0 36.4 C13.6 36.4 23 30.4 22.4 20.6 C21.8 10.6 11 5.2 4.4 3.6 Q0 2.4 -4.4 3.6 Z";
+const UZLIK_SKLADY = "M-3 4.6 C-8 9 -13 14 -16.4 22.5 M3 4.6 C8 9 13 14 16.4 22.5 M-1 5 C-2.4 11 -3.4 17 -3.8 24 M1 5 C2.2 10 3.2 15.4 3.6 21";
+/* ouška: dva svázané cípy trčí zpoza dlaně šikmo nahoru; vnitřní půlka každého je rub látky */
+const UZLIK_OUSKA = [
+  { d: "M-1.2 2.6 C-3.6 -2.4 -9 -8.4 -15.2 -10.2 C-14 -5.4 -10.6 -0.6 -4.6 5.2 Z", rub: "M-15.2 -10.2 C-14 -5.4 -10.6 -0.6 -4.6 5.2 L-2.6 3.6 C-6.4 -0.8 -10.6 -5.6 -15.2 -10.2 Z" },
+  { d: "M1.2 2.6 C3.8 -2.8 9.4 -9 14.8 -11 C14 -6 10.8 -0.8 4.6 5.2 Z", rub: "M14.8 -11 C14 -6 10.8 -0.8 4.6 5.2 L2.6 3.6 C6.6 -1 10.4 -6 14.8 -11 Z" },
+];
+/** Uzlík visí z dlaně `H`: tělo se vzorem, sklady, světlo, ouška s rubem, uzel (dlaň a vějíř přes něj kreslí vrstva) */
+const uzlik = (H, s) => {
+  const v = vzorPodleId(s.vzor) ?? vzory[0];
+  const { rub, lem } = v.barva;
+  const latka = `url(#${ID}-satek-${v.id})`, svetlo = `url(#${ID}-satek-svetlo)`;
+  const obrys = `stroke="${lem}" stroke-width="1.1" stroke-linejoin="round"`;
+  let u =
+    `<g transform="translate(0 ${f(s.pero)})">` +
+    `<path d="${UZLIK_TELO}" fill="${latka}" ${obrys}/>` +
+    `<path d="${UZLIK_SKLADY}" stroke="${lem}" stroke-width="0.9" stroke-linecap="round" fill="none" opacity="0.55"/>` +
+    `<path d="${UZLIK_TELO}" fill="${svetlo}"/>` +
+    `<path d="M-16.6 11.6 C-20.4 15.4 -21 21 -19.6 26.4" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.3"/>` +
+    /* uzel vrhá na hrdlo měkký stín */
+    `<ellipse cx="0" cy="8.4" rx="7.4" ry="2.6" fill="#1E1626" opacity="0.22"/>` +
+    `</g>`;
+  for (const o of UZLIK_OUSKA) u += `<path d="${o.d}" fill="${latka}" ${obrys}/><path d="${o.rub}" fill="${rub}" stroke="${lem}" stroke-width="0.6" stroke-linejoin="round"/><path d="${o.d}" fill="${svetlo}"/>`;
+  /* uzel vykukuje pod dlaní */
+  u += `<ellipse cx="0" cy="4.6" rx="5.4" ry="3.8" fill="${latka}" ${obrys}/><ellipse cx="0" cy="4.6" rx="5.4" ry="3.8" fill="${svetlo}"/>`;
+  return `<g transform="translate(${pt(H)}) rotate(${f(-s.kyv)}) scale(${f(s.k * s.vel)})">${u}</g>`;
+};
+/** Rozevřený vějíř je v ruce před uzlíkem (ovívá se, schovává se za něj, póza po otočce) — kreslí se znovu přes uzlík, zavřený zůstane za ním */
+const VEJIR_PRED_UZLIKEM = 0.25;
+/** Uzlík pro kreslení: dokud ho drží, i když zrovna mizí; `k` ho nafoukne s překmitem */
+const uzlikVeStavu = (d) =>
+  d.nese > 0.02 && d.satekVzor
+    ? { vzor: d.satekVzor, pocet: d.satekPocet, k: dosed(clamp(d.nese / 0.92)), vel: UZLIK.vel(d.satekPocet), kyv: deg(d.satek.a), pero: d.satekPero.y }
+    : null;
+/** Střed uzlíku na plátně 180 × 180 i s tím, jak se hýbe celá postava, a jeho poloměr — podle toho pruvodce.ts posouvá odkaz s počtem */
+const bodUzliku = (d, p, t) => {
+  const vel = UZLIK.vel(d.satekPocet), a = d.satek.a;
+  const l = (UZLIK.stred + d.satekPero.y) * vel;
+  const [x, y] = naPlatno([p.Pr.H[0] + l * Math.sin(a), p.Pr.H[1] + l * Math.cos(a)]);
+  const g = figura(d, p, t), u = rad(g.r);
+  const dx = x - VAZ.cx, dy = (y - ZEM) * g.sy;
+  return [f(VAZ.cx + g.x + dx * Math.cos(u) - dy * Math.sin(u)), f(ZEM + g.y + dx * Math.sin(u) + dy * Math.cos(u)), f(UZLIK.r * vel * K)];
+};
+/* uzlík, přes něj rozevřený vějíř a nakonec dlaň, která obojí svírá */
+const vrstvaSatek = (za) => (st) => {
+  if (!st.satek || !!st.ruce.P.za !== za) return "";
+  const H = st.ruce.P.H, v = st.vejir;
+  return vPostave(uzlik(H, st.satek) + (v.otevreni > VEJIR_PRED_UZLIKEM ? vazVejir(ID, H, v.smer, v.otevreni) : "") + vazRuka(ID, H));
+};
+const klicSatku = (st) =>
+  st.satek
+    ? `${st.satek.vzor},${st.satek.pocet},${Math.round(st.ruce.P.H[0] * 2)},${Math.round(st.ruce.P.H[1] * 2)},${Math.round(st.satek.kyv * 2)},${Math.round(st.satek.k * 40)},${Math.round(st.satek.pero * 5)},${st.ruce.P.za ? 1 : 0}` +
+      (st.vejir.otevreni > VEJIR_PRED_UZLIKEM ? `,${Math.round(st.vejir.smer)},${Math.round(st.vejir.otevreni * 40)}` : "")
+    : "-";
+/** Vrstvy průvodce s uzlíkem: za zády hned po lucerně za zády, před tělem po lucerně vepředu */
+const sSatkem = (vrstvy) =>
+  vrstvy.flatMap((v) =>
+    v.id === "lucerna-za"
+      ? [v, { id: "satek-za", kresli: vrstvaSatek(true), klic: klicSatku, pohyb }]
+      : v.id === "lucerna"
+        ? [v, { id: "satek", kresli: vrstvaSatek(false), klic: klicSatku, pohyb }]
+        : [v],
+  );
 /* Dřímá (průvodce, `vstup.spi`): víčka má sklopená i vzhůru, tak nad hlavou stoupají dvě tušová „z“ */
 const vrstvaSpanek = (st) => {
   if (st.spi < 0.6) return "";
@@ -440,12 +574,12 @@ const vrstvaSpanek = (st) => {
   return s;
 };
 const proPruvodce = (vrstvy) =>
-  [...sLucernou(vrstvy), { id: "spanek", kresli: vrstvaSpanek, klic: (st) => (st.spi > 0.6 ? snimek(st) : -1) }].map((v) => ({ ...v, kresli: (st) => naPruvodce(v.kresli(st)) }));
+  [...sSatkem(sLucernou(vrstvy)), { id: "spanek", kresli: vrstvaSpanek, klic: (st) => (st.spi > 0.6 ? snimek(st) : -1) }].map((v) => ({ ...v, kresli: (st) => naPruvodce(v.kresli(st)) }));
 
 export const kamiPruvodce = {
   ...kamiLet,
   id: "pruvodce",
-  defs: () => naPruvodce(kamiLet.defs()),
+  defs: () => naPruvodce(kamiLet.defs() + satekDefs()),
   vrstvy: proPruvodce(kamiLet.vrstvy),
 };
 
@@ -459,7 +593,7 @@ const BEZ_ZARE = new Set(["zare", "stin"]);
 export const kamiPruvodceMistr = {
   ...kamiKvety,
   id: "pruvodce-mistr",
-  defs: () => naPruvodce(kamiKvety.defs()),
+  defs: () => naPruvodce(kamiKvety.defs() + satekDefs()),
   vrstvy: proPruvodce(
     kamiKvety.vrstvy
       .filter((v) => !BEZ_ZARE.has(v.id))

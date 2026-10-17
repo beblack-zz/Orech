@@ -4,6 +4,8 @@
  * zapojené a stránka jede na ukázce.
  */
 import { SUPABASE_URL, SUPABASE_SECRET_KEY, RESEND_API_KEY, REZERVACE_OD, REZERVACE_KOPIE, POZVANKY_TAJEMSTVI } from "astro:env/server";
+import type { AstroCookies } from "astro";
+import { COOKIE, COOKIE_PLATI } from "./sluzba";
 import type { Nastaveni } from "./sluzba";
 
 export function nastaveni(): Nastaveni | null {
@@ -27,3 +29,7 @@ export const odNas = (request: Request, url: URL) => {
   const origin = request.headers.get("origin");
   return !origin || origin === url.origin;
 };
+
+/** Přihlášený člen: klíč do cookie, kterou skripty nepřečtou (httpOnly) */
+export const prihlasCookie = (cookies: AstroCookies, token: string, url: URL) =>
+  cookies.set(COOKIE, token, { path: "/", httpOnly: true, secure: url.protocol === "https:", sameSite: "lax", maxAge: COOKIE_PLATI });

@@ -296,6 +296,9 @@ export const stopy: { kde: string[]; co: "futatsu" | "slepeno" | "uzliky" | "lis
 /** Když host v hlavičce přepne na noc — vezme si lucernu (kresba ji nese, dokud je noc) */
 export const naNoc: Replika = { text: "Tma? Vezmu si lucernu.", vyraz: "usmev" };
 
+/** Když do uzlíku v její ruce poprvé za stránku doletí kus z krámku (šátek není vidět, nese ho za hosta) */
+export const doSatku: Replika = { text: "Šátek ti podržím. Až ho budeš chtít zavázat, stačí klepnout na uzlík.", vyraz: "usmev", gesto: "uklon" };
+
 /**
  * „Povím ti, co o tobě vím“ — poslední volba v nabídce na každé stránce.
  * Vyjmenuje jen to, co web opravdu má (pruvodce-host.ts), nic víc.
@@ -524,8 +527,40 @@ export const rady: Record<string, Rada[]> = {
     { otazka: "Poradím, čím někoho obdarovat", cil: "#rz-darky-nadpis", veta: "Dárkové jízdenky. Jméno se píše rovnou na ně — krasopisně, prosím.", vyraz: "mrk" },
   ],
   kontakt: [
-    { otazka: "Dám ti na nás číslo", cil: ".ko-listek-tel", veta: "Tohle. Zvedáme rádi — a tudy dostaneš i přístup k rezervacím.", vyraz: "usmev" },
-    { otazka: "Ukážu ti, jak vypadá náš dům", cil: "#porovnani-nadpis", veta: "Kresba a fotka přes sebe. Posuň táhlem — přiznávám, na kresbě mám lepší světlo.", vyraz: "stydi" },
-    { otazka: "Doprovodím tě až ke dveřím", cil: "#kudy-nadpis", veta: "Bránou, po rampě dolů, dveře vlevo od oken. A záda rovně, je to z kopce.", vyraz: "kouka" },
+    { otazka: "Dám ti na nás číslo", cil: ".ko-cislo", veta: "Tohle. Telefon bere Cedulka — a tudy dostaneš i přístup k rezervacím.", vyraz: "usmev" },
+    { otazka: "Ukážu ti, na co se lidi ptají", cil: "#ko-ot-nadpis", veta: "Stojan ema. Sundej si destičku a otoč ji — odpověď je na rubu.", vyraz: "kouka" },
+    { otazka: "Doprovodím tě až ke dveřím", cil: "#ko-kudy-nadpis", veta: "Bránou, po rampě dolů, dveře vlevo od oken. A záda rovně, je to z kopce.", vyraz: "kouka" },
+  ],
+  /* krámek (/obchod) — Futatsu v tokonomě: žárlí elegantně */
+  "obchod-2": [
+    { otazka: "Ukážu ti, co se rodí u nás v dílně", cil: "#tvorba-nadpis", veta: "Kusy z naší pece. Každý je trochu jiný — v tom je ta krása.", vyraz: "usmev" },
+    { otazka: "Provedu tě kusy z Japonska", cil: "#japonsko-nadpis", veta: "Tyhle přijely z Japonska. Prohlížej pomalu, ruce u těla.", vyraz: "kouka" },
+    { otazka: "Uvedu tě do zadní místnosti", cil: "#podpis-nadpis", veta: "V tokonomě vždycky stávala váza. Teď tam sedí šálek. Hezký, to se musí nechat.", vyraz: "klid" },
+  ],
+  futatsu: [
+    { otazka: "Ukážu ti, z jakého výkresu je", cil: "#vykres-nadpis", veta: "Jeho výkres. Profil jako podle pravítka — kdo ho kreslil, seděl rovně.", vyraz: "kouka" },
+    { otazka: "Provedu tě ohněm", cil: "#ohen-nadpis", veta: "Tady prošel pecí. Já kdysi taky — odtud ty praskliny. Kannyū.", vyraz: "klid" },
+    { otazka: "Ukážu ti, jak ho zabalit", cil: "#satek-nadpis", veta: "Šátek a uzel. Zavazuje se pomalu, prosím — dárek si to zaslouží.", vyraz: "usmev" },
+  ],
+  "o-nas-2": [
+    { otazka: "Povím ti, jak to všechno začalo", cil: "#pocatek-nadpis", veta: "Vodovodní havárií. Kapka to dodnes bere jako svou zásluhu.", vyraz: "mrk" },
+    { otazka: "Představím ti oba lektory", cil: "#rukopisy-nadpis", veta: "Dva lektoři, dva rukopisy. Já bych je poznala i poslepu — podle tahu.", vyraz: "usmev" },
+    { otazka: "Ukážu ti, proč se nebát chyby", cil: "#kintsugi-nadpis", veta: "Prý se nemám bát prasknout. Snadno se to říká, když už máš ve švech zlato.", vyraz: "stydi" },
+  ],
+  papirna: [
+    { otazka: "Ukážu ti, kde si nás vystřihneš", cil: "#pa-listy-nadpis", veta: "Pět listů A4. Stříhej pomalu a po čáře — nůžky od těla, prosím.", vyraz: "kouka" },
+    KAMI,
+    REZERVACE,
+  ],
+  svatyne: [
+    { otazka: "Uvedu tě ke svatyni", cil: "#sv-nadpis", veta: "Za devět kami jeden poklad. Před svatyní se ukloň — lehce, záda rovně.", vyraz: "klid" },
+    { otazka: "Ukážu ti tvůj lístek", cil: "#sv-losovani-nadpis", veta: "Jeden lístek, jen pro tebe. Co na něm stojí, zůstane mezi námi.", vyraz: "mrk" },
+    NAPOVEDA,
+  ],
+  /* 404: rozbitá stránka — Střípek je na rozbité věci hrdý */
+  nenalezeno: [
+    { otazka: "Povím ti, co s rozbitou stránkou", cil: "#nn-nadpis", veta: "Rozbitá stránka. Střípek by řekl, že je to začátek něčeho hezčího.", vyraz: "klid" },
+    REZERVACE,
+    KONTAKT,
   ],
 };

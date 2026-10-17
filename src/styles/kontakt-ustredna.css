@@ -1,0 +1,93 @@
+/*
+ * Ústředna 交換台 uvnitř dílny na Kontaktu — kolíky, zdířky, linky party
+ * (components/kontakt/kresba/uvnitr.ts + scripts/kontakt/uvnitr.ts).
+ *
+ * Nad kresbou leží HTML vrstva .ko-us-linky s devíti tlačítky linek
+ * (klik, ťuk, klávesnice, čtečky); kolíky se dají i táhnout myší a prstem.
+ * Stav linky nese třída na buňce kresby i na její záři nad tmou:
+ *   zvoni   volá: kontrolka bliká
+ *   sviti   spojeno: kontrolka svítí, v noci i okénko
+ *   cil     sem kolík právě míří (tah, nebo kurzor nad tlačítkem)
+ */
+
+/* ——— HTML vrstva s tlačítky linek ——— */
+.ko-us-linky { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.ko-scena[data-zastavka="venku"] .ko-us-linky { display: none; }
+.ko-us-linka {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: transparent;
+  font-size: 1px;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.ko-us-linka:focus-visible { outline: 2px solid #FFE7A3; outline-offset: -3px; box-shadow: 0 0 0 5px rgba(196, 67, 43, 0.55); }
+/* zastrčený kolík jde prstem vytáhnout — jen tady se nescrolluje */
+.ko-us-linka[aria-pressed="true"] { cursor: grab; touch-action: none; }
+.ko-us-tahne, .ko-us-tahne * { cursor: grabbing !important; }
+
+/* ——— Kontrolky a zdířky ——— */
+.ko-us-bunka.sviti .ko-us-sklo,
+.ko-us-bunka.zvoni .ko-us-sklo,
+.ko-us-bunka.odposlech .ko-us-sklo { fill: url(#ko-us-sklo-zap); }
+.ko-us-bunka.zvoni .ko-us-sklo { animation: ko-us-blik 0.46s steps(2, jump-none) infinite; }
+.ko-us-bunka.odposlech .ko-us-sklo { animation: ko-us-mihot 1.3s ease-in-out infinite; }
+.ko-us-bunka.cil .ko-us-zdirka { stroke: #FFE7A3; stroke-width: 4; }
+/* zavřeno: okénko spojené linky se rozsvítí */
+.ko-us-tma-niky { transition: opacity 0.5s ease; }
+.ko-us-bunka.sviti .ko-us-tma-niky { opacity: 0; }
+
+/* záře nad tmou: kontrolka vždycky, okénko jen v noci (ve dne je okénko světlé samo) */
+.ko-us-svetla { pointer-events: none; mix-blend-mode: screen; }
+.ko-us-zare, .ko-us-zare-nika { opacity: 0; transition: opacity 0.35s ease; }
+.ko-us-zare.sviti { opacity: 0.7; }
+.ko-us-zare.zvoni { opacity: 1; animation: ko-us-blik 0.46s steps(2, jump-none) infinite; }
+.ko-us-noc .ko-us-zare.sviti { opacity: 1; }
+.ko-us-noc .ko-us-zare-nika.sviti { opacity: 0.95; }
+
+/* ——— Kolíky a šňůry ——— */
+.ko-us-kolik { cursor: grab; touch-action: none; }
+.ko-us-kolik-cepicka { display: none; }
+.ko-us-kolik.ve-zdirce .ko-us-kolik-stoji { display: none; }
+.ko-us-kolik.ve-zdirce .ko-us-kolik-cepicka { display: inline; }
+.ko-us-chyt { fill: transparent; cursor: grab; pointer-events: all; touch-action: none; }
+/* nápověda bez slov: jeden kolík v polici se lehce pohupuje */
+.ko-us-kolik-telo { transform-box: fill-box; transform-origin: 50% 100%; }
+.ko-us-pohup .ko-us-kolik-telo { animation: ko-us-pohup 2.4s ease-in-out infinite; }
+.ko-us-snura { pointer-events: none; }
+.ko-us-snura .ko-provaz-lem { fill: #5E160B; }
+.ko-us-snura .ko-provaz-jadro { fill: #B84A2B; }
+
+/* ——— Party v okénkách ——— */
+.ko-us-obyv use { transform-box: fill-box; transform-origin: 50% 100%; }
+.ko-us-obyv.spi use { animation: ko-dech 3.8s ease-in-out infinite; }
+.ko-us-obyv.mluvi use { animation: ko-us-mluvi 0.9s ease-in-out infinite alternate; }
+.ko-us-obyv.posloucha use { animation: ko-naklon 1.3s ease-in-out -0.4s infinite alternate-reverse; }
+.ko-us-zvon { transform-box: fill-box; transform-origin: 50% 0; }
+.ko-us-zvoni .ko-us-zvon { animation: ko-zvonek 0.12s ease-in-out infinite alternate; }
+.ko-us-zvoni .ko-us-zvon-2 { animation-delay: -0.06s; }
+
+/* ——— Bubliny konference: kratší a menší, ať se jich vejde víc ——— */
+.ko-bublina.ko-us-rec { padding: 5px 12px 7px; font-size: clamp(15px, 1.25vw, 19px); }
+.ko-bublina.ko-us-ospale { color: var(--inkoust-2); font-weight: 400; }
+@media (max-aspect-ratio: 1199/1000), (max-width: 899px) {
+  .ko-bublina.ko-us-rec { max-width: min(210px, 58vw); padding: 4px 11px 6px; border-radius: 12px; font-size: 15px; line-height: 1.05; white-space: normal; text-align: center; }
+}
+
+@keyframes ko-us-blik { 50% { opacity: 0.25; } }
+@keyframes ko-us-mihot { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes ko-us-pohup { 0%, 70%, 100% { transform: rotate(0deg); } 78% { transform: rotate(-7deg) translateY(-2px); } 86% { transform: rotate(5deg); } 93% { transform: rotate(-2deg); } }
+@keyframes ko-us-mluvi { from { transform: rotate(-1.5deg); } to { transform: rotate(2deg) translateY(-1.5px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ko-us-bunka.zvoni .ko-us-sklo, .ko-us-bunka.odposlech .ko-us-sklo, .ko-us-zare.zvoni,
+  .ko-us-pohup .ko-us-kolik-telo, .ko-us-obyv.spi use, .ko-us-obyv.mluvi use, .ko-us-obyv.posloucha use,
+  .ko-us-zvoni .ko-us-zvon { animation: none; }
+  .ko-us-zare, .ko-us-zare-nika, .ko-us-tma-niky { transition: none; }
+}

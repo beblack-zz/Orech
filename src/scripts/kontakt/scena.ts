@@ -21,7 +21,8 @@
  *               dovnitř bez hovoru
  *
  * Na ukázku jde čas přepnout: /kontakt?cas=pa-17:40 (den a hodina tohoto
- * týdne) nebo ?cas=2026-01-15T10:00 (i s datem, tedy i roční období).
+ * týdne) nebo ?cas=2026-07-07T10:00 (i s datem, tedy i roční období
+ * a svátky) — viz cas.ts.
  *
  * Údaje v panelu jsou obyčejné odkazy (tel:, mailto:, mapa) — skript je jen
  * obohacuje. S omezeným pohybem se nic nekmitá ani nelétá.
@@ -29,12 +30,15 @@
 import { venku, VENKU_DEFS, type VenkuBody, type Rezim } from "../../components/kontakt/kresba/venku";
 import { provazek, prohnuty, vrabec, visacka, dopis, list, f, omez, lerp, hladce, nahoda, type Bod } from "../../components/kontakt/kresba/zaklad";
 import { sezonaMesice, type Sezona } from "../../data/uvod2";
-import { sluzba, stavSlovy, repliky, dopis as dopisData } from "../../data/kontakt";
+import { sluzba, stavSlovy, ustrednaSlovy, repliky, dopis as dopisData } from "../../data/kontakt";
 import type { PostavaId } from "../../data/parta";
 import { paleta } from "../parta2/paleta";
 import { kresliNebe } from "../parta2/nebe";
 import * as zvuk from "../parta2/zvuk";
 import { uvnitrScena } from "./uvnitr";
+import { ted, posunUkazky } from "./cas";
+import { stupen, brnk, hlidacMotivu } from "./struna";
+import { svatekDne, zaves, type Svatek } from "../../components/kontakt/kresba/svatky";
 
 interface Data {
   otazky: { q: string; a: string; kdo: PostavaId }[];
@@ -45,23 +49,6 @@ interface Data {
 
 const SIROKA = "(min-aspect-ratio: 6/5) and (min-width: 900px)";
 
-/** Přepínač času na ukázku: o kolik ms je čas stránky posunutý proti skutečnému */
-function posunCasu(): number {
-  const q = new URLSearchParams(window.location.search).get("cas");
-  if (!q) return 0;
-  const DNY: Record<string, number> = { ne: 0, po: 1, ut: 2, "út": 2, st: 3, ct: 4, "čt": 4, pa: 5, "pá": 5, so: 6 };
-  const m = q.toLowerCase().match(/^([a-zúčá]{2})-?(\d{1,2})(?::(\d{2}))?$/);
-  let cil: Date | null = null;
-  if (m && DNY[m[1]] !== undefined) {
-    cil = new Date();
-    cil.setDate(cil.getDate() + ((DNY[m[1]] - cil.getDay() + 7) % 7));
-    cil.setHours(Number(m[2]), Number(m[3] ?? 0), 0, 0);
-  } else {
-    const d = new Date(q);
-    if (!Number.isNaN(d.getTime())) cil = d;
-  }
-  return cil ? cil.getTime() - Date.now() : 0;
-}
 /** Pořadí otázek na provázku: nejdřív ty, na které se lidi ptají nejvíc */
 const PORADI = [0, 8, 7, 1, 2, 3, 4, 5, 6];
 
@@ -94,19 +81,21 @@ export function scena() {
   const svgVen = sekce.querySelector<SVGSVGElement>(".ko-venku")!;
   const panel = sekce.querySelector<HTMLElement>(".ko-panel")!;
   const vrstva = sekce.querySelector<HTMLElement>(".ko-vrstva")!;
-  const stavEl = sekce.querySelector<HTMLElement>(".ko-stav");
+  const stavEl = sekce.querySelector<HTMLElement>(".ko-stav-dilna");
+  const telEl = sekce.querySelector<HTMLElement>(".ko-stav-telefon");
   const data: Data = JSON.parse(document.getElementById("ko-data")?.textContent || "{}");
   const klidne = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const dotyk = matchMedia("(pointer: coarse)").matches;
   const mqSiroka = matchMedia(SIROKA);
-  const posun = posunCasu();
-  const ted = () => new Date(Date.now() + posun);
+  const posun = posunUkazky();
 
   /* ——— stav ——— */
   let rezim: Rezim = "siroka";
   let W = 1600, H = 900, k = 1;
   let body: VenkuBody | null = null;
   let otevreno = false;
+  /** Hodiny telefonu (data/kontakt.ts telefon): parta u ústředny je vzhůru a hrnek na plotě zvedne */
+  let vzhuru = false;
   let kdo: PostavaId = "kapka";
   let sezona: Sezona = "podzim";
   let prohyb = 50;
@@ -124,6 +113,12 @@ export function scena() {
   /** Host už hrnek (nebo okno) použil — hrnek přestane zvonit */
   let pouzito = false;
   let koralky: { t: number; el: SVGGElement }[] = [];
+  /** Svátek dne (ozdoby na provázku) a ozdoby, jak visí */
+  let svatek: Svatek | null = null;
+  let ozdoby: { el: SVGGElement; zare: SVGGElement | null; t: number; naklon: number }[] = [];
+  /** Noty, okvětní lístky a jiné letce, které vyletí z provázku: bod t, posun a čas */
+  let letci: { el: SVGGElement; t: number; t0: number; doba: number; dx: number; dy: number; rot: number; m: number }[] = [];
+  const motiv = hlidacMotivu();
   let el: { lem: SVGPathElement; jadro: SVGPathElement; zkrut: SVGPathElement; chyt: SVGPathElement; koralky: SVGGElement; dopis: SVGGElement; kladka: SVGGElement | null; cesta: SVGPathElement; hrnek: SVGGElement | null } | null = null;
 
   /* ——— snímková smyčka: běží, jen když se něco hýbe ——— */
@@ -174,17 +169,28 @@ export function scena() {
     document.documentElement.style.setProperty("--ko-noc", noc.toFixed(3));
     sekce!.classList.toggle("soumrak", noc > 0.04);
     const s = stavSlovy(nyni);
+    const u = ustrednaSlovy(nyni);
+    if (telEl) {
+      telEl.hidden = false;
+      telEl.textContent = posun ? `ukázka · ${u.text}` : u.text;
+      telEl.classList.toggle("otevreno", u.vzhuru);
+    }
     if (stavEl) {
       stavEl.hidden = false;
-      stavEl.textContent = posun ? `ukázka · ${s.text}` : s.text;
+      stavEl.textContent = s.text;
       stavEl.classList.toggle("otevreno", s.otevreno);
     }
-    const zmena = s.otevreno !== otevreno || sluzba(nyni) !== kdo || sezonaMesice(nyni.getMonth() + 1) !== sezona;
+    const sv = svatekDne(nyni);
+    const zmena = s.otevreno !== otevreno || u.vzhuru !== vzhuru || sluzba(nyni) !== kdo || sezonaMesice(nyni.getMonth() + 1) !== sezona || sv?.id !== svatek?.id;
+    svatek = sv;
     otevreno = s.otevreno;
+    vzhuru = u.vzhuru;
     kdo = sluzba(nyni);
     sezona = sezonaMesice(nyni.getMonth() + 1);
-    stav = s.text;
+    /* cedulka u spící ústředny říká, kdy zase zvedáme */
+    stav = u.kdy;
     sekce!.classList.toggle("otevreno", otevreno);
+    sekce!.classList.toggle("vzhuru", vzhuru);
     document.querySelectorAll<HTMLElement | SVGElement>(".ko-venku, .ko-dole").forEach((x) => (x.dataset.sezona = sezona));
     document.querySelector(".ko-dole")?.classList.toggle("soumrak", noc > 0.04);
     return zmena;
@@ -205,7 +211,7 @@ export function scena() {
       k = 1;
     }
     const p = panel.getBoundingClientRect();
-    const v = venku({ W, H, rezim, panel: { prava: (p.right - r.left) / k, dolni: (p.bottom - r.top) / k }, otevreno, kdo });
+    const v = venku({ W, H, rezim, panel: { prava: (p.right - r.left) / k, dolni: (p.bottom - r.top) / k }, otevreno, vzhuru, kdo });
     body = v.body;
     prohyb = hovor ? body.napnuty : body.prohyb;
     svgVen.setAttribute("viewBox", `0 0 ${f(W)} ${f(H)}`);
@@ -213,6 +219,7 @@ export function scena() {
     svgVen.innerHTML = `<defs>${VENKU_DEFS}</defs>
       <g class="ko-krajina">${v.krajina}</g>
       <g class="ko-dynamika">${dynamika()}</g>
+      <g class="ko-svatek-zare-vrstva">${zareOzdob()}</g>
       <g class="ko-konec-vrstva">${v.konec}</g>
       <g class="ko-popredi">${v.popredi}</g>
       <g class="ko-padani">${padani()}</g>
@@ -249,9 +256,33 @@ export function scena() {
       do: [0, 0],
       t0: 0,
     }));
+    ozdoby = [...svgVen.querySelectorAll<SVGGElement>(".ko-ozdoba")].map((g, i) => ({
+      el: g,
+      zare: svgVen.querySelector<SVGGElement>(`.ko-ozdoba-zare[data-i="${i}"]`),
+      t: Number(g.dataset.t),
+      naklon: (i % 3) - 1,
+    }));
     koralky = [];
+    letci = [];
     navaz();
     kresliDynamiku(posledniCas);
+    zverejniSestup(r);
+  }
+
+  /**
+   * Kde provázek od Futatsu sestupuje přes spodní okraj první obrazovky na
+   * louku (scripts/kontakt/louka.ts na něj navazuje): x v px od levého
+   * okraje .ko-dole a šířka šňůry v px. Po změně pošle událost `ko:sestup`.
+   */
+  function zverejniSestup(r: DOMRect) {
+    const dole = document.querySelector<HTMLElement>(".ko-dole");
+    if (!dole || !body) return;
+    const x = body.sestup[0] * k + r.left - dole.getBoundingClientRect().left;
+    const w = body.sestupW * k;
+    if (dole.dataset.sestupX === x.toFixed(1) && dole.dataset.sestupW === w.toFixed(2)) return;
+    dole.dataset.sestupX = x.toFixed(1);
+    dole.dataset.sestupW = w.toFixed(2);
+    dole.dispatchEvent(new CustomEvent("ko:sestup"));
   }
 
   /** Obsah vrstvy s provázkem — pozice dopočítá kresliDynamiku */
@@ -260,6 +291,7 @@ export function scena() {
     let s = `<path class="ko-cesta-ukaz" d="${b.cesta}"/>`;
     s += `<g class="ko-provaz"><path class="ko-provaz-lem"/><path class="ko-provaz-jadro"/><path class="ko-provaz-zkrut" stroke-width="${f(b.w0 * 0.34)}" stroke-linecap="round"/></g>`;
     s += `<path class="ko-provaz-chyt"/>`;
+    s += ozdobySvg();
     s += `<g class="ko-koralky"></g>`;
     b.sloty.forEach((slot, i) => {
       if (naProvazku[i] === undefined) {
@@ -276,6 +308,35 @@ export function scena() {
     const text = data.otazky[o]?.q ?? "";
     const sirka = Math.max(120, text.length * 9.4 + 36);
     return `<g class="ko-visacka" data-slot="${i}" data-otazka="${o}">${visacka(esc(text), sirka, nit)}</g>`;
+  }
+
+  /* ——— svátky: ozdoby visí na provázku mezi visačkami a vrabci ——— */
+  function mistaOzdob() {
+    if (!svatek || !body) return [];
+    const b = body;
+    const t: number[] = [];
+    for (let x = 0.13; x < 0.93; x += rezim === "siroka" ? 0.068 : 0.09) {
+      if (b.sloty.some((sl) => Math.abs(sl.t - x) < 0.06) || b.vrabci.some((v) => Math.abs(v.t - x) < 0.035)) continue;
+      t.push(x);
+    }
+    return t;
+  }
+  function ozdobySvg() {
+    const sv = svatek;
+    if (!sv) return "";
+    return mistaOzdob().map((t, i) => `<g class="ko-ozdoba" data-t="${t.toFixed(3)}" data-i="${i}">${zaves(sv.id, i, 1)}</g>`).join("");
+  }
+  /** Lucerny a lampiony v noci svítí — záře je mimo vrstvu, kterou noc ztmaví */
+  function zareOzdob() {
+    if (!svatek || (svatek.id !== "obon" && svatek.id !== "hanami")) return "";
+    const y = svatek.id === "obon" ? 34 : 33;
+    return mistaOzdob().map((_, i) => `<g class="ko-ozdoba-zare" data-i="${i}"><circle cy="${y}" r="34" fill="url(#ko-zare-lampy)"/></g>`).join("");
+  }
+  /** Klik na ozdobu: rozhoupe se a ten, kdo má službu, popřeje */
+  function ozdobaKlik(o: (typeof ozdoby)[number]) {
+    if (!body || !svatek) return;
+    drnkni(o.t, 16 * body.m, false);
+    bublina("konec", svatek.pozdrav, naPx(body.hlava), 3200);
   }
 
   /** Padající listy ořešáku, okvětní lístky sakury nebo vločky — podle ročního období */
@@ -325,6 +386,21 @@ export function scena() {
     for (const v of visacky) {
       const p = pr.bod(v.t);
       v.el.setAttribute("transform", `translate(${f(p.x)} ${f(p.y)}) rotate(${f(v.naklon + kyv)}) scale(${f(v.m)})`);
+    }
+    const mo = b.visackaM * 0.95;
+    for (const o of ozdoby) {
+      const p = pr.bod(o.t);
+      const tr = `translate(${f(p.x)} ${f(p.y)}) rotate(${f(o.naklon + kyv * 1.3)}) scale(${f(mo * (0.55 + 0.45 * p.m))})`;
+      o.el.setAttribute("transform", tr);
+      o.zare?.setAttribute("transform", tr);
+    }
+    for (const l of letci) {
+      if (cas < l.t0) continue;
+      const u = omez((cas - l.t0) / l.doba);
+      const p = pr.bod(l.t);
+      const e = 1 - (1 - u) * (1 - u);
+      l.el.setAttribute("transform", `translate(${f(p.x + l.dx * e)} ${f(p.y + l.dy * e)}) rotate(${f(l.rot * u)}) scale(${f(l.m)})`);
+      l.el.setAttribute("opacity", String(f(u < 0.7 ? 1 : (1 - u) / 0.3)));
     }
     if (dopisT !== null) {
       const p = pr.bod(dopisT);
@@ -391,9 +467,17 @@ export function scena() {
   }
 
   /* ——— drnknutí ——— */
-  function drnkni(pTah: number, d: number) {
+  function drnkni(pTah: number, d: number, hraj = true) {
     if (!body) return;
     const a = Math.max(-60 * body.m, Math.min(60 * body.m, d));
+    const napnuti = omez((body.prohyb - prohyb) / Math.max(1, body.prohyb - body.napnuty));
+    if (hraj) {
+      /* kde drnkneš, tak vysoko zazní (struna.ts); začátek Sakury rozkvete */
+      const st = stupen(pTah);
+      brnk(st, Math.min(1, Math.abs(a) / 24 + 0.3), napnuti);
+      if (!klidne) letec(pTah, nota(), 900, 0, -46 * body.m, (Math.random() - 0.5) * 30, body.m * 0.9);
+      if (motiv(st)) window.setTimeout(sakura, 260);
+    }
     if (klidne) return;
     kmit = { p: pTah, a, t0: performance.now() };
     const hotovo = kmit;
@@ -405,11 +489,41 @@ export function scena() {
       }
       return true;
     });
-    const napnuti = omez((body.prohyb - prohyb) / Math.max(1, body.prohyb - body.napnuty));
-    const f0 = 196 + napnuti * 190;
-    zvuk.ton(f0, f0 * 0.985, 0.9, "triangle", 0.09 * Math.min(1, Math.abs(a) / 24 + 0.3));
-    zvuk.ton(f0 * 2, f0 * 1.98, 0.5, "sine", 0.03);
     if (Math.abs(a) > 6 * body.m) odlet();
+  }
+
+  /** Něco, co vyletí z bodu t na provázku (nota, okvětní lístek) a za `doba` ms zmizí */
+  function letec(t: number, obsah: string, doba: number, dx: number, dy: number, rot: number, m: number, zpozdeni = 0) {
+    if (!el) return;
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.innerHTML = obsah;
+    g.setAttribute("opacity", "0");
+    el.koralky.append(g);
+    const l = { el: g, t, t0: performance.now() + zpozdeni, doba, dx, dy, rot, m };
+    letci.push(l);
+    pridej((cas) => {
+      if (cas - l.t0 < doba) return true;
+      g.remove();
+      letci = letci.filter((x) => x !== l);
+      return false;
+    });
+  }
+  const nota = () => `<g fill="#3A2A22" opacity="0.78"><ellipse cx="-3" cy="6" rx="5" ry="3.6" transform="rotate(-22 -3 6)"/><path d="M1.2 5 V-14 Q8 -11 9 -5 Q6 -9 2.8 -9.4 V5 Z"/></g>`;
+  const lupen = (i: number) => `<path d="M0 -6 C4 -6 6 -2 5 2 C4 5 1 6 0 4 C-1 6 -4 5 -5 2 C-6 -2 -4 -6 0 -6 Z" fill="${i % 3 ? "#F6C3CF" : "#FBDDE3"}" stroke="#E79AAB" stroke-width="0.6"/>`;
+
+  /** Sakura: po provázku vykvetou okvětní lístky a ten na plotě dohraje další takty */
+  function sakura() {
+    if (!body) return;
+    const m = body.m;
+    if (!klidne) {
+      for (let i = 0; i < 34; i++) {
+        const t = 0.06 + Math.random() * 0.9;
+        letec(t, lupen(i), 2200 + Math.random() * 1400, (Math.random() - 0.3) * 160 * m, -(60 + Math.random() * 140) * m, (Math.random() - 0.5) * 540, (0.8 + Math.random() * 0.7) * m, i * 45);
+      }
+    }
+    /* odpověď z plotu: A H C H · A H A F */
+    [2, 3, 4, 3, 2, 3, 2, 1].forEach((st, i) => window.setTimeout(() => brnk(st, 0.55, 1), 500 + i * 400 + (i >= 4 ? 300 : 0)));
+    bublina("konec", "♪ Sakura, sakura… ♪", naPx(body.hlava), 3600);
   }
 
   /** Bod na provázku nejbližší k pozici v jednotkách */
@@ -517,7 +631,7 @@ export function scena() {
     odlet();
     svetelka(() => {
       if (!body) return;
-      if (otevreno) {
+      if (vzhuru) {
         zvoneni();
         bublina("konec", repliky.halo, naPx(body.hlava), 2400);
         window.setTimeout(dovnitr, klidne ? 600 : 1300);
@@ -543,7 +657,7 @@ export function scena() {
     const [ox, oy] = body.okno;
     uvnitr.dovnitr(kdo, [ox * k, oy * k], () => {
       el?.hrnek?.classList.remove("zvednuty");
-    }, otevreno, stav);
+    }, vzhuru, stav);
   }
   function ven() {
     uvnitr.ven(() => {
@@ -602,7 +716,7 @@ export function scena() {
       if (el) el.dopis.style.display = "none";
       dopisT = null;
       zvuk.pop();
-      if (body) bublina("konec", otevreno ? repliky.dopis : repliky.dopisSpi, naPx(body.hlava), 3600);
+      if (body) bublina("konec", vzhuru ? repliky.dopis : repliky.dopisSpi, naPx(body.hlava), 3600);
     });
   }
 
@@ -620,6 +734,7 @@ export function scena() {
       zvedni(e);
     });
     visacky.forEach(navazVisacku);
+    ozdoby.forEach((o) => o.el.addEventListener("click", () => ozdobaKlik(o)));
     svgVen.querySelector(".ko-dum-klik")?.addEventListener("click", kNam);
     svgVen.querySelector(".ko-okno-klik")?.addEventListener("click", nahlednout);
     const chyt = el.chyt;
@@ -676,9 +791,69 @@ export function scena() {
     const text = (form.elements.namedItem("text") as HTMLTextAreaElement).value.trim();
     const jmeno = (form.elements.namedItem("jmeno") as HTMLInputElement).value.trim();
     const telo = `${text}${jmeno ? `\n\n— ${jmeno}` : ""}`;
+    /* pošta se otevře hned (ještě v kliknutí, jinak ji prohlížeč může zablokovat), skládání běží mezitím */
     window.location.href = `mailto:${data.email}?subject=${encodeURIComponent(dopisData.predmet)}&body=${encodeURIComponent(telo)}`;
-    window.setTimeout(posliDopis, 250);
+    if (klidne || !dlgDopis || typeof dlgDopis.animate !== "function") {
+      window.setTimeout(posliDopis, 250);
+      return;
+    }
+    e.preventDefault();
+    sloz(dlgDopis).then(() => {
+      form.reset();
+      posliDopis();
+    });
   });
+
+  /** 結び文: papír v dialogu se přeloží do proužku, zaváže na uzel a uzel spadne dolů k provázku */
+  async function sloz(dlg: HTMLDialogElement) {
+    const papir = dlg.querySelector<HTMLElement>(".ko-papir");
+    const uzel = dlg.querySelector<SVGSVGElement>(".ko-uzel-dopisu");
+    if (!papir || !uzel) return dlg.close();
+    dlg.classList.add("sklada");
+    zvuk.papir();
+    /* všechny snímky mají stejné funkce, ať se přechody mezi nimi plynule prolínají */
+    const T = (z: number, x: number, sx: number, sy: number) => `perspective(900px) rotate(${z}deg) rotateX(${x}deg) scale(${sx}, ${sy})`;
+    const skladani = papir.animate(
+      [
+        { transform: T(0, 0, 1, 1), opacity: 1, offset: 0 },
+        { transform: T(0, 0, 1, 1), opacity: 1, offset: 0.2 },
+        { transform: T(0, 68, 1, 0.5), opacity: 1, offset: 0.42 },
+        { transform: T(0, 0, 1, 0.5), opacity: 1, offset: 0.52 },
+        { transform: T(0, -68, 0.96, 0.24), opacity: 1, offset: 0.72 },
+        { transform: T(0, 0, 0.92, 0.1), opacity: 1, offset: 0.82 },
+        { transform: T(-24, 0, 0.92, 0.07), opacity: 1, offset: 0.92 },
+        { transform: T(-24, 0, 0.22, 0.05), opacity: 0, offset: 1 },
+      ],
+      { duration: 1500, easing: "cubic-bezier(0.45, 0, 0.3, 1)", fill: "forwards" },
+    );
+    window.setTimeout(() => zvuk.papir(), 650);
+    await skladani.finished;
+    zvuk.uzel();
+    const vaz = uzel.animate(
+      [
+        { opacity: 0, transform: "rotate(-40deg) scale(0.35)" },
+        { opacity: 1, transform: "rotate(6deg) scale(1.08)", offset: 0.6 },
+        { opacity: 1, transform: "rotate(0deg) scale(1)" },
+      ],
+      { duration: 480, easing: "cubic-bezier(0.3, 1.3, 0.5, 1)", fill: "forwards" },
+    );
+    await vaz.finished;
+    dlg.classList.add("odchazi");
+    const pad = uzel.animate(
+      [
+        { opacity: 1, transform: "rotate(0deg) scale(1)" },
+        { opacity: 1, transform: "translateY(-14px) rotate(-4deg) scale(1)", offset: 0.25 },
+        { opacity: 0, transform: "translateY(45vh) rotate(16deg) scale(0.45)" },
+      ],
+      { duration: 620, easing: "cubic-bezier(0.5, 0, 0.75, 0.4)", fill: "forwards" },
+    );
+    await pad.finished;
+    dlg.close();
+    skladani.cancel();
+    vaz.cancel();
+    pad.cancel();
+    dlg.classList.remove("sklada", "odchazi");
+  }
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && sekce!.dataset.zastavka === "uvnitr" && !document.querySelector("dialog[open]")) ven();
   });
@@ -698,7 +873,7 @@ export function scena() {
     smazBubliny();
     zvuk.cvak();
     const [ox, oy] = body.okno;
-    uvnitr.dovnitr(kdo, [ox * k, oy * k], () => {}, otevreno, stav, false);
+    uvnitr.dovnitr(kdo, [ox * k, oy * k], () => {}, vzhuru, stav, false);
   }
   /* Zvoní chvíli po načtení a pak po každých dvaceti vteřinách, nejvýš čtyřikrát.
      Nikdy hned po kliknutí do scény (aby to nevypadalo jako odpověď na klik),

@@ -5,15 +5,38 @@
  * data-satek-pridat a data-satek-id (v krámku i v detailu kusu); kus
  * v krámku má data-satek-kus, aby šlo poznat, že leží v šátku.
  *
- * Zavázání: rohy šátku se přeloží, nahoře se udělá uzel a objednávka
- * odejde na /api/objednavka (scripts/parta2/objednavka.ts). Odkaz na
- * tlačítku je připravený e-mail se stejným seznamem — ten se ukáže jako
- * záloha, když server neodpoví.
+ * Zavázání: šátek se zaváže a objednávka odejde na /api/objednavka
+ * (scripts/parta2/objednavka.ts). Odkaz na tlačítku je připravený e-mail
+ * se stejným seznamem — ten se ukáže jako záloha, když server neodpoví.
+ *
+ * Kde je WebGL2, je šátek skutečná látka ve 3D (satek3d/latka.ts): kusy na
+ * ní leží jako balíky v novinách s visačkou (fotka a číslo, stejné číslo má
+ * řádek účtenky), při dopadu látku rozvlní a „Zavázat“ je opravdové
+ * otsukai-tsutsumi s uzlem ma-musubi. Prázdný šátek je složený, s prvním
+ * kusem se rozloží a po posledním zase složí. Najetí na balík prosvětlí
+ * řádek účtenky a naopak. Vzor šátku (data/furoshiki.ts) si prohlížeč
+ * pamatuje (obchod2-satek-vzor) a posílá se s objednávkou. Bez WebGL2
+ * zůstává SVG kresba z Satek.astro.
+ *
+ * Vázička (scripts/parta2/pruvodce.ts) nosí hostovi zavázaný uzlík
+ * s počtem kusů, když šátek není vidět. Posílá se jí na document:
+ *   satek:zmena    { pocet, vzor }  — při startu a po každé změně
+ *   satek:videt    { videt }        — sekce #satek je / není na obrazovce
+ *   satek:pridano  { id, videt }    — kus doletěl do šátku nebo k ní
+ * Kus přidaný mimo šátek letí do jejího uzlíku (.pruvodce-satek). Staré
+ * plovoucí tlačítko se ukáže, jen když je schovaná do čárky
+ * (pruvodce:schovana) nebo na stránce není.
  */
 import { nacti, uloz, klid } from "../parta2/stav";
 import { pocetKusu } from "../../data/pocty";
 import * as zvuk from "../parta2/zvuk";
 import { posliObjednavku, platnyEmail, proc, zaloha } from "../parta2/objednavka";
+import { vytvorLatku } from "./satek3d/latka";
+import type { Latka, KusNaSatku } from "./satek3d/latka";
+import { NEJVIC_BALIKU } from "./satek3d/typy";
+import type { TvarBaliku } from "./satek3d/typy";
+import { vzory, vzorPodleId, VYCHOZI_VZOR } from "../../data/furoshiki";
+import type { VzorSatku } from "../../data/furoshiki";
 
 interface Zbozi {
   id: string;
@@ -21,6 +44,10 @@ interface Zbozi {
   cena: number;
   cenaText: string;
   popis: string;
+  /** Jak se kus zabalí do novin (Satek.astro podle tvaru kusu) */
+  tvar: TvarBaliku;
+  /** Fotka na visačku balíku, když ji kus má */
+  foto?: string;
 }
 
 export interface Satek {
@@ -30,7 +57,10 @@ export interface Satek {
 }
 
 const KLIC = "obchod2-satek";
+const KLIC_VZOR = "obchod2-satek-vzor";
+
 const kc = (n: number) => `${n.toLocaleString("cs-CZ")} Kč`;
+const ohlas = (jmeno: string, detail: unknown) => document.dispatchEvent(new CustomEvent(jmeno, { detail }));
 
 export function initSatek(): Satek {
   const zbozi: Zbozi[] = JSON.parse(document.getElementById("o2-zbozi")?.textContent ?? "[]");
@@ -55,6 +85,84 @@ export function initSatek(): Satek {
   let zavazano = false;
   let odesila = false;
   let satekVidet = false;
+  let vzor: VzorSatku = vzorPodleId(nacti<string>(KLIC_VZOR, VYCHOZI_VZOR)) ?? vzory[0];
+
+  /* ——— Látka ve 3D a balíky na ní ——— */
+  const platno = kresba?.querySelector<HTMLCanvasElement>(".o2-satek-platno") ?? null;
+  const vrstva = kresba?.querySelector<HTMLElement>(".o2-satek-vrstva") ?? null;
+  let latka: Latka | null = null;
+  if (platno && vrstva && kresba) {
+    platno.hidden = false;
+    latka = vytvorLatku(platno, { klid, maly: window.innerWidth < 700 || (navigator.hardwareConcurrency ?? 8) <= 4 });
+    if (latka) {
+      vrstva.hidden = false;
+      kresba.classList.add("zive");
+    } else platno.hidden = true;
+  }
+  /** Kusy pro látku v pořadí šátku; číslo na visačce je stejné jako na účtence */
+  const kusyProLatku = (ids: string[]): KusNaSatku[] =>
+    ids.slice(0, NEJVIC_BALIKU).map((id, i) => {
+      const z = podleId.get(id)!;
+      return { id, cislo: i + 1, tvar: z.tvar, nazev: z.nazev, foto: z.foto, seme: 0 };
+    });
+  let latkaZacala = false;
+  /** Balíky na látce podle obsahu šátku; co se nevejde, je „+N“ */
+  const kusyNaLatce = (ids: string[]) => {
+    if (!latka || !vrstva) return;
+    if (latkaZacala) latka.nastavKusy(kusyProLatku(ids));
+    else {
+      latkaZacala = true;
+      void latka.start(kusyProLatku(ids));
+    }
+    vrstva.querySelector(".o2-satek-kus-vic")?.remove();
+    if (ids.length > NEJVIC_BALIKU) {
+      const t = document.createElement("span");
+      t.className = "o2-satek-kus-vic";
+      t.textContent = `+${ids.length - NEJVIC_BALIKU}`;
+      vrstva.append(t);
+    }
+  };
+  /* Najetí na balík prosvětlí řádek účtenky */
+  latka?.priNajeti((id) => {
+    seznam?.querySelectorAll<HTMLElement>(".o2-satek-polozka").forEach((li) => li.classList.toggle("najeto", li.dataset.id === id));
+  });
+
+  /* ——— Vzor šátku ——— */
+  const vzorEl = koren?.querySelector<HTMLElement>(".o2-vzory");
+  const nastavVzor = (v: VzorSatku, ulozit = true) => {
+    vzor = v;
+    if (ulozit) uloz(KLIC_VZOR, v.id);
+    koren?.querySelectorAll<HTMLInputElement>('input[name="vzor"]').forEach((i) => (i.checked = i.value === v.id));
+    /* Náhradní kresba */
+    document.querySelectorAll(".o2-satek-lic").forEach((el) => el.setAttribute("fill", `url(#o2-vzor-${v.id})`));
+    document.querySelectorAll(".o2-roh-rub").forEach((el) => el.setAttribute("fill", v.barva.rub));
+    document.querySelector(".o2-satek-lem")?.setAttribute("stroke", v.barva.lem);
+    document.querySelectorAll(".o2-uzel-latka").forEach((el) => {
+      el.setAttribute("fill", `url(#o2-vzor-${v.id})`);
+      el.setAttribute("stroke", v.barva.lem);
+    });
+    /* Význam pod vzorníkem a řádek na účtence */
+    const vyznam = vzorEl?.querySelector(".o2-vzor-vyznam");
+    if (vyznam) {
+      vyznam.querySelector(".o2-vzor-kanji")!.textContent = v.kanji;
+      vyznam.querySelector("b")!.textContent = v.nazev;
+      vyznam.querySelector(".o2-vzor-text")!.textContent = v.vyznam;
+    }
+    const zab = koren?.querySelector(".o2-satek-zabal");
+    if (zab) {
+      zab.querySelector("b")!.textContent = v.nazev;
+      zab.querySelector("span")!.textContent = v.kanji;
+    }
+    latka?.nastavVzor(v).catch((e) => console.warn("[šátek] vzor se nepodařilo nakreslit", e));
+    ohlas("satek:zmena", { pocet: vSatku.size, vzor: v.id });
+  };
+  vzorEl?.addEventListener("change", (e) => {
+    const v = vzorPodleId((e.target as HTMLInputElement).value);
+    if (!v) return;
+    nastavVzor(v);
+    zvuk.latka();
+    mail();
+  });
 
   const ikona = (id: string) => ikony?.content.querySelector(`[data-ikona="${id}"]`)?.cloneNode(true) as SVGSVGElement | undefined;
 
@@ -72,6 +180,21 @@ export function initSatek(): Satek {
       if (s) s.hidden = !je;
     });
   };
+
+  /* ——— Plovoucí tlačítko: jen když Vázička uzlík nenese (je schovaná do čárky, nebo tu není) ——— */
+  let pruvodceSchovana = false;
+  const vazickaNese = () => !!document.querySelector(".pruvodce") && !pruvodceSchovana && !document.querySelector(".pruvodce.schovana");
+  const obnovPlovouci = () => {
+    if (!plovouci) return;
+    plovouci.hidden = vSatku.size === 0 || satekVidet || vazickaNese();
+    const p = plovouci.querySelector("[data-satek-pocet]");
+    if (p) p.textContent = String(vSatku.size);
+    plovouci.setAttribute("aria-label", `Šátek: ${pocetKusu(vSatku.size)}`);
+  };
+  document.addEventListener("pruvodce:schovana", (e) => {
+    pruvodceSchovana = !!(e as CustomEvent<{ schovana: boolean }>).detail?.schovana;
+    obnovPlovouci();
+  });
 
   const mail = () => {
     if (!zavazat) return;
@@ -92,6 +215,7 @@ export function initSatek(): Satek {
       "",
       `Celkem: ${kc(celkem)}`,
       `Doprava: ${zasilkovna ? "Zásilkovnou" : "osobní odběr v dílně"}`,
+      `Šátek: ${vzor.nazev} (${vzor.kanji})`,
       "",
       `Jméno: ${jmeno?.value.trim() ?? ""}`,
     ];
@@ -106,17 +230,29 @@ export function initSatek(): Satek {
     let celkem = 0;
     if (seznam) {
       seznam.textContent = "";
-      for (const id of ids) {
+      ids.forEach((id, i) => {
         const z = podleId.get(id)!;
         celkem += z.cena;
         const li = document.createElement("li");
         li.className = "o2-satek-polozka";
+        li.dataset.id = id;
+        /* Obrázek s číslem, které má balík na visačce (jen kusy, které na šátek vejdou) */
+        const obal = document.createElement("span");
+        obal.className = "o2-satek-polozka-obal";
         const obr = ikona(id);
         if (obr) {
           obr.setAttribute("class", "o2-satek-polozka-obr");
           obr.setAttribute("aria-hidden", "true");
-          li.append(obr);
+          obal.append(obr);
         }
+        if (latka && i < NEJVIC_BALIKU) {
+          const c = document.createElement("b");
+          c.className = "o2-satek-polozka-cislo";
+          c.setAttribute("aria-hidden", "true");
+          c.textContent = String(i + 1);
+          obal.append(c);
+        }
+        li.append(obal);
         const t = document.createElement("span");
         t.className = "o2-satek-polozka-text";
         const b = document.createElement("b");
@@ -134,13 +270,17 @@ export function initSatek(): Satek {
         x.textContent = "×";
         x.addEventListener("click", () => prepni(id));
         li.append(t, c, x);
+        /* Najetí na řádek prosvětlí balík na šátku */
+        li.addEventListener("pointerenter", () => latka?.zvyrazni(id));
+        li.addEventListener("pointerleave", () => latka?.zvyrazni(null));
         seznam.append(li);
-      }
+      });
     }
     if (celkemEl) celkemEl.textContent = kc(celkem);
 
-    /* Kusy na šátku: mřížka až 3 × 3 uprostřed čtverce 108–292 */
-    if (veci) {
+    /* Kusy na šátku: balíky na látce, nebo v náhradní kresbě mřížka až 3 × 3 uprostřed čtverce 108–292 */
+    if (latka) kusyNaLatce(ids);
+    else if (veci) {
       veci.textContent = "";
       const n = Math.min(ids.length, 9);
       const sloupce = n <= 1 ? 1 : n <= 4 ? 2 : 3;
@@ -172,45 +312,54 @@ export function initSatek(): Satek {
     }
     if (prazdno) prazdno.hidden = ids.length > 0;
     kresba?.classList.toggle("prazdny", ids.length === 0);
-    if (plovouci) {
-      plovouci.hidden = ids.length === 0 || satekVidet;
-      const p = plovouci.querySelector("[data-satek-pocet]");
-      if (p) p.textContent = String(ids.length);
-      plovouci.setAttribute("aria-label", `Šátek: ${pocetKusu(ids.length)}`);
-    }
+    obnovPlovouci();
     mail();
     obnovTlacitka();
+    ohlas("satek:zmena", { pocet: ids.length, vzor: vzor.id });
   };
 
-  /** Kus odletí od tlačítka k šátku (nebo k plovoucímu tlačítku) */
+  /** Kus odletí od tlačítka k šátku — nebo k Vázičce, která nese uzlík (záložně k plovoucímu tlačítku) */
   const odlet = (odkud: Element, id: string) => {
-    if (klid) return;
+    if (klid) {
+      ohlas("satek:pridano", { id, videt: satekVidet });
+      return;
+    }
     const obr = ikona(id);
     if (!obr) return;
     const a = odkud.getBoundingClientRect();
-    const cilEl = satekVidet ? document.querySelector(".o2-satek-svg") : plovouci && !plovouci.hidden ? plovouci : null;
-    const b = cilEl?.getBoundingClientRect();
     const let_ = document.createElement("div");
     let_.className = "o2-let";
     let_.append(obr);
     document.body.append(let_);
-    const x0 = a.left + a.width / 2 - 28;
-    const y0 = a.top - 40;
-    const x1 = b ? b.left + b.width / 2 - 28 : x0;
-    const y1 = b ? b.top + b.height / 2 - 28 : y0 - 120;
-    let_.animate(
-      [
-        { transform: `translate(${x0}px, ${y0}px) scale(0.6) rotate(-8deg)`, opacity: 0 },
-        { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 90}px) scale(1.05) rotate(6deg)`, opacity: 1, offset: 0.45 },
-        { transform: `translate(${x1}px, ${y1}px) scale(0.45) rotate(0deg)`, opacity: b ? 0.9 : 0 },
-      ],
-      { duration: 750, easing: "cubic-bezier(0.3, 0.7, 0.4, 1)" },
-    ).onfinish = () => {
-      let_.remove();
-      plovouci?.classList.remove("cinkne");
-      void plovouci?.offsetWidth;
-      plovouci?.classList.add("cinkne");
-    };
+    /* Cíl až o snímek později: Vázička na satek:zmena teprve ukazuje uzlík */
+    requestAnimationFrame(() => {
+      const cilEl = satekVidet
+        ? latka
+          ? platno
+          : document.querySelector(".o2-satek-svg")
+        : (document.querySelector(".pruvodce-satek:not([hidden])") ?? (plovouci && !plovouci.hidden ? plovouci : null));
+      const b = cilEl?.getBoundingClientRect();
+      const x0 = a.left + a.width / 2 - 28;
+      const y0 = a.top - 40;
+      const x1 = b ? b.left + b.width / 2 - 28 : x0;
+      const y1 = b ? b.top + b.height / 2 - 28 : y0 - 120;
+      let_.animate(
+        [
+          { transform: `translate(${x0}px, ${y0}px) scale(0.6) rotate(-8deg)`, opacity: 0 },
+          { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 90}px) scale(1.05) rotate(6deg)`, opacity: 1, offset: 0.45 },
+          { transform: `translate(${x1}px, ${y1}px) scale(0.45) rotate(0deg)`, opacity: b ? 0.9 : 0 },
+        ],
+        { duration: 750, easing: "cubic-bezier(0.3, 0.7, 0.4, 1)" },
+      ).onfinish = () => {
+        let_.remove();
+        ohlas("satek:pridano", { id, videt: satekVidet });
+        if (cilEl === plovouci) {
+          plovouci?.classList.remove("cinkne");
+          void plovouci?.offsetWidth;
+          plovouci?.classList.add("cinkne");
+        }
+      };
+    });
   };
 
   const rekni = (co: string | ((el: HTMLElement) => void)) => {
@@ -221,8 +370,10 @@ export function initSatek(): Satek {
   };
 
   const rozvaz = (zvukem = true) => {
+    const bylo = zavazano;
     zavazano = false;
     kresba?.classList.remove("zavazano");
+    if (latka && bylo) void latka.rozvaz();
     if (rozvazat) rozvazat.hidden = true;
     if (zprava) zprava.hidden = true;
     if (zvukem) zvuk.latka();
@@ -230,17 +381,24 @@ export function initSatek(): Satek {
 
   const prepni = (id: string, odkud?: Element) => {
     if (!podleId.has(id)) return;
-    if (vSatku.has(id)) {
-      vSatku.delete(id);
-      zvuk.papir();
-    } else {
+    const pridat = !vSatku.has(id);
+    if (pridat) {
       vSatku.add(id);
       zvuk.latka();
-      if (odkud) odlet(odkud, id);
+    } else {
+      vSatku.delete(id);
+      zvuk.papir();
     }
-    if (zavazano) rozvaz(false);
+    /* Zavázaný šátek se při změně nejdřív rozváže (látka to udělá sama, tady jen stav a tlačítka) */
+    if (zavazano) {
+      zavazano = false;
+      kresba?.classList.remove("zavazano");
+      if (rozvazat) rozvazat.hidden = true;
+      if (zprava) zprava.hidden = true;
+    }
     uloz(KLIC, [...vSatku]);
     kresli();
+    if (pridat && odkud) odlet(odkud, id);
   };
 
   document.addEventListener("click", (e) => {
@@ -275,9 +433,10 @@ export function initSatek(): Satek {
         jmeno: jmeno?.value ?? "",
         email: mailEl?.value ?? "",
         poznamka: pozn?.value ?? "",
+        vzor: vzor.id,
         web: pasticka?.value ?? "",
       }),
-      new Promise((hotovo) => window.setTimeout(hotovo, klid ? 0 : 1600)),
+      latka ? latka.zavaz() : new Promise((hotovo) => window.setTimeout(hotovo, klid ? 0 : 1600)),
     ]);
     odesila = false;
     zavazat.removeAttribute("aria-busy");
@@ -304,11 +463,20 @@ export function initSatek(): Satek {
   const sekce = document.getElementById("satek");
   if (sekce) {
     new IntersectionObserver(([e]) => {
-      satekVidet = e.isIntersecting;
-      if (plovouci) plovouci.hidden = vSatku.size === 0 || satekVidet;
+      /* Vidět je až pětina sekce — kousek nadpisu u spodního okraje Vázičce uzlík nevezme */
+      satekVidet = e.isIntersecting && e.intersectionRatio >= 0.2;
+      obnovPlovouci();
+      ohlas("satek:videt", { videt: satekVidet });
     }, { threshold: 0.2 }).observe(sekce);
   }
 
+  nastavVzor(vzor, false);
   kresli();
+  /* Vázička se rozbíhá s hlavičkou a mohla se rozběhnout až po nás: po snímku jí to řekneme znovu, pak je jisté i to, jestli uzlík nese */
+  requestAnimationFrame(() => {
+    ohlas("satek:zmena", { pocet: vSatku.size, vzor: vzor.id });
+    ohlas("satek:videt", { videt: satekVidet });
+    obnovPlovouci();
+  });
   return { ma: (id) => vSatku.has(id), prepni, obnovTlacitka };
 }

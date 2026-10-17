@@ -1,0 +1,134 @@
+/*
+ * Stojan ema — co dělá skript (scripts/kontakt/ema.ts): sundaná destička
+ * ke čtení, otočení na rub, vítr, zvonec, skok a úklona party. Platí jen
+ * se třídou .js na .ko-ema-sekce, bez skriptu zůstane vzhled z kontakt-ema.css.
+ *
+ * Destička se kývá vlastností `rotate` (rozhoupání, klidový náklon --r), přelet a otáčení jdou přes `transform` ze skriptu — proto se
+ * navzájem nepřebíjejí. Parta dýchá a skáče vlastnostmi `scale`/`translate`/
+ * `rotate`, svůj `transform` (zrcadlení) si nechává kresba.
+ */
+
+/* seznam nesmí být vlastní vrstva (z-index z kontakt-ema.css), jinak by čtená
+   destička zůstala pod závojem — vrstvu dostanou destičky samy */
+.ko-ema-sekce.js .ko-ema-seznam { z-index: auto; }
+.ko-ema-sekce.js .ko-ema { z-index: 2; }
+
+/* ——— líc a rub na sobě: rub je zadní strana téže destičky ——— */
+.ko-ema-sekce.js .ko-ema-deska { position: relative; }
+.ko-ema-sekce.js .ko-ema-rub {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  visibility: hidden;
+}
+.ko-ema-sekce.js .ko-ema.otocena .ko-ema-rub { visibility: visible; cursor: pointer; }
+.ko-ema-sekce.js .ko-ema.otocena .ko-ema-lic { opacity: 0; pointer-events: none; }
+
+/* destičky v klidu visí (žádný stálý vítr — šetří výkon); rozhoupe je jen
+   jen zvonec a klik na kami (skript, vlastnost rotate) */
+
+/* ——— příchod: destičky se po jedné zavěsí, parta vyskočí z trávy ——— */
+.ko-ema-sekce.js.ceka .ko-ema:not(.visi) .ko-ema-deska { opacity: 0; translate: 0 -34px; }
+.ko-ema-sekce.js .ko-ema.visi .ko-ema-deska { animation: ko-ema-zavesi 0.55s cubic-bezier(0.3, 1.35, 0.5, 1) both; }
+@keyframes ko-ema-zavesi { from { opacity: 0; translate: 0 -34px; } to { opacity: 1; translate: 0 0; } }
+.ko-ema-sekce.js.ceka .ko-ema-kami:not(.visi) svg { opacity: 0; translate: 0 28%; }
+
+/* ——— čtení: destička sundaná z provázku, velká uprostřed stojanu ——— */
+.ko-ema-sekce.js .ko-ema.cte {
+  left: var(--cte-l) !important;
+  top: var(--cte-t) !important;
+  width: var(--cte-w) !important;
+  translate: none !important;
+  margin: 0 !important;
+  z-index: 60;
+}
+.ko-ema-sekce.js .ko-ema.leti { z-index: 60; }
+.ko-ema-sekce.js .ko-ema.cte .ko-ema-deska {
+  rotate: 0deg;
+  animation: none;
+  opacity: 1;
+  translate: 0 0;
+  filter: drop-shadow(0 26px 30px rgba(20, 12, 6, 0.42));
+}
+/* závoj přes stojan, dokud se čte */
+.ko-ema-zavoj {
+  position: absolute;
+  z-index: 50;
+  inset: -24px -16px 0;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 45%, rgba(30, 20, 12, 0.36), rgba(30, 20, 12, 0.5) 70%, rgba(30, 20, 12, 0.3));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.ko-ema-zavoj.je { opacity: 1; pointer-events: auto; cursor: pointer; }
+
+/* ——— parta: dech, skok, úklona, tlesknutí ——— */
+.ko-ema-sekce.js .ko-ema-kami svg {
+  transform-origin: 50% 96%;
+  animation: ko-ema-dech 3.8s ease-in-out calc(var(--k, 0) * -0.67s) infinite;
+}
+.ko-ema-sekce.js .ko-ema-kami.visi svg {
+  animation:
+    ko-ema-dech 3.8s ease-in-out calc(var(--k, 0) * -0.67s) infinite,
+    ko-ema-vyskoc 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.ko-ema-sekce.js .ko-ema-kami.skok svg {
+  animation:
+    ko-ema-dech 3.8s ease-in-out calc(var(--k, 0) * -0.67s) infinite,
+    ko-ema-skok 0.65s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.ko-ema-sekce.js .ko-ema-kami.uklona svg {
+  animation:
+    ko-ema-dech 3.8s ease-in-out calc(var(--k, 0) * -0.67s) infinite,
+    ko-ema-uklona 0.8s cubic-bezier(0.4, 0, 0.3, 1);
+}
+.ko-ema-sekce.js .ko-ema-kami.tleska svg {
+  animation:
+    ko-ema-dech 3.8s ease-in-out calc(var(--k, 0) * -0.67s) infinite,
+    ko-ema-tleska 0.24s ease-out;
+}
+@keyframes ko-ema-dech { 50% { scale: 1.022 0.976; } }
+@keyframes ko-ema-vyskoc {
+  0% { opacity: 0; translate: 0 28%; scale: 0.92 1.08; }
+  60% { opacity: 1; translate: 0 -6%; scale: 1.04 0.96; }
+  100% { opacity: 1; translate: 0 0; scale: 1 1; }
+}
+@keyframes ko-ema-skok {
+  0% { translate: 0 0; scale: 1 1; rotate: 0deg; }
+  28% { translate: 0 -24%; scale: 0.95 1.06; rotate: -4deg; }
+  52% { translate: 0 0; scale: 1.1 0.9; rotate: 0deg; }
+  72% { translate: 0 -6%; scale: 0.98 1.02; rotate: 2deg; }
+  100% { translate: 0 0; scale: 1 1; rotate: 0deg; }
+}
+/* úklona: předkloní se (přikrčí) a zase narovná */
+@keyframes ko-ema-uklona {
+  0% { scale: 1 1; translate: 0 0; }
+  40%, 55% { scale: 1.07 0.8; translate: 0 3%; }
+  100% { scale: 1 1; translate: 0 0; }
+}
+@keyframes ko-ema-tleska { 50% { scale: 1.06 0.94; translate: 0 -3%; } }
+
+/* ——— zvonec: rolnička suzu se rozhoupe, provaz za ní ——— */
+.ko-ema-stojan.zvoni .ko-ema-suzu { animation: ko-ema-suzu 0.17s ease-in-out 14 alternate; }
+.ko-ema-stojan.zvoni .ko-ema-provaz-zvonu { animation: ko-ema-provaz 0.42s ease-in-out 6 alternate; }
+@keyframes ko-ema-suzu { from { rotate: -9deg; } to { rotate: 9deg; } }
+@keyframes ko-ema-provaz { from { rotate: -5deg; } to { rotate: 5deg; } }
+.ko-ema-zvonec { cursor: pointer; }
+
+/* ——— ozdoby svátků pod střechou (kresba/svatky.ts) ——— */
+.ko-ema-zaves.ma svg { display: block; width: 4.4cqw; min-width: 26px; height: auto; overflow: visible; translate: -50% 0; pointer-events: none; }
+
+/* mimo obrazovku vítr a dech stojí */
+.ko-ema-sekce.mimo :is(.ko-ema-deska, .ko-ema-kami svg, .ko-svatek-vlaje) { animation-play-state: paused !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ko-ema-sekce.js .ko-ema-deska,
+  .ko-ema-sekce.js .ko-ema.visi .ko-ema-deska,
+  .ko-ema-sekce.js .ko-ema-kami svg,
+  .ko-ema-stojan.zvoni :is(.ko-ema-suzu, .ko-ema-provaz-zvonu) { animation: none !important; }
+  .ko-ema-zavoj { transition: none; }
+}

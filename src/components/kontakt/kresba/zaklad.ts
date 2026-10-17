@@ -14,6 +14,7 @@ import { nahoda, chomac } from "../../parta2/tvary";
 import { vzorkuj, hladka, vyskaNa, lerp } from "../../domek2/kresba/krivky";
 import type { Bod } from "../../domek2/kresba/krivky";
 import { podobizna } from "../../obchod2/futatsu/podobizna";
+import { LOUZE } from "../../obchod2/futatsu/kresba";
 import type { PostavaId } from "../../../data/parta";
 
 export { nahoda, chomac, vzorkuj, hladka, vyskaNa, lerp };
@@ -307,19 +308,30 @@ export function visacka(text: string, sirka: number, nit: number) {
     </g>`;
 }
 
-/** Dopis na kladce: složený washi lístek zalepený značkou 〆 (kladka v bodě 0,0) */
+/**
+ * 結び文 (musubi-bumi): dopis složený do úzkého proužku washi a zavázaný
+ * na jeden uzel, na delším konci 〆 a rumělková tečka. Střed uzlu je 0,0,
+ * proužek leží šikmo zleva nahoře doprava dolů (asi 90 × 40 jednotek).
+ */
+export function musubiBumi() {
+  const P = "#FBF8F0", L = "#CFC2AA", S = "#E9E0CD";
+  /* rameno: proužek od uzlu ven, šikmo seříznutý konec */
+  const rameno = (posun: string, uhel: number, delka: number, w: number, konec = "") => `<g transform="${posun} rotate(${uhel})">
+      <path d="M0 ${f(-w / 2)} L${delka - 4} ${f(-w / 2 - 0.6)} L${delka} ${f(w / 2 + 0.8)} L0 ${f(w / 2)} Z" fill="${P}" stroke="${L}" stroke-width="0.9" stroke-linejoin="round"/>
+      <path d="M2 0.6 L${delka - 3} 0.9" stroke="${S}" stroke-width="0.9"/>${konec}</g>`;
+  const smycka = (barva: string, w: number, carky = "") => `<ellipse rx="12.5" ry="9.6" transform="rotate(-24)" fill="none" stroke="${barva}" stroke-width="${w}"${carky}/>`;
+  return `<ellipse cx="4" cy="6" rx="32" ry="8" fill="#2B2420" opacity="0.1" transform="rotate(16)"/>
+    ${rameno("translate(-10 3)", -162, 30, 6.8)}
+    ${smycka(L, 8.4)}${smycka(P, 6.8)}${smycka(S, 0.8, ' stroke-dasharray="14 6"')}
+    ${rameno("translate(-13 -4)", 22, 46, 6.8, `<text class="ko-kanji" x="33" y="3" font-size="8" text-anchor="middle" fill="#2B2420">〆</text><circle cx="41" cy="0.3" r="1.9" fill="#C4432B"/>`)}`;
+}
+
+/** Dopis na kladce: 結び文 visí na niti pod kladkou (kladka v bodě 0,0) */
 export function dopis() {
   return `<g class="ko-kladka"><path d="M-9 -2 L9 -2" stroke="#8A6A48" stroke-width="2.4" stroke-linecap="round"/>
       <circle cx="0" cy="-3.5" r="6.4" fill="#B88A3E"/><circle cx="0" cy="-3.5" r="4.6" fill="#D9B062"/><circle cx="0" cy="-3.5" r="1.5" fill="#6E5226"/></g>
-    <path d="M0 -1 L-1 12" stroke="#8A6A48" stroke-width="1.6"/>
-    <g transform="translate(-1 12) rotate(9)">
-      <rect x="-25" y="3" width="50" height="31" rx="2" fill="#2B2420" opacity="0.13" transform="translate(3 3)"/>
-      <rect x="-25" y="3" width="50" height="31" rx="2" fill="#FBF8F0" stroke="#CFC2AA" stroke-width="1"/>
-      <path d="M-25 3 L0 21 L25 3" fill="#F2ECDF" stroke="#CFC2AA" stroke-width="1" stroke-linejoin="round"/>
-      <path d="M-18 28 H-6 M-18 31 H-10" stroke="#8A7C70" stroke-width="0.9" opacity="0.6"/>
-      <text class="ko-kanji" x="0" y="27" text-anchor="middle" font-size="13" fill="#2B2420">〆</text>
-      <circle cx="16" cy="25" r="4.2" fill="#C4432B"/><circle cx="16" cy="25" r="2.3" fill="none" stroke="#F3C9B8" stroke-width="0.8"/>
-    </g>`;
+    <path d="M0 -1 L1 15" stroke="#8A6A48" stroke-width="1.6"/>
+    <g transform="translate(1 24) rotate(-6) scale(0.95)">${musubiBumi()}</g>`;
 }
 
 /** Padající list ořešáku (lichozpeřený lístek) */
@@ -355,7 +367,7 @@ export function noren(x: number, y: number, w: number, h: number) {
  * Posouvá se obalová skupina — filtr na <use x> by Chrome počítal jinde.
  */
 export const kami = (id: PostavaId, x: number, y: number, velikost: number, trida = "", otoc = 0) =>
-  `<g class="ko-kami ${trida}" data-kami="${id}" transform="translate(${f(x)} ${f(y)})${otoc ? ` rotate(${f(otoc)} ${f(velikost / 2)} ${f(velikost)})` : ""} scale(${f(velikost / 180)})"><use href="#ko-k-${id}"/></g>`;
+  `<g class="ko-kami ${trida}" data-kami="${id}" transform="translate(${f(x)} ${f(y)})${otoc ? ` rotate(${f(otoc)} ${f(velikost / 2)} ${f(velikost)})` : ""} scale(${Math.round((velikost / 180) * 10000) / 10000})"><use href="#ko-k-${id}"/></g>`;
 
 /**
  * Futatsu jako sluchátko: podobizna z krámku v libovolném natočení.
@@ -369,8 +381,16 @@ export function hrnek(o: { id: string; x: number; y: number; s: number; rot: num
     const X = o.s * px, Y = o.s * (py - 38);
     return [o.x + X * Math.cos(a) - Y * Math.sin(a), o.y + X * Math.sin(a) + Y * Math.cos(a)];
   };
-  /* uzlík ve dně: dírka, konec provázku a bambusová zarážka */
-  const uzel = `<g>
+  /* uzlík ve dně: dírka, konec provázku a bambusová zarážka — uprostřed
+     světlého jezírka na dně (LOUZE, otáčí se s hrnkem; průmět jako v podobizna.ts),
+     o kousek větší, ať je z dálky vidět */
+  const n = (Math.max(0, Math.min(90, o.nadhled)) * Math.PI) / 180;
+  const A = (o.uhel * Math.PI) / 180;
+  const cn = Math.cos(n), sn = Math.sin(n);
+  /* střed jezírka v průmětu */
+  const jezirko = LOUZE.map(([x, z]): Bod => [x * Math.cos(A) + z * Math.sin(A), 76 + (66.2 - 76) * cn + (-x * Math.sin(A) + z * Math.cos(A)) * sn]);
+  const dnoX = jezirko.reduce((t, b) => t + b[0], 0) / jezirko.length, dnoY = jezirko.reduce((t, b) => t + b[1], 0) / jezirko.length;
+  const uzel = `<g transform="translate(${f(dnoX)} ${f(dnoY)}) scale(1.3) translate(0 -73.4)">
     <ellipse cx="0" cy="73.4" rx="1.7" ry="1.5" fill="#3B2A1B" opacity="0.8"/>
     <path d="M0 73.4 C2 71 3 70 4.4 71.6" stroke="#B84A2B" stroke-width="1" fill="none" stroke-linecap="round"/>
     <path d="M0 73.4 C2 71 3 70 4.4 71.6" stroke="#FBF7EE" stroke-width="1" fill="none" stroke-dasharray="0.8 0.9"/>

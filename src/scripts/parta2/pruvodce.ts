@@ -45,6 +45,24 @@
  * květy skutečného měsíce (otočka je jen obnoví) a jednou za stránku
  * poznamená, co je zrovna na obrazovce.
  *
+ * Šátek z krámku: co si host v Obchodě vybral, to mu nese v pravé ruce
+ * zavázané v uzlíku furoshiki ve vzoru, který si u šátku vybral (kresba
+ * kami-kvety.js, `vstup.satek`). Drží ho, když v šátku něco je, šátek není
+ * na obrazovce a ona není schovaná do čárky. Přes uzlík leží odkaz
+ * `.pruvodce-satek` k šátku (na stránce se šátkem k němu plynule sjede,
+ * jinde vede na /obchod#satek) s rumělkovou pečetí s počtem kusů na boku
+ * uzlíku; každý snímek ho posune na uzlík (`dyn.satekBod`, po kroku ho
+ * kresba pošle i sama přes `vstup.uzlikJe`), i když letí. Doma se
+ * s uzlíkem posune o kus dovnitř okna, ať uzlík ani pečeť neuřízne okraj —
+ * tlačítko, nabídka a bubliny jdou s ní. Šátek (scripts/obchod2/satek.ts)
+ * jí posílá na document
+ * `satek:zmena` { pocet, vzor }, `satek:videt` { videt } a `satek:pridano`
+ * { id, videt }; na stránce bez šátku si počet a vzor přečte z úložiště
+ * šátku sama. Když do uzlíku doletí kus, chytí ho — poskočí, uzlík se
+ * zhoupne a pečeť cinkne — a poprvé za stránku řekne, že šátek podrží.
+ * Když se schová do čárky a když se zase ukáže, pošle `pruvodce:schovana`
+ * { schovana } — šátek pak místo ní ukáže svoje plovoucí tlačítko.
+ *
  * Spouští ji hlavicka.ts na každé stránce s hlavičkou nového vzhledu.
  */
 import { rekni, dobaPsani } from "./kami";
@@ -56,7 +74,11 @@ import { zjisti, vypln, vyplnRepliku, radaPro, coVimPolozky, coVimTitul } from "
 import type { Host } from "./pruvodce-host";
 import { spustVse, zahraj } from "../vazicka-gejsa/beh.js";
 import { toraTora } from "./ozashiki";
-import { rady, hlasky, uvitani, mistrovskyList, kNalezu, stopy, naNoc, coVim, pomalu, klepani, probuzeni, veVlasech, povidani, ozashiki, naObrazovce as poznamky } from "../../data/pruvodce";
+import { nacti } from "./stav";
+import { pocetKusu } from "../../data/pocty";
+import { vzorPodleId, VYCHOZI_VZOR } from "../../data/furoshiki";
+import type { VzorSatku } from "../../data/furoshiki";
+import { rady, hlasky, uvitani, mistrovskyList, kNalezu, stopy, naNoc, doSatku, coVim, pomalu, klepani, probuzeni, veVlasech, povidani, ozashiki, naObrazovce as poznamky } from "../../data/pruvodce";
 import { hlavni as ensoTah, kapka as ensoKapka, W as ENSO_W } from "../../components/navrhy-loga/enso-tvar";
 import type { Gesto, Rada, Replika, Vyraz } from "../../data/pruvodce";
 import type { PostavaId } from "../../data/parta";
@@ -64,11 +86,18 @@ import type { PostavaId } from "../../data/parta";
 type Bod = { x: number; y: number };
 type Drzeni = { naklon: number; otoc: number; pohled: [number, number] } | null;
 interface Akce { delka: number; krok: (q: number) => void; start?: () => void }
-/** Co si vyměňuje s kresbou (beh.js ji rozběhne, kami-kvety.js čte `vstup` a `dyn.otoc`) */
+/** Co si vyměňuje s kresbou (beh.js ji rozběhne, kami-kvety.js čte `vstup` a `dyn.otoc` a zapisuje `dyn.satekBod`) */
 type Scena = {
+  /** Překreslí kresbu od čisté simulace a `bdi` s ji nechá běžet — s omezeným pohybem jinak stojí na jednom snímku (beh.js) */
+  znovu?: (bdi?: number) => number;
   stav: () => {
-    dyn: { otoc?: number };
+    /** `satekBod` je střed uzlíku a jeho poloměr v rámečku 180 × 180 */
+    dyn: { otoc?: number; satekBod?: [number, number, number] | null };
     vstup: {
+      /** Uzlík šátku v pravé ruce: vzor látky, kolik je v něm kusů a kolikrát do něj kus dopadl (zhoupne se) */
+      satek?: { vzor: VzorSatku["id"]; pocet: number; cuk: number } | null;
+      /** Kresba ho zavolá, jakmile v kroku spočítá uzlík (`dyn.satekBod`) — ať odkaz sedí už v tomtéž snímku */
+      uzlikJe?: (bod: [number, number, number]) => void;
       kliky: Bod[];
       vitr?: number;
       pohled?: [number, number];
@@ -91,6 +120,19 @@ type Scena = {
 const POSTAVA = { l: -0.21, r: 0.22, t: -0.24, b: 0.43 };
 /** Jak daleko od pravého a dolního okraje okna sedí */
 const OKRAJ = { r: 14, b: 10 };
+/**
+ * S uzlíkem šátku v ruce sahá dál doprava: uzlík visí vpravo od ní a na
+ * jeho pravém boku sedí pečeť s počtem. `UZLIK_DOMA` je střed
+ * uzlíku doma (i s náklonem) a jeho poloměr v násobcích strany rámečku od
+ * středu a rezerva na houpání (změřeno z kresby); `PECET` je, kde na uzlíku
+ * sedí pečeť (v poloměrech uzlíku), a kolik px má od středu k okraji i
+ * natočená. `UZLIK_NAHRADNI` platí, dokud kresba nepošle `dyn.satekBod`.
+ */
+const UZLIK_DOMA = { x: 0.18, r: 0.145, rezerva: 0.015 };
+const PECET = { dx: 0.9, dy: 0.45, pul: 12 };
+const UZLIK_NAHRADNI: [number, number, number] = [120, 147.6, 22.8];
+/** Šátek z krámku: klíče úložiště, které zapisuje scripts/obchod2/satek.ts — tady se jen čtou */
+const SATEK = { klic: "obchod2-satek", vzor: "obchod2-satek-vzor" };
 /** Jak často se kolem čárky protočí ensō, v milisekundách */
 const ENSO_KAZDYCH = 30_000;
 /** Kurzor blíž než tolik velikostí postavy od jejího středu: všimne si ho; dál než `pusti` už ne */
@@ -135,6 +177,17 @@ const ulozSchovanou = (ano: boolean) => {
   } catch {
     /* bez úložiště se po načtení zase ukáže — nevadí */
   }
+};
+/** Kolik je v šátku kusů a jaký má vzor — z úložiště šátku; na stránce se šátkem jen do první zprávy od satek.ts */
+const nactiPocet = () => {
+  const s = nacti<unknown>(SATEK.klic, []);
+  return Array.isArray(s) ? s.filter((id) => typeof id === "string").length : 0;
+};
+const nactiVzor = (): VzorSatku["id"] => vzorPodleId(nacti<unknown>(SATEK.vzor, VYCHOZI_VZOR))?.id ?? VYCHOZI_VZOR;
+/** Odhad, jestli je šátek na obrazovce, než to řekne satek.ts: aspoň pětina sekce (stejný práh jako tam) */
+const jeVidet = (el: Element) => {
+  const r = el.getBoundingClientRect();
+  return r.height > 0 && (Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0)) / r.height >= 0.2;
 };
 /** Ikonky bublin vedle ní: bublina s třemi tečkami (povídání) a postava (co o hostovi ví) — tah tuší jako zbytek nabídky */
 const IKONA_POVIDANI = `<svg viewBox="0 0 24 24"><path d="M4.5 6.5 Q4.5 4 7 4 H17 Q19.5 4 19.5 6.5 V13 Q19.5 15.5 17 15.5 H11 L7 19.5 V15.5 Q4.5 15.5 4.5 13 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="8.6" cy="9.8" r="1.1" fill="currentColor"/><circle cx="12" cy="9.8" r="1.1" fill="currentColor"/><circle cx="15.4" cy="9.8" r="1.1" fill="currentColor"/></svg>`;
@@ -195,6 +248,15 @@ export function pruvodce() {
   const nacteno = performance.now();
   const hlava = document.querySelector(".hlava");
   const uvitaniPro = (h: Host) => (h.mistr ? (h.mistr.osloveni === "sensei" ? uvitani.sensei : uvitani.mistr) : h.noc ? uvitani.noc : h.jmeno ? uvitani.podpis : uvitani.host);
+
+  /* Šátek z krámku, který jí host svěřil: kolik je v něm kusů, jaký má vzor a jestli je zrovna na obrazovce (pak ho nenese).
+     Na stránce se šátkem to hlásí satek.ts, jinde se to čte z úložiště; `cuk` je, kolikrát do uzlíku doletěl kus */
+  const sekceSatku = document.getElementById("satek");
+  const satek = { pocet: nactiPocet(), vzor: nactiVzor(), videt: !!sekceSatku && jeVidet(sekceSatku), cuk: 0 };
+  /** Zmizela do čárky (až doříká, že ustoupí) — uzlík pak nenese a šátek ukáže svoje tlačítko */
+  let vCarce = false;
+  /** Nese hostovi uzlík: v šátku něco je, šátek není na obrazovce a ona není v čárce */
+  const nese = () => satek.pocet > 0 && !satek.videt && !vCarce;
 
   /* ——— Prvky: létající Vázička, tlačítko v rohu a nabídka ——— */
   const O = document.createElement("div");
@@ -266,12 +328,22 @@ export function pruvodce() {
   carka.innerHTML = `${ensoSvg()}<i class="pruvodce-carka-tah" aria-hidden="true"></i>`;
   carka.hidden = true;
 
+  /* Odkaz k šátku leží přesně na uzlíku v její ruce (posouvá ho vykresli); počet je pečeť na kraji uzlíku */
+  const satekOdkaz = document.createElement("a");
+  satekOdkaz.className = "pruvodce-satek";
+  satekOdkaz.href = sekceSatku ? "#satek" : "/obchod#satek";
+  satekOdkaz.hidden = true;
+  const satekPocet = document.createElement("span");
+  satekPocet.className = "pruvodce-satek-pocet";
+  satekPocet.setAttribute("aria-hidden", "true");
+  satekOdkaz.append(satekPocet);
+
   /* Co řekne, slyší i čtečka */
   const hlas = document.createElement("p");
   hlas.className = "pruvodce-hlas";
   hlas.setAttribute("aria-live", "polite");
 
-  document.body.append(O, tlacitko, zmensit, carka, nabidka, kulicky, hlas);
+  document.body.append(O, tlacitko, zmensit, carka, satekOdkaz, nabidka, kulicky, hlas);
   spustVse();
 
   /* Po každé radě se zatočí a vymění si květy za další měsíc — umí to sama na klepnutí (beh.js, kami-kvety.js), tak se jí klepnutí jen pošle */
@@ -321,8 +393,10 @@ export function pruvodce() {
     zmensit.style.setProperty("--b", `${B}px`);
   };
   zmer();
-  /** Kde v rohu sedí — střed rámečku tak, aby spodek postavy byl kousek nad okrajem okna */
-  const doma = (): Bod => ({ x: W - OKRAJ.r - POSTAVA.r * B - 4, y: H - OKRAJ.b - POSTAVA.b * B });
+  /** Jak daleko od středu rámečku sahá doprava (v px i s odstupem): postava, s uzlíkem v ruce uzlík i s pečetí */
+  const pravyKraj = () => Math.max(POSTAVA.r * B + 4, nese() ? (UZLIK_DOMA.x + UZLIK_DOMA.r * PECET.dx + UZLIK_DOMA.rezerva) * B + PECET.pul + 2 : 0);
+  /** Kde v rohu sedí — střed rámečku tak, aby spodek postavy byl kousek nad okrajem okna a nic z ní ani z uzlíku nepřečnívalo vpravo */
+  const doma = (): Bod => ({ x: W - OKRAJ.r - pravyKraj(), y: H - OKRAJ.b - POSTAVA.b * B });
   const DOMA_POZA: Drzeni = { naklon: -3, otoc: -22, pohled: [-0.9, 0.2] };
 
   /** Kotva, vůči které se drží poloha: prvek (jede s ním při scrollu), nebo okno */
@@ -650,6 +724,128 @@ export function pruvodce() {
     if (nabidka.hidden) otevri();
     else zavri();
   });
+
+  /* ═══ Šátek z krámku: nese ho v uzlíku a odkaz s pečetí leží přesně na něm ═══ */
+  /** Kde byl rámeček kresby v posledním snímku (vykresli ho zapíše) — odkaz se k němu umí přepočítat i mezi snímky */
+  const ram = { x0: 0, y0: 0 };
+  let satekVel = 0;
+  /** Posune odkaz na uzlík: střed uzlíku z kresby (rámeček 180 × 180) přes náklon a zvětšení těla na obrazovku */
+  const umistiSatek = (bod: [number, number, number] = UZLIK_NAHRADNI) => {
+    const k = B / 180, m = poz.m;
+    const a = (vid.naklon * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+    const px = bod[0] * k - 0.5 * B, py = bod[1] * k - 0.6 * B;
+    const x = ram.x0 + 0.5 * B + (px * c - py * s) * m;
+    const y = ram.y0 + 0.6 * B + (px * s + py * c) * m;
+    const r = bod[2] * k * m;
+    /* klepnout jde na celý uzlík i kousek kolem, nejmíň 44 × 44 px */
+    const vel = Math.round(Math.max(44, 2 * r + 14));
+    if (vel !== satekVel) {
+      satekVel = vel;
+      satekOdkaz.style.width = satekOdkaz.style.height = `${vel}px`;
+    }
+    /* střed krabičky je střed uzlíku (tam satek.ts posílá kus), pečeť sedí na pravém boku uzlíku */
+    satekOdkaz.style.transform = `translate3d(${(x - vel / 2).toFixed(1)}px, ${(y - vel / 2).toFixed(1)}px, 0)`;
+    satekPocet.style.setProperty("--x", `${(vel / 2 + r * PECET.dx).toFixed(1)}px`);
+    satekPocet.style.setProperty("--y", `${(vel / 2 + r * PECET.dy).toFixed(1)}px`);
+  };
+  /**
+   * Kresba (beh.js) počítá svůj snímek až po našem, takže uzlík, který si
+   * ve vykresli přečteme, je o snímek starý — v letu by za ním odkaz o pár
+   * px zaostával. Kresba proto, jakmile uzlík spočítá, zavolá `uzlikJe`
+   * a odkaz se posune ještě jednou, v tomtéž snímku.
+   */
+  const uzlikJe = (bod: [number, number, number]) => {
+    if (!satekOdkaz.hidden) umistiSatek(bod);
+  };
+  /** Co z toho potřebuje kresba (kami-kvety.js) */
+  const vstupSatku = () => (nese() ? { vzor: satek.vzor, pocet: satek.pocet, cuk: satek.cuk } : null);
+  /** Jaký uzlík je zrovna nakreslený (vzor a plnost) — s omezeným pohybem se kresba překresluje jen při změně */
+  let kreslenyUzlik = "";
+  /** Ukáže nebo schová odkaz a obnoví počet — hned při každé zprávě od šátku, ať satek.ts najde odkaz už na místě */
+  const ukazSatek = () => {
+    const ano = nese();
+    satekPocet.textContent = String(satek.pocet);
+    satekOdkaz.setAttribute("aria-label", `Šátek: ${pocetKusu(satek.pocet)}`);
+    const sc = scena();
+    if (ano && satekOdkaz.hidden) umistiSatek(sc?.stav().dyn.satekBod ?? undefined);
+    satekOdkaz.hidden = !ano;
+    const klic = ano ? `${satek.vzor},${Math.min(satek.pocet, 5)}` : "";
+    if (klic === kreslenyUzlik || !sc) return;
+    kreslenyUzlik = klic;
+    sc.stav().vstup.satek = vstupSatku();
+    /* s omezeným pohybem stojí kresba na jednom snímku (beh.js) — překreslí se, ať uzlík v ruce opravdu má (nebo už nemá) */
+    if (klidne) sc.znovu?.(0.6);
+  };
+  /** Do uzlíku doletěl kus: chytí ho — poskočí, uzlík se zhoupne, pečeť cinkne — a poprvé za stránku řekne, že šátek podrží */
+  const chyt = () => {
+    satek.cuk++;
+    if (!klidne) skok = 1;
+    satekOdkaz.classList.remove("cinkne");
+    void satekOdkaz.offsetWidth;
+    satekOdkaz.classList.add("cinkne");
+    rekniSama(doSatku, true);
+  };
+  /** První kus, o kterém přišla zpráva dřív než nový počet (s omezeným pohybem kus neletí) — chytí ho, až počet dorazí */
+  let chytPozdeji = false;
+  const naPridano = (e: Event) => {
+    if ((e as CustomEvent<{ videt?: unknown }>).detail?.videt) return;
+    if (nese()) chyt();
+    else if (satek.pocet === 0 && !satek.videt && !vCarce) chytPozdeji = true;
+  };
+  const naZmenuSatku = (e: Event) => {
+    const d = (e as CustomEvent<{ pocet?: unknown; vzor?: unknown }>).detail;
+    if (typeof d?.pocet === "number" && Number.isFinite(d.pocet)) satek.pocet = Math.max(0, Math.floor(d.pocet));
+    const v = vzorPodleId(d?.vzor);
+    if (v) satek.vzor = v.id;
+    ukazSatek();
+    if (chytPozdeji) {
+      chytPozdeji = false;
+      if (nese()) chyt();
+    }
+  };
+  const naVidetSatek = (e: Event) => {
+    satek.videt = !!(e as CustomEvent<{ videt?: unknown }>).detail?.videt;
+    ukazSatek();
+  };
+  /* Šátek změněný v jiné záložce: na stránce bez šátku si počet a vzor přečte znovu (se šátkem platí, co hlásí satek.ts) */
+  const naUlozeni = (e: StorageEvent) => {
+    if (sekceSatku || (e.key !== null && e.key !== SATEK.klic && e.key !== SATEK.vzor)) return;
+    satek.pocet = nactiPocet();
+    satek.vzor = nactiVzor();
+    ukazSatek();
+  };
+  document.addEventListener("satek:zmena", naZmenuSatku);
+  document.addEventListener("satek:videt", naVidetSatek);
+  document.addEventListener("satek:pridano", naPridano);
+  window.addEventListener("storage", naUlozeni);
+  /* Na stránce se šátkem k němu sjede plynule (s omezeným pohybem skokem) a z klávesnice tam pošle i fokus,
+     ať se neztratí, až se odkaz u šátku schová; jinde vede odkaz na /obchod#satek sám */
+  satekOdkaz.addEventListener("click", (e) => {
+    const cil = document.getElementById("satek");
+    /* s Ctrl, Shiftem a spol. ať si ho host otevře, kam chce */
+    if (!cil || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    cil.scrollIntoView({ block: "start", behavior: klidne ? "auto" : "smooth" });
+    if (e.detail === 0) {
+      const nadpis = cil.querySelector<HTMLElement>("h2") ?? cil;
+      if (!nadpis.hasAttribute("tabindex")) nadpis.setAttribute("tabindex", "-1");
+      nadpis.focus({ preventScroll: true });
+    }
+  });
+  /* po cinknutí třídu zase sundá, ať se při dalším ukázání pečeť vynoří, ne cinkne */
+  satekOdkaz.addEventListener("animationend", () => satekOdkaz.classList.remove("cinkne"));
+  /** O kolik px sedí doma víc vlevo než bez uzlíku — tlačítko, čárka nad ní, nabídka a bubliny jdou s ní (`--posun` v parta2.css) */
+  let posun = 0;
+  const posunRoh = () => {
+    const zaklad = W - OKRAJ.r - POSTAVA.r * B - 4;
+    const p = !venku && !kotva ? omez(zaklad - poz.x, 0, 2 * B) : pravyKraj() - POSTAVA.r * B - 4;
+    if (Math.abs(p - posun) < 0.3) return;
+    posun = p;
+    for (const el of [tlacitko, zmensit, nabidka, kulicky]) el.style.setProperty("--posun", `${p.toFixed(1)}px`);
+  };
+  /** Schovaná do čárky / zase zpátky: šátek (satek.ts) podle toho ukáže nebo schová svoje plovoucí tlačítko */
+  const ohlasSchovani = (ano: boolean) => document.dispatchEvent(new CustomEvent("pruvodce:schovana", { detail: { schovana: ano } }));
+
   /* ═══ Čárka ═══ */
   let schovana = false;
   let enso = 0;
@@ -668,6 +864,10 @@ export function pruvodce() {
       O.classList.add("schovana");
       tlacitko.hidden = true;
       carka.hidden = false;
+      /* uzlík nesla, dokud doříkávala; teď ho šátek ukáže sám */
+      vCarce = true;
+      ukazSatek();
+      ohlasSchovani(true);
       window.clearInterval(enso);
       enso = window.setInterval(protoc, ENSO_KAZDYCH);
       /* poprvé hned, ať je vidět, kam se schovala */
@@ -686,6 +886,9 @@ export function pruvodce() {
     O.classList.remove("schovana");
     tlacitko.hidden = false;
     zmensit.hidden = false;
+    vCarce = false;
+    ukazSatek();
+    ohlasSchovani(false);
     rekniTu(hlasky.zpatky);
     tlacitko.focus({ preventScroll: true });
   };
@@ -857,6 +1060,9 @@ export function pruvodce() {
     const x0 = s.x - B / 2, y0 = s.y - B / 2 + vlna - skok * 7;
     O.style.transform = `translate3d(${x0.toFixed(1)}px, ${y0.toFixed(1)}px, 0)`;
     T.style.transform = `rotate(${vid.naklon.toFixed(2)}deg) scale(${poz.m.toFixed(3)})`;
+    ram.x0 = x0;
+    ram.y0 = y0;
+    posunRoh();
     if (bublina && !bublina()) bublina = null;
 
     /* Noc v hlavičce přepíná host tlačítkem: s ní nese lucernu, a když ji zapne, řekne si o ni */
@@ -888,10 +1094,15 @@ export function pruvodce() {
           : null;
       vstup.vitrMysi = VITR_MYSI;
       vstup.vyraz = bublina ? vyrazBubliny : vyrazChvili && cas < vyrazChvili.do ? vyrazChvili.vyraz : undefined;
-    }
+      /* uzlík šátku v pravé ruce; odkaz s pečetí jde za ním každý snímek, i když letí */
+      vstup.satek = vstupSatku();
+      vstup.uzlikJe = uzlikJe;
+      if (!satekOdkaz.hidden) umistiSatek(dyn.satekBod ?? undefined);
+    } else if (!satekOdkaz.hidden) umistiSatek();
   };
   vykresli(0);
   O.classList.add("pripravena");
+  ukazSatek();
   /* Schovaná zůstane schovaná i na další stránce */
   if (nactiSchovanou()) schovej(true);
   else predstavSe();
@@ -1004,6 +1215,10 @@ export function pruvodce() {
       scenaNenalezeno?.removeEventListener("nn:slepeno", naSlepeni);
       window.removeEventListener("scroll", naScroll);
       for (const g of ["wheel", "touchstart"]) document.removeEventListener(g, aktivita);
+      document.removeEventListener("satek:zmena", naZmenuSatku);
+      document.removeEventListener("satek:videt", naVidetSatek);
+      document.removeEventListener("satek:pridano", naPridano);
+      window.removeEventListener("storage", naUlozeni);
       pozorovatel?.disconnect();
       return;
     }
@@ -1021,6 +1236,12 @@ export function pruvodce() {
       const q = Math.min(1, akceCas / akce.delka);
       akce.krok(q);
       if (q >= 1) akce = null;
+    }
+    /* doma: když vezme nebo pustí uzlík, sedí o kus jinde — plynule se tam posune */
+    if (!venku && !kotva && !akce && !fronta.length) {
+      const d = doma();
+      poz.x = klidne || !dt ? d.x : kCili(poz.x, d.x, dt, 0.35);
+      poz.y = klidne || !dt ? d.y : kCili(poz.y, d.y, dt, 0.35);
     }
     zkusPromluvit(ted);
     ticho(ted);

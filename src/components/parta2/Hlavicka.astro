@@ -3,9 +3,8 @@
  * Hlavička nového vzhledu: plovoucí papírový pruh nad oblohou. V levém
  * konci sedí ensō a opisuje křivku bubliny (HlavickaEnso.astro); jak se
  * čte stránka, vybíhá z něj tah štětce po okraji pruhu (.hlava-tah,
- * scripts/parta2/tah.ts) a cestou zavadí o zvonkohru. Vpravo
- * sbírka schovaných věcí (jen v O nás 2 zlato na kintsugi, ostatní
- * stránky sbírku v pruhu nemají), přepínač den / noc,
+ * scripts/parta2/tah.ts) a cestou zavadí o zvonkohru. Vpravo přepínač
+ * den / noc,
  * který přebarví bublinu do noční modré, a zvonkohra — visí z tlačítka,
  * přečnívá přes spodní okraj pruhu a kliknutím otevře nabídku zvuků.
  *
@@ -14,13 +13,9 @@
  * komnaty. Parta 2 proto vlastní tlačítko sbírky v pruhu nemá — omamori
  * je pod hlavičkou na každé stránce a otevírá se břevnem závěsu.
  *
- * Zlato v O nás 2 obsluhuje obecný scripts/parta2/sbirka.ts — proto má
- * tlačítko data-sbirka-tlacitko a počet data-sbirka-pocet.
- *
  * Kdo v komnatě U mistra (/zkouska) převzal mistrovský list, má vedle značky
  * pečeť 名人 — na všech stránkách (scripts/parta2/mistr.ts).
  */
-import { zlato } from "../../data/onas2";
 import HlavickaEnso from "./HlavickaEnso.astro";
 import HlavickaNebe from "./HlavickaNebe.astro";
 import Zvonkohra from "./Zvonkohra.astro";
@@ -35,7 +30,7 @@ import "../../styles/znacka.css";
 
 interface Props {
   /** zadny — stránka bez sbírky; omamori — Parta 2, její sbírku ukazuje závěs pod pruhem */
-  sber?: "omamori" | "zlato" | "zadny";
+  sber?: "omamori" | "zadny";
 }
 const { sber = "omamori" } = Astro.props;
 /** `skrtnuto` je pracovní značka — položka je na odpis, ale zatím visí v menu (jako v Header.astro). */
@@ -54,11 +49,6 @@ const zvukySkupiny: { id: Skupina; nazev: string; popis: string }[] = [
   { id: "okoli", nazev: "Vítr a cvrčci", popis: "šum větru, v noci cvrčci, hukot pece" },
   { id: "vazicka", nazev: "Hlas Vázičky", popis: "šamisen, když průvodkyně mluví" },
   { id: "hra", nazev: "Zvuky pod rukou", popis: "klepnutí, kami a scény" },
-];
-/** Spáry misky v ikoně zlata — kolik jich je, tolik šupinek se hledá */
-const spary = [
-  "M9 14 L12 19 L10 23", "M15 14 L16 18", "M21 14 L20 19 L23 24", "M27 14 L26 17 L29 21",
-  "M33 15 L31 20", "M12 27 L16 29", "M20 24 L22 30", "M27 26 L25 31", "M30 23 L33 26",
 ];
 const cesta = Astro.url.pathname.replace(/\/$/, "") || "/";
 /** Úvod (na / je Domek 2, pages/index.astro) v menu není — vede na něj značka vlevo */
@@ -117,21 +107,6 @@ const zvId = noveId("hlava-stranka");
   </nav>
 
   <div class="hlava-akce">
-    {sber === "zadny" || sber === "omamori" ? null : sber === "zlato" ? (
-    <button type="button" class="sbirka-tlacitko zlato-tlacitko" data-sbirka-tlacitko aria-haspopup="dialog" aria-label="Zlato na kintsugi">
-      <svg viewBox="0 0 42 36" aria-hidden="true">
-        <ellipse cx="21" cy="33" rx="11" ry="2.2" fill="#2B2420" opacity="0.18" />
-        <path d="M4 13 C5 25 12 31 21 31 C30 31 37 25 38 13 Z" class="zlato-miska" />
-        <ellipse cx="21" cy="13" rx="17" ry="3.6" fill="#2B2420" opacity="0.35" />
-        <ellipse cx="21" cy="12.6" rx="15.5" ry="2.6" fill="#6B5D4F" opacity="0.55" />
-        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-          {spary.map((d, i) => <path class="zlato-spara" data-spara={i} d={d} />)}
-        </g>
-      </svg>
-      <span class="omamori-pocet"><b data-sbirka-pocet>0</b>/{zlato.length}</span>
-    </button>
-    ) : null}
-
     {/* Den / noc: přebarví bublinu do noční modré (scripts/parta2/hlavicka.ts).
         Ve dne slunce s paprsky, v noci srpek měsíce s hvězdičkou — při přepnutí
         se jedno protočí do druhého */}

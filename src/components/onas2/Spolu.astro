@@ -1,0 +1,131 @@
+---
+/**
+ * Ichi-go ichi-e — třetí hodnota po ensō a kintsugi, postavená stejně:
+ * vlevo přístup dílny, vpravo stůl v dílně. Židlí je tolik, kolik má
+ * hodina míst (rezervace.ts — mist); kdo se klepne na volné místo,
+ * přisedne si kami z party a řekne svoje (onas2.ts — spoluMista). Nad
+ * stolem visí ceník jako dřevěná cedulka a svítí na něm cena za člověka
+ * podle toho, kolik lidí u stolu sedí — to je skupinové jízdné z
+ * rezervace.ts, jen nakreslené. Logika ve scripts/onas2/spolu.ts.
+ */
+import Postavicka from "../characters/Postavicka.astro";
+import { spoluMista } from "../../data/onas2";
+import { jizdne, rezervace, tarifSlovy, pravidloPrichodu } from "../../data/rezervace";
+
+const S = 440;
+const mist = Math.min(rezervace.mist, spoluMista.length);
+const mista = spoluMista.slice(0, mist);
+/* Středy židlí za stolem */
+const krok = 340 / mist;
+const stredy = mista.map((_, i) => 50 + krok * (i + 0.5));
+const STUL = 286;
+const kc = (n: number) => n.toLocaleString("cs-CZ");
+---
+<section class="spolu-sekce" id="spolu" data-hodina="21.1" aria-labelledby="spolu-nadpis">
+  <div class="papir spolu-papir">
+    <div class="spolu-text">
+      <p class="stitek"><span lang="ja">一期一会</span> · ichi-go ichi-e</p>
+      <h2 id="spolu-nadpis" class="nadpis-2">Hlína je záminka. <em>Jde o čas spolu.</em></h2>
+      <p class="spolu-pristup">
+        Do dílny se nechodí na výkon, ale za lidmi. Sedneš si ke stolu s kamarády, s rodinou,
+        nebo s někým, koho poznáš až tady — a {Math.round(rezervace.blok * 60)} minut uteče, ani nevíš jak.
+      </p>
+      <p class="spolu-vysvetleni">
+        Ichi-go ichi-e: jedno setkání, jedna příležitost. Říká se to u čajového obřadu — tohle
+        odpoledne s těmihle lidmi se už stejně nezopakuje. Škoda by ho bylo strávit každý sám.
+      </p>
+      <div class="spolu-znacka">
+        <svg class="spolu-salky" viewBox="0 0 84 56" aria-hidden="true">
+          {[6, 25, 44, 63].map((x, i) => (
+            <g transform={`translate(${x} ${i % 2 ? 22 : 20})`}>
+              <path d="M0 4 C0 22 2 30 7.5 30 C13 30 15 22 15 4 Z" fill={["#C4432B", "#3B4C86", "#B5862A", "#5E7A55"][i]} />
+              <ellipse cx="7.5" cy="4" rx="7.5" ry="2.2" fill="#2B2420" opacity="0.55" />
+              <path d={`M4 -4 C2 -9 7 -11 5 -16`} stroke="#8A7C70" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.5" />
+            </g>
+          ))}
+        </svg>
+        <p>
+          Proto je i ceník skupinový: {tarifSlovy()}. Počítají se všichni, kdo v dílně sedí,
+          ne jen ti, co přišli spolu. <a href="/rezervace">Rezervovat hodinu</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="spolu-hra" data-spolu>
+      <div class="spolu-mistnost">
+        {/* Zadní vrstva: stěna s cedulkou ceníku */}
+        <svg class="spolu-zed" viewBox={`0 0 ${S} ${S}`} aria-hidden="true">
+          <rect width={S} height={S} rx="6" fill="#F6EEDC" />
+          <rect y={STUL - 10} width={S} height={S - STUL + 10} fill="#E9DCC0" />
+          <path d={`M0 ${STUL - 10} H${S}`} stroke="#CDB98F" stroke-width="2" />
+          {/* Cedulka na provázku */}
+          <path d="M150 0 L170 34 M290 0 L270 34" stroke="#8A7C70" stroke-width="1.4" />
+          <rect x="96" y="32" width="248" height="70" rx="6" fill="#B98A57" />
+          <rect x="102" y="38" width="236" height="58" rx="4" fill="#D2A876" />
+          {jizdne.skupina.slice(0, mist).map((c, i) => {
+            const x = 102 + (236 / mist) * (i + 0.5);
+            return (
+              <g class="spolu-cena" data-lidi={i + 1}>
+                <rect class="spolu-cena-pole" x={x - 236 / mist / 2 + 4} y="42" width={236 / mist - 8} height="50" rx="4" />
+                <text x={x} y="62" text-anchor="middle" class="spolu-cena-kdo">{i + 1} {i === 0 ? "člověk" : "lidi"}</text>
+                <text x={x} y="84" text-anchor="middle" class="spolu-cena-kc">{kc(c)}</text>
+              </g>
+            );
+          })}
+          <text x="220" y="118" text-anchor="middle" class="spolu-cena-pozn">Kč za každého, za hodinu</text>
+        </svg>
+
+        {/* Prostřední vrstva: místa u stolu, kami vyleze zpoza desky */}
+        {mista.map((m, i) => (
+          <button
+            type="button"
+            class="spolu-misto"
+            data-misto={i}
+            data-kdo={m.kdo}
+            aria-pressed="false"
+            aria-label="Volné místo u stolu — přisednout"
+            style={`left:${(((stredy[i] - krok / 2) / S) * 100).toFixed(2)}%;width:${((krok / S) * 100).toFixed(2)}%;top:${((150 / S) * 100).toFixed(2)}%;height:${(((STUL + 14 - 150) / S) * 100).toFixed(2)}%`}
+          >
+            <span class="spolu-volno" aria-hidden="true">volno</span>
+            <span class="spolu-kami" aria-hidden="true"><Postavicka id={m.kdo} size={84} varianta="kami" /></span>
+          </button>
+        ))}
+
+        {/* Přední vrstva: stůl, konvice a šálek pro každého, kdo sedí */}
+        <svg class="spolu-stul" viewBox={`0 0 ${S} ${S}`} aria-hidden="true">
+          <rect x="26" y={STUL} width="388" height="16" rx="4" fill="#7A5434" />
+          <rect x="26" y={STUL} width="388" height="5" rx="2.5" fill="#9A6E46" />
+          <rect x="40" y={STUL + 16} width="360" height="12" fill="#5E3F26" />
+          <rect x="52" y={STUL + 28} width="14" height="62" fill="#5E3F26" />
+          <rect x="374" y={STUL + 28} width="14" height="62" fill="#5E3F26" />
+          <ellipse cx="220" cy={STUL + 96} rx="190" ry="8" fill="#000" opacity="0.08" />
+          {/* Konvice uprostřed */}
+          <g transform={`translate(220 ${STUL})`}>
+            <path d="M-20 0 C-24 -22 -12 -30 0 -30 C12 -30 24 -22 20 0 Z" fill="#3A2E28" />
+            <path d="M18 -16 C30 -18 32 -26 36 -30" stroke="#3A2E28" stroke-width="5" fill="none" stroke-linecap="round" />
+            <path d="M-14 -26 C-14 -40 14 -40 14 -26" stroke="#B98A57" stroke-width="3" fill="none" />
+            <circle cx="0" cy="-31" r="3" fill="#3A2E28" />
+            <path class="spolu-para" d="M36 -36 C32 -44 40 -48 36 -56" stroke="#8A7C70" stroke-width="1.6" fill="none" stroke-linecap="round" />
+          </g>
+          {stredy.map((x, i) => (
+            <g class="spolu-salek" data-misto={i} transform={`translate(${(x + (x < 220 ? -14 : 14)).toFixed(1)} ${STUL})`}>
+              <path d="M-7 0 C-7 -14 -6 -18 0 -18 C6 -18 7 -14 7 0 Z" fill={["#C4432B", "#3B4C86", "#B5862A", "#5E7A55"][i % 4]} />
+              <ellipse cx="0" cy="-17" rx="6" ry="1.8" fill="#2B2420" opacity="0.5" />
+            </g>
+          ))}
+        </svg>
+
+        <p class="spolu-pokyn" aria-live="polite">Přisedni si.</p>
+      </div>
+      <div class="spolu-odpoved-misto" aria-live="polite">
+        <div class="spolu-odpoved" hidden>
+          <span class="spolu-odpoved-kami" aria-hidden="true">
+            {mista.map((m) => <span data-spolu-kami={m.kdo} hidden><Postavicka id={m.kdo} size={84} varianta="kami" /></span>)}
+          </span>
+          <p class="spolu-odpoved-text"><b class="spolu-odpoved-jmeno"></b><span class="spolu-odpoved-veta"></span></p>
+        </div>
+      </div>
+      <p class="spolu-pravidlo">{pravidloPrichodu}</p>
+    </div>
+  </div>
+</section>

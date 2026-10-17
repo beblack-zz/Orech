@@ -1,17 +1,18 @@
 ---
 /**
- * Kintsugi — „každá chyba svůj tvar“ (uvod2.ts — oDilne.zacatek). Velká
- * miska s devíti prasklinami; každá šupinka zlata ze svitku zalije jednu
- * (scripts/onas2/kintsugi.ts). Když je zlato celé, dá se miska dozlatit
- * a Střípek má radost. Text o kintsugi je z Party 2 (kami.ts — cesta).
+ * Každá chyba má svůj tvar — kintsugi, postavené stejně jako ensō vedle
+ * (KresliEnso.astro): vlevo přístup dílny, vpravo prasklá miska na
+ * indigovém šátku. Kolem misky leží devět šupinek zlata; klepnutá šupinka
+ * doletí do své spáry a zalije ji. Když je zlato celé, přejede po misce
+ * lesk a ozve se Střípek (onas2.ts — kintsugiReakce). Nic se nepamatuje,
+ * miska jde rozbít znovu. Logika ve scripts/onas2/kintsugi.ts.
  */
-import Kami from "../parta2/Kami.astro";
+import Postavicka from "../characters/Postavicka.astro";
 import { cesta } from "../../data/kami";
-import { zlato } from "../../data/onas2";
 import { oDilne } from "../../data/uvod2";
 
 const stripek = cesta.find((c) => c.id === "stripek");
-/* Praskliny misky v pořadí šupinek — každá patří jednomu měsíci svitku */
+/* Praskliny misky — každá patří jedné šupince (stejné pořadí) */
 const spary = [
   "M118 92 L132 118 L126 146 L140 170",
   "M164 88 L170 112 L188 128",
@@ -23,65 +24,109 @@ const spary = [
   "M140 170 L170 186 L186 214",
   "M296 142 L318 150",
 ];
-const kroky = ["Střepy se slepí lakem urushi.", "Spára se vyplní a uhladí.", "Na poslední vrstvu laku se nasype zlato."];
+/* Šupinky na šátku 440 × 440: střed a natočení — kolem misky, ne na ní */
+const supinky: [number, number, number][] = [
+  [48, 74, 10], [138, 50, -20], [226, 34, 30], [318, 56, -8], [404, 118, 18],
+  [36, 210, -30], [410, 250, 12], [60, 362, -14], [384, 372, 24],
+];
+const S = 440;
 /* „Malá dílna v Ořechu, kde má hlína čas a každá chyba svůj tvar.“ — poslední věta z O nás */
 const posledni = (oDilne.zacatek.split(". ").pop() ?? "").replace(/\.$/, "");
 const citat = posledni.charAt(0).toLowerCase() + posledni.slice(1);
 ---
 <section class="kintsugi-sekce" id="kintsugi" data-hodina="20.6" aria-labelledby="kintsugi-nadpis">
-  <div class="kintsugi-mriz">
-    <div class="kintsugi-miska" data-kintsugi>
-      <svg class="kintsugi-kresba" viewBox="0 0 420 300" aria-hidden="true">
-        <defs>
-          <radialGradient id="ks-telo" cx="0.35" cy="0.3" r="0.85">
-            <stop offset="0" stop-color="#5A4034" />
-            <stop offset="0.55" stop-color="#3A2A22" />
-            <stop offset="1" stop-color="#1E1612" />
-          </radialGradient>
-          <linearGradient id="ks-zlato" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#FFF0B0" />
-            <stop offset="0.5" stop-color="#E8B440" />
-            <stop offset="1" stop-color="#B5862A" />
-          </linearGradient>
-          <linearGradient id="ks-lesk" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#FFFFFF" stop-opacity="0" />
-            <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.85" />
-            <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
-          </linearGradient>
-          <clipPath id="ks-orez"><path d="M70 84 C74 184 132 248 210 248 C288 248 346 184 350 84 Z" /></clipPath>
-        </defs>
-        <ellipse cx="210" cy="262" rx="120" ry="14" fill="#000" opacity="0.25" />
-        <path d="M70 84 C74 184 132 248 210 248 C288 248 346 184 350 84 Z" fill="url(#ks-telo)" />
-        <ellipse cx="210" cy="84" rx="140" ry="26" fill="#2B2420" />
-        <ellipse cx="210" cy="86" rx="126" ry="20" fill="#14100C" />
-        <path d="M92 110 C100 170 140 214 190 228" stroke="#8A5A34" stroke-width="5" fill="none" opacity="0.45" stroke-linecap="round" />
-        <rect class="ks-pata" x="168" y="244" width="84" height="14" rx="4" fill="#6B4E34" />
-        <g clip-path="url(#ks-orez)" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          {spary.map((d, i) => (
-            <g class="ks-spara" data-spara={zlato[i]?.id}>
-              <path class="ks-spara-lak" d={d} stroke="#120C08" stroke-width="5" />
-              <path class="ks-spara-zlato" d={d} stroke="url(#ks-zlato)" stroke-width="4.5" />
-              <path class="ks-spara-svit" d={d} stroke="#FFF6D0" stroke-width="1.4" />
-            </g>
-          ))}
-          <rect class="ks-lesk" x="-120" y="40" width="90" height="240" fill="url(#ks-lesk)" transform="skewX(-18)" />
-        </g>
-      </svg>
-      <Kami id="stripek" class="kintsugi-stripek" />
+  <div class="papir kintsugi-papir">
+    <div class="kintsugi-text">
+      <p class="stitek"><span lang="ja">金継ぎ</span> · kintsugi</p>
+      <h2 id="kintsugi-nadpis" class="nadpis-2">Každá chyba <em>má svůj tvar.</em></h2>
+      <p class="kintsugi-pristup">
+        Nepovedený kus u nás není ostuda. Křivé ucho, prasklina, glazura, která utekla —
+        to všechno k hrnku patří a dělá ho tvým.
+      </p>
+      {stripek && <p class="kintsugi-vysvetleni">{stripek.text}</p>}
+      <div class="kintsugi-znacka">
+        <Postavicka id="stripek" size={64} varianta="kami" />
+        <p>I dílna začala havárií — a dnes je to „{citat}“.</p>
+      </div>
     </div>
 
-    <div class="kintsugi-text papir">
-      <p class="stitek"><span lang="ja">金継ぎ</span> · kintsugi</p>
-      <h2 id="kintsugi-nadpis" class="nadpis-2">Každá chyba svůj tvar</h2>
-      {stripek && <p class="kintsugi-perex">{stripek.text}</p>}
-      <ol class="kroky kintsugi-kroky">
-        {kroky.map((k) => <li>{k}</li>)}
-      </ol>
-      <p class="kintsugi-dilna">I dílna začala havárií — a dnes je to „{citat}“.</p>
-      <p class="kintsugi-stav" aria-live="polite">Zlata nalezeno <b data-sbirka-pocet>0</b> z {zlato.length}. <span class="kintsugi-stav-veta">Šupinky jsou schované ve svitku — v každém měsíci jedna.</span></p>
+    <div class="kintsugi-hra" data-kintsugi>
+      <div class="kintsugi-satek">
+        <svg class="kintsugi-kresba" viewBox={`0 0 ${S} ${S}`} aria-hidden="true">
+          <defs>
+            <radialGradient id="ks-satek" cx="0.5" cy="0.45" r="0.75">
+              <stop offset="0" stop-color="#34407A" />
+              <stop offset="1" stop-color="#1C2348" />
+            </radialGradient>
+            <radialGradient id="ks-telo" cx="0.35" cy="0.3" r="0.85">
+              <stop offset="0" stop-color="#5A4034" />
+              <stop offset="0.55" stop-color="#3A2A22" />
+              <stop offset="1" stop-color="#1E1612" />
+            </radialGradient>
+            <linearGradient id="ks-zlato" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#FFF0B0" />
+              <stop offset="0.5" stop-color="#E8B440" />
+              <stop offset="1" stop-color="#B5862A" />
+            </linearGradient>
+            <linearGradient id="ks-lesk" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#FFFFFF" stop-opacity="0" />
+              <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.85" />
+              <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+            </linearGradient>
+            <clipPath id="ks-orez"><path d="M70 84 C74 184 132 248 210 248 C288 248 346 184 350 84 Z" /></clipPath>
+          </defs>
+          {/* Indigový šátek s prošíváním sashiko po okraji */}
+          <rect width={S} height={S} rx="6" fill="url(#ks-satek)" />
+          <rect x="16" y="16" width={S - 32} height={S - 32} rx="3" fill="none" stroke="#E9DFC8" stroke-opacity="0.32" stroke-width="1.6" stroke-dasharray="7 6" />
+          <g stroke="#E9DFC8" stroke-opacity="0.32" stroke-width="1.6" stroke-linecap="round">
+            {[[30, 30], [S - 30, 30], [30, S - 30], [S - 30, S - 30]].map(([x, y]) => (
+              <path d={`M${x - 5} ${y - 5} L${x + 5} ${y + 5} M${x + 5} ${y - 5} L${x - 5} ${y + 5}`} />
+            ))}
+          </g>
+          <g transform="translate(10 78)">
+            <ellipse cx="210" cy="262" rx="120" ry="14" fill="#05060F" opacity="0.4" />
+            <path d="M70 84 C74 184 132 248 210 248 C288 248 346 184 350 84 Z" fill="url(#ks-telo)" />
+            <ellipse cx="210" cy="84" rx="140" ry="26" fill="#2B2420" />
+            <ellipse cx="210" cy="86" rx="126" ry="20" fill="#14100C" />
+            <path d="M92 110 C100 170 140 214 190 228" stroke="#8A5A34" stroke-width="5" fill="none" opacity="0.45" stroke-linecap="round" />
+            <rect x="168" y="244" width="84" height="14" rx="4" fill="#6B4E34" />
+            <g clip-path="url(#ks-orez)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              {spary.map((d) => (
+                <g class="ks-spara">
+                  <path class="ks-spara-lak" d={d} stroke="#120C08" stroke-width="5" />
+                  <path class="ks-spara-zlato" d={d} stroke="url(#ks-zlato)" stroke-width="4.5" />
+                  <path class="ks-spara-svit" d={d} stroke="#FFF6D0" stroke-width="1.4" />
+                </g>
+              ))}
+              <rect class="ks-lesk" x="-120" y="40" width="90" height="240" fill="url(#ks-lesk)" transform="skewX(-18)" />
+            </g>
+          </g>
+        </svg>
+        {supinky.map(([x, y, u], i) => (
+          <button
+            type="button"
+            class="ks-supinka"
+            data-spara={i}
+            aria-label={`Šupinka zlata ${i + 1} — zalít jednu spáru`}
+            style={`left:${((x / S) * 100).toFixed(2)}%;top:${((y / S) * 100).toFixed(2)}%;--u:${u}deg`}
+          >
+            <svg viewBox="0 0 40 40" aria-hidden="true">
+              <path d="M5 15 L17 4 L33 9 L37 25 L23 36 L8 31 Z" fill="url(#zlato-plisek)" stroke="#B5862A" stroke-width="1.2" stroke-linejoin="round" />
+              <path d="M12 15 L24 11 M15 24 L28 19" stroke="#FFF6D0" stroke-width="1.6" stroke-linecap="round" opacity="0.85" />
+            </svg>
+          </button>
+        ))}
+        <p class="kintsugi-pokyn" aria-live="polite">Seber zlato do spár.</p>
+      </div>
+      <div class="kintsugi-odpoved-misto" aria-live="polite">
+        <div class="kintsugi-odpoved" hidden>
+          <span class="kintsugi-odpoved-kami" aria-hidden="true"><Postavicka id="stripek" size={84} varianta="kami" /></span>
+          <p class="kintsugi-odpoved-text"><b class="kintsugi-odpoved-jmeno">Střípek</b><span class="kintsugi-odpoved-veta"></span></p>
+        </div>
+      </div>
       <div class="kintsugi-akce">
-        <button type="button" class="tlacitko" data-kintsugi-zalit disabled>Zalít spáry zlatem</button>
-        <button type="button" class="odkaz-tlacitko" data-sbirka-otevrit>Kde zlato hledat?</button>
+        <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-kintsugi-znovu disabled>Rozbít znovu</button>
+        <button type="button" class="tlacitko tlacitko-maly" data-kintsugi-zaMe>Zalij to za mě</button>
       </div>
     </div>
   </div>

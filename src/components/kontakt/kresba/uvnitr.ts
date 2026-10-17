@@ -1,23 +1,42 @@
 /**
  * Kontakt uvnitř — ústředna 交換台 v dílně. Kamera vjela po provázku oknem
- * dovnitř: provázky od všech hrnků vedou pod stropem na dubovou skříňku na
- * oválném stole z kanceláře, přes kladky shora do hrnků v kolébkách.
- * Linka 二 zvoní — její hrnek drží ten, kdo má službu, a ucho k němu tiskne
- * i Bublinka. Cedulka listuje knihou odjezdů, Kachlík skáče po kulatých
- * klávesách psacího stroje a ťuká odkaz na rezervace.
+ * dovnitř: provázky od všech linek vedou pod stropem na kladky na římse
+ * dubové skříně s kolíky (cord switchboard) na oválném stole z kanceláře.
  *
- * Když je zavřeno, je v dílně potmě a nikdo nezvedá: hrnek linky 二 leží
- * v kolébce a zvoní do prázdna, Bublinka kouká z hroudy, Kachlík spí na
- * klávesách a přes ústřednu visí cedulka 準備中 s příští otevírací dobou.
+ * Skříň má devět okének katōmado po třech řadách — v každém sedí jeden
+ * z party a nad ním visí na niti jeho hrneček. Pod okénkem jmenovka,
+ * kontrolka, mosazná zdířka a smaltované číslo linky 一 až 九. Dole šikmá
+ * police s devíti kolíky kōhaku (červené a bílé) a pod ní zástěra
+ * s průzory, ve kterých na šňůrách visí mosazná závaží — když se kolík
+ * vytáhne, závaží v průzoru vyjede nahoru.
+ *
+ * Linka 二 je telefon dílny: v okénku sedí ten, kdo má službu. Vlevo
+ * u ústředny kniha rezervací s háčkem pro Cedulku, vpravo psací stroj pro
+ * Kachlíka — z okének 四 a 六 k nim při hovoru skočí.
+ *
+ * Když je zavřeno, je v dílně potmě, kami spí u svých hrnečků (Bublinka
+ * se schovává za svým) a přes štít ústředny visí cedulka 準備中 s příští
+ * otevírací dobou. Kontrolky a okénka spojených linek svítí do tmy.
  *
  * Kresba je rozdělená na pozadí (stěna, stůl, fíkus, hodiny — přes celou
- * šířku) a jádro (ústředna, parta, stroj, kniha), které se kreslí v rámu
- * návrhu a do scény se posune a zmenší. Co se hýbe (Cedulka, Kachlík,
- * klávesy, písmo na papíře, listy knihy, zvonek linky), má třídu a skript
- * scripts/kontakt/uvnitr.ts to po snímcích přepisuje v souřadnicích jádra.
+ * šířku), jádro (ústředna, kniha, stroj) a ústřednu samotnou, která se
+ * kreslí ve vlastních souřadnicích (U) a do jádra se posune a zmenší.
+ * Co se hýbe (kolíky, šňůry, závaží, hrnečky, pózy party, Cedulka,
+ * Kachlík, klávesy, listy), má třídu a data-l / data-p a skript
+ * scripts/kontakt/uvnitr.ts to po snímcích přepisuje.
  */
 import type { PostavaId } from "../../../data/parta";
-import { type Bod, f, nahoda, kami, hrnek, provazek, prohnuty, provazekSvg } from "./zaklad";
+import { CISLA } from "../../../data/ustredna";
+import { type Bod, f, nahoda, provazek, prohnuty, provazekSvg } from "./zaklad";
+
+/** Měřítko na čtyři místa — f() zaokrouhluje na desetiny, což by měřítko jádra i kami posunulo */
+const f4 = (n: number) => Math.round(n * 10000) / 10000;
+/**
+ * Kami ze spritu stránky (#ko-k-<id>, rám 180 × 180) — jako kami() ze zaklad.ts,
+ * jen s přesným měřítkem, ať postavička sedí přesně v okénku i v bodech pro bubliny.
+ */
+const kami = (id: PostavaId, x: number, y: number, velikost: number, trida = "") =>
+  `<g class="ko-kami ${trida}" data-kami="${id}" transform="translate(${f(x)} ${f(y)}) scale(${f4(velikost / 180)})"><use href="#ko-k-${id}"/></g>`;
 import type { Rezim } from "./venku";
 
 export interface UvnitrVolby {
@@ -26,34 +45,68 @@ export interface UvnitrVolby {
   rezim: Rezim;
   panel: { prava: number; dolni: number };
   kdo: PostavaId;
-  /** Zavřeno: potmě, nikdo nezvedá a na ústředně visí cedulka */
+  /** Zavřeno: potmě, kami spí a na ústředně visí cedulka */
   otevreno: boolean;
   /** Řádky cedulky, když je zavřeno (např. „otevíráme v úterý v 9:00“) */
   cedulka?: string[];
+  /** Kdo sedí na které lince (0 = 一) a jméno na jmenovku */
+  linky: { id: PostavaId; jmeno: string }[];
+}
+
+/** Jedna linka: zdířka, okénko, kami v něm a jeho hrneček */
+export interface LinkaBody {
+  k: number;
+  id: PostavaId;
+  /** Ve scéně: střed zdířky, buňka (okénko až zdířka), hlava kami, kontrolka, střed okénka */
+  jack: Bod;
+  bunka: [number, number, number, number];
+  hlava: Bod;
+  lampa: Bod;
+  nika: Bod;
+  /** V souřadnicích ústředny (U): očko nitě, kde drží hrnek u ucha, délka nitě, chodidla (osa pózy) */
+  oko: Bod;
+  ucho: Bod;
+  delka: number;
+  nohy: Bod;
+  /** Kami v jádře (pro výskok z okénka): levý horní roh rámu a velikost */
+  kamiJ: { x: number; y: number; v: number };
+}
+
+export interface KolikBody {
+  i: number;
+  /** Díra v polici (scéna) */
+  dira: Bod;
+  bily: boolean;
 }
 
 export interface UvnitrBody {
   zavreno: boolean;
   /** Posun a měřítko jádra ve scéně */
   jadro: { ox: number; oy: number; k: number };
-  /** Aktivní linka: kde vchází pod stropem, kladka a pata drženého hrnku (scéna) */
+  /** Posun a měřítko ústředny (U) v jádře */
+  us: { ox: number; oy: number; m: number };
+  /** Kolik jednotek scény je jedna jednotka ústředny */
+  m: number;
+  linky: LinkaBody[];
+  koliky: KolikBody[];
+  /** Kde jde chytit kolík v polici (scéna) */
+  police: [number, number, number, number];
+  /** Linka 二: kde vchází pod stropem a kladka na římse (scéna) */
   vstup: Bod;
   kladka: Bod;
-  pata: Bod;
   /** Kam kamera při příletu míří (scéna) */
   ohnisko: Bod;
-  /** Hlavy pro bubliny (scéna) */
-  hlavaKdo: Bod;
-  hlavaBublinka: Bod;
   /** Cedulka: hák (jádro) — null, když se na stůl nevešla */
   cedulka: { hak: Bod; velikost: number } | null;
   kniha: { hrbet: Bod; sirka: number; zdvih: number } | null;
+  /** Kachlík u stroje (jádro) */
   kachlik: { x: number; y: number; velikost: number };
   /** Středy kláves v jádře (pro skoky) */
   klavesy: Bod[];
-  /** Šířka provázků */
+  /** Šířka provázků a šňůr kolíků */
   w0: number;
   w1: number;
+  sn: number;
 }
 
 const GLAZURY = [
@@ -64,84 +117,326 @@ const GLAZURY = [
   { svetlo: "#D8D6CC", stred: "#A9A79C", stin: "#6E6C64" },
   { svetlo: "#C27A4A", stred: "#8A4A2A", stin: "#4E2A18" },
 ];
-const CISLA = ["一", "二", "三", "四", "五", "六", "七", "八", "九"];
 const DUB = { svetlo: "#E2C597", stred: "#C9A472", stin: "#9C7A4C", tma: "#6E5232" };
 export const AKTIVNI = 1;
 
 /** Text, který Kachlík ťuká — skript ho odkrývá po písmenech */
 export const PAPIR = ["Ahoj!", "Tady je tvůj odkaz", "na rezervace:", "jirosaku.cz/rezervace", "Vyber si hodinu. Kachlík"];
 
-/** Hrneček na boku otvorem k nám (malý, na ústředně) */
-function hrnecek(cx: number, cy: number, r: number, gl: (typeof GLAZURY)[number], id: string) {
+/* ═══ Ústředna ve vlastních souřadnicích (U) ═══
+   skříň 0…540 × 0…790, nad ní štít do −46, vpravo klika do 572 */
+const U = {
+  w: 540,
+  /** vnitřní lakovaný panel s okénky */
+  px0: 22,
+  py0: 42,
+  sloupec: 496 / 3,
+  radek: 185.3,
+  /** police s kolíky: zadní a přední hrana, díry */
+  policeZ: 612,
+  policeP: 662,
+  diraY: 636,
+  /** zástěra s průzory a závažím */
+  zasteraY: 676,
+  sterbinaY0: 686,
+  sterbinaY1: 770,
+  dno: 790,
+};
+/** Kam až závaží vyjede (U) */
+export const ZAVAZI_ZDVIH = 52;
+/** Rozteč kolíků v polici (U) */
+const DIRY = Array.from({ length: 9 }, (_, i) => 30 + i * 60);
+
+/** Kde v rámu 180 × 180 je každá postavička (x0, y0, x1, y1) — pro okénka, uši a bubliny */
+const RAM: Record<PostavaId, [number, number, number, number]> = {
+  kapka: [30, 22, 149, 166],
+  pecinka: [40, 14, 140, 155],
+  bublinka: [22, 22, 158, 160],
+  cedulka: [50, 20, 130, 141],
+  kachlik: [42, 30, 137, 156],
+  hlinka: [39, 24, 141, 149],
+  samotka: [0, 58, 180, 164],
+  stripek: [34, 52, 150, 155],
+  vazicka: [39, 19, 144, 156],
+};
+
+/** Póza kami v okénku: náklon kolem chodidel a posun dolů */
+export interface Poza {
+  rot: number;
+  dy: number;
+}
+export const POZA_SPI: Poza = { rot: 7, dy: 3 };
+/** Bublinka v noci: schovaná za svým hrnečkem, kouká jí jen klobouk */
+export const POZA_SCHOVANA: Poza = { rot: 0, dy: 50 };
+export const pozaTransform = (p: Poza, nohy: Bod) => `rotate(${f(p.rot)} ${f(nohy[0])} ${f(nohy[1])}) translate(0 ${f(p.dy)})`;
+
+/** Hrneček visí za dno na niti: chodidlo v 0,0, tělo míří po +y */
+export function hrnekTransform(oko: Bod, ucho: Bod, delka: number, theta: number, u: number) {
+  const visi: Bod = [oko[0] - delka * Math.sin(theta), oko[1] + delka * Math.cos(theta)];
+  const uUcha: Bod = [ucho[0] + 31, ucho[1]];
+  const x = visi[0] + (uUcha[0] - visi[0]) * u, y = visi[1] + (uUcha[1] - visi[1]) * u;
+  const fi = (theta * 180) / Math.PI * (1 - u) + 90 * u;
+  return { pata: [x, y] as Bod, transform: `translate(${f(x)} ${f(y)}) rotate(${f(fi)})` };
+}
+/** Nit od očka k patě hrnečku — s průvěsem, když je volná */
+export function nitD(oko: Bod, pata: Bod, delka: number) {
+  const d = Math.hypot(pata[0] - oko[0], pata[1] - oko[1]);
+  const vole = Math.max(0, delka * 1.4 - d) * 0.5;
+  const mx = (oko[0] + pata[0]) / 2, my = (oko[1] + pata[1]) / 2 + vole;
+  return `M${f(oko[0])} ${f(oko[1])} Q${f(mx)} ${f(my)} ${f(pata[0])} ${f(pata[1])}`;
+}
+
+/** Okénko katōmado: rovné boky, nahoře zvonový oblouk do špičky */
+function katomado(cx: number, yb: number, w: number, h: number) {
+  const t = yb - h;
+  return `M${f(cx - w)} ${f(yb)} L${f(cx - w)} ${f(yb - h * 0.46)} C${f(cx - w)} ${f(yb - h * 0.76)} ${f(cx - w * 0.66)} ${f(yb - h * 0.84)} ${f(cx - w * 0.34)} ${f(yb - h * 0.87)} C${f(cx - w * 0.12)} ${f(yb - h * 0.89)} ${f(cx - w * 0.05)} ${f(t + h * 0.07)} ${f(cx)} ${f(t)} C${f(cx + w * 0.05)} ${f(t + h * 0.07)} ${f(cx + w * 0.12)} ${f(yb - h * 0.89)} ${f(cx + w * 0.34)} ${f(yb - h * 0.87)} C${f(cx + w * 0.66)} ${f(yb - h * 0.84)} ${f(cx + w)} ${f(yb - h * 0.76)} ${f(cx + w)} ${f(yb - h * 0.46)} L${f(cx + w)} ${f(yb)} Z`;
+}
+
+/** Hrneček (yunomi) zavěšený dnem vzhůru — kreslí se kolem paty v 0,0 */
+function hrnecek(k: number) {
+  return `<rect x="-7.5" y="-1.5" width="15" height="5.5" rx="1.6" fill="#C9A27A"/>
+    <rect x="-7.5" y="-1.5" width="15" height="1.6" rx="0.8" fill="#E6CFA8"/>
+    <path d="M-11 4 L11 4 L13.6 28.4 Q0 31.6 -13.6 28.4 Z" fill="url(#ko-us-h${k})"/>
+    <path d="M-13.6 28.4 Q0 31.6 13.6 28.4 Q0 34.6 -13.6 28.4 Z" fill="#2B2420" opacity="0.5"/>
+    <path d="M-7.6 8 C-8.6 14 -8.8 20 -8.4 25.6" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>`;
+}
+
+/** Jedno okénko s kami, hrnečkem a nití (U) */
+function nika(k: number, cx: number, top: number, id: PostavaId, zavreno: boolean, sluzba: boolean) {
+  const w = 64, h = 104;
+  const yb = top + 12 + h;
+  const d = katomado(cx, yb, w, h);
+  const v = id === "samotka" ? 88 : 92;
+  const [x0, y0, x1, y1] = RAM[id];
+  const stred = cx - (id === "samotka" ? 12 : 18);
+  const fx = stred - (v * (x0 + x1)) / 360;
+  const fy = yb - 7 - (v * y1) / 180;
+  const nohy: Bod = [stred, yb - 7];
+  const hlava: Bod = [stred, fy + (v * y0) / 180];
+  const ucho: Bod = [fx + (v * (x1 - (x1 - x0) * 0.08)) / 180, fy + (v * (y0 + (y1 - y0) * 0.36)) / 180];
+  const oko: Bod = [cx + 37, yb - h * 0.8];
+  const delka = 12;
+  const pocatek = zavreno ? (id === "bublinka" ? POZA_SCHOVANA : POZA_SPI) : { rot: 0, dy: 0 };
+  const hr = hrnekTransform(oko, ucho, delka, 0, 0);
+  let s = `<defs><clipPath id="ko-us-nika-${k}"><path d="${d}"/></clipPath></defs>`;
+  s += `<path d="${d}" fill="url(#ko-us-nika)"/>`;
+  s += `<g clip-path="url(#ko-us-nika-${k})">`;
+  /* papírová stěna s jemným světlem shora, podlaha z tatami */
+  s += `<ellipse cx="${f(cx)}" cy="${f(top + 30)}" rx="${f(w * 0.9)}" ry="${f(h * 0.5)}" fill="#FFF6E2" opacity="0.6"/>`;
+  s += `<rect x="${f(cx - w)}" y="${f(yb - 9)}" width="${f(w * 2)}" height="9" fill="#C7A777"/>`;
+  s += `<rect x="${f(cx - w)}" y="${f(yb - 9)}" width="${f(w * 2)}" height="1.6" fill="#E3CDA2"/>`;
+  s += `<ellipse cx="${f(stred)}" cy="${f(yb - 6)}" rx="${f(v * 0.3)}" ry="3" fill="#6E5232" opacity="0.25"/>`;
+  s += `<g class="ko-us-obyv" data-l="${k}">`;
+  s += `<g class="ko-us-poza" data-l="${k}" transform="${pozaTransform(pocatek, nohy)}">${kami(id, fx, fy, v, "ko-us-kami")}</g>`;
+  s += `<path class="ko-us-nit" data-l="${k}" d="${nitD(oko, hr.pata, delka)}" stroke="#B84A2B" stroke-width="1.7" fill="none"/>`;
+  s += `<path class="ko-us-nit2" data-l="${k}" d="${nitD(oko, hr.pata, delka)}" stroke="#FBF7EE" stroke-width="1.7" stroke-dasharray="2 2.6" fill="none"/>`;
+  s += `<g class="ko-us-hrnek" data-l="${k}" transform="${hr.transform}">${hrnecek(k)}</g>`;
+  s += `</g></g>`;
+  /* zavřeno: okénko je potmě, dokud se linka nespojí (pak ho CSS rozsvítí) */
+  if (zavreno) s += `<path class="ko-us-tma-niky" d="${d}" fill="#0B1030" opacity="0.5"/>`;
+  /* očko a rám okénka: tmavé dřevo se zlatou linkou */
+  s += `<circle cx="${f(oko[0])}" cy="${f(oko[1])}" r="2.6" fill="none" stroke="#C9A04A" stroke-width="1.4"/>`;
+  s += `<path d="${d}" fill="none" stroke="#3A271B" stroke-width="7"/>`;
+  s += `<path d="${d}" fill="none" stroke="#C9A04A" stroke-width="1.3" opacity="0.9"/>`;
+  /* linka 二 je telefon dílny: nad okénkem uzel mizuhiki */
+  if (sluzba) s += mizuhiki(cx, top + 12);
+  return { svg: s, oko, ucho, delka, nohy, hlava, kami: { x: fx, y: fy, v }, stred: [cx, yb - h * 0.45] as Bod };
+}
+
+/** Červenobílý uzel mizuhiki se dvěma konci */
+function mizuhiki(cx: number, y: number) {
   return `<g>
-    <defs><radialGradient id="${id}" cx="0.56" cy="0.42" r="0.62"><stop offset="0" stop-color="${gl.stin}"/><stop offset="0.7" stop-color="${gl.stred}"/><stop offset="1" stop-color="${gl.svetlo}"/></radialGradient></defs>
-    <ellipse cx="${f(cx + r * 0.22)}" cy="${f(cy - r * 0.12)}" rx="${f(r * 0.98)}" ry="${f(r * 0.96)}" fill="${gl.stin}"/>
-    <circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="url(#${id})"/>
-    <ellipse cx="${f(cx + r * 0.16)}" cy="${f(cy - r * 0.06)}" rx="${f(r * 0.38)}" ry="${f(r * 0.34)}" fill="${gl.stred}" opacity="0.8"/>
-    <circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.92)}" fill="none" stroke="${gl.svetlo}" stroke-width="${f(r * 0.16)}"/>
-    <path d="M${f(cx - r * 0.78)} ${f(cy - r * 0.42)} A${f(r * 0.9)} ${f(r * 0.9)} 0 0 1 ${f(cx - r * 0.1)} ${f(cy - r * 0.9)}" stroke="#FFFFFF" stroke-width="${f(r * 0.1)}" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M${f(cx - 22)} ${f(y + 2)} C${f(cx - 14)} ${f(y - 8)} ${f(cx - 4)} ${f(y - 6)} ${f(cx)} ${f(y)} C${f(cx + 4)} ${f(y - 6)} ${f(cx + 14)} ${f(y - 8)} ${f(cx + 22)} ${f(y + 2)}" stroke="#C4432B" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <path d="M${f(cx - 20)} ${f(y + 5)} C${f(cx - 13)} ${f(y - 3)} ${f(cx - 4)} ${f(y - 1)} ${f(cx)} ${f(y + 4)} C${f(cx + 4)} ${f(y - 1)} ${f(cx + 13)} ${f(y - 3)} ${f(cx + 20)} ${f(y + 5)}" stroke="#FBF7EE" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <circle cx="${f(cx)}" cy="${f(y + 2)}" r="3.6" fill="#C4432B"/>
+    <path d="M${f(cx - 2)} ${f(y + 5)} L${f(cx - 5)} ${f(y + 15)} M${f(cx + 2)} ${f(y + 5)} L${f(cx + 5)} ${f(y + 15)}" stroke="#C4432B" stroke-width="2" stroke-linecap="round"/>
   </g>`;
 }
 
-function zvonek(x: number, y: number, r: number, aktivni: boolean) {
-  return `<g class="${aktivni ? "ko-u-zvonek" : ""}">
-    <path d="M${f(x)} ${f(y - r * 1.3)} L${f(x)} ${f(y - r * 0.9)}" stroke="#7A5A2A" stroke-width="1.4"/>
-    <path d="M${f(x - r)} ${f(y + r * 0.5)} C${f(x - r)} ${f(y - r * 0.6)} ${f(x - r * 0.5)} ${f(y - r)} ${f(x)} ${f(y - r)} C${f(x + r * 0.5)} ${f(y - r)} ${f(x + r)} ${f(y - r * 0.6)} ${f(x + r)} ${f(y + r * 0.5)} Z" fill="#D2A64A" stroke="#8C6A24" stroke-width="1"/>
-    <path d="M${f(x - r * 0.55)} ${f(y - r * 0.45)} C${f(x - r * 0.45)} ${f(y - r * 0.75)} ${f(x - r * 0.2)} ${f(y - r * 0.85)} ${f(x + r * 0.05)} ${f(y - r * 0.85)}" stroke="#F3D98A" stroke-width="${f(r * 0.22)}" fill="none" stroke-linecap="round"/>
-    <circle cx="${f(x)}" cy="${f(y + r * 0.7)}" r="${f(r * 0.28)}" fill="#8C6A24"/>
-    ${aktivni ? `<path class="ko-u-vlny" d="M${f(x - r * 1.6)} ${f(y - r * 0.9)} q${f(-r * 0.5)} ${f(r * 0.6)} 0 ${f(r * 1.2)} M${f(x - r * 2.1)} ${f(y - r * 1.2)} q${f(-r * 0.7)} ${f(r * 0.9)} 0 ${f(r * 1.8)} M${f(x + r * 1.6)} ${f(y - r * 0.9)} q${f(r * 0.5)} ${f(r * 0.6)} 0 ${f(r * 1.2)} M${f(x + r * 2.1)} ${f(y - r * 1.2)} q${f(r * 0.7)} ${f(r * 0.9)} 0 ${f(r * 1.8)}" stroke="#C4432B" stroke-width="1.6" fill="none" stroke-linecap="round"/>` : ""}
+/** Kontrolka: skleněná čočka v mosazné objímce (sklo přebarví CSS podle stavu) */
+function lampa(cx: number, cy: number) {
+  return `<circle cx="${f(cx)}" cy="${f(cy)}" r="11.5" fill="url(#ko-us-mosaz-r)" stroke="#5E4520" stroke-width="1"/>
+    <circle cx="${f(cx)}" cy="${f(cy)}" r="8.4" fill="#3A2614"/>
+    <circle class="ko-us-sklo" cx="${f(cx)}" cy="${f(cy)}" r="7.4" fill="url(#ko-us-sklo-vyp)"/>
+    <ellipse cx="${f(cx - 2.4)}" cy="${f(cy - 2.8)}" rx="2.6" ry="1.8" fill="#FFFFFF" opacity="0.6"/>`;
+}
+
+/** Mosazná zdířka v rozetě */
+function zdirka(cx: number, cy: number) {
+  return `<circle cx="${f(cx + 1.4)}" cy="${f(cy + 2)}" r="16" fill="#120C08" opacity="0.35"/>
+    <circle class="ko-us-zdirka" cx="${f(cx)}" cy="${f(cy)}" r="15" fill="url(#ko-us-mosaz-r)" stroke="#5E4520" stroke-width="1"/>
+    <circle cx="${f(cx)}" cy="${f(cy)}" r="10.6" fill="#8C6A2C"/>
+    <circle cx="${f(cx)}" cy="${f(cy)}" r="7.6" fill="#140E0B"/>
+    <path d="M${f(cx - 6.4)} ${f(cy - 3.6)} A7.4 7.4 0 0 1 ${f(cx + 2.6)} ${f(cy - 7)}" stroke="#F8E3A0" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.75"/>`;
+}
+
+/** Smaltovaný štítek s číslem linky */
+function cislo(cx: number, cy: number, k: number) {
+  return `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="12.4" ry="10" fill="#FBF8F0" stroke="#3B4A6E" stroke-width="1.5"/>
+    <text class="ko-kanji" x="${f(cx)}" y="${f(cy + 4.6)}" text-anchor="middle" font-size="13" fill="#26324F">${CISLA[k]}</text>`;
+}
+
+/** Jmenovka: papírový proužek v mosazném rámečku, jméno štětcem */
+function jmenovka(cx: number, cy: number, jmeno: string) {
+  return `<rect x="${f(cx - 58)}" y="${f(cy - 12.5)}" width="116" height="25" rx="4" fill="url(#ko-us-mosaz)" stroke="#5E4520" stroke-width="0.8"/>
+    <rect x="${f(cx - 53)}" y="${f(cy - 9)}" width="106" height="18" rx="1.6" fill="#F6EEDC"/>
+    <circle cx="${f(cx - 55.4)}" cy="${f(cy)}" r="1.3" fill="#5E4520"/><circle cx="${f(cx + 55.4)}" cy="${f(cy)}" r="1.3" fill="#5E4520"/>
+    <text class="ko-ruka-tucne" x="${f(cx)}" y="${f(cy + 6)}" text-anchor="middle" font-size="18" fill="#2B2420">${jmeno}</text>`;
+}
+
+/** Dvojitý zvonek na římse (zvoní, když volá linka) */
+function zvonky(x: number, y: number) {
+  const zvon = (cx: number) => `<path d="M${f(cx - 11)} ${f(y)} A11 11 0 0 1 ${f(cx + 11)} ${f(y)} Z" fill="url(#ko-us-mosaz-r)" stroke="#5E4520" stroke-width="1"/>
+    <path d="M${f(cx - 6)} ${f(y - 6)} A7 7 0 0 1 ${f(cx + 1)} ${f(y - 9.4)}" stroke="#FBEFC4" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  return `<g class="ko-us-zvonky"><path d="M${f(x)} ${f(y + 1)} L${f(x)} ${f(y - 16)} M${f(x - 14)} ${f(y - 16)} L${f(x + 14)} ${f(y - 16)}" stroke="#5E4520" stroke-width="2.4" stroke-linecap="round"/>
+    <g class="ko-us-zvon">${zvon(x - 14)}</g><g class="ko-us-zvon ko-us-zvon-2">${zvon(x + 14)}</g>
+    <circle cx="${f(x)}" cy="${f(y - 7)}" r="2.6" fill="#3A2614"/></g>`;
+}
+
+/** Cedulka 準備中 přes štít, když je zavřeno (U) */
+function cedulkaZavreno(cx: number, y: number, radky: string[]) {
+  const w = 236, h = 30 + radky.length * 22;
+  return `<g class="ko-u-cedulka-zavreno">
+    <path d="M${f(cx - 70)} ${f(y - 22)} L${f(cx - 80)} ${f(y + 4)} M${f(cx + 70)} ${f(y - 22)} L${f(cx + 80)} ${f(y + 4)}" stroke="#5E160B" stroke-width="2.4"/>
+    <path d="M${f(cx - 70)} ${f(y - 22)} L${f(cx - 80)} ${f(y + 4)} M${f(cx + 70)} ${f(y - 22)} L${f(cx + 80)} ${f(y + 4)}" stroke="#FBF7EE" stroke-width="1.6" stroke-dasharray="2 2.4"/>
+    <circle cx="${f(cx - 70)}" cy="${f(y - 22)}" r="3" fill="#C9A04A"/><circle cx="${f(cx + 70)}" cy="${f(y - 22)}" r="3" fill="#C9A04A"/>
+    <rect x="${f(cx - w / 2 + 3)}" y="${f(y + 4)}" width="${w}" height="${h}" rx="6" fill="#2B2420" opacity="0.22"/>
+    <rect x="${f(cx - w / 2)}" y="${f(y)}" width="${w}" height="${h}" rx="6" fill="#D9CCB4" stroke="#8A6A48" stroke-width="1.6"/>
+    <rect x="${f(cx - w / 2 + 5)}" y="${f(y + 5)}" width="${w - 10}" height="${h - 10}" rx="4" fill="none" stroke="#B48E5E" stroke-width="0.8"/>
+    <text class="ko-kanji" x="${f(cx)}" y="${f(y + 27)}" text-anchor="middle" font-size="19" letter-spacing="3" fill="#2B2420">準備中</text>
+    ${radky.map((r, i) => `<text class="ko-ruka-tucne" x="${f(cx)}" y="${f(y + 50 + i * 22)}" text-anchor="middle" font-size="${i ? 18 : 20}" fill="${i ? "#5C5047" : "#C4432B"}">${r}</text>`).join("")}
   </g>`;
 }
 
-/** Ústředna: dubová skříňka se třemi policemi po třech linkách (jádro) */
-function ustredna(x0: number, y0: number, w: number, h: number, drzi = true) {
-  const vnitr = 16;
-  const sloupce = [x0 + w * 0.2, x0 + w * 0.5, x0 + w * 0.8];
-  const rady = [y0 + h * 0.33, y0 + h * 0.58, y0 + h * 0.83];
-  const kladkyY = y0 + 34;
+/** Linka v souřadnicích ústředny (U) — kresba ji pak přepočte do scény */
+type LinkaU = Pick<LinkaBody, "k" | "id" | "oko" | "ucho" | "delka" | "nohy"> & {
+  jackU: Bod;
+  bunkaU: [number, number, number, number];
+  hlavaU: Bod;
+  lampaU: Bod;
+  nikaU: Bod;
+  kamiU: { x: number; y: number; v: number };
+};
+
+/** Celá ústředna (U): skříň, okénka, zdířky, police s dírami a zástěra se závažím */
+function ustredna(linky: { id: PostavaId; jmeno: string }[], zavreno: boolean, cedulka: string[]) {
+  const { w, px0, py0, sloupec, radek } = U;
   let s = "";
-  s += `<rect x="${f(x0 + 18)}" y="${f(y0 + 10)}" width="${f(w)}" height="${f(h)}" rx="10" fill="#4A3A2A" opacity="0.12"/>`;
-  s += `<ellipse cx="${f(x0 + w / 2 + 20)}" cy="${f(y0 + h + 4)}" rx="${f(w * 0.62)}" ry="12" fill="#4A3A2A" opacity="0.2"/>`;
-  s += `<rect x="${f(x0)}" y="${f(y0)}" width="${f(w)}" height="${f(h)}" rx="10" fill="url(#ko-u-dub)" stroke="${DUB.tma}" stroke-width="1.6"/>`;
-  s += `<rect x="${f(x0 + vnitr)}" y="${f(y0 + vnitr + 30)}" width="${f(w - vnitr * 2)}" height="${f(h - vnitr * 2 - 30)}" rx="5" fill="url(#ko-u-panel)" stroke="${DUB.tma}" stroke-opacity="0.5" stroke-width="1.2"/>`;
-  s += `<rect x="${f(x0 + vnitr - 4)}" y="${f(kladkyY - 9)}" width="${f(w - vnitr * 2 + 8)}" height="18" rx="4" fill="${DUB.stin}"/>`;
-  s += `<g><rect x="${f(x0 + w / 2 - 108)}" y="${f(y0 - 40)}" width="216" height="40" rx="5" fill="#3B2A1E"/>
-    <rect x="${f(x0 + w / 2 - 102)}" y="${f(y0 - 35)}" width="204" height="30" rx="3" fill="none" stroke="#C9A472" stroke-width="0.8"/>
-    <text class="ko-kanji" x="${f(x0 + w / 2 - 34)}" y="${f(y0 - 13)}" text-anchor="middle" font-size="19" fill="#F3E3C0" letter-spacing="2">交換台</text>
-    <text class="ko-pismo-soft" x="${f(x0 + w / 2 + 50)}" y="${f(y0 - 15.5)}" text-anchor="middle" font-size="11.5" letter-spacing="2.4" fill="#F3E3C0">ÚSTŘEDNA</text></g>`;
-  rady.forEach((ry) => {
-    s += `<rect x="${f(x0 + vnitr)}" y="${f(ry + 30)}" width="${f(w - vnitr * 2)}" height="9" fill="${DUB.stred}" stroke="${DUB.tma}" stroke-opacity="0.5" stroke-width="0.8"/>`;
-    s += `<rect x="${f(x0 + vnitr)}" y="${f(ry + 39)}" width="${f(w - vnitr * 2)}" height="5" fill="#4A3A2A" opacity="0.14"/>`;
+  /* stín na stěně a na stole */
+  s += `<rect x="18" y="14" width="${w}" height="${U.dno - 10}" rx="12" fill="#4A3A2A" opacity="0.13"/>`;
+  s += `<ellipse cx="${f(w / 2 + 24)}" cy="${f(U.dno + 4)}" rx="${f(w * 0.62)}" ry="14" fill="#3A2A1E" opacity="0.24"/>`;
+  /* kladky na římse — přes ně vedou provázky z okna do skříně */
+  const kladky: Bod[] = DIRY.map((x) => [x, -6]);
+  kladky.forEach(([x, y]) => {
+    s += `<path d="M${f(x - 5)} ${f(y + 8)} L${f(x)} ${f(y)} L${f(x + 5)} ${f(y + 8)}" stroke="#5E4520" stroke-width="2" fill="none"/>`;
+    s += `<circle cx="${f(x)}" cy="${f(y)}" r="7" fill="url(#ko-us-mosaz-r)" stroke="#5E4520" stroke-width="1"/><circle cx="${f(x)}" cy="${f(y)}" r="2.2" fill="#5E4520"/>`;
   });
-  const linky: { k: number; cx: number; cy: number; kladka: Bod }[] = [];
-  rady.forEach((ry, r) =>
-    sloupce.forEach((cx, c) => {
-      const k = r * 3 + c;
-      linky.push({ k, cx, cy: ry, kladka: [x0 + vnitr + 14 + ((w - vnitr * 2 - 28) * (k + 0.5)) / 9, kladkyY] });
-    }),
-  );
-  linky.forEach((l) => {
-    if (l.k === AKTIVNI && drzi) return;
-    s += `<path d="M${f(l.kladka[0])} ${f(l.kladka[1])} L${f(l.cx + 6)} ${f(l.cy - 6)}" stroke="#B84A2B" stroke-width="1.6" opacity="0.85"/>`;
-    s += `<path d="M${f(l.kladka[0])} ${f(l.kladka[1])} L${f(l.cx + 6)} ${f(l.cy - 6)}" stroke="#FBF7EE" stroke-width="1.6" stroke-dasharray="2 3" opacity="0.85"/>`;
+  /* skříň: dubový rám, římsa, lakovaný panel */
+  s += `<rect x="0" y="22" width="${w}" height="${U.policeZ - 10}" rx="8" fill="url(#ko-u-dub)" stroke="${DUB.tma}" stroke-width="1.6"/>`;
+  s += `<rect x="-12" y="0" width="${w + 24}" height="30" rx="6" fill="url(#ko-us-rimsa)" stroke="${DUB.tma}" stroke-width="1.4"/>`;
+  s += `<rect x="-12" y="0" width="${w + 24}" height="4" rx="2" fill="#F0DDBA" opacity="0.8"/>`;
+  s += `<rect x="-6" y="26" width="${w + 12}" height="8" fill="${DUB.stin}" opacity="0.55"/>`;
+  s += `<rect x="${px0}" y="${py0}" width="${f(w - px0 * 2)}" height="${f(radek * 3)}" rx="6" fill="url(#ko-us-lak)" stroke="#1E140E" stroke-width="1.4"/>`;
+  s += `<rect x="${px0 + 4}" y="${py0 + 3}" width="${f(w - px0 * 2 - 8)}" height="2" rx="1" fill="#FFFFFF" opacity="0.08"/>`;
+  /* mosazné rohy */
+  for (const [x, y, sx, sy] of [[px0, py0, 1, 1], [w - px0, py0, -1, 1], [px0, py0 + radek * 3, 1, -1], [w - px0, py0 + radek * 3, -1, -1]] as const) {
+    s += `<path d="M${f(x)} ${f(y + sy * 26)} L${f(x)} ${f(y)} L${f(x + sx * 26)} ${f(y)} Q${f(x + sx * 9)} ${f(y + sy * 9)} ${f(x)} ${f(y + sy * 26)} Z" fill="url(#ko-us-mosaz)" stroke="#5E4520" stroke-width="0.8"/>`;
+  }
+  /* štít 交換台 */
+  s += `<g><path d="M${f(w / 2 - 124)} -6 L${f(w / 2 - 112)} -48 L${f(w / 2 + 112)} -48 L${f(w / 2 + 124)} -6 Z" fill="#2E211A" stroke="#1E140E" stroke-width="1"/>
+    <rect x="${f(w / 2 - 104)}" y="-43" width="208" height="31" rx="3" fill="none" stroke="#C9A04A" stroke-width="0.9"/>
+    <text class="ko-kanji" x="${f(w / 2 - 36)}" y="-20" text-anchor="middle" font-size="20" fill="#F3E3C0" letter-spacing="2">交換台</text>
+    <text class="ko-pismo-soft" x="${f(w / 2 + 50)}" y="-22.5" text-anchor="middle" font-size="11.5" letter-spacing="2.4" fill="#F3E3C0">ÚSTŘEDNA</text></g>`;
+  s += zvonky(w - 52, -2);
+  /* klika induktoru na boku */
+  const ky = 330;
+  s += `<g><circle cx="${f(w + 3)}" cy="${ky}" r="10" fill="#2B2420"/><circle cx="${f(w + 3)}" cy="${ky}" r="4" fill="url(#ko-us-mosaz-r)"/><path d="M${f(w + 3)} ${ky} L${f(w + 26)} ${ky - 18}" stroke="#2B2420" stroke-width="5.4" stroke-linecap="round"/><rect x="${f(w + 21)}" y="${ky - 34}" width="10.4" height="19" rx="5.2" fill="#8A4A2A"/></g>`;
+
+  /* okénka a linky */
+  const out: LinkaU[] = [];
+  linky.forEach((l, k) => {
+    const r = Math.floor(k / 3), c = k % 3;
+    const cx = px0 + sloupec * (c + 0.5);
+    const top = py0 + radek * r;
+    const n = nika(k, cx, top, l.id, zavreno, k === AKTIVNI);
+    const jy = top + 160;
+    let b = `<g class="ko-us-bunka" data-l="${k}">`;
+    b += n.svg;
+    b += jmenovka(cx, top + 133, l.jmeno);
+    b += lampa(cx - 46, jy);
+    b += zdirka(cx, jy);
+    b += cislo(cx + 46, jy, k);
+    b += `</g>`;
+    s += b;
+    out.push({
+      k,
+      id: l.id,
+      oko: n.oko,
+      ucho: n.ucho,
+      delka: n.delka,
+      nohy: n.nohy,
+      jackU: [cx, jy],
+      bunkaU: [cx - sloupec / 2 + 3, top + 6, cx + sloupec / 2 - 3, top + radek - 4],
+      hlavaU: n.hlava,
+      lampaU: [cx - 46, jy],
+      nikaU: n.stred,
+      kamiU: n.kami,
+    });
   });
-  linky.forEach((l) => {
-    s += `<circle cx="${f(l.kladka[0])}" cy="${f(l.kladka[1])}" r="7" fill="#B88A3E" stroke="#6E5226" stroke-width="1"/><circle cx="${f(l.kladka[0])}" cy="${f(l.kladka[1])}" r="2.2" fill="#6E5226"/>`;
+
+  /* police s kolíky: šikmá deska, díry s mosaznými kroužky */
+  const { policeZ: pz, policeP: pp } = U;
+  s += `<path d="M-8 ${pz} L${w + 8} ${pz} L${w + 18} ${pp} L-18 ${pp} Z" fill="url(#ko-us-police)" stroke="${DUB.tma}" stroke-width="1.4" stroke-linejoin="round"/>`;
+  s += `<path d="M-8 ${pz} L${w + 8} ${pz}" stroke="#F0DDBA" stroke-width="2"/>`;
+  s += `<path d="M-18 ${pp} L${w + 18} ${pp} L${w + 18} ${pp + 14} L-18 ${pp + 14} Z" fill="${DUB.stin}" stroke="${DUB.tma}" stroke-width="1.2"/>`;
+  s += `<path d="M-18 ${pp + 1.4} L${w + 18} ${pp + 1.4}" stroke="#E7CFA6" stroke-width="1.4" opacity="0.8"/>`;
+  DIRY.forEach((x) => {
+    s += `<ellipse cx="${x}" cy="${U.diraY}" rx="12.6" ry="5.6" fill="url(#ko-us-mosaz-r)" stroke="#5E4520" stroke-width="0.8"/><ellipse cx="${x}" cy="${U.diraY + 0.6}" rx="8.4" ry="3.4" fill="#140E0B"/>`;
   });
-  linky.forEach(({ k, cx, cy }) => {
-    const r = 24;
-    const zvoni = k === AKTIVNI;
-    s += `<path d="M${f(cx - 30)} ${f(cy + 30)} L${f(cx - 30)} ${f(cy + 12)} Q${f(cx - 26)} ${f(cy + 10)} ${f(cx - 22)} ${f(cy + 12)} A24 16 0 0 0 ${f(cx + 22)} ${f(cy + 12)} Q${f(cx + 26)} ${f(cy + 10)} ${f(cx + 30)} ${f(cy + 12)} L${f(cx + 30)} ${f(cy + 30)} Z" fill="${DUB.stred}" stroke="${DUB.tma}" stroke-width="1"/>`;
-    if (!zvoni || !drzi) s += hrnecek(cx, cy - 4, r, GLAZURY[(k * 5 + 2) % GLAZURY.length], `ko-u-h${k}`);
-    else s += `<path d="M${f(cx - 16)} ${f(cy + 13)} A16 9 0 0 0 ${f(cx + 16)} ${f(cy + 13)}" fill="#4A3A2A" opacity="0.18"/>`;
-    s += zvonek(cx - 40, cy - 30, 7, zvoni);
-    s += zvoni
-      ? `<g class="ko-u-kontrolka"><circle cx="${f(cx + 40)}" cy="${f(cy - 32)}" r="13" fill="#FFB347" opacity="0.35"/><circle cx="${f(cx + 40)}" cy="${f(cy - 32)}" r="5.6" fill="#FF9F2E" stroke="#B85A10" stroke-width="1"/><circle cx="${f(cx + 38.6)}" cy="${f(cy - 33.4)}" r="1.8" fill="#FFE7B0"/></g>`
-      : `<circle cx="${f(cx + 40)}" cy="${f(cy - 32)}" r="5.6" fill="#E9DCC8" stroke="#9C8A6A" stroke-width="1"/>`;
-    s += `<g><ellipse cx="${f(cx)}" cy="${f(cy + 52)}" rx="11" ry="8.6" fill="#FBF8F0" stroke="#3B4A6E" stroke-width="1.3"/><text class="ko-kanji" x="${f(cx)}" y="${f(cy + 56.6)}" text-anchor="middle" font-size="11.5" fill="#26324F">${CISLA[k]}</text></g>`;
+  /* zástěra s průzory: v každém visí na šňůře závaží */
+  const { zasteraY: zy, sterbinaY0: s0, sterbinaY1: s1 } = U;
+  s += `<rect x="4" y="${zy}" width="${w - 8}" height="${U.dno - zy - 10}" fill="url(#ko-u-dub)" stroke="${DUB.tma}" stroke-width="1.4"/>`;
+  s += `<rect x="-2" y="${U.dno - 12}" width="${w + 4}" height="12" rx="3" fill="${DUB.tma}"/>`;
+  s += `<defs><clipPath id="ko-us-sterbiny">${DIRY.map((x) => `<rect x="${x - 9}" y="${s0}" width="18" height="${s1 - s0}" rx="9"/>`).join("")}</clipPath></defs>`;
+  DIRY.forEach((x) => {
+    s += `<rect x="${x - 11}" y="${s0 - 2}" width="22" height="${s1 - s0 + 4}" rx="11" fill="url(#ko-us-mosaz)" stroke="#5E4520" stroke-width="0.8"/>`;
+    s += `<rect x="${x - 9}" y="${s0}" width="18" height="${s1 - s0}" rx="9" fill="url(#ko-us-sterbina)"/>`;
   });
-  s += `<g><circle cx="${f(x0 + w + 2)}" cy="${f(y0 + h * 0.55)}" r="9" fill="#2B2420"/><path d="M${f(x0 + w + 2)} ${f(y0 + h * 0.55)} L${f(x0 + w + 26)} ${f(y0 + h * 0.55 - 16)}" stroke="#2B2420" stroke-width="5" stroke-linecap="round"/><rect x="${f(x0 + w + 22)}" y="${f(y0 + h * 0.55 - 30)}" width="10" height="18" rx="5" fill="#8A4A2A"/></g>`;
-  return { svg: s, linky };
+  s += `<g clip-path="url(#ko-us-sterbiny)">`;
+  DIRY.forEach((x, i) => {
+    const vz = s1 - 30;
+    s += `<g class="ko-us-zavazi" data-p="${i}">
+      <path d="M${x} ${s0 - 120} L${x} ${vz}" stroke="#B84A2B" stroke-width="2"/>
+      <path d="M${x} ${s0 - 120} L${x} ${vz}" stroke="#FBF7EE" stroke-width="2" stroke-dasharray="2 2.6"/>
+      <rect x="${x - 6.6}" y="${vz}" width="13.2" height="24" rx="4.4" fill="url(#ko-us-zavazi)" stroke="#5E4520" stroke-width="0.8"/>
+      <rect x="${x - 6.6}" y="${vz + 5}" width="13.2" height="1.6" fill="#5E4520" opacity="0.5"/>
+    </g>`;
+  });
+  s += `</g>`;
+  /* zavřeno: přes štít visí cedulka s příští otevírací dobou */
+  if (zavreno) s += cedulkaZavreno(w / 2, -44, cedulka);
+  return { svg: s, linky: out, kladky };
+}
+
+/** Kolík kōhaku: stojící v díře (pěšák) a zastrčený ve zdířce (čepička zepředu); kreslí skript */
+export function kolikSvg(bily: boolean) {
+  const g = bily ? "b" : "c";
+  return `<g class="ko-us-kolik-telo">
+    <g class="ko-us-kolik-stoji">
+      <ellipse cx="0" cy="1" rx="8" ry="2.6" fill="#140E0B" opacity="0.5"/>
+      <rect x="-6" y="-9" width="12" height="9.6" rx="1.6" fill="url(#ko-us-mosaz)" stroke="#5E4520" stroke-width="0.7"/>
+      <path d="M-7.6 -8.6 C-9.6 -18 -6.4 -27 -5.2 -31 L5.2 -31 C6.4 -27 9.6 -18 7.6 -8.6 Z" fill="url(#ko-us-kolik-${g})" stroke="${bily ? "#A89A84" : "#5E160B"}" stroke-width="0.8"/>
+      <circle cx="0" cy="-36" r="7.8" fill="url(#ko-us-kolik-${g})" stroke="${bily ? "#A89A84" : "#5E160B"}" stroke-width="0.8"/>
+      <ellipse cx="-2.6" cy="-38.4" rx="2.4" ry="1.7" fill="#FFFFFF" opacity="0.65"/>
+      <path d="M-3.8 -26 C-4.6 -20 -4.6 -14 -4 -10" stroke="#FFFFFF" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.35"/>
+    </g>
+    <g class="ko-us-kolik-cepicka">
+      <circle cx="1.6" cy="3" r="15.4" fill="#120C08" opacity="0.35"/>
+      <circle cx="0" cy="0" r="14.6" fill="url(#ko-us-mosaz-r)" stroke="#5E4520" stroke-width="0.8"/>
+      <circle cx="0" cy="0" r="11.4" fill="url(#ko-us-cepicka-${g})" stroke="${bily ? "#A89A84" : "#5E160B"}" stroke-width="0.8"/>
+      <ellipse cx="-3.6" cy="-4.2" rx="3.6" ry="2.4" fill="#FFFFFF" opacity="0.6"/>
+    </g>
+  </g>`;
 }
 
 /** Psací stroj: mátový, kulaté klávesy jako kameny přes potok (jádro) */
@@ -255,7 +550,7 @@ function hodiny(x: number, y: number, r: number) {
   </g>`;
 }
 
-/** Zelená podložka s hroudou, ve které se Bublinka jinak schovává (teď je prázdná), a váleček */
+/** Zelená podložka s hroudou, ve které se Bublinka jinak schovává, a váleček */
 function podlozka(x: number, y: number, m: number) {
   const T = (px: number, py: number) => `${f(x + px * m)} ${f(y + py * m)}`;
   return `<g>
@@ -270,43 +565,43 @@ function podlozka(x: number, y: number, m: number) {
   </g>`;
 }
 
-/** Cedulka 準備中 přes ústřednu, když je zavřeno — visí na dvou šňůrkách z lišty s kladkami (souřadnice ústředny) */
-function cedulkaZavreno(cx: number, lista: number, y: number, radky: string[]) {
-  const w = 236, h = 30 + radky.length * 22;
-  return `<g class="ko-u-cedulka-zavreno">
-    <path d="M${f(cx - 70)} ${f(lista)} L${f(cx - 80)} ${f(y + 4)} M${f(cx + 70)} ${f(lista)} L${f(cx + 80)} ${f(y + 4)}" stroke="#5E160B" stroke-width="2.4"/>
-    <path d="M${f(cx - 70)} ${f(lista)} L${f(cx - 80)} ${f(y + 4)} M${f(cx + 70)} ${f(lista)} L${f(cx + 80)} ${f(y + 4)}" stroke="#FBF7EE" stroke-width="1.6" stroke-dasharray="2 2.4"/>
-    <rect x="${f(cx - w / 2 + 3)}" y="${f(y + 4)}" width="${w}" height="${h}" rx="6" fill="#2B2420" opacity="0.22"/>
-    <rect x="${f(cx - w / 2)}" y="${f(y)}" width="${w}" height="${h}" rx="6" fill="#D9CCB4" stroke="#8A6A48" stroke-width="1.6"/>
-    <rect x="${f(cx - w / 2 + 5)}" y="${f(y + 5)}" width="${w - 10}" height="${h - 10}" rx="4" fill="none" stroke="#B48E5E" stroke-width="0.8"/>
-    <text class="ko-kanji" x="${f(cx)}" y="${f(y + 27)}" text-anchor="middle" font-size="19" letter-spacing="3" fill="#2B2420">準備中</text>
-    ${radky.map((r, i) => `<text class="ko-ruka-tucne" x="${f(cx)}" y="${f(y + 50 + i * 22)}" text-anchor="middle" font-size="${i ? 18 : 20}" fill="${i ? "#5C5047" : "#C4432B"}">${r}</text>`).join("")}
-  </g>`;
-}
-
 export function uvnitr(o: UvnitrVolby) {
-  const { W, H, rezim, panel, kdo, otevreno } = o;
+  const { W, H, rezim, panel, otevreno } = o;
   const siroka = rezim === "siroka";
   const zavreno = !otevreno;
 
-  /* ——— jádro: posun a měřítko ——— */
+  /* ——— jádro: posun a měřítko; ústředna v jádře ——— */
   let jx: number, jy: number, jk: number;
+  let UO: Bod, UM: number;
+  /* široké, ale úzké okno (4:3): jádro je malé a nad ním zbývá zeď — ústředna se zvětší
+     a vyroste do ní, kniha a stroj se rozestoupí */
+  let roz = 0;
   if (siroka) {
-    /* levý okraj Kapčiny bubliny (x ≈ 640 v jádře) musí zůstat vpravo od textu */
     jk = Math.max(0.55, Math.min(1, (W - panel.prava - 30) / 1000));
     jx = W - 1640 * jk;
     jy = H - 900 * jk;
+    roz = Math.max(0, 0.85 - jk);
+    UM = 0.9 + roz * 0.6;
+    UO = [1078 + roz * 60 - (U.w / 2) * UM, 760 - U.dno * UM];
   } else {
+    /* úzké: jádro je rovnou scéna, ústředna zabere pás pod panelem vlevo */
+    jk = 1;
+    jx = 0;
+    jy = 0;
     const st = panel.dolni;
-    jk = Math.min((H - st) / 326, (W / 390) * 1.2);
-    jx = (W - 390 * jk) / 2;
-    jy = st - 518 * jk;
+    const pas = H - st;
+    UM = Math.max(0.2, Math.min((pas - 14) / 846, (W * 0.6) / 590));
+    UO = [10 + 18 * UM, H - 8 - U.dno * UM];
   }
   const S = (p: Bod): Bod => [jx + p[0] * jk, jy + p[1] * jk];
+  const naUs = (p: Bod): Bod => [UO[0] + p[0] * UM, UO[1] + p[1] * UM];
+  const SU = (p: Bod) => S(naUs(p));
+  const m = UM * jk;
 
   /* ——— pozadí přes celou šířku ——— */
   let pz = "";
-  const zedDole = siroka ? 700 : S([0, 744])[1] - 8 * jk;
+  const stulY = siroka ? 0 : naUs([0, U.dno - 40])[1];
+  const zedDole = siroka ? 700 : stulY;
   pz += `<rect width="${f(W)}" height="${f(zedDole)}" fill="url(#ko-u-zed)"/>`;
   if (siroka) {
     pz += `<rect x="${f(W - 300 * jk)}" y="${f(H - 570 * jk)}" width="${f(300 * jk + 2)}" height="${f(zedDole - (H - 570 * jk))}" fill="#A9937D"/>`;
@@ -314,144 +609,185 @@ export function uvnitr(o: UvnitrVolby) {
     pz += `<path d="M300 60 L320 680 M560 50 L584 676" stroke="#BFB7A6" stroke-width="16" opacity="0.1"/>`;
   } else {
     pz += `<path d="M0 60 L${f(W * 0.8)} 50 L${f(W * 0.82)} ${f(zedDole)} L0 ${f(zedDole)} Z" fill="url(#ko-u-okno)"/>`;
-    pz += `<rect x="${f(W - 120 * jk)}" y="${f(S([0, 560])[1])}" width="${f(120 * jk + 2)}" height="${f(zedDole - S([0, 560])[1])}" fill="#A9937D"/>`;
+    const sx = naUs([U.w + 40, 0])[0];
+    pz += `<rect x="${f(sx)}" y="${f(panel.dolni + (H - panel.dolni) * 0.12)}" width="${f(W - sx + 2)}" height="${f(zedDole)}" fill="#A9937D"/>`;
   }
   pz += `<rect y="${f(zedDole - 12)}" width="${f(W)}" height="12" fill="#D9D3C6"/>`;
   pz += `<rect y="${f(zedDole)}" width="${f(W)}" height="${f(H - zedDole + 2)}" fill="#B9BCB2"/>`;
-  pz += siroka ? hodiny(W - 148 * jk, H - 686 * jk, 50 * jk) : hodiny(W - 52 * jk, S([0, 600])[1], 24 * jk);
-  if (siroka) pz += fikus(30, H + 14, 0.74);
+  if (siroka) {
+    pz += hodiny(W - 148 * jk, H - 686 * jk, 50 * jk);
+    pz += fikus(30, H + 14, 0.74);
+  } else if (H - panel.dolni > 230) {
+    pz += hodiny(W - 30, panel.dolni + 38, 20);
+  }
 
   /* stůl: oválný z kanceláře, levý konec zakulacený */
-  const [sx0, sy0] = siroka ? S([722, 582]) : S([112, 738]);
-  const leva = siroka ? S([480, 890])[0] : S([26, 844])[0];
-  pz += `<path d="M${f(sx0)} ${f(sy0 + 8 * jk)} L${f(W + 20)} ${f(sy0 + 8 * jk)} L${f(W + 20)} ${f(H + 20)} L${f(leva - 10)} ${f(H + 20)} C${f(leva - 50 * jk)} ${f(sy0 + 220 * jk)} ${f(sx0 - 220 * jk)} ${f(sy0 + 50 * jk)} ${f(sx0)} ${f(sy0 + 8 * jk)} Z" fill="#A9844F"/>`;
-  pz += `<path d="M${f(sx0)} ${f(sy0)} L${f(W + 20)} ${f(sy0)} L${f(W + 20)} ${f(H + 10)} L${f(leva)} ${f(H + 10)} C${f(leva - 50 * jk)} ${f(sy0 + 214 * jk)} ${f(sx0 - 214 * jk)} ${f(sy0 + 50 * jk)} ${f(sx0)} ${f(sy0)} Z" fill="url(#ko-u-stul)"/>`;
-  pz += `<path d="M${f(sx0)} ${f(sy0)} L${f(W + 20)} ${f(sy0)}" stroke="#F0DDBA" stroke-width="${f(2.4 * jk)}"/>`;
+  if (siroka) {
+    const [sx0, sy0] = S([722, 582]);
+    const leva = S([480, 890])[0];
+    pz += `<path d="M${f(sx0)} ${f(sy0 + 8 * jk)} L${f(W + 20)} ${f(sy0 + 8 * jk)} L${f(W + 20)} ${f(H + 20)} L${f(leva - 10)} ${f(H + 20)} C${f(leva - 50 * jk)} ${f(sy0 + 220 * jk)} ${f(sx0 - 220 * jk)} ${f(sy0 + 50 * jk)} ${f(sx0)} ${f(sy0 + 8 * jk)} Z" fill="#A9844F"/>`;
+    pz += `<path d="M${f(sx0)} ${f(sy0)} L${f(W + 20)} ${f(sy0)} L${f(W + 20)} ${f(H + 10)} L${f(leva)} ${f(H + 10)} C${f(leva - 50 * jk)} ${f(sy0 + 214 * jk)} ${f(sx0 - 214 * jk)} ${f(sy0 + 50 * jk)} ${f(sx0)} ${f(sy0)} Z" fill="url(#ko-u-stul)"/>`;
+    pz += `<path d="M${f(sx0)} ${f(sy0)} L${f(W + 20)} ${f(sy0)}" stroke="#F0DDBA" stroke-width="${f(2.4 * jk)}"/>`;
+  } else {
+    const sx0 = 2;
+    pz += `<path d="M${f(sx0 + 18)} ${f(stulY)} L${f(W + 20)} ${f(stulY)} L${f(W + 20)} ${f(H + 10)} L${f(sx0 - 6)} ${f(H + 10)} C${f(sx0 - 10)} ${f(stulY + 30)} ${f(sx0)} ${f(stulY + 4)} ${f(sx0 + 18)} ${f(stulY)} Z" fill="url(#ko-u-stul)"/>`;
+    pz += `<path d="M${f(sx0 + 18)} ${f(stulY)} L${f(W + 20)} ${f(stulY)}" stroke="#F0DDBA" stroke-width="2"/>`;
+  }
 
   /* ——— jádro ——— */
   let j = "";
-  let us: ReturnType<typeof ustredna>;
+  const us = ustredna(o.linky, zavreno, o.cedulka ?? ["zavřeno"]);
   let stroj: ReturnType<typeof psaciStroj>;
   let kn: ReturnType<typeof kniha> | null = null;
-  let drzeny: ReturnType<typeof hrnek>;
-  let kdoPos: { x: number; y: number; v: number }, buPos: { x: number; y: number; v: number };
-  let kach: { x: number; y: number; velikost: number };
   let ced: { hak: Bod; velikost: number } | null = null;
+  let kach: { x: number; y: number; velikost: number };
   if (siroka) {
-    j += podlozka(520, 724, 1);
-    us = ustredna(880, 160, 370, 420, otevreno);
-    j += us.svg;
-    drzeny = hrnek({ id: "ko-uh", x: 852, y: 566, s: 0.86, rot: -158, uhel: 62, nadhled: 72 });
-    kdoPos = { x: 716, y: 494, v: 136 };
-    buPos = { x: 890, y: 500, v: 128 };
-    kn = kniha(912, 712, 1.08);
-    ced = { hak: [1066, 584], velikost: 112 };
-    stroj = psaciStroj(1236, 646, 1);
-    kach = { x: 1374, y: 606, velikost: 112 };
+    const knX = 560 - roz * 160, stX = 1372 + roz * 200;
+    j += podlozka(440 - roz * 160, 750, 0.9);
+    kn = kniha(knX, 716, 0.98);
+    /* Cedulka stojí na hřbetu knihy a kolébá se, zatímco listuje */
+    ced = { hak: [knX + 119 * 0.98, 716 + 22 * 0.98], velikost: 96 };
+    stroj = psaciStroj(stX, 700, 0.86);
+    kach = { x: stX + 112 * 0.86, y: 700 - 46, velikost: 98 };
   } else {
-    us = ustredna(0, 0, 370, 420, otevreno);
-    drzeny = hrnek({ id: "ko-uh", x: 92, y: 752, s: 0.6, rot: -164, uhel: 62, nadhled: 72 });
-    kdoPos = { x: 14, y: 712, v: 92 };
-    buPos = { x: 112, y: 712, v: 88 };
-    stroj = psaciStroj(186, 752, 0.46);
-    kach = { x: 244, y: 706, velikost: 62 };
+    const xr = naUs([U.w + 34, 0])[0];
+    const sm = Math.max(0.26, Math.min((W - xr - 4) / 340, ((H - panel.dolni) * 0.5) / 300));
+    const sx = xr + 38 * sm, sy = H - 6 - 186 * sm;
+    stroj = psaciStroj(sx, sy, sm);
+    kach = { x: sx + 112 * sm, y: sy - 52 * sm, velikost: 112 * sm };
   }
-  const UM = siroka ? 1 : 0.54;
-  const UO: Bod = siroka ? [0, 0] : [92, 548];
-  const naUs = (p: Bod): Bod => [UO[0] + p[0] * UM, UO[1] + p[1] * UM];
-  if (!siroka) j += `<g transform="translate(${UO[0]} ${UO[1]}) scale(${UM})">${us.svg}</g>`;
-  const linka = us.linky[AKTIVNI];
-  const kladkaJ = naUs(linka.kladka);
-  /* zavřeno: provázek linky 二 končí u hrnku v kolébce, nikdo ho nedrží */
-  const pataJ = otevreno ? drzeny.naObraz(0, 76) : naUs([linka.cx + 6, linka.cy - 6]);
-
-  if (otevreno) {
-    /* aktivní linka od kladky dolů k drženému hrnku */
-    const sestup = provazek(prohnuty(kladkaJ, pataJ, siroka ? 6 : 4), siroka ? 2.2 : 1.6, siroka ? 3.2 : 2.4, 0);
-    j += provazekSvg(sestup, "ko-u-sestup", siroka ? 3.2 : 2.4);
-    j += drzeny.svg;
-    j += kami(kdo, kdoPos.x, kdoPos.y, kdoPos.v, "ko-u-kdo", 10);
-    j += kami("bublinka", buPos.x, buPos.y, buPos.v, "ko-u-bublinka", -9);
-  } else if (siroka) {
-    /* Bublinka kouká ze své hroudy na podložce — ořízne ji oblouk dvířek */
-    j += `<defs><clipPath id="ko-u-dvirka"><path d="M626 806 C624 788 632 780 642 780 C652 780 660 788 658 806 Z"/></clipPath></defs>
-      <g clip-path="url(#ko-u-dvirka)"><g class="ko-u-vykuk">${kami("bublinka", 619, 776, 46)}</g></g>`;
-  } else {
-    j += kami("bublinka", buPos.x, buPos.y, buPos.v, "ko-u-bublinka", -6);
-  }
+  j += `<g class="ko-us-deska" transform="translate(${f(UO[0])} ${f(UO[1])}) scale(${f4(UM)})">${us.svg}</g>`;
   if (kn && ced) {
     j += kn.svg;
-    j += `<path d="M1150 790 L1150 610 Q1150 584 1124 584 L${ced.hak[0]} ${ced.hak[1]}" stroke="#8C6A24" stroke-width="4" fill="none" stroke-linecap="round"/>`;
-    j += `<g class="ko-u-cedulka" transform="translate(${ced.hak[0]} ${ced.hak[1]}) rotate(${otevreno ? 24 : 0})">${kami("cedulka", -ced.velikost / 2, -30, ced.velikost)}</g>`;
+    /* Cedulka sem při hovoru skočí z okénka 四 — do té doby je skrytá; nohy má v bodě háku */
+    j += `<g class="ko-u-cedulka" style="display:none" transform="translate(${f(ced.hak[0])} ${f(ced.hak[1])})">${kami("cedulka", -ced.velikost / 2, -ced.velikost * (141 / 180), ced.velikost)}</g>`;
   }
-  if (siroka) j += kafe(1196, 872, 0.9, otevreno);
+  if (siroka) j += kafe(1290, 878, 0.82, otevreno);
   j += stroj.svg;
-  /* zavřeno: Kachlík spí rovnou na klávesách */
-  const [spiX, spiY] = stroj.klavesy[16];
-  const kachPoz: Bod = otevreno ? [kach.x, kach.y] : [spiX - kach.velikost * 0.5, spiY - kach.velikost * 0.86];
-  j += `<g class="ko-u-kachlik${otevreno ? "" : " spi"}" transform="translate(${f(kachPoz[0])} ${f(kachPoz[1])})">${kami("kachlik", 0, 0, kach.velikost)}</g>`;
+  /* Kachlík u stroje — skočí sem z okénka 六 */
+  j += `<g class="ko-u-kachlik" style="display:none" transform="translate(${f(kach.x)} ${f(kach.y)})">${kami("kachlik", 0, 0, kach.velikost)}</g>`;
 
-  const jadro = `<g class="ko-u-jadro" transform="translate(${f(jx)} ${f(jy)}) scale(${f(jk)})">${j}</g>`;
+  const jadro = `<g class="ko-u-jadro" transform="translate(${f(jx)} ${f(jy)}) scale(${f4(jk)})">${j}</g>`;
 
-  /* ——— provázky od okna pod stropem ke kladkám (ve scéně) ——— */
+  /* ——— provázky od okna pod stropem ke kladkám na římse (ve scéně, za ústřednou) ——— */
   let prov = "";
   let vstup: Bod = [0, 0];
-  const w0 = siroka ? 5.6 : 3.4, w1 = siroka ? 1.6 : 1.2;
-  us.linky.forEach((l) => {
-    const cil = S(naUs(l.kladka));
-    const start: Bod = siroka ? [W - 1600 * jk + (520 + l.k * 122) * jk, -14] : [W + 14, S([0, 536])[1] + l.k * Math.max(22 * jk, (H - panel.dolni) * 0.07)];
-    if (l.k === AKTIVNI) vstup = start;
-    const p = provazek(prohnuty(start, cil, siroka ? 10 : 4), w0, w1, siroka ? 1.9 : 1.4);
-    prov += provazekSvg(p, l.k === AKTIVNI ? "ko-u-aktivni" : "", w0);
+  const w0 = siroka ? 5.6 : 2.6, w1 = siroka ? 1.6 : 1.2;
+  us.kladky.forEach((kl, i) => {
+    const cil = SU([kl[0], kl[1] - 7]);
+    /* úzké: provázky přicházejí shora zpod panelu, vějířem */
+    const start: Bod = siroka
+      ? [W - 1600 * jk + (520 + i * 122) * jk, -14]
+      : [cil[0] + (i - 4) * 9, panel.dolni - 8];
+    if (i === AKTIVNI) vstup = start;
+    const p = provazek(prohnuty(start, cil, siroka ? 10 : 3), w0, w1, siroka ? 1.9 : 1.4);
+    prov += provazekSvg(p, i === AKTIVNI ? "ko-u-aktivni" : "", w0);
   });
 
-  /* ——— zavřeno: tma, světlo oknem (den/měsíc), kontrolka linky a cedulka nad ní ——— */
+  /* ——— linky a kolíky ve scéně ——— */
+  const linky: LinkaBody[] = us.linky.map((l) => {
+    const [a, b] = SU([l.bunkaU[0], l.bunkaU[1]]);
+    const [c, d] = SU([l.bunkaU[2], l.bunkaU[3]]);
+    return {
+      k: l.k,
+      id: l.id,
+      jack: SU(l.jackU),
+      bunka: [a, b, c, d],
+      hlava: SU(l.hlavaU),
+      lampa: SU(l.lampaU),
+      nika: SU(l.nikaU),
+      oko: l.oko,
+      ucho: l.ucho,
+      delka: l.delka,
+      nohy: l.nohy,
+      kamiJ: { x: UO[0] + l.kamiU.x * UM, y: UO[1] + l.kamiU.y * UM, v: l.kamiU.v * UM },
+    };
+  });
+  const koliky: KolikBody[] = DIRY.map((x, i) => ({ i, dira: SU([x, U.diraY]), bily: i % 2 === 1 }));
+  const [p0x, p0y] = SU([-18, U.policeZ - 52]);
+  const [p1x, p1y] = SU([U.w + 18, U.dno]);
+
+  /* ——— zavřeno: tma, světlo oknem (den/měsíc) ——— */
   let tma = "";
   if (zavreno) {
-    const sviti = S(naUs([linka.cx + 40, linka.cy - 32]));
-    const [ux, uy] = S(naUs([0, 0]));
-    const usM = jk * UM;
     /* u okna (vlevo, za zády) zůstává světleji, ať se čte text; k ústředně tmavne */
     tma += `<rect class="ko-u-tma" x="-10" y="-10" width="${f(W + 20)}" height="${f(H + 20)}" fill="url(#ko-u-tma-g)"/>`;
     tma += `<rect class="ko-u-tma-noc" x="-10" y="-10" width="${f(W + 20)}" height="${f(H + 20)}"/>`;
     tma += `<path class="ko-u-paprsek ko-u-paprsek-den" d="M0 0 L${f(W * 0.46)} 0 L${f(W * 0.62)} ${f(H)} L0 ${f(H)} Z"/>`;
     tma += `<path class="ko-u-paprsek ko-u-paprsek-noc" d="M0 0 L${f(W * 0.46)} 0 L${f(W * 0.62)} ${f(H)} L0 ${f(H)} Z"/>`;
-    tma += `<circle class="ko-u-kontrolka-zare" cx="${f(sviti[0])}" cy="${f(sviti[1])}" r="${f(26 * jk * UM)}" fill="url(#ko-u-zare)"/>`;
-    tma += `<g transform="translate(${f(ux)} ${f(uy)}) scale(${f(usM)})">${cedulkaZavreno(siroka ? 1065 : 185, siroka ? 194 : 34, siroka ? 300 : 140, o.cedulka ?? ["zavřeno"])}</g>`;
-    const [zx, zy] = S([kachPoz[0] + kach.velikost * 0.7, kachPoz[1] + kach.velikost * 0.1]);
-    const zz = 15 * jk * (siroka ? 1 : 0.7);
-    tma += `<g class="ko-zzz ko-u-zzz ko-ruka-tucne" font-size="${f(zz)}"><text x="${f(zx)}" y="${f(zy)}">z</text><text x="${f(zx + zz * 0.7)}" y="${f(zy - zz * 0.9)}" font-size="${f(zz * 1.25)}">z</text><text x="${f(zx + zz * 1.5)}" y="${f(zy - zz * 2.1)}" font-size="${f(zz * 1.55)}">Z</text></g>`;
+  }
+  /* ——— světla nad tmou: okénka a kontrolky spojených linek, zzz ——— */
+  let svetla = "";
+  linky.forEach((l) => {
+    svetla += `<ellipse class="ko-us-zare-nika" data-l="${l.k}" cx="${f(l.nika[0])}" cy="${f(l.nika[1])}" rx="${f(78 * m)}" ry="${f(70 * m)}" fill="url(#ko-us-zare-nika)"/>`;
+    svetla += `<circle class="ko-us-zare" data-l="${l.k}" cx="${f(l.lampa[0])}" cy="${f(l.lampa[1])}" r="${f(30 * m)}" fill="url(#ko-us-zare)"/>`;
+  });
+  if (zavreno) {
+    const sl = linky[AKTIVNI];
+    const [zx, zy] = [sl.hlava[0] - 36 * m, sl.hlava[1] + 30 * m];
+    const zz = Math.max(9, 17 * m);
+    svetla += `<g class="ko-zzz ko-u-zzz ko-ruka-tucne" font-size="${f(zz)}"><text x="${f(zx)}" y="${f(zy)}">z</text><text x="${f(zx + zz * 0.7)}" y="${f(zy - zz * 0.9)}" font-size="${f(zz * 1.25)}">z</text><text x="${f(zx + zz * 1.5)}" y="${f(zy - zz * 2.1)}" font-size="${f(zz * 1.55)}">Z</text></g>`;
   }
 
   const body: UvnitrBody = {
     zavreno,
     jadro: { ox: jx, oy: jy, k: jk },
+    us: { ox: UO[0], oy: UO[1], m: UM },
+    m,
+    linky,
+    koliky,
+    police: [p0x, p0y, p1x, p1y],
     vstup,
-    kladka: S(kladkaJ),
-    pata: S(pataJ),
-    ohnisko: otevreno ? S(drzeny.naObraz(0, 38)) : S(naUs([linka.cx, linka.cy])),
-    /* Bubliny se nesmí překrýt: Kapčina vlevo nahoře, Bublinčina vpravo níž */
-    hlavaKdo: S(siroka ? [kdoPos.x + kdoPos.v * 0.12, kdoPos.y - kdoPos.v * 0.06] : [kdoPos.x + kdoPos.v * 0.5, kdoPos.y - kdoPos.v * 0.1]),
-    hlavaBublinka: zavreno && siroka ? S([642, 782]) : S(siroka ? [buPos.x + buPos.v * 1.02, buPos.y + buPos.v * 0.42] : [buPos.x + buPos.v * 1.6, buPos.y + buPos.v * 0.62]),
+    kladka: SU([us.kladky[AKTIVNI][0], us.kladky[AKTIVNI][1] - 7]),
+    ohnisko: linky[AKTIVNI].nika,
     cedulka: ced,
     kniha: kn ? { hrbet: kn.hrbet, sirka: kn.sirka, zdvih: kn.zdvih } : null,
     kachlik: kach,
     klavesy: stroj.klavesy,
     w0,
     w1,
+    sn: Math.max(2.2, 5.4 * m),
   };
-  /* Pozadí, jádro, pak provázky (jsou nejblíž oku — vedou pod stropem nad hlavou) */
-  return { svg: `${pz}${jadro}<g class="ko-u-provazky">${prov}</g>${tma}`, body };
+  /* Pozadí, provázky (z okna ke kladkám, ústředna je zakryje), jádro; kolíky a šňůry
+     přidá skript do .ko-us-dyn, pak tma a světla, která svítí i do tmy */
+  return {
+    svg: `${pz}<g class="ko-u-provazky">${prov}</g>${jadro}<g class="ko-us-dyn"></g>${tma}<g class="ko-us-svetla">${svetla}</g>`,
+    body,
+  };
+}
+
+/** Přechody: dub, mosaz, lak, glazury hrnečků (podle linky), sklo kontrolek, záře */
+export function uvnitrDefs() {
+  let s = UVNITR_DEFS;
+  for (let k = 0; k < 9; k++) {
+    const gl = GLAZURY[(k * 5 + 2) % GLAZURY.length];
+    s += `<linearGradient id="ko-us-h${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${gl.svetlo}"/><stop offset="0.45" stop-color="${gl.stred}"/><stop offset="1" stop-color="${gl.stin}"/></linearGradient>`;
+  }
+  return s;
 }
 
 export const UVNITR_DEFS = `
   <linearGradient id="ko-u-zed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5F3EE"/><stop offset="1" stop-color="#E4E0D6"/></linearGradient>
   <linearGradient id="ko-u-dub" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${DUB.svetlo}"/><stop offset="0.55" stop-color="${DUB.stred}"/><stop offset="1" stop-color="${DUB.stin}"/></linearGradient>
-  <linearGradient id="ko-u-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6EFE2"/><stop offset="1" stop-color="#E9DCC6"/></linearGradient>
+  <linearGradient id="ko-us-rimsa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${DUB.svetlo}"/><stop offset="1" stop-color="${DUB.stin}"/></linearGradient>
+  <linearGradient id="ko-us-police" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${DUB.stred}"/><stop offset="1" stop-color="${DUB.svetlo}"/></linearGradient>
+  <linearGradient id="ko-us-lak" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4A3426"/><stop offset="0.5" stop-color="#33241A"/><stop offset="1" stop-color="#241812"/></linearGradient>
+  <linearGradient id="ko-us-nika" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBEBCB"/><stop offset="0.7" stop-color="#EFD3A4"/><stop offset="1" stop-color="#D9B784"/></linearGradient>
+  <linearGradient id="ko-us-mosaz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6DE94"/><stop offset="0.5" stop-color="#C99E48"/><stop offset="1" stop-color="#8C6A28"/></linearGradient>
+  <radialGradient id="ko-us-mosaz-r" cx="0.38" cy="0.32" r="0.72"><stop offset="0" stop-color="#FBEBB0"/><stop offset="0.45" stop-color="#D2A64A"/><stop offset="1" stop-color="#7E5E22"/></radialGradient>
+  <linearGradient id="ko-us-zavazi" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8C6A28"/><stop offset="0.35" stop-color="#F6DE94"/><stop offset="1" stop-color="#7E5E22"/></linearGradient>
+  <linearGradient id="ko-us-sterbina" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#140E0B"/><stop offset="0.5" stop-color="#2E211A"/><stop offset="1" stop-color="#140E0B"/></linearGradient>
+  <linearGradient id="ko-us-kolik-c" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E07A5C"/><stop offset="0.45" stop-color="#B84A2B"/><stop offset="1" stop-color="#6E2412"/></linearGradient>
+  <linearGradient id="ko-us-kolik-b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#F1E9DA"/><stop offset="1" stop-color="#BFB29C"/></linearGradient>
+  <radialGradient id="ko-us-cepicka-c" cx="0.38" cy="0.34" r="0.75"><stop offset="0" stop-color="#E88A6A"/><stop offset="0.55" stop-color="#B84A2B"/><stop offset="1" stop-color="#6E2412"/></radialGradient>
+  <radialGradient id="ko-us-cepicka-b" cx="0.38" cy="0.34" r="0.75"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.6" stop-color="#EFE6D4"/><stop offset="1" stop-color="#B4A68E"/></radialGradient>
+  <radialGradient id="ko-us-sklo-vyp" cx="0.4" cy="0.36" r="0.7"><stop offset="0" stop-color="#9A6A3A"/><stop offset="1" stop-color="#4A2C14"/></radialGradient>
+  <radialGradient id="ko-us-sklo-zap" cx="0.4" cy="0.36" r="0.7"><stop offset="0" stop-color="#FFF6D2"/><stop offset="0.45" stop-color="#FFC45E"/><stop offset="1" stop-color="#E5761E"/></radialGradient>
+  <radialGradient id="ko-us-zare"><stop offset="0" stop-color="#FFD58A" stop-opacity="0.95"/><stop offset="0.3" stop-color="#FFB14A" stop-opacity="0.45"/><stop offset="1" stop-color="#FF9F2E" stop-opacity="0"/></radialGradient>
+  <radialGradient id="ko-us-zare-nika"><stop offset="0" stop-color="#FFE2A8" stop-opacity="0.75"/><stop offset="0.55" stop-color="#FFC878" stop-opacity="0.32"/><stop offset="1" stop-color="#FFB45A" stop-opacity="0"/></radialGradient>
   <linearGradient id="ko-u-stul" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFAE82"/><stop offset="0.35" stop-color="#DDBE92"/><stop offset="1" stop-color="#E6CBA2"/></linearGradient>
   <linearGradient id="ko-u-stroj" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B9DCC6"/><stop offset="1" stop-color="#86B49C"/></linearGradient>
   <radialGradient id="ko-u-okno" cx="0.45" cy="0.4" r="0.7"><stop offset="0" stop-color="#FFF1CC" stop-opacity="0.75"/><stop offset="1" stop-color="#FFF1CC" stop-opacity="0"/></radialGradient>
   <linearGradient id="ko-u-paprsek-den" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#FFF1CC" stop-opacity="0.5"/><stop offset="1" stop-color="#FFF1CC" stop-opacity="0"/></linearGradient>
   <linearGradient id="ko-u-paprsek-noc" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#C9D8FF" stop-opacity="0.42"/><stop offset="1" stop-color="#C9D8FF" stop-opacity="0"/></linearGradient>
-  <linearGradient id="ko-u-tma-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0B1030" stop-opacity="0.1"/><stop offset="0.4" stop-color="#0B1030" stop-opacity="0.18"/><stop offset="0.62" stop-color="#0B1030" stop-opacity="0.5"/><stop offset="1" stop-color="#0B1030" stop-opacity="0.62"/></linearGradient>
-  <radialGradient id="ko-u-zare"><stop offset="0" stop-color="#FFC56E" stop-opacity="0.9"/><stop offset="0.4" stop-color="#FF9F2E" stop-opacity="0.35"/><stop offset="1" stop-color="#FF9F2E" stop-opacity="0"/></radialGradient>`;
+  <linearGradient id="ko-u-tma-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0B1030" stop-opacity="0.1"/><stop offset="0.4" stop-color="#0B1030" stop-opacity="0.18"/><stop offset="0.62" stop-color="#0B1030" stop-opacity="0.5"/><stop offset="1" stop-color="#0B1030" stop-opacity="0.62"/></linearGradient>`;

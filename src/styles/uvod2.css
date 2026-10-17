@@ -585,8 +585,9 @@
     mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
   }
   .prohlidka-mapa { padding-top: 14px; gap: 3px; }
-  .prohlidka-mapa a { padding: 4px 8px; font-size: 0; gap: 0; }
-  .prohlidka-mapa a span { font-size: 16px; }
+  /* na telefonu jen české názvy — znaky by nikdo nepřečetl */
+  .prohlidka-mapa a { padding: 4px 8px; font-size: 13px; gap: 0; }
+  .prohlidka-mapa a span { display: none; }
   .prohlidka-karty { position: relative; z-index: 2; gap: 24vh; padding: 4vh 0 30vh; }
   .stanice { scroll-margin-top: calc(52svh + 16px); }
   .stanice:nth-child(n) { transform: none; }

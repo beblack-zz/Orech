@@ -214,7 +214,7 @@ const kamiVKresbe: PostavaId[] = ["vazicka", "hlinka", "pecinka", "stripek", "ce
                   <span class="kus-glazura">{k.glaze}</span>
                   <span class="kus-cena">{k.price}</span>
                 </button>
-                <a class="kus-mail" href={mail(`Obchod: ${k.name}`, `Ahoj, mám zájem o ${k.name} (${k.glaze}, ${k.price}). Je ještě k mání?`)} aria-label={`Napsat si o ${k.name}`}>Napsat si o něj</a>
+                <a class="kus-mail" href={mail(`Obchod: ${k.name}`, `Ahoj, mám zájem o ${k.name} (${k.glaze}, ${k.price}). Je ještě k mání?`)} aria-label={`Mám zájem: ${k.name}`}>Mám zájem</a>
               </li>
             );
           })}

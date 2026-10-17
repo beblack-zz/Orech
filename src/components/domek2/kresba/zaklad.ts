@@ -26,6 +26,13 @@ export const kruh = (cx: number, cy: number, r: number, atributy = "") => `<circ
 export const elipsa = (cx: number, cy: number, rx: number, ry: number, atributy = "") =>
   `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx)}" ry="${f(ry)}" ${atributy}/>`;
 
+/** Hodně obdélníků stejné barvy jako jedna cesta */
+export const obdelniky = (r: [number, number, number, number][], atributy: string) =>
+  r.length ? `<path d="${r.map(([x, y, w, h]) => `M${f(x)} ${f(y)}h${f(w)}v${f(h)}h${f(-w)}z`).join("")}" ${atributy}/>` : "";
+
+/** Tečky jako nulové úsečky s kulatým koncem — průměr a barvu jim dá stroke cesty */
+export const tecky = (b: Bod[]) => b.map(([x, y]) => `M${f(x)} ${f(y)}h0`).join("");
+
 /** Bod na úsečce A→B v poměru t */
 export const mezi = (a: Bod, b: Bod, t: number): Bod => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 

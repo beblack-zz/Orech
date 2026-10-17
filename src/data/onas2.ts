@@ -4,8 +4,9 @@ import { veDnySlovy, otevrenoSlovy } from "./rezervace";
 /**
  * Doplňky pro /o-nas. Lidé, milníky a texty o dílně jsou v uvod2.ts
  * (lide, milniky, oDilne) — tady je jen to, co přidal nový vzhled:
- * svitek s příběhem dílny, zlato na kintsugi, co říká parta ke kreslenému
- * ensō a pár vět ze stránky O nás, které v uvod2.ts nejsou.
+ * svitek s příběhem dílny, co říká Střípek u kintsugi, kdo si přisedne
+ * ke stolu, co říká parta ke kreslenému ensō
+ * a pár vět ze stránky O nás, které v uvod2.ts nejsou.
  *
  * Pozor: věty ze staré stránky jsou tu jako kopie. Když se tam změní,
  * musí se změnit i tady.
@@ -29,7 +30,7 @@ export const oNasTexty = {
  * tady je jen kdo z party u toho byl a co k tomu říká.
  *
  * Na stránce je místo svitku teď rok dílny (onas2/Rok.astro) — z téhle
- * tabulky bere denní dobu nad každým měsícem a id šupinky zlata;
+ * tabulky bere denní dobu nad každým měsícem;
  * repliky a Svitek.astro zůstaly pro případ, že by se svitek vracel.
  */
 export interface Scena {
@@ -39,7 +40,7 @@ export interface Scena {
   replika: string;
   /** Denní doba nad touhle scénou */
   hodina: number;
-  /** Id šupinky zlata, která se ve scéně schovává */
+  /** Id šupinky zlata, která se ve scéně schovávala (už jen Svitek.astro) */
   zlato: string;
 }
 
@@ -55,22 +56,28 @@ export const sceny: Scena[] = [
   { m: 0, kdo: "stripek", replika: "A pokračování příště. Klidně s chybami.", hodina: 18.3, zlato: "ted" },
 ];
 
-/* ——— Zlato na kintsugi ———
- *
- * Kintsugi potřebuje zlato. V každém měsíci roku dílny (onas2/Rok.astro)
- * je schovaná jedna šupinka; kdo je najde všechny, může Střípek zalít misku dozlatova
- * (klíč onas2-zlato). Nápověda stojí v dialogu, dokud šupinka chybí.
+/* ——— Kintsugi ———
+ * Zlato leží na šátku kolem misky (onas2/Kintsugi.astro): co šupinka, to
+ * jedna spára. Co k tomu řekne Střípek (scripts/onas2/kintsugi.ts).
  */
-export const zlato: { id: string; nazev: string; skrys: string }[] = [
-  { id: "unor", nazev: "Únorová šupinka", skrys: "V únoru se třpytí tam, kde teklo." },
-  { id: "brezen", nazev: "Březnová šupinka", skrys: "V březnu spadla do kbelíku s barvou." },
-  { id: "duben", nazev: "Dubnová šupinka", skrys: "V dubnu se zakutálela pod stůl z kanceláře." },
-  { id: "kveten", nazev: "Květnová šupinka", skrys: "V květnu zůstala ve skříňce." },
-  { id: "cerven", nazev: "Červnová šupinka", skrys: "V červnu se schovává v knihovně." },
-  { id: "cervenec", nazev: "Červencová šupinka", skrys: "V červenci jiskří u zásuvky." },
-  { id: "srpen", nazev: "Srpnová šupinka", skrys: "V srpnu leží mezi zkušebními glazurami." },
-  { id: "zari", nazev: "Zářijová šupinka", skrys: "V září ji někdo přinesl na botě. Sleduj šlápoty." },
-  { id: "ted", nazev: "Dnešní šupinka", skrys: "Dnes leží na regálu s hotovými kusy." },
+export const kintsugiReakce = {
+  prvni: "Lechtá to. Ale hezky. Pokračuj.",
+  pulka: "Už se v tom zlatě skoro vidím.",
+  hotovo: "Zlato! Teď jsem nejhezčí miska v dílně. Teda já jsem hrnek. Ale i tak.",
+  zaMe: "Za tebe? No dobře. Ale chyby se nejlíp spravují vlastníma rukama.",
+  znovu: "Zase rozbitá? Nevadí. Aspoň bude víc zlata.",
+};
+
+/* ——— Ichi-go ichi-e ———
+ * Stůl v dílně (onas2/Spolu.astro): kolik je míst na hodině, tolik židlí.
+ * Kdo si přisedne, řekne svoje a cena za člověka se přepočítá podle
+ * jízdného z rezervace.ts (scripts/onas2/spolu.ts).
+ */
+export const spoluMista: { kdo: PostavaId; text: string }[] = [
+  { kdo: "hlinka", text: "Můžu si přisednout? Nesu hlínu pro všechny." },
+  { kdo: "bublinka", text: "Nikoho tu neznám. Tak aspoň někoho poznám." },
+  { kdo: "kapka", text: "Sednu si k vodě. Kdyby si někdo potřeboval namočit ruce." },
+  { kdo: "pecinka", text: "U stolu je teplo. To budu asi já." },
 ];
 
 /* ——— Ensō ———

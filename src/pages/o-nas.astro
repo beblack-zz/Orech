@@ -8,11 +8,12 @@
  *   svítání…   — rok dílny ve skutečné místnosti: měsíc po měsíci
  *                od února až do teď (kresba z Domku 2)
  *   západ      — Jiřík a Renča, dva svitky kakejiku
- *   soumrak    — méně dokonalosti, víc radosti: nakresli si ensō
- *   noc        — kintsugi, skupinové foto party a všichni jste vítáni
+ *   soumrak    — tři hodnoty dílny, každá s papírem na hraní:
+ *                méně dokonalosti (ensō), každá chyba má svůj tvar
+ *                (kintsugi) a čas spolu (ichi-go ichi-e, stůl s ceníkem)
+ *   noc        — skupinové foto party a všichni jste vítáni
  *
- * V roce se schovává devět šupinek zlata, kterými Střípek zalije
- * misku (sbírka v hlavičce). Texty jsou ze stávající stránky O nás
+ * Texty jsou ze stávající stránky O nás
  * (uvod2.ts, onas2.ts), milníky z uvod2.ts, termíny z kurzy.ts.
  */
 import "../styles/pisma.css";
@@ -36,7 +37,7 @@ import KresliEnso from "../components/onas2/KresliEnso.astro";
 import Kintsugi from "../components/onas2/Kintsugi.astro";
 import Foto from "../components/onas2/Foto.astro";
 import Vitani from "../components/onas2/Vitani.astro";
-import ZlatoDialog from "../components/onas2/ZlatoDialog.astro";
+import Spolu from "../components/onas2/Spolu.astro";
 
 
 
@@ -50,7 +51,7 @@ import ZlatoDialog from "../components/onas2/ZlatoDialog.astro";
   <body class="p2 n2" data-stranka="o-nas-2">
     <a class="preskocit" href="#rok">Přeskočit na rok dílny</a>
     <Nebe />
-    <Hlavicka sber="zlato" />
+    <Hlavicka sber="zadny" />
     <TusSprite />
 
     <main>
@@ -59,12 +60,12 @@ import ZlatoDialog from "../components/onas2/ZlatoDialog.astro";
       <Rukopisy />
       <KresliEnso />
       <Kintsugi />
+      <Spolu />
       <Foto />
       <Vitani />
     </main>
 
     <Paticka />
-    <ZlatoDialog />
     <div class="oznameni" role="status" aria-live="polite"></div>
 
     <script>

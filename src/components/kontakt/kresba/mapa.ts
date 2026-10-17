@@ -7,7 +7,8 @@
  *
  * Cesta pěšky od zastávky Ořech, K Ovčínu je červenobílá šňůrka kōhaku —
  * stejná jako provázek z první obrazovky — s uzlíkem u zastávky a hrnkem
- * u brány. Kreslí se při buildu; skript (scripts/kontakt/kudy.ts) jen
+ * u brány. Do mapy přichází zleva (MAPA_PRIVOD): je to konec šňůry, která
+ * vede přes louku pod první obrazovkou (scripts/kontakt/snura.ts). Kreslí se při buildu; skript (scripts/kontakt/kudy.ts) jen
  * přibližuje mapu a nechá šňůrku jednou doběhnout.
  *
  * Popisky jsou dvojí: `ko-m-z1` pro celý Ořech, `ko-m-z2` pro přiblížené
@@ -31,6 +32,14 @@ export const MAPA_BLIZKO = {
   cy: ((STRED_BLIZKO[1] - MAPA.y0) / MAPA.h) * 100,
   s: 2,
 };
+
+/**
+ * Přívod: šňůra z louky (scripts/kontakt/snura.ts) vchází do mapy zleva
+ * a tady pokračuje k zastávce, odkud vede cesta pěšky. Body jdou v x
+ * jen doprava, ať skript najde, kde přívod protíná levý okraj rámečku
+ * (u přiblížené mapy je to jinde než u celé).
+ */
+export const MAPA_PRIVOD: MBod[] = [[-352, -122], [-310, -121], [-270, -119], [-238, -115], [-214, -108], [-198, -101], [-188, -97]];
 
 const P = (b: MBod) => `${f(b[0])} ${f(b[1])}`;
 const cara = (B: MBod[]) => `M${B.map(P).join("L")}`;
@@ -212,8 +221,8 @@ export function mapa(o: { id: string }) {
     s += `<g transform="translate(${bx} ${by}) scale(0.9)"><path d="M-9 4 C-9 -2 -4 -4 2 -3 L6 -9 L9 -8 L8 -4 C10 -2 9 2 7 3 L7 9 M-7 4 L-7 9 M-2 4 L-2 9 M4 4 L4 9" fill="#FFFFFF" stroke="#6E6258" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></g>`;
   }
 
-  /* ——— cesta pěšky: šňůrka kōhaku od zastávky k bráně ——— */
-  const cesta = cestaPesky;
+  /* ——— cesta pěšky: šňůrka kōhaku od okraje (přívod z louky) přes zastávku k bráně ——— */
+  const cesta = [...MAPA_PRIVOD, ...cestaPesky];
   /* maska, kterou skript nechá doběhnout od zastávky k bráně (pathLength 1 = celá cesta) */
   defs.push(`<mask id="${id}-odkryt" maskUnits="userSpaceOnUse" x="${x0}" y="${y0}" width="${w}" height="${h}"><path class="ko-m-odkryt" d="${cara(cesta)}" pathLength="1" stroke="#FFFFFF" stroke-width="30" fill="none" stroke-linecap="round" stroke-linejoin="round"/></mask>`);
   s += `<g class="ko-m-cesta" mask="url(#${id}-odkryt)">${snurka(cesta, 4.6)}</g>`;
@@ -251,7 +260,7 @@ export function mapa(o: { id: string }) {
   }
   /* uzlík u zastávky a malý Futatsu u brány na konci šňůrky */
   {
-    const [ax, ay] = cesta[0];
+    const [ax, ay] = cestaPesky[0];
     s += `<g transform="translate(${ax} ${ay})"><circle r="5.6" fill="#7E1F12"/><circle r="3.8" fill="#C4432B"/><path d="M-2 -1 L2 1.4" stroke="#FBF7EE" stroke-width="1.2"/></g>`;
     const [bx, by] = mista.brana;
     s += `<g transform="translate(${bx - 1} ${by + 1}) rotate(-12)"><path d="M-5 -6 L5 -6 L4 6 Q0 7.6 -4 6 Z" fill="#F4EDE0" stroke="#7A6A58" stroke-width="1.1"/><ellipse cx="0" cy="-6" rx="5" ry="1.8" fill="#E2D6C2" stroke="#7A6A58" stroke-width="0.9"/></g>`;

@@ -5,11 +5,15 @@
  *   venku   v trávě leží Futatsu otvorem k nám, z jeho paty vede provázek
  *           kōhaku přes údolí s Ořechem k zelenému domu z Luční; na plotě
  *           sedí ten, kdo má službu, s druhým hrnkem. Na provázku vrabci,
- *           visačky s otázkami a dopis na kladce.
+ *           visačky s otázkami, dopis 結び文 na kladce a o svátcích ozdoby;
+ *           drnká se jako na koto (struna.ts). Z téhož uzlu vede druhá
+ *           šňůra dolů přes louku s otázkami až do mapy na vývěsce.
  *   uvnitř  po zvednutí hrnku kamera vjede po provázku oknem do dílny
- *           k ústředně 交換台 — hrnek drží ten, kdo má službu, poslouchá
- *           i Bublinka, Cedulka listuje knihou odjezdů a Kachlík ťuká
- *           odkaz na rezervace, který pak jede po provázku zpátky.
+ *           k ústředně 交換台 s kolíky: linka 二 se spojí sama (Cedulka
+ *           listuje knihou, Kachlík ťuká odkaz na rezervace), ostatní
+ *           linky 一–九 propojí host a ozve se ten z party, komu patří.
+ *
+ * Telefon a údaje jsou na kartě 名刺 svázané uzlem mizuhiki.
  *
  * Kresby se skládají v prohlížeči podle velikosti okna, hodiny, ročního
  * období a toho, jestli je otevřeno (scripts/kontakt/scena.ts). Všechny
@@ -24,6 +28,9 @@ import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/kontakt.css";
 import "../styles/kontakt-dole.css";
+import "../styles/kontakt-ustredna.css";
+import "../styles/kontakt-ema.css";
+import "../styles/kontakt-ema-hra.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
@@ -34,12 +41,17 @@ import Otazky from "../components/kontakt/Otazky.astro";
 import { svitaniStyly } from "../components/domek2/kresba/svitani";
 import { kontakt, mapa, sezonaMesice } from "../data/uvod2";
 import { kdy, otazky } from "../data/dilna";
+import { telefonSlovy } from "../data/kontakt";
 import { parta, type PostavaId } from "../data/parta";
+import { musubiBumi } from "../components/kontakt/kresba/zaklad";
 
 const KAMI: PostavaId[] = ["kapka", "pecinka", "bublinka", "cedulka", "kachlik", "hlinka", "samotka", "stripek", "vazicka"];
 /** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška */
 const sezona = sezonaMesice(new Date().getMonth() + 1);
 const styly = svitaniStyly(".ko-venku");
+/* uzel awaji musubi z téže šňůrky kōhaku jako provázek — váže kartu 名刺 */
+const UZEL = "M18 60 C30 50 40 40 50 30 C58 22 52 8 42 8 C30 8 26 22 36 30 C46 38 60 42 70 30 C78 20 74 6 62 4 C50 2 44 16 52 24 C60 32 74 34 84 30 C94 26 98 12 88 8 C78 4 70 16 74 26 C80 40 92 50 104 60";
+const mizuhiki = `<path d="${UZEL}" fill="none" stroke="#5E160B" stroke-width="7.4" stroke-linecap="round" stroke-linejoin="round"/><path d="${UZEL}" fill="none" stroke="#B84A2B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="${UZEL}" fill="none" stroke="#FBF7EE" stroke-width="1.5" stroke-dasharray="2.2 3.4" stroke-linecap="round"/>`;
 const data = {
   otazky: otazky.map((o) => ({ q: o.q, a: o.a, kdo: o.kdo })),
   jmena: Object.fromEntries(parta.map((p) => [p.id, p.name])),
@@ -74,26 +86,34 @@ const data = {
           <p class="stitek"><span lang="ja">連絡</span> · kontakt</p>
           <h1 id="ko-nadpis" class="ko-nadpis">Zavolej, napiš, <em>nebo přijď.</em></h1>
 
-          <div class="ko-telefon">
-            <p class="ko-popisek">Telefon<span class="ko-jen-venku"> · zvedni hrnek</span><span class="ko-jen-uvnitr"> · linka <span lang="ja">二</span></span></p>
-            <a class="ko-cislo" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
-            <p class="ko-pozn">Tudy dáváme přístup k rezervacím: nadiktuješ e-mail a odkaz ti přijde. <a href="/rezervace">Odkaz už máš? Vyber hodinu</a></p>
-          </div>
+          <div class="ko-meishi">
+            <svg class="ko-meishi-mizuhiki" viewBox="0 0 120 64" aria-hidden="true" focusable="false"><Fragment set:html={mizuhiki} /></svg>
+            <p class="ko-meishi-tate" lang="ja" aria-hidden="true"><span class="ko-meishi-tate-text">陶芸工房</span><span class="ko-meishi-hanko">二</span></p>
+            <div class="ko-telefon">
+              <p class="ko-popisek">Telefon<span class="ko-jen-venku"> · zvedni hrnek</span><span class="ko-jen-uvnitr"> · linka <span lang="ja">二</span></span></p>
+              <a class="ko-cislo" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+              <p class="ko-pozn">Tudy dáváme přístup k rezervacím: nadiktuješ e-mail a odkaz ti přijde. <a href="/rezervace">Odkaz už máš? Vyber hodinu</a></p>
+            </div>
 
-          <dl class="ko-udaje">
-            <div>
-              <dt>E-mail</dt>
-              <dd><a href={`mailto:${kontakt.email}`}>{kontakt.email}</a></dd>
-            </div>
-            <div>
-              <dt>Adresa</dt>
-              <dd><a href={mapa} target="_blank" rel="noopener">{kontakt.ulice}, {kontakt.obec}</a></dd>
-            </div>
-            <div class="ko-udaj-kdy">
-              <dt>Otevřeno</dt>
-              <dd>{kdy.dny.replace("úterý a pátek", "út a pá")} {kdy.hodiny} <span class="ko-stav" hidden></span></dd>
-            </div>
-          </dl>
+            <dl class="ko-udaje">
+              <div>
+                <dt>E-mail</dt>
+                <dd><a href={`mailto:${kontakt.email}`}>{kontakt.email}</a></dd>
+              </div>
+              <div>
+                <dt>Adresa</dt>
+                <dd><a href={mapa} target="_blank" rel="noopener">{kontakt.ulice}, {kontakt.obec}</a></dd>
+              </div>
+              <div class="ko-udaj-kdy">
+                <dt>Telefon zvedáme</dt>
+                <dd>{telefonSlovy} <span class="ko-stav ko-stav-telefon" hidden></span></dd>
+              </div>
+              <div class="ko-udaj-kdy">
+                <dt>Dílna otevřená</dt>
+                <dd>{kdy.dny.replace("úterý a pátek", "út a pá")} {kdy.hodiny} <span class="ko-stav ko-stav-dilna" hidden></span></dd>
+              </div>
+            </dl>
+          </div>
 
           <div class="ko-tlacitka">
             <a class="tlacitko ko-zvednout ko-jen-venku" href={`tel:${kontakt.telefonOdkaz}`}>Zvednout hrnek</a>
@@ -134,6 +154,7 @@ const data = {
             <button type="submit" value="zavrit" class="tlacitko tlacitko-obrys">Zavřít</button>
           </div>
         </form>
+        <svg class="ko-uzel-dopisu" viewBox="-60 -40 120 80" aria-hidden="true" focusable="false"><Fragment set:html={musubiBumi()} /></svg>
       </dialog>
 
 

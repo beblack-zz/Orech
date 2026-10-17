@@ -68,6 +68,11 @@
  * a zimní noc v kulatém okně, kde se na ni slétají vrabci a přijde kočka.
  * Pod nimi je Na schovávanou (SamotkaSchovka.astro): malá Šamotka
  * s cizí miskou na zádech a žárem pod sebou.
+ *
+ * Na konci stránky je šest návrhů mailů k rezervacím v noční edici
+ * (marcel/Maily.astro, HTML z lib/rezervace/vzhled-mailu.ts): vítej,
+ * přihlášení odkazem a kódem, potvrzení adresy, připomínka den předem
+ * a zrušená jízdenka.
  */
 import "../styles/pisma.css";
 import Hlava from "../components/Hlava.astro";
@@ -105,6 +110,7 @@ import Kami from "../components/parta2/Kami.astro";
 import Louka from "../components/parta2/Louka.astro";
 import Lucernicka from "../components/parta2/Lucernicka.astro";
 import IgPrispevek from "../components/marcel/IgPrispevek.astro";
+import Maily from "../components/marcel/Maily.astro";
 import { parta } from "../data/parta";
 import type { PostavaId } from "../data/parta";
 
@@ -470,6 +476,16 @@ const styly: Record<PostavaId, string> = {
           <p class="stitek">Instagram · příspěvek 4 : 5</p>
           <h2 id="mc-instagram" class="nadpis-2">Pecinka na Instagramu</h2>
           <IgPrispevek />
+        </div>
+      </section>
+
+      {/* Šest mailů k rezervacím — návrh vzhledu, každý v rámečku jako v poště */}
+      <section class="mc-sekce" data-hodina="23.6" aria-labelledby="mc-maily">
+        <div class="papir mc-siroky">
+          <p class="stitek">Maily · <span lang="ja">便り</span></p>
+          <h2 id="mc-maily" class="nadpis-2">Šest mailů k rezervacím</h2>
+          <p class="mc-perex">Gmail a Outlook ukážou místo našich písem Georgii, jinak vypadají stejně. Na úzké obrazovce se mail přeskládá jako v telefonu.</p>
+          <Maily />
         </div>
       </section>
     </main>

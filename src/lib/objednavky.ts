@@ -13,6 +13,7 @@
  */
 import { RESEND_API_KEY, REZERVACE_OD, OBJEDNAVKY_KOMU } from "astro:env/server";
 import { kramek } from "../data/kramek";
+import { vzorPodleId, VYCHOZI_VZOR } from "../data/furoshiki";
 import { kurzy, permanentka as P, cenaOdjezdu, cenaPermanentky, odjezduDarku } from "../data/rezervace";
 import { kontakt } from "../data/uvod2";
 import { sklonuj } from "../data/pocty";
@@ -24,6 +25,8 @@ export interface ObjednavkaSatek {
   druh: "satek";
   kusy: string[];
   doprava: "odber" | "zasilkovna";
+  /** Do jakého šátku zabalit (id z data/furoshiki.ts) */
+  vzor: string;
 }
 export interface ObjednavkaDarek {
   druh: "darek";
@@ -59,7 +62,7 @@ export function precti(t: unknown): Objednavka | null {
   if (!zaklad.jmeno || !EMAIL.test(zaklad.email)) return null;
   if (o.druh === "satek") {
     const kusy = Array.isArray(o.kusy) ? [...new Set(o.kusy.filter((k): k is string => typeof k === "string"))].slice(0, 30) : [];
-    return { ...zaklad, druh: "satek", kusy, doprava: o.doprava === "zasilkovna" ? "zasilkovna" : "odber" };
+    return { ...zaklad, druh: "satek", kusy, doprava: o.doprava === "zasilkovna" ? "zasilkovna" : "odber", vzor: vzorPodleId(o.vzor)?.id ?? VYCHOZI_VZOR };
   }
   if (o.druh === "darek") {
     const dar = o.dar === "hodiny" || o.dar === "pas" || o.dar === "kurz" ? o.dar : null;
@@ -89,6 +92,10 @@ function obsah(o: Objednavka): { predmet: string; radky: string[] } | null {
         "",
         `Celkem: ${kc(celkem)}`,
         `Doprava: ${o.doprava === "zasilkovna" ? "Zásilkovnou" : "osobní odběr v dílně"}`,
+        `Šátek: ${(() => {
+          const v = vzorPodleId(o.vzor);
+          return v ? `${v.nazev} (${v.kanji}) — ${v.vyznam}` : o.vzor;
+        })()}`,
       ],
     };
   }

@@ -8,7 +8,7 @@ import { Image } from "astro:assets";
 import kuchynka from "../../images/o-nas-kuchynka.webp";
 import Kami from "../parta2/Kami.astro";
 import { kontakt, mapa, oDilne } from "../../data/uvod2";
-import { oNasTexty, zlato } from "../../data/onas2";
+import { oNasTexty } from "../../data/onas2";
 ---
 <section class="vitani" id="kontakt" data-hodina="22.4" aria-labelledby="vitani-nadpis">
   <div class="vitani-mriz">
@@ -31,10 +31,6 @@ import { oNasTexty, zlato } from "../../data/onas2";
         <a href={mapa} target="_blank" rel="noopener">ukázat na mapě</a>
       </p>
       <p class="vitani-dal"><a href="/rezervace">Rezervovat hodinu</a> · <a href="/rezervace#rz-rad">Kurzy</a> · <a href="/obchod">Obchod</a></p>
-      <p class="vitani-zlato">
-        Zlata nalezeno <b data-sbirka-pocet>0</b> z {zlato.length}.
-        <button type="button" class="odkaz-tlacitko" data-sbirka-otevrit>Otevřít misku</button>
-      </p>
     </div>
   </div>
 </section>

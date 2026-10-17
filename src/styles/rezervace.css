@@ -479,6 +479,48 @@
 .rz-clen-tel svg { width: 18px; height: 18px; fill: currentColor; }
 .rz-clen-tel:hover { background: #A8362A; transform: translateY(-1px); }
 .rz-clen-jmeno { font-family: var(--f-ruka); font-size: 1.55em; font-weight: 600; line-height: 1; color: var(--inkoust); }
+/* Přihlášení bez hesla (scripts/rezervace/prihlaseni.ts): e-mail, pak kód z mailu; .rz před třídou přebije .p2 button */
+.rz-clen-form { display: flex; gap: 8px; margin: 10px 0 0; }
+.rz .rz-clen-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(43, 36, 32, 0.22);
+  background: #FFFDF6;
+  color: var(--inkoust);
+  font: inherit;
+  font-size: 16px;
+}
+.rz .rz-clen-form input:focus { outline: none; border-color: var(--rumelka); box-shadow: 0 0 0 3px rgba(196, 67, 43, 0.15); }
+.rz .rz-clen-form input.rz-clen-kod { flex: 0 1 150px; font-family: var(--f-display); font-size: 20px; letter-spacing: 0.18em; font-variant-numeric: tabular-nums; text-align: center; }
+.rz .rz-clen-form button {
+  flex: none;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--rumelka);
+  color: #FFF8EE;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 16px;
+  transition: background 0.2s, transform 0.2s;
+}
+.rz .rz-clen-form button:hover { background: #A8362A; transform: translateY(-1px); }
+.rz .rz-clen-form button[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+.rz-clen .rz-clen-drobne { margin-top: 10px; font-size: 13.5px; color: var(--inkoust-3); }
+.rz-clen-drobne a { color: var(--inkoust-2); }
+.rz .rz-clen-odkaz { color: var(--inkoust-2); text-decoration: underline; text-underline-offset: 2px; }
+.rz .rz-clen-odkaz:hover { color: var(--rumelka); }
+.rz-clen-adresa { color: var(--inkoust); word-break: break-all; }
+.rz-clen .rz-clen-chyba { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--rumelka); }
+.rz-clen [hidden] { display: none !important; }
+/* Registrace: jméno a e-mail vedle sebe, tlačítko za nimi — na úzké kartě se zalomí */
+.rz-clen-reg { flex-wrap: wrap; }
+.rz .rz-clen-reg input { flex: 1 1 150px; }
+@media (max-width: 420px) {
+  .rz-clen-form { flex-wrap: wrap; }
+  .rz .rz-clen-form button { flex: 1 0 100%; }
+}
 
 /* Dětská jízdenka: štítek pod volbou „kolik vás pojede“ */
 .rz-detska {

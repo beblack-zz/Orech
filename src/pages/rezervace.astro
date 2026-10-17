@@ -17,15 +17,15 @@
  *               jako tři svislé nabídky — tentýž luxusní lístek v zelené,
  *               červené a modré desce; jméno a vzkaz se píšou rovnou na
  *               jízdenku, zabalí se a objednávka odejde mailem
- *   v noci      vlak se vrací, jízdenky člena, telefon pro přístup a kontakt
+ *   v noci      vlak se vrací, jízdenky člena, odkaz k registraci a kontakt
  *
  * Pravidla jsou z data/rezervace.ts: úterý a pátek od 9 do 18, odjezdy
  * po hodině a půl, cena za člověka a odjezd. Odjezd je buď volný, nebo obsazený
  * a zamlouvá se celá — sám nebo skupina do čtyř lidí.
  *
  * Rezervovat rovnou smí jen lidi, které dílna zapsala do tabulky členů
- * v Supabase: přijde jim mail s osobním odkazem (/k/<token>) a s ním
- * jízdenku označí a mají zamluveno. Ostatním odeslání otevře e-mail
+ * v Supabase: přihlásí se e-mailem bez hesla (jednorázový odkaz /k/<odkaz>
+ * nebo kód z mailu) a pak jízdenku označí a mají zamluveno. Ostatním odeslání otevře e-mail
  * s vyplněnými údaji a domluví se s dílnou. Server je v src/pages/api
  * a src/lib/rezervace, databáze v supabase/schema.sql. Dokud nejsou
  * klíče k Supabase nastavené (.env.example), je obsazenost simulovaná
@@ -91,7 +91,7 @@ const cena = `${rozpetiJizdneho.od}–${rozpetiJizdneho.do}`;
     <VlakKresby />
     <Hlavicka sber="zadny" />
 
-    <main data-rezervace data-telefon={kontakt.telefonOdkaz}>
+    <main data-rezervace>
       <Nadrazi />
 
       <section class="rz-sekce rz-hala" id="rz-pokladna" aria-labelledby="rz-pokladna-nadpis">

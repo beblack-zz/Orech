@@ -1,24 +1,35 @@
 /**
- * Rezervace na serveru — co dělají adresy v src/pages/api a /k/[token].
+ * Rezervace na serveru — co dělají adresy v src/pages/api a /k/[odkaz].
  *
- * Rezervovat smí jen lidi z tabulky `clenove` v Supabase: dílna tam člověka
- * zapíše, databáze si řekne webu (pozvi) a ten mu pošle mail s osobním
- * odkazem /k/<token>. Odkaz uloží token do cookie a s ní už jde rezervovat
- * a rušit. Kdo cookie nemá, vidí jen, co je volné.
+ * Rezervovat smí jen lidi z tabulky `clenove` v Supabase s potvrzeným
+ * e-mailem. Na /rezervace se člověk zaregistruje jménem a e-mailem
+ * (registruj) a přijde mu mail s jednorázovým odkazem /k/<odkaz> a kódem;
+ * kliknutím registraci potvrdí a je rovnou přihlášený. Dílna může člověka
+ * zapsat i sama a databáze si pak řekne webu (pozvi) o uvítací mail.
+ * Další přihlášení je bez hesla: zadá e-mail (posliOdkaz) a přijde mu
+ * odkaz s kódem, platí PRIHLASENI_MINUT a jednou. Kdo není mezi členy,
+ * nedostane nic; kdo se zaregistroval a nepotvrdil, dostane znovu
+ * potvrzení. Odpověď je pokaždé stejná, ať se nedá zkoušet, kdo je členem. Odkaz nebo opsaný kód (prihlasOdkazem,
+ * prihlasKodem) vrátí klíč člena a ten si prohlížeč uloží do cookie; s ní
+ * jde rezervovat a rušit. Kdo cookie nemá, vidí jen, co je volné.
  *
  * Funkce tu nevědí nic o Astru: dostanou nastavení a data, vrátí stav
  * a odpověď. Dá se tak zkoušet bez serveru.
  */
+import { createHash, randomBytes, randomInt } from "node:crypto";
 import { rezervace as R, permanentka as P } from "../../data/rezervace";
 import { rpc, ChybaDb } from "./db";
 import type { Pripojeni } from "./db";
-import { posli, pozvanka, potvrzeni, zruseni } from "./posta";
+import { posli, vitej, prihlaseni, registrace, potvrzeni, zruseni } from "./posta";
 import type { Posta } from "./posta";
 import { over, ted, jeUuid, naCas, zCasu, konecPermanentky } from "./pravidla";
 import type { Chyba, Druh, Odpoved, Volno } from "./typy";
 
-/** Cookie s tokenem člena — nastavuje ji /k/[token] */
+/** Cookie s klíčem člena — nastavuje ji /api/overit po přihlášení */
 export const COOKIE = "clen";
+/** Jak dlouho platí odkaz a kód z přihlašovacího mailu a z potvrzení registrace (data/rezervace.ts) */
+export const PRIHLASENI_MINUT = R.prihlaseniMinut;
+export const REGISTRACE_MINUT = R.registraceMinut;
 /** Jak dlouho si web člena pamatuje, ve vteřinách */
 export const COOKIE_PLATI = 400 * 86_400;
 
@@ -83,14 +94,89 @@ export async function volno(n: Nastaveni | null, token: string | undefined, nyni
   }
 }
 
-/** Patří token některému členovi? Ptá se /k/[token], než ho uloží do cookie. */
-export async function znam(n: Nastaveni | null, token: string | undefined): Promise<boolean> {
-  if (!n || !jeUuid(token)) return false;
+/* ——— Přihlášení bez hesla ——— */
+
+/** V databázi je jen otisk odkazu a kódu — kdo ji přečte, přihlásit se s tím nemůže */
+const otisk = (s: string) => createHash("sha256").update(s).digest("hex");
+/** Kód je jen šest číslic, tak se otiskuje i s e-mailem, ke kterému patří */
+const otiskKodu = (email: string, kod: string) => otisk(`${email.trim().toLowerCase()}:${kod}`);
+const jeEmail = (x: unknown): x is string => typeof x === "string" && x.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x.trim());
+/** Odkaz z mailu: 32 náhodných bajtů v base64url */
+const jeOdkaz = (x: unknown): x is string => typeof x === "string" && /^[A-Za-z0-9_-]{43}$/.test(x);
+
+/** Jméno z registrace: bez řídicích znaků a zdvojených mezer, nejvýš 60 znaků */
+const cisteJmeno = (x: unknown) =>
+  typeof x === "string" ? x.replace(/[\u0000-\u001f\u007f<>]/g, "").replace(/\s+/g, " ").trim() : "";
+
+/** Komu poslat mail z prihlas_zadost a registrace — a jestli už potvrdil registraci */
+type Komu = { jmeno: string; email: string; potvrzeny: boolean } | null;
+
+/**
+ * Pošle mail podle toho, jak je na tom člověk: potvrzený dostane přihlášení,
+ * nepotvrzený potvrzení registrace (to ho zároveň přihlásí).
+ */
+async function posliKlic(n: Nastaveni, funkce: "prihlas_zadost" | "registrace", parametry: Record<string, unknown>, email: string, web: string): Promise<Vysledek<Odpoved>> {
+  if (!n.posta) return ne("vypnuto");
+  const odkaz = randomBytes(32).toString("base64url");
+  const kod = String(randomInt(0, 1_000_000)).padStart(6, "0");
+  /* Kdo se právě registroval, čte mail později než ten, kdo se přihlašuje — má na něj déle */
+  const minut = funkce === "registrace" ? REGISTRACE_MINUT : PRIHLASENI_MINUT;
   try {
-    return !!(await rpc<string | null>(n.db, "clen", { p_token: token }));
+    const c = await rpc<Komu>(n.db, funkce, { ...parametry, p_email: email, p_odkaz: otisk(odkaz), p_kod: otiskKodu(email, kod), p_minut: minut });
+    const url = `${web}/k/${odkaz}`;
+    if (c) await posli(n.posta, c.potvrzeny ? prihlaseni(c, url, kod, minut, web) : registrace(c, url, kod, minut, web));
   } catch (e) {
-    console.error("[rezervace] odkaz", e);
-    return false;
+    /* Moc často, nebo dva lidi registrují stejnou adresu naráz — navenek se to nepozná */
+    if (!(e instanceof ChybaDb && (e.kod === "casto" || e.stav === 409))) return zDb(e);
+  }
+  return ANO;
+}
+
+/**
+ * Člověk zadal e-mail: když je mezi členy, pošle se mu odkaz a kód.
+ * Odpověď je vždycky stejná, ať je, nebo není — i když žádá moc často.
+ */
+export async function posliOdkaz(n: Nastaveni | null, telo: unknown, web: string): Promise<Vysledek<Odpoved>> {
+  if (!n || !n.posta) return ne("vypnuto");
+  const email = (telo as { email?: unknown } | null)?.email;
+  if (!jeEmail(email)) return ne("spatne");
+  return posliKlic(n, "prihlas_zadost", {}, email.trim(), web);
+}
+
+/**
+ * Registrace: jméno a e-mail. Nový člověk se zapíše jako nepotvrzený
+ * a přijde mu potvrzení; kdo už je členem, dostane přihlášení. Odpověď
+ * je pokaždé stejná.
+ */
+export async function registruj(n: Nastaveni | null, telo: unknown, web: string): Promise<Vysledek<Odpoved>> {
+  if (!n || !n.posta) return ne("vypnuto");
+  const t = telo as { jmeno?: unknown; email?: unknown } | null;
+  const jmeno = cisteJmeno(t?.jmeno);
+  if (jmeno.length < 2 || jmeno.length > 60 || !jeEmail(t?.email)) return ne("spatne");
+  return posliKlic(n, "registrace", { p_jmeno: jmeno }, t.email.trim(), web);
+}
+
+/** Odkaz z mailu → klíč člena pro cookie, nebo null, když už neplatí */
+export async function prihlasOdkazem(n: Nastaveni | null, odkaz: unknown): Promise<string | null> {
+  if (!n || !jeOdkaz(odkaz)) return null;
+  try {
+    return await rpc<string | null>(n.db, "prihlas_odkaz", { p_odkaz: otisk(odkaz) });
+  } catch (e) {
+    console.error("[rezervace] přihlášení odkazem", e);
+    return null;
+  }
+}
+
+/** Kód opsaný na webu → klíč člena pro cookie, nebo null */
+export async function prihlasKodem(n: Nastaveni | null, email: unknown, kod: unknown): Promise<string | null> {
+  if (!n || !jeEmail(email) || typeof kod !== "string") return null;
+  const cisla = kod.replace(/\D/g, "");
+  if (cisla.length !== 6) return null;
+  try {
+    return await rpc<string | null>(n.db, "prihlas_kod", { p_email: email, p_kod: otiskKodu(email, cisla) });
+  } catch (e) {
+    console.error("[rezervace] přihlášení kódem", e);
+    return null;
   }
 }
 
@@ -144,7 +230,7 @@ function shodne(a: string, b: string) {
 }
 
 /**
- * Pošle členovi mail s jeho odkazem. Volá to databáze, když v tabulce
+ * Pošle novému členovi uvítací mail. Volá to databáze, když v tabulce
  * `clenove` přibude člověk (nebo mu někdo smaže pozvanka_odeslana) —
  * prokáže se tajemstvím v hlavičce Authorization.
  */
@@ -154,10 +240,10 @@ export async function pozvi(n: Nastaveni | null, autorizace: string | null, telo
   const id = (telo as { id?: unknown } | null)?.id;
   if (typeof id !== "number" || !Number.isInteger(id)) return ne("spatne");
   try {
-    const c = await rpc<{ jmeno: string; email: string; token: string } | null>(n.db, "pozvanka", { p_id: id });
-    /* Už odešla, nebo je člen vypnutý — není co dělat */
+    const c = await rpc<{ jmeno: string; email: string } | null>(n.db, "pozvanka", { p_id: id });
+    /* Už odešlo, nebo je člen vypnutý — není co dělat */
     if (!c) return ANO;
-    if (!(await posli(n.posta, pozvanka(c, `${web}/k/${c.token}`)))) return ne("chyba");
+    if (!(await posli(n.posta, vitej(c, web)))) return ne("chyba");
     await rpc(n.db, "pozvanka_hotovo", { p_id: id });
     return ANO;
   } catch (e) {

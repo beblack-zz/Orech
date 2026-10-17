@@ -6,13 +6,23 @@
 --
 -- Jak se to řídí z tabulek (Table Editor):
 --
---   clenove     Kdo smí rezervovat. Nový řádek = jméno a e-mail; databáze
---               sama vyrobí odkaz (token) a web ho člověku pošle mailem.
---               Poslat znovu: smazat hodnotu ve sloupci pozvanka_odeslana.
---               Vypnout člověka: aktivni = false. Když odkaz unikne, nový
---               udělá v SQL Editoru
---                 update clenove set token = gen_random_uuid(), pozvanka_odeslana = null where email = '…';
---               starý tím přestane platit a nový odejde mailem.
+--   clenove     Kdo smí rezervovat. Lidi se registrují sami na /rezervace:
+--               vyplní jméno a e-mail, přibudou tu s prázdným sloupcem
+--               potvrzeno a přijde jim mail s odkazem a kódem. Kliknutím
+--               registraci potvrdí (potvrzeno se vyplní) a rovnou jsou
+--               přihlášení. Kdo potvrzeno prázdné má, rezervovat nemůže.
+--               Další přihlášení: na /rezervace zadá e-mail a přijde mu
+--               jednorázový odkaz s kódem (tabulka prihlaseni).
+--               Dílna může člověka zapsat i sama novým řádkem (jméno
+--               a e-mail) — ten je potvrzený hned a web mu pošle uvítací mail.
+--               Uvítání poslat znovu: smazat hodnotu ve sloupci pozvanka_odeslana.
+--               Vypnout člověka: aktivni = false. Odhlásit ho ze všech
+--               zařízení (ztracený telefon) udělá v SQL Editoru
+--                 update clenove set token = gen_random_uuid() where email = '…';
+--               token je klíč, který si prohlížeč po přihlášení pamatuje —
+--               mailem už nikam nechodí.
+--   prihlaseni  Jednorázové odkazy a kódy. Jen otisky (sha256), samotný
+--               odkaz ani kód tu není; platí pár minut a jednou.
 --   rezervace   Co je zamluvené: odjezd má místa (na webu 4) a jedna
 --               rezervace je jedna skupina. Zrušit = vyplnit sloupec zruseno (now()).
 --               Rezervaci po telefonu jde zapsat ručně novým řádkem.
@@ -22,7 +32,6 @@
 --               Ten den nejedou hodinové odjezdy ani permanentky.
 --   zavreno     Zavřený den (cas prázdný) nebo jeden odjezd (cas 10:30).
 --   kdo_prijde  Jen ke čtení: kdo kdy přijde, permanentky rozepsané po týdnech.
---   odkazy      Jen ke čtení: osobní odkazy, kdyby mail nedošel.
 --
 -- Pravidla (dny, hodiny, ceny, kolik lidí) jsou na webu v src/data/rezervace.ts.
 -- K tabulkám smí jen server webu se servisním klíčem — prohlížeč nikdy.
@@ -38,12 +47,18 @@ create table if not exists clenove (
   telefon text,
   poznamka text,
   aktivni boolean not null default true,
-  /* Kdy odešel mail s odkazem. Prázdné = pošle se (znovu). */
+  /* Kdy odešel uvítací mail. Prázdné = pošle se (znovu). */
   pozvanka_odeslana timestamptz,
+  /* Kdy člověk potvrdil e-mail. Prázdné = registroval se na webu a ještě
+     neklikl na odkaz z mailu; koho zapíše dílna, je potvrzený hned. */
+  potvrzeno timestamptz default now(),
+  /* Klíč přihlášeného prohlížeče (cookie). Nový = odhlášení všude. */
   token uuid not null unique default gen_random_uuid(),
   vytvoreno timestamptz not null default now()
 );
 create unique index if not exists clenove_email on clenove (lower(email));
+/* Pro databáze z doby před registrací (17. 10. 2026): kdo už tu je, je potvrzený */
+alter table clenove add column if not exists potvrzeno timestamptz default now();
 
 create table if not exists kurzy (
   den date primary key,
@@ -89,6 +104,20 @@ create table if not exists rezervace (
 drop index if exists rezervace_odjezd;
 create index if not exists rezervace_den on rezervace (den);
 
+/* Žádosti o přihlášení: odkaz a kód z jednoho mailu, jen jejich otisky */
+create table if not exists prihlaseni (
+  id bigint generated always as identity primary key,
+  clen_id bigint not null references clenove (id) on delete cascade,
+  odkaz text not null unique,
+  kod text not null,
+  plati_do timestamptz not null,
+  /* Vyplněné = už použitý, nebo spálený po moc špatných kódech */
+  pouzito timestamptz,
+  pokusu smallint not null default 0,
+  vytvoreno timestamptz not null default now()
+);
+create index if not exists prihlaseni_clen on prihlaseni (clen_id, vytvoreno desc);
+
 create table if not exists nastaveni (
   klic text primary key,
   hodnota text not null
@@ -101,9 +130,10 @@ alter table kurzy enable row level security;
 alter table zavreno enable row level security;
 alter table rezervace enable row level security;
 alter table nastaveni enable row level security;
+alter table prihlaseni enable row level security;
 
-revoke all on clenove, kurzy, zavreno, rezervace, nastaveni from anon, authenticated;
-grant select, insert, update on clenove, rezervace to service_role;
+revoke all on clenove, kurzy, zavreno, rezervace, nastaveni, prihlaseni from anon, authenticated;
+grant select, insert, update on clenove, rezervace, prihlaseni to service_role;
 grant select on kurzy, zavreno to service_role;
 
 /* ——— Přehledy pro dílnu ——— */
@@ -120,13 +150,10 @@ create or replace view kdo_prijde with (security_invoker = true) as
      and not exists (select 1 from kurzy k where k.den = t::date)
    order by 1, 2 nulls first;
 
-create or replace view odkazy with (security_invoker = true) as
-  select c.jmeno, c.email, c.aktivni, c.pozvanka_odeslana,
-         (select hodnota from nastaveni where klic = 'web') || '/k/' || c.token as odkaz
-    from clenove c
-   order by c.jmeno;
+/* Trvalé osobní odkazy skončily 17. 10. 2026 — přihlašuje se jednorázovým odkazem */
+drop view if exists odkazy;
 
-revoke all on kdo_prijde, odkazy from anon, authenticated;
+revoke all on kdo_prijde from anon, authenticated;
 
 /* ——— Funkce, které volá web ——— */
 
@@ -172,11 +199,109 @@ begin
   );
 end $$;
 
-/** Jméno člena, kterému token patří — nebo nic, když odkaz neplatí */
-create or replace function clen(p_token uuid)
-returns text language sql stable as $$
-  select jmeno from clenove where token = p_token and aktivni;
-$$;
+/* Trvalý odkaz /k/<token> skončil — jméno podle tokenu už nikdo nepotřebuje */
+drop function if exists clen(uuid);
+
+/**
+ * Zapíše otisk odkazu a kódu z jednoho mailu. Starší nepoužité žádosti
+ * člena tím přestanou platit. Chyba: casto (víc než 5 za čtvrt hodiny).
+ */
+create or replace function prihlaseni_zapis(p_clen bigint, p_odkaz text, p_kod text, p_minut int)
+returns void language plpgsql as $$
+begin
+  if (select count(*) from prihlaseni where clen_id = p_clen and vytvoreno > now() - interval '15 minutes') >= 5 then
+    raise exception 'casto';
+  end if;
+  update prihlaseni set pouzito = now() where clen_id = p_clen and pouzito is null;
+  insert into prihlaseni (clen_id, odkaz, kod, plati_do)
+    values (p_clen, p_odkaz, p_kod, now() + make_interval(mins => p_minut));
+end $$;
+
+/**
+ * Žádost o přihlášení: člen zadal e-mail. Když je mezi aktivními členy,
+ * zapíše se otisk odkazu a kódu a vrátí se, komu mail poslat a jestli už
+ * registraci potvrdil (když ne, web pošle potvrzení místo přihlášení);
+ * jinak nic (web odpoví stejně, ať se nedá zkoušet, kdo je členem).
+ */
+create or replace function prihlas_zadost(p_email text, p_odkaz text, p_kod text, p_minut int)
+returns jsonb language plpgsql as $$
+declare
+  v_clen clenove;
+begin
+  select * into v_clen from clenove where lower(email) = lower(trim(p_email)) and aktivni;
+  if not found then return null; end if;
+  perform prihlaseni_zapis(v_clen.id, p_odkaz, p_kod, p_minut);
+  return jsonb_build_object('jmeno', v_clen.jmeno, 'email', v_clen.email, 'potvrzeny', v_clen.potvrzeno is not null);
+end $$;
+
+/**
+ * Registrace z webu: jméno a e-mail. Nový člověk přibude s prázdným
+ * potvrzeno (uvítací mail se mu neposílá — pozvanka_odeslana je vyplněná),
+ * kdo se registroval a nepotvrdil, dostane nové jméno a nový odkaz. Kdo
+ * už je potvrzený, dostane přihlášení (jméno se mu nemění). Vypnutý
+ * člověk nedostane nic. Vrací, komu co poslat — web odpoví vždycky stejně.
+ * Chyba: casto (víc než 5 žádostí člověka za čtvrt hodiny, nebo víc než 40
+ * nepotvrzených registrací za hodinu — ať se z formuláře nedá rozesílat pošta).
+ */
+create or replace function registrace(p_jmeno text, p_email text, p_odkaz text, p_kod text, p_minut int)
+returns jsonb language plpgsql as $$
+declare
+  v_clen clenove;
+begin
+  select * into v_clen from clenove where lower(email) = lower(trim(p_email)) for update;
+  if found and not v_clen.aktivni then return null; end if;
+  if not found then
+    if (select count(*) from clenove where potvrzeno is null and vytvoreno > now() - interval '1 hour') >= 40 then
+      raise exception 'casto';
+    end if;
+    insert into clenove (jmeno, email, potvrzeno, pozvanka_odeslana)
+      values (trim(p_jmeno), trim(p_email), null, now())
+      returning * into v_clen;
+  elsif v_clen.potvrzeno is null then
+    update clenove set jmeno = trim(p_jmeno) where id = v_clen.id returning * into v_clen;
+  end if;
+  perform prihlaseni_zapis(v_clen.id, p_odkaz, p_kod, p_minut);
+  return jsonb_build_object('jmeno', v_clen.jmeno, 'email', v_clen.email, 'potvrzeny', v_clen.potvrzeno is not null);
+end $$;
+
+/** Odkaz z mailu: když platí, spotřebuje se, potvrdí registraci a vrátí klíč člena pro cookie */
+create or replace function prihlas_odkaz(p_odkaz text)
+returns uuid language plpgsql as $$
+declare
+  v_clen bigint;
+  v_token uuid;
+begin
+  update prihlaseni p set pouzito = now()
+    from clenove c
+   where p.odkaz = p_odkaz and p.pouzito is null and p.plati_do > now() and c.id = p.clen_id and c.aktivni
+  returning c.id into v_clen;
+  if v_clen is null then return null; end if;
+  update clenove set potvrzeno = coalesce(potvrzeno, now()) where id = v_clen returning token into v_token;
+  return v_token;
+end $$;
+
+/**
+ * Kód z mailu opsaný na webu. Platí jen poslední žádost; po pěti špatných
+ * pokusech se spálí a je potřeba poslat si nový. Jako odkaz potvrdí registraci.
+ */
+create or replace function prihlas_kod(p_email text, p_kod text)
+returns uuid language plpgsql as $$
+declare
+  v_p prihlaseni;
+  v_token uuid;
+begin
+  select p.* into v_p from prihlaseni p join clenove c on c.id = p.clen_id
+   where lower(c.email) = lower(trim(p_email)) and c.aktivni and p.pouzito is null and p.plati_do > now()
+   order by p.vytvoreno desc limit 1 for update of p;
+  if not found then return null; end if;
+  if v_p.kod <> p_kod then
+    update prihlaseni set pokusu = pokusu + 1, pouzito = case when pokusu + 1 >= 5 then now() end where id = v_p.id;
+    return null;
+  end if;
+  update prihlaseni set pouzito = now() where id = v_p.id;
+  update clenove set potvrzeno = coalesce(potvrzeno, now()) where id = v_p.clen_id returning token into v_token;
+  return v_token;
+end $$;
 
 /**
  * Zamluví místa na odjezdech, v kurzu nebo na permanentce. Kontrola i zápis
@@ -282,10 +407,10 @@ begin
                             'jmeno', v_clen.jmeno, 'email', v_clen.email);
 end $$;
 
-/** Komu se má poslat pozvánka — nic, když už odešla nebo je člen vypnutý */
+/** Komu se má poslat uvítání — nic, když už odešlo nebo je člen vypnutý */
 create or replace function pozvanka(p_id bigint)
 returns jsonb language sql stable as $$
-  select jsonb_build_object('jmeno', jmeno, 'email', email, 'token', token)
+  select jsonb_build_object('jmeno', jmeno, 'email', email)
     from clenove where id = p_id and aktivni and pozvanka_odeslana is null;
 $$;
 
@@ -294,12 +419,16 @@ returns void language sql as $$
   update clenove set pozvanka_odeslana = now() where id = p_id;
 $$;
 
-revoke execute on function volno(date, uuid), clen(uuid), rezervuj(uuid, text, date, text[], int, date, int, text),
-  zrus(uuid, bigint, int), pozvanka(bigint), pozvanka_hotovo(bigint) from public, anon, authenticated;
-grant execute on function volno(date, uuid), clen(uuid), rezervuj(uuid, text, date, text[], int, date, int, text),
-  zrus(uuid, bigint, int), pozvanka(bigint), pozvanka_hotovo(bigint) to service_role;
+revoke execute on function volno(date, uuid), rezervuj(uuid, text, date, text[], int, date, int, text),
+  zrus(uuid, bigint, int), pozvanka(bigint), pozvanka_hotovo(bigint),
+  prihlas_zadost(text, text, text, int), prihlas_odkaz(text), prihlas_kod(text, text),
+  prihlaseni_zapis(bigint, text, text, int), registrace(text, text, text, text, int) from public, anon, authenticated;
+grant execute on function volno(date, uuid), rezervuj(uuid, text, date, text[], int, date, int, text),
+  zrus(uuid, bigint, int), pozvanka(bigint), pozvanka_hotovo(bigint),
+  prihlas_zadost(text, text, text, int), prihlas_odkaz(text), prihlas_kod(text, text),
+  prihlaseni_zapis(bigint, text, text, int), registrace(text, text, text, text, int) to service_role;
 
-/* ——— Pozvánka: nový člen → web pošle mail s odkazem ———
+/* ——— Uvítání: nový člen → web pošle uvítací mail ———
  *
  * Když má aktivní člen prázdné pozvanka_odeslana (nový řádek, nebo ji
  * někdo smazal, ať se pošle znovu), databáze zavolá web a ten odešle

@@ -2,10 +2,10 @@
  * Kalendář rezervací: odkud stránka ví, co je volné a kdo se dívá.
  *
  * Když jsou rezervace zapojené (Supabase, viz src/lib/rezervace), bere se
- * skutečná obsazenost z /api/volno. Kdo přišel přes svůj odkaz z pozvánky,
- * dostane s ní i své jméno a jízdenky a může rezervovat; ostatní vidí
- * tabuli jen ke čtení a místo označení jízdenky dostanou telefon, přes
- * který se dává přístup.
+ * skutečná obsazenost z /api/volno. Kdo je přihlášený (cookie po odkazu
+ * nebo kódu z mailu), dostane s ní i své jméno a jízdenky a může
+ * rezervovat; ostatní vidí tabuli jen ke čtení a místo označení jízdenky
+ * dostanou registraci (prihlaseni.ts).
  *
  * Když zapojené nejsou (nebo server neodpoví), zůstává ukázka ze
  * simulace.ts a rezervovat nemůže nikdo. Zbytek stránky rozdíl nepozná:

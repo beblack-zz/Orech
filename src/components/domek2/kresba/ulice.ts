@@ -12,11 +12,17 @@
  * zídka s dřevěným plotem, lampa s obecním rozhlasem, zámková dlažba,
  * obrubník a asfalt. Za domem borovice, vlevo bambus.
  *
- * Vymyšlené je jen to, co fotka nemá: sousedé po stranách, tabulka
- * s číslem domu na pilíři, cedulka dílny na bráně a večerní světla.
+ * Vlevo od domu (branka, schránka, zvonek s číslem, sousedův pilíř
+ * s měřáky a cihlová zeď) je podle dalších fotek — viz ulice-vlevo.ts.
+ * Vstupní přístavek s rourou od žlabu je podle fotky z chodníku u schránky
+ * (fotka 6670 ho schovává) — viz pristavek() níž.
+ *
+ * Vymyšlené je jen to, co fotky nemají: soused napravo, cedulka dílny
+ * na bráně a večerní světla.
  */
-import { B, f, chomac, nahoda, mnohouhelnik, obdelnik, cara, kruh, elipsa, mezi, kolmo, plus, pas } from "./zaklad";
+import { B, f, chomac, nahoda, mnohouhelnik, obdelnik, obdelniky, cara, kruh, elipsa, mezi, kolmo, plus, pas } from "./zaklad";
 import type { Bod } from "./zaklad";
+import { VLEVO, bambus, plotDrevo, vlevoDefs, vlevoListi, vlevoSvetlaVpredu, vlevoSvetlaVzadu, vlevoVpredu, vlevoVzadu, zidkaUsek } from "./ulice-vlevo";
 
 export interface UliceVolby {
   /** Předpona id v <defs> — na stránce smí být kresba víckrát */
@@ -27,6 +33,12 @@ export interface UliceVolby {
   nebe?: boolean;
   /** Brána: posuvná křídla ve vlastní skupině, aby s nimi mohl hýbat skript */
   brana?: boolean;
+  /**
+   * Vstupní přístavek vlevo od domu a roura od žlabu po nároží. Z fotky
+   * 6670 nejsou vidět (přístavek schovává dům), takže kresba přes fotku
+   * (táhlo na Kontaktu) je nemá; Úvod ano.
+   */
+  pristavek?: boolean;
   /**
    * Jen jedna vrstva (ve dne): „vzadu“ je dům, dílna a zem i s <defs>,
    * „vpredu“ brána, zídka a lampa — mezi ně jde vložit HTML (noren ve dveřích).
@@ -148,10 +160,6 @@ function tasky(a: Bod, b: Bod, p: string) {
 const taskaTvar = (p: string) =>
   `<g id="${p}-taska"><path d="M0 3 L0 -8 Q0 -12.5 4.5 -12.5 L17 -12.5 Q21 -12.5 21 -8 L21 3 Z"/><path d="M1.5 -9 Q2 -11 5 -11 L16 -11" stroke="#E79B7E" stroke-width="1.6" fill="none" opacity="0.55"/><path d="M21 -8 L21 3" stroke="${B.taskyTma}" stroke-width="2"/></g>`;
 
-/** Hodně obdélníků stejné barvy jako jedna cesta */
-const obdelniky = (r: [number, number, number, number][], atributy: string) =>
-  r.length ? `<path d="${r.map(([x, y, w, h]) => `M${f(x)} ${f(y)}h${f(w)}v${f(h)}h${f(-w)}z`).join("")}" ${atributy}/>` : "";
-
 /**
  * Konec vaznice pod podbitím: trámek prostrčený štítem (na slunci světlejší
  * než podbití), u střední vaznice i vzpěra šikmo ke zdi — na fotce jsou dva
@@ -176,6 +184,151 @@ function vazniceHrebene(x: number, spodek: number) {
   return `<path d="M${f(x - w / 2)} ${f(spodek - h)} H${f(x + w / 2)} V${f(spodek)} H${f(x - w / 2)} Z" fill="#7A5638"/>
     <path d="M${f(x - w / 2 + 3)} ${f(spodek - h + 12)} H${f(x + w / 2 - 3)} M${f(x - w / 2 + 3)} ${f(spodek - h + 22)} H${f(x + w / 2 - 3)}" stroke="#5E4330" stroke-width="1" opacity="0.6"/>
     <path d="M${f(x - w / 2)} ${f(spodek)} H${f(x + w / 2)}" stroke="#4A3527" stroke-width="2"/>`;
+}
+
+/*
+ * ——— Vstupní přístavek vlevo od domu ———
+ * Na fotce 6670 ho schovává dům (vidět je jen roh jeho střechy pod
+ * okapem), z úhlu kresby by ale vidět byl. Podle fotky z chodníku
+ * u schránky: pultová střecha začíná pod čelem žlabu domu a ve stejném
+ * sklonu jde dolů doleva, na štítu šedá závětrná lišta, světlé čelní
+ * prkno a tmavé podbití se zhlavími vaznic. Šalvějová zeď s lampičkou
+ * stojí kus za průčelím domu (proto je o tón tmavší), vlevo je ustoupené
+ * zádveří se vchodovými dveřmi a nad ním přesah střechy s okapem — roh
+ * stejně jako u domu. Roura od žlabu domu jde svisle po nároží.
+ * Odhad: šířka přístavku a dveře (z fotky je za plotem jen kus rámu).
+ */
+const PR = {
+  /** Hloubky pod hranou tašek domu: vršek lišty (zajede pod čelo žlabu), spodek lišty, spodek čelního prkna, vršek zdi */
+  lista: 13,
+  prkno: 21,
+  podbiti: 33,
+  zed: 61,
+  /** Nároží zdi s lampičkou, levý konec zádveří a roh střechy nad ním */
+  narozi: -95,
+  konec: -190,
+  roh: -285,
+  /** Jak daleko pod vrškem zdi končí podhled okapu nad zádveřím */
+  okap: 74,
+  /** Pata zdí — schová ji plot na zídce */
+  dole: 850,
+  /** Roura od žlabu domu: kde na šikmém žlabu začíná koleno a kudy jde dolů */
+  roura: 141,
+  lampicka: { x: 18, y: 584 },
+  dvere: { x0: -176, x1: -110, vrch: 612 },
+};
+/** Bod ve svislici x na rovnoběžce s hranou levé půlky štítu, d pod ní */
+const podDomem = (d: number, x: number) => podHranou(LEVY, HREBEN, d, x);
+
+/** Lišta přístavku od rohu k domu a body rohu u okapu — souřadnice stejně jako u poloviny štítu */
+const PR_LISTA: [Bod, Bod] = [podDomem(PR.lista, PR.roh), podDomem(PR.lista, STIT_L.roh)];
+const PR_SPODEK_KONCE = plus(PR_LISTA[0], kolmo(LEVY, HREBEN, PR.podbiti - PR.lista));
+const PR_ZED_ROH = podDomem(PR.zed, PR.konec);
+const PR_DNO: Bod = [PR.konec, PR_ZED_ROH[1] + PR.okap];
+const PR_PODBITI: Bod[] = [PR_LISTA[1], PR_LISTA[0], PR_SPODEK_KONCE, podDomem(PR.zed + 4, PR.konec + 4), podDomem(PR.zed + 4, STIT_L.roh)];
+const PR_OKAP: Bod[] = [PR_SPODEK_KONCE, [PR.konec + 4, PR_DNO[1]], [PR.konec + 4, PR_ZED_ROH[1]]];
+
+/** Šikmý žlab levé půlky štítu od čela okapu k boku domu (stejné body jako ve štítu) */
+const ZLAB_L: [Bod, Bod] = [
+  [STIT_L.spodekKonce[0] + 8, STIT_L.spodekKonce[1] + 2],
+  [STIT_L.dno[0] - 2, STIT_L.dno[1] - 4],
+];
+
+/** Přístavek: podbití a okap, zdi se zádveřím a dveřmi, lampička, vaznice a lišta navrch */
+function pristavek(p: string) {
+  const [a, b] = PR_LISTA;
+  const zed = (x: number) => podDomem(PR.zed, x);
+  const { x0, x1, vrch } = PR.dvere;
+  const dw = x1 - x0;
+  const { x: lx, y: ly } = PR.lampicka;
+  return `
+    <g class="u-pristavek">
+      <!-- podbití pod lištou a na rohu podhled okapu, krokve ubíhají podél boku -->
+      ${mnohouhelnik(PR_PODBITI, `fill="#3F2D21"`)}
+      <g stroke="#57412F" stroke-width="2.4" opacity="0.9" clip-path="url(#${p}-pr-podbiti)">
+        ${[43, 53].map((d) => {
+          const u = podDomem(d, PR.roh - 30);
+          const v = podDomem(d, STIT_L.roh + 10);
+          return cara(u[0], u[1], v[0], v[1]);
+        }).join("")}
+      </g>
+      ${mnohouhelnik(PR_OKAP, `fill="#33251B"`)}
+      <g stroke="${B.drevo}" stroke-width="5" clip-path="url(#${p}-pr-okap)">
+        ${[0.2, 0.42, 0.64, 0.86].map((t) => {
+          const u = mezi(PR_ZED_ROH, PR_DNO, t);
+          const o = mezi(PR_SPODEK_KONCE, PR_DNO, t);
+          return cara(u[0] + 4, u[1], o[0], o[1]);
+        }).join("")}
+      </g>
+      <g stroke-linecap="round">
+        ${cara(PR_SPODEK_KONCE[0] - 5, PR_SPODEK_KONCE[1] - 3, PR_SPODEK_KONCE[0] + 17, PR_SPODEK_KONCE[1] - 1.5, `stroke="${B.svod}" stroke-width="10"`)}
+        ${cara(PR_SPODEK_KONCE[0] + 7, PR_SPODEK_KONCE[1] + 2, PR_DNO[0] - 2, PR_DNO[1] - 4, `stroke="${B.svod}" stroke-width="8"`)}
+        ${cara(PR_SPODEK_KONCE[0] + 5, PR_SPODEK_KONCE[1] - 1, PR_DNO[0], PR_DNO[1] - 7, `stroke="${B.pozinkSvetlo}" stroke-width="1.8" opacity="0.7"`)}
+      </g>
+      <!-- zeď s lampičkou a ustoupené zádveří -->
+      ${mnohouhelnik([[STIT_L.roh, PR.dole], zed(STIT_L.roh), zed(PR.narozi), [PR.narozi, PR.dole]], `fill="#C1CDAE"`)}
+      ${mnohouhelnik([[PR.narozi, PR.dole], zed(PR.narozi), zed(PR.konec), [PR.konec, PR.dole]], `fill="#AEBC9C"`)}
+      ${mnohouhelnik([[STIT_L.roh, PR.dole], zed(STIT_L.roh), zed(PR.konec), [PR.konec, PR.dole]], `fill="url(#${p}-omitka)"`)}
+      <!-- vchodové dveře: bílá zárubeň, modřínové palubky jako na brance, prosklený pruh a madlo -->
+      ${obdelnik(x0 - 6, vrch - 6, dw + 12, PR.dole - vrch + 6, `fill="${B.ram}"`)}
+      ${obdelnik(x1 + 3, vrch - 6, 3, PR.dole - vrch + 6, `fill="${B.ramStin}"`)}
+      ${obdelnik(x0, vrch, dw, PR.dole - vrch, `fill="#8F5B3D"`)}
+      <path d="${Array.from({ length: 5 }, (_, i) => `M${f(x0 + (dw * (i + 1)) / 6)} ${vrch}V${PR.dole}`).join("")}" stroke="#6E4330" stroke-width="1.2" opacity="0.7"/>
+      ${obdelnik(x0, vrch, dw, PR.dole - vrch, `fill="url(#${p}-planka)"`)}
+      ${obdelnik(x0 + dw * 0.18, vrch + 14, dw * 0.2, 150, `class="u-sklo" fill="${B.sklo}"`)}
+      <path d="M${f(x0 + dw * 0.18)} ${vrch + 70} L${f(x0 + dw * 0.38)} ${vrch + 30} L${f(x0 + dw * 0.38)} ${vrch + 52} L${f(x0 + dw * 0.18)} ${vrch + 96} Z" fill="${B.odlesk}" opacity="0.3"/>
+      ${obdelnik(x1 - 13, vrch + 60, 4, 72, `rx="2" fill="${B.nerez}"`)}
+      ${obdelnik(x1 - 13, vrch + 60, 1.5, 72, `fill="${B.nerezSvetly}"`)}
+      <!-- stín pod podbitím; v zádveří je pod střechou hlubší a padá i na dveře -->
+      ${mnohouhelnik([zed(PR.konec), zed(STIT_L.roh), plus(zed(STIT_L.roh), [0, 36]), plus(zed(PR.konec), [0, 36])], `fill="#7E8E6E" opacity="0.26"`)}
+      ${mnohouhelnik([zed(PR.konec), zed(PR.narozi), plus(zed(PR.narozi), [0, 70]), plus(zed(PR.konec), [0, 70])], `fill="#6F7F60" opacity="0.22"`)}
+      ${obdelnik(PR.narozi, zed(PR.narozi)[1], 3, PR.dole - zed(PR.narozi)[1], `fill="#E2EAD5" opacity="0.7"`)}
+      ${obdelnik(PR.narozi - 7, zed(PR.narozi)[1], 7, PR.dole - zed(PR.narozi)[1], `fill="#6F7F60" opacity="0.18"`)}
+      <!-- lampička u vchodu: mosazný válec s mléčným sklem na podložce -->
+      ${obdelnik(lx - 7, ly - 17, 14, 34, `rx="2" fill="#8A7A60" opacity="0.55"`)}
+      ${obdelnik(lx - 5.5, ly - 15, 11, 30, `rx="3.5" fill="#C9AC72"`)}
+      ${obdelnik(lx - 5.5, ly - 6, 11, 12, `class="u-lampicka" fill="#F2EAD2"`)}
+      ${obdelnik(lx - 5.5, ly - 15, 3, 30, `rx="1.5" fill="#E8D4A0" opacity="0.8"`)}
+      ${obdelnik(lx + 2.5, ly - 15, 3, 30, `rx="1.5" fill="#9C8152" opacity="0.6"`)}
+      <!-- zhlaví vaznic: nad rohem zádveří a uprostřed zdi s lampičkou -->
+      ${[PR.konec, -42].map((x) => vaznice(plus(zed(x), [0, 4]), 0.88, false, false)).join("")}
+      <!-- čelní prkno a šedá závětrná lišta -->
+      ${pas(a, b, 12, `fill="#86664A"`, PR.prkno - PR.lista)}
+      ${pas(a, b, 1.6, `fill="#A88868"`, PR.prkno - PR.lista)}
+      ${pas(a, b, 8, `fill="${B.svod}"`)}
+      ${pas(a, b, 1.8, `fill="${B.pozinkSvetlo}"`, 0.3)}
+      ${pas(a, b, 1.4, `fill="${B.pozinkTma}"`, 6.6)}
+      <g class="snih">${pas(a, b, 7, `fill="#FBFDFF"`, -6)}</g>
+    </g>`;
+}
+
+/**
+ * Roura od žlabu domu: šikmý žlab se nad nárožím zlomí kolenem a jde
+ * svisle dolů po nároží, dvě objímky, za plotem zmizí. Kreslí se místo
+ * šikmého žlabu levé půlky štítu.
+ */
+function roura() {
+  const [a, b] = ZLAB_L;
+  const x = PR.roura;
+  const [kx, ky] = mezi(a, b, (x - a[0]) / (b[0] - a[0]));
+  const ohyb = mezi(a, [kx, ky], 0.86);
+  return `
+    <path d="M${f(x + 6)} ${f(ky + 16)} V${PR.dole}" stroke="#7E8E6E" stroke-width="3" opacity="0.3"/>
+    <path d="M${f(a[0])} ${f(a[1])} L${f(ohyb[0])} ${f(ohyb[1])} Q${f(x)} ${f(ky)} ${f(x)} ${f(ky + 14)} V${PR.dole}" stroke="${B.svod}" stroke-width="9" fill="none"/>
+    ${cara(a[0] - 2, a[1] - 3, ohyb[0] + 1, ohyb[1] - 3.5, `stroke="${B.pozinkSvetlo}" stroke-width="2" opacity="0.7"`)}
+    <path d="M${f(x - 2.4)} ${f(ky + 12)} V${PR.dole}" stroke="${B.pozinkSvetlo}" stroke-width="2" opacity="0.7"/>
+    ${[600, 712].map((y) => obdelnik(x - 6, y, 12, 5, `rx="1.5" fill="${B.pozinkTma}"`)).join("")}`;
+}
+
+/** Večer: rozsvícená lampička u vchodu a světlo za skleněným pruhem dveří */
+function pristavekSvetla(p: string) {
+  const { x, y } = PR.lampicka;
+  const { x0, x1, vrch } = PR.dvere;
+  const dw = x1 - x0;
+  return `<radialGradient id="${p}-lampicka-zar" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFE3A0" stop-opacity="0.75"/><stop offset="0.45" stop-color="#FFC56E" stop-opacity="0.25"/><stop offset="1" stop-color="#FFB25A" stop-opacity="0"/></radialGradient>
+    ${elipsa(x, y + 6, 92, 120, `fill="url(#${p}-lampicka-zar)" style="mix-blend-mode:screen"`)}
+    ${obdelnik(x - 5.5, y - 6, 11, 12, `fill="#FFF3C8"`)}
+    ${obdelnik(x0 + dw * 0.18, vrch + 14, dw * 0.2, 150, `fill="#FFD48A" opacity="0.55"`)}`;
 }
 
 /** Okno s bílým plastovým rámem: dvě křídla, odlesk, parapet */
@@ -223,31 +376,6 @@ function zabradli(x0: number, x1: number, horni: number, dolni: number, krok: nu
   return s;
 }
 
-/** Dřevěný plot z vodorovných latí na zídce */
-function plotDrevo(x0: number, x1: number, horni: number, dolni: number, seed: number) {
-  const r = nahoda(seed);
-  let s = obdelnik(x0, horni, x1 - x0, dolni - horni, `fill="${B.plotSpara}"`);
-  let letokruhy = "";
-  const n = 6;
-  const v = (dolni - horni - 4) / n;
-  for (let i = 0; i < n; i++) {
-    const y = horni + 2 + i * v;
-    const t = r();
-    s += obdelnik(x0 + 3, y, x1 - x0 - 6, v - 2.4, `fill="${t < 0.35 ? B.plotSvetly : t < 0.7 ? B.plot : "#6A5C4E"}"`);
-    s += obdelnik(x0 + 3, y, x1 - x0 - 6, 1.2, `fill="#9A8A77" opacity="0.5"`);
-    // Letokruhy — pár tenkých čárek po prkně
-    for (let k = 0; k < 3; k++) {
-      const lx = x0 + 10 + r() * (x1 - x0 - 40);
-      letokruhy += `M${f(lx)} ${f(y + v * 0.45)}l${f(18 + r() * 30)} ${f((r() - 0.5) * 2)}`;
-    }
-  }
-  s += `<path d="${letokruhy}" stroke="#463C33" stroke-width="0.8" opacity="0.5" fill="none"/>`;
-  const stred = (x0 + x1) / 2;
-  for (const x of [x0 + 3, stred, x1 - 6]) s += obdelnik(x - 2, horni - 2, 7, dolni - horni + 2, `fill="#4A4037"`) + obdelnik(x - 2, horni - 2, 2, dolni - horni + 2, `fill="#776858" opacity="0.6"`);
-  s += `<g class="snih">${obdelnik(x0, horni - 5, x1 - x0, 6, `rx="3" fill="#FBFDFF"`)}</g>`;
-  return s;
-}
-
 /** Pletený plot souseda — šedé dřevo, prkna proplétaná mezi sloupky */
 function plotPleteny(x0: number, x1: number, horni: number, dolni: number, seed: number) {
   const r = nahoda(seed);
@@ -282,35 +410,6 @@ function borovice(x: number, pata: number, v: number, seed: number) {
   return s;
 }
 
-/** Bambus za plotem: svislá stébla a protáhlé trsy listí */
-function bambus(x0: number, x1: number, pata: number, v: number, seed: number) {
-  const r = nahoda(seed);
-  let s = "";
-  for (let i = 0; i < 14; i++) {
-    const x = x0 + r() * (x1 - x0);
-    const h = v * (0.6 + r() * 0.4);
-    s += `<path d="M${f(x)} ${pata} Q${f(x + (r() - 0.5) * 30)} ${f(pata - h * 0.6)} ${f(x + (r() - 0.5) * 50)} ${f(pata - h)}" stroke="#6E8C3E" stroke-width="2.4" fill="none"/>`;
-  }
-  for (let i = 0; i < 9; i++) {
-    const x = x0 + r() * (x1 - x0);
-    const y = pata - v * (0.35 + r() * 0.6);
-    s += `<path d="${chomac(x, y, 30 + r() * 40, 16 + r() * 18, 12, seed + 50 + i, 0.7, 0.6)}" fill="${i % 3 ? "#4E7A35" : "#6E9A45"}"/>`;
-  }
-  return s;
-}
-
-/** Listnatý strom u souseda — barvy podle ročního období (jako ořech v dílně v řezu) */
-function listnac(x: number, pata: number, v: number, seed: number) {
-  let s = `<path d="M${x - 8} ${pata} C${x - 6} ${pata - v * 0.3} ${x - 2} ${pata - v * 0.45} ${x - 4} ${pata - v * 0.62} L${x + 8} ${pata - v * 0.62} C${x + 6} ${pata - v * 0.45} ${x + 10} ${pata - v * 0.3} ${x + 12} ${pata} Z" fill="#6E5E50"/>`;
-  s += `<g stroke="#6E5E50" stroke-linecap="round" fill="none"><path d="M${x} ${f(pata - v * 0.5)} C${x - 30} ${f(pata - v * 0.6)} ${x - 50} ${f(pata - v * 0.7)} ${x - 70} ${f(pata - v * 0.78)}" stroke-width="6"/><path d="M${x + 4} ${f(pata - v * 0.55)} C${x + 30} ${f(pata - v * 0.66)} ${x + 46} ${f(pata - v * 0.76)} ${x + 66} ${f(pata - v * 0.86)}" stroke-width="5"/></g>`;
-  s += `<g class="koruna-orech">`;
-  s += `<path class="ore-1" d="${chomac(x, pata - v * 0.78, v * 0.42, v * 0.26, 16, seed)}"/>`;
-  s += `<path class="ore-2" d="${chomac(x - v * 0.06, pata - v * 0.84, v * 0.32, v * 0.19, 14, seed + 1)}"/>`;
-  s += `<path class="ore-3" d="${chomac(x - v * 0.12, pata - v * 0.9, v * 0.17, v * 0.1, 11, seed + 2)}"/>`;
-  s += `</g>`;
-  return s;
-}
-
 /** Zámková dlažba, asfaltová zrnitost a šrafa — vzory do <defs> */
 function vzory(p: string) {
   const r = nahoda(4471);
@@ -340,30 +439,18 @@ function vzory(p: string) {
 export function ulice(v: UliceVolby = {}) {
   const p = v.id ?? "ul";
   const noc = !!v.noc;
+  const sPristavkem = !!v.pristavek;
 
-  /* ——— Pozadí: sousedé, stromy, sousedův pletený plot za bránou ——— */
+  /* ——— Pozadí: vlevo soused za hranicí pozemku, bambus u domu (s přístavkem za jeho rohem), vpravo soused, borovice a pletený plot za bránou ——— */
   const pozadi = `
+    ${vlevoVzadu(p)}
     <g class="u-sousede" opacity="0.92">
-      <!-- úplně vlevo: přízemní dům s plochou střechou a tújemi -->
-      <path d="M-1380 770 V560 H-980 V770 Z" fill="#E2DED6"/>
-      <path d="M-1396 560 H-964 V540 H-1396 Z" fill="#6A6E72"/>
-      ${okno(-1330, 600, 90, 80, {})}
-      ${okno(-1180, 600, 90, 80, {})}
-      <path d="${chomac(-1050, 700, 70, 90, 12, 4101, 0.8, 0.7)}" fill="#3E5E36"/>
-      <path d="${chomac(-1200, 720, 60, 70, 12, 4102, 0.8, 0.7)}" fill="#4E7339"/>
-      <!-- vlevo: starší dům souseda s červenou střechou -->
-      <path d="M-660 770 V470 L-470 330 L-280 470 V770 Z" fill="#E7DCC8"/>
-      <path d="M-690 478 L-470 316 L-250 478 L-262 488 L-470 336 L-678 488 Z" fill="#A94F37"/>
-      <path d="M-690 478 L-470 316 L-250 478" stroke="#7E3626" stroke-width="5" fill="none"/>
-      ${okno(-560, 520, 70, 80, { parapet: true })}
-      ${okno(-430, 520, 70, 80, { parapet: true })}
       <!-- vpravo: bílý dům s šedou střechou -->
       <path d="M1290 860 V540 L1470 410 L1650 540 V860 Z" fill="#EEEBE4"/>
       <path d="M1268 548 L1470 396 L1672 548 L1660 558 L1470 414 L1280 558 Z" fill="#5E6266"/>
       ${okno(1420, 560, 76, 86, {})}
     </g>
-    ${listnac(-300, 780, 330, 931)}
-    ${bambus(-200, 160, 770, 190, 77)}
+    ${sPristavkem ? bambus(-372, -196, 852, 586, 77) : bambus(-70, 150, 852, 598, 77)}
     ${borovice(1052, 866, 330, 611)}
     ${borovice(1215, 866, 290, 631)}
     ${borovice(1580, 870, 250, 651)}
@@ -390,11 +477,12 @@ export function ulice(v: UliceVolby = {}) {
         return cara(u[0] - h.ven * 4, u[1], o[0], o[1]);
       }).join("")}
     </g>
-    <!-- žlab: čelo na konci okapu a dál podél boku domu -->
+    <!-- žlab: čelo na konci okapu a dál podél boku domu (s přístavkem vlevo končí v rouře) -->
     <g stroke-linecap="round">
       ${cara(h.spodekKonce[0] + h.ven * 6, h.spodekKonce[1] - 4, h.spodekKonce[0] - h.ven * 20, h.spodekKonce[1] - 2, `stroke="${B.svod}" stroke-width="12"`)}
-      ${cara(h.spodekKonce[0] - h.ven * 8, h.spodekKonce[1] + 2, h.dno[0] + h.ven * 2, h.dno[1] - 4, `stroke="${B.svod}" stroke-width="9"`)}
-      ${cara(h.spodekKonce[0] - h.ven * 6, h.spodekKonce[1] - 1, h.dno[0], h.dno[1] - 8, `stroke="${B.pozinkSvetlo}" stroke-width="2" opacity="0.7"`)}
+      ${sPristavkem && h.id === "l" ? roura() : `
+        ${cara(h.spodekKonce[0] - h.ven * 8, h.spodekKonce[1] + 2, h.dno[0] + h.ven * 2, h.dno[1] - 4, `stroke="${B.svod}" stroke-width="9"`)}
+        ${cara(h.spodekKonce[0] - h.ven * 6, h.spodekKonce[1] - 1, h.dno[0], h.dno[1] - 8, `stroke="${B.pozinkSvetlo}" stroke-width="2" opacity="0.7"`)}`}
     </g>`).join("");
 
   /* ——— Fasáda ——— */
@@ -521,42 +609,27 @@ export function ulice(v: UliceVolby = {}) {
     <g stroke="#9C7A50" stroke-width="2">${[0, 1, 2, 3, 4, 5, 6].map((i) => cara(1128, 752 + i * 15, 1200, 752 + i * 15)).join("")}</g>
     ${obdelnik(1200, 852, 500, 210, `fill="#D9D2C2"`)}
     ${obdelnik(1200, 846, 500, 10, `fill="#B8B1A2"`)}
-    <!-- pilíř u brány s tabulkou čísla domu -->
+    <!-- pilíř u brány -->
     ${obdelnik(1126, 852, 76, 210, `fill="${B.zidka}"`)}
     ${obdelnik(1126, 852, 10, 210, `fill="${B.zidkaStin}"`)}
     ${obdelnik(1120, 844, 88, 12, `fill="${B.strisku}"`)}
     ${obdelnik(1120, 844, 88, 3, `fill="#BDBEB7"`)}
-    <g class="u-cislo">
-      ${obdelnik(1146, 892, 44, 30, `rx="3" fill="#B5302A"`)}
-      ${obdelnik(1149, 895, 38, 24, `rx="2" fill="none" stroke="#F4F1EA" stroke-width="1.4"`)}
-      <text x="1168" y="913" text-anchor="middle" font-size="15" font-weight="700" fill="#F4F1EA" font-family="Newsreader Variable, Newsreader, Georgia, serif">235</text>
-    </g>
-    <!-- zídka s dřevěným plotem vlevo od brány -->
-    ${obdelnik(-1400, 850, 1822, 204, `fill="${B.zidka}"`)}
-    ${obdelnik(-1400, 850, 1822, 204, `fill="url(#${p}-omitka)"`)}
-    ${obdelnik(-1400, 850, 1822, 14, `fill="${B.zidkaStin}" opacity="0.7"`)}
-    ${obdelnik(-1404, 841, 1828, 11, `fill="${B.strisku}"`)}
-    ${obdelnik(-1404, 841, 1828, 3, `fill="#BDBEB7"`)}
-    ${obdelnik(-1400, 1046, 1822, 16, `fill="#BDB7A8"`)}
-    <!-- vlevo vjezd k sousedovi: plechová vrata v zídce -->
-    ${obdelnik(-940, 836, 200, 226, `fill="#5E6266"`)}
-    <g stroke="#4A4E52" stroke-width="3">${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => cara(-930 + i * 26, 842, -930 + i * 26, 1058)).join("")}</g>
-    ${obdelnik(-944, 830, 208, 8, `fill="#4A4E52"`)}
+    <!-- zídka s dřevěným plotem od branky k bráně (zvonek a číslo domu jsou u branky) -->
+    ${zidkaUsek(p, VLEVO.branka.x1, 422, 2, 2)}
     <g fill="#E6EBD4" opacity="0.9">
-      ${[[45, 1003], [125, 1006], [285, 1002], [362, 1004], [-240, 990], [-520, 1010]].map(([x, y]) => `<path d="M${x} ${y} l5 -6 l4 3 l3 -4 l2 9 l-6 6 l-7 -2 Z"/>`).join("")}
+      ${[[45, 1003], [125, 1006], [285, 1002], [362, 1004], [-240, 990], [-118, 1010]].map(([x, y]) => `<path d="M${x} ${y} l5 -6 l4 3 l3 -4 l2 9 l-6 6 l-7 -2 Z"/>`).join("")}
     </g>
-    ${plotDrevo(-1400, -1170, 768, 843, 808)}
-    ${plotDrevo(-1167, -944, 768, 843, 809)}
-    ${plotDrevo(-736, -470, 768, 843, 811)}
-    ${plotDrevo(-467, -236, 768, 843, 812)}
-    ${plotDrevo(-233, -2, 768, 843, 813)}
+    <!-- vlevo: soused za hranicí pozemku, naše zídka se schránkou, branka, zvonek a číslo -->
+    ${vlevoVpredu(p)}
+    ${plotDrevo(VLEVO.branka.x1 + 2, -157, 768, 843, 812)}
+    ${plotDrevo(-155, -3, 768, 843, 813)}
     ${plotDrevo(0, 262, 768, 843, 814)}
     ${plotDrevo(265, 398, 752, 843, 815)}
     <!-- oleandr za plotem pod oknem -->
     <path d="M298 752 C292 736 280 730 270 732 M298 752 C300 732 310 722 322 720 M298 752 C296 738 300 726 296 714" stroke="#5E8A3E" stroke-width="2.6" stroke-linecap="round" fill="none"/>
     <g fill="#6E9A4B">${[[270, 731], [322, 719], [296, 713], [284, 724], [312, 730]].map(([x, y]) => elipsa(x, y, 7, 2.6, `transform="rotate(${(x * 7) % 60 - 30} ${x} ${y})"`)).join("")}</g>
     <g class="snih">
-      ${obdelnik(-1404, 836, 1828, 7, `rx="3" fill="#FBFDFF"`)}
+      ${obdelnik(VLEVO.branka.x1 - 2, 836, 426 - VLEVO.branka.x1, 7, `rx="3" fill="#FBFDFF"`)}
       ${obdelnik(1118, 839, 92, 7, `rx="3" fill="#FBFDFF"`)}
     </g>`;
 
@@ -636,21 +709,23 @@ export function ulice(v: UliceVolby = {}) {
       </g>
     </g>`;
 
-  /* ——— Chodník, obrubník, silnice ——— */
+  /* ——— Chodník, obrubník, silnice — doleva až za okraj výřezu ——— */
+  const K = VLEVO.konec;
   const zem = `
-    ${obdelnik(-1400, 1062, 3100, 86, `fill="url(#${p}-dlazba)"`)}
-    ${obdelnik(-1400, 1062, 3100, 8, `fill="#8C8577" opacity="0.35"`)}
+    ${obdelnik(K, 1062, 1700 - K, 86, `fill="url(#${p}-dlazba)"`)}
+    ${obdelnik(K, 1062, 1700 - K, 8, `fill="#8C8577" opacity="0.35"`)}
     <path d="M400 1130 L-260 1064 L-210 1062 L414 1124 Z" fill="#3B3630" opacity="0.18"/>
-    ${obdelnik(-1400, 1145, 3100, 24, `fill="${B.obrubnik}"`)}
-    ${obdelnik(-1400, 1145, 3100, 4, `fill="#E6E0D3"`)}
-    <g stroke="#A79F90" stroke-width="2">${Array.from({ length: 28 }, (_, i) => cara(-1372 + i * 112, 1146, -1374 + i * 112, 1169)).join("")}</g>
-    ${obdelnik(-1400, 1169, 3100, 460, `fill="url(#${p}-asfalt)"`)}
-    ${obdelnik(-1400, 1169, 3100, 10, `fill="#4E4C49" opacity="0.5"`)}
+    ${obdelnik(K, 1145, 1700 - K, 24, `fill="${B.obrubnik}"`)}
+    ${obdelnik(K, 1145, 1700 - K, 4, `fill="#E6E0D3"`)}
+    <g stroke="#A79F90" stroke-width="2">${Array.from({ length: 33 }, (_, i) => cara(-1932 + i * 112, 1146, -1934 + i * 112, 1169)).join("")}</g>
+    ${obdelnik(K, 1169, 1700 - K, 460, `fill="url(#${p}-asfalt)"`)}
+    ${obdelnik(K, 1169, 1700 - K, 10, `fill="#4E4C49" opacity="0.5"`)}
     <g fill="#C27A3E" opacity="0.85">
       <path d="M770 1262 c6 -6 14 -5 18 0 c4 -4 10 0 6 5 c-6 6 -18 6 -24 -5 Z"/>
       <path d="M1036 1346 c8 -8 20 -6 26 0 c6 -4 14 2 8 8 c-10 8 -26 6 -34 -8 Z"/>
     </g>
-    <path class="snih" d="M-1400 1062 H1700 V1072 C1200 1080 400 1076 -1400 1070 Z" fill="#FBFDFF"/>`;
+    ${vlevoListi()}
+    <path class="snih" d="M${K} 1062 H1700 V1072 C1200 1080 400 1076 ${K} 1070 Z" fill="#FBFDFF"/>`;
 
   /* ——— Večer: světla ——— */
   /* Večer: okna svítí za bránou a zídkou, lampa a její kužel jsou vepředu */
@@ -664,6 +739,8 @@ export function ulice(v: UliceVolby = {}) {
         ${obdelnik(646, 916, 120, 116, `fill="#FFD996" opacity="0.88"`)}
         ${obdelnik(782, 916, 133, 116, `fill="#FFD996" opacity="0.88"`)}
         ${mnohouhelnik([[553, 1040], [925, 1040], [1010, 1062], [450, 1062]], `fill="#FFD27A" opacity="0.3"`)}
+        ${vlevoSvetlaVzadu()}
+        ${sPristavkem ? pristavekSvetla(p) : ""}
       </g>`
     : "";
   const svetlaVpredu = noc
@@ -674,6 +751,7 @@ export function ulice(v: UliceVolby = {}) {
         ${elipsa(346, -76, 140, 120, `fill="url(#${p}-lampa-zar)" style="mix-blend-mode:screen"`)}
         <path d="M322 -76 L374 -79 L370 -72 L326 -70 Z" fill="#FFF3C8"/>
         ${elipsa(340, 1120, 260, 34, `fill="#FFD27A" opacity="0.22"`)}
+        ${vlevoSvetlaVpredu()}
       </g>`
     : "";
 
@@ -683,13 +761,14 @@ export function ulice(v: UliceVolby = {}) {
 
   const nebe = v.nebe
     ? `<linearGradient id="${p}-nebe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E7FD9"/><stop offset="0.55" stop-color="#6FA6EA"/><stop offset="1" stop-color="#A9DBFA"/></linearGradient>
-       <rect x="-1400" y="-90" width="3100" height="980" fill="url(#${p}-nebe)"/>`
+       <rect x="${VLEVO.konec}" y="-90" width="${1700 - VLEVO.konec}" height="980" fill="url(#${p}-nebe)"/>`
     : "";
 
-  const defs = `<defs>${vzory(p)}${filtrNoci}${taskaTvar(p)}
+  const defs = `<defs>${vzory(p)}${vlevoDefs(p)}${filtrNoci}${taskaTvar(p)}
     <clipPath id="${p}-brana-orez"><rect x="420" y="740" width="720" height="360"/></clipPath>
     ${STIT.map((h) => `<clipPath id="${p}-podbiti-${h.id}">${mnohouhelnik(h.pas)}</clipPath><clipPath id="${p}-okap-${h.id}">${mnohouhelnik(h.okap)}</clipPath>`).join("")}
     <clipPath id="${p}-lizena">${mnohouhelnik(LIZENA_OBRYS)}</clipPath>
+    ${sPristavkem ? `<clipPath id="${p}-pr-podbiti">${mnohouhelnik(PR_PODBITI)}</clipPath><clipPath id="${p}-pr-okap">${mnohouhelnik(PR_OKAP)}</clipPath>` : ""}
   </defs>`;
   // Vaznice a tašky jdou přes podbití i přes horní hranu zdi; vpravo zrcadlově, ať je štít souměrný
   const strecha = `
@@ -701,10 +780,11 @@ export function ulice(v: UliceVolby = {}) {
     ${elipsa(HREBEN[0] - 1, HREBEN[1] - 2, 5, 3.5, `fill="${B.taskySvetlo}" opacity="0.7"`)}`;
 
   /*
-   * Pořadí vrstev: pozadí, štít, fasáda, střecha, rampa, chodník, brána,
-   * zídka (brána za ní zajede), lampa úplně vepředu.
+   * Pořadí vrstev: pozadí, přístavek (střecha domu ho překryje), štít,
+   * fasáda, střecha, rampa, chodník, brána, zídka (brána za ní zajede),
+   * lampa úplně vepředu.
    */
-  const vzadu = `${pozadi}${stit}${fasada}${strecha}${dilna}${zem}`;
+  const vzadu = `${pozadi}${sPristavkem ? pristavek(p) : ""}${stit}${fasada}${strecha}${dilna}${zem}`;
   const vpredu = `${brana}${zidka}${lampa}`;
   if (!noc && v.vrstva === "vzadu") return `${defs}${nebe}${vzadu}`;
   if (!noc && v.vrstva === "vpredu") return vpredu;

@@ -13,7 +13,9 @@
  * Hodina jde i do data-hodina sekce a kotvy na jejím konci — obloha
  * webu (parta2/nebe.ts) jde s ní.
  *
- * Pro teď ale hodiny stojí ve 22:00 (JEN_NOC níž) — krámek je jen v noci.
+ * Pro teď ale hodiny stojí ve 22:00 (JEN_NOC níž) — krámek je jen v noci —
+ * a kamera stojí na celku (JEN_CELEK): žádné zastávky, žádný zoom, jízdenka
+ * ze scény zmizela (17. 10. 2026). Ovládání níž zůstává pro případ návratu.
  *
  * Široká obrazovka má zastávky celek, okno, přízemí, večer, zavíráme;
  * úzká projíždí okno a přízemí po kouscích (kresba/scena.ts → ZASTAVKY).
@@ -68,8 +70,12 @@ const CESTA_DEN: Record<Rozvrzeni, Zastavka[]> = {
   ],
 };
 
+/** Kamera stojí na celku krámku a nikam nejede (17. 10. 2026). Zastávky se vrátí s false. */
+const JEN_CELEK = true;
+
 const jenNoc = (z: Zastavka[]) => (JEN_NOC === null ? z : z.filter((x) => x.id !== "konec").map((x) => ({ ...x, h: JEN_NOC })));
-const CESTA: Record<Rozvrzeni, Zastavka[]> = { siroka: jenNoc(CESTA_DEN.siroka), uzka: jenNoc(CESTA_DEN.uzka) };
+const jenCelek = (z: Zastavka[]) => (JEN_CELEK ? z.filter((x) => x.id === "celek") : z);
+const CESTA: Record<Rozvrzeni, Zastavka[]> = { siroka: jenCelek(jenNoc(CESTA_DEN.siroka)), uzka: jenCelek(jenNoc(CESTA_DEN.uzka)) };
 
 /** Zastávka z jednoho rozvržení, která v druhém není → nejbližší, která je */
 const NAHRADA: Record<Rozvrzeni, Record<string, string>> = {
@@ -141,9 +147,54 @@ export function scena() {
       if (den) noc.innerHTML = kde === "uvnitr" ? prebarvi(den.innerHTML, teple, "ku") : prebarvi(den.innerHTML, nocni, "kn");
     });
   };
+  /* Den stranou (jen noc): celé denní vrstvy (zdroj noční kresby) se odloží jako kopie
+     do <template class="krm-den-stranou">, kde se nekreslí, neanimují ani nepočítají
+     styly — nic se nemaže. V DOM z nich zůstane jen to, na co odkazuje zbytek krámku
+     (vrstva světel bere z denní kresby tvary, přechody a ořezy `#kd-…`), přesunuté
+     do <defs> téže denní vrstvy, ať mají pořád stejné okolí jako dřív. */
+  const odlozDen = () => {
+    const dny = [...sekce.querySelectorAll<SVGSVGElement>("svg.krm-den")];
+    if (!dny.length) return;
+    const stranou = document.createElement("template");
+    stranou.className = "krm-den-stranou";
+    dny.forEach((den) => stranou.content.append(den.cloneNode(true)));
+    sekce.append(stranou);
+    /* co z denní kresby potřebuje zbytek krámku — i odkazy uvnitř toho, co potřebuje */
+    const ODKAZ = /#(kd-[\w-]+)/g;
+    const hledej = (el: Element, kam: Set<string>) => {
+      for (const e of [el, ...el.querySelectorAll("*")])
+        for (const a of e.attributes) for (const m of a.value.matchAll(ODKAZ)) kam.add(m[1]);
+    };
+    const potreba = new Set<string>();
+    for (const e of sekce.querySelectorAll("*")) {
+      if (e.closest("svg.krm-den")) continue;
+      for (const a of e.attributes) for (const m of a.value.matchAll(ODKAZ)) potreba.add(m[1]);
+    }
+    const prvky = new Map<string, Element>();
+    const fronta = [...potreba];
+    while (fronta.length) {
+      const id = fronta.pop()!;
+      if (prvky.has(id)) continue;
+      const el = dny.map((d) => d.querySelector(`[id="${id}"]`)).find(Boolean);
+      if (!el) continue;
+      prvky.set(id, el);
+      const dalsi = new Set<string>();
+      hledej(el, dalsi);
+      dalsi.forEach((x) => !prvky.has(x) && fronta.push(x));
+    }
+    /* vnořené potřebné prvky jdou s rodičem, přesouvají se jen nejvyšší */
+    const nejvyssi = [...prvky.values()].filter((el) => ![...prvky.values()].some((o) => o !== el && o.contains(el)));
+    for (const den of dny) {
+      const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+      defs.setAttribute("class", "krm-den-potreba");
+      for (const el of nejvyssi) if (den.contains(el)) defs.append(el);
+      den.replaceChildren(defs);
+    }
+  };
   /* Jen noc: kresba musí být noční hned, jinak by krámek na začátku probleskl ve dne */
   if (JEN_NOC !== null) {
     udelejNoc();
+    odlozDen();
     const casEl = sekce.querySelector<HTMLElement>(".krm-cas");
     if (casEl) casEl.style.display = "none";
   } else window.setTimeout(udelejNoc, 2500);
