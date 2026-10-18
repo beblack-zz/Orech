@@ -23,6 +23,7 @@
  */
 import { priMereni, omez, hladce, mix, klid, vyzadej } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
+import { telefon } from "../parta2/kvalita";
 import { nocni, teple, prebarvi } from "../../components/obchod2/kresba/noc";
 
 interface Ram {
@@ -207,6 +208,7 @@ export function scena() {
   let posledni = "";
   let klidCas: number | undefined;
   let hodinaTed = -1;
+  const naTelefonu = telefon();
 
   /** Zastávka, na které kamera stojí nebo ke které jede */
   let kde = 0;
@@ -255,6 +257,10 @@ export function scena() {
     svet.style.transform = t;
     // Bubliny a obrysy tlačítek ve světě drží stejnou velikost na obrazovce
     svet.style.setProperty("--s", k.s.toFixed(4));
+    /* Telefon: will-change jen za jízdy — lišta prohlížeče při scrollu mění velikost okna,
+       kamera se postaví znovu na totéž místo a každé zapnutí a vypnutí vrstvy by celou
+       obří kresbu překreslilo (krámek problikával) */
+    if (!pohyb && naTelefonu) return;
     svet.classList.add("jede");
     window.clearTimeout(klidCas);
     klidCas = window.setTimeout(() => svet.classList.remove("jede"), 180);

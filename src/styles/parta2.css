@@ -724,12 +724,11 @@ body.p2 {
  * větší než on. Lucernu s ním nenosí; barvy má v noci stejné jako ve dne.
  */
 .pruvodce-tlacitko, .pruvodce-zmensit, .pruvodce-nabidka, .pruvodce-kulicky { translate: calc(var(--posun, 0px) * -1) calc(var(--posun-y, 0px) * -1); }
-/* Telefon: Vázička počítá s výškou malého okna (100svh, pruvodce.ts), aby se nehoupala
-   s lištou prohlížeče — tlačítka u spodního okraje se proto drží téže výšky
-   (o rozdíl mezi dynamickým a malým oknem výš), jinak by jí při scrollu ujížděla */
+/* Telefon: rámeček s Vázičkou i uzlík visí od spodního okraje okna jako tlačítka
+   u nich (poloha ze skriptu se odečítá od spodku, pruvodce.ts odSpodu) — když lišta
+   prohlížeče při scrollu sjede nebo vyjede, posunou se všechny spolu, nebo vůbec */
 @media (hover: none) and (pointer: coarse) {
-  .pruvodce-tlacitko, .pruvodce-zmensit, .pruvodce-nabidka, .pruvodce-kulicky { translate: calc(var(--posun, 0px) * -1) calc(var(--posun-y, 0px) * -1 + 100svh - 100dvh); }
-  .p2 .pruvodce-carka { translate: 0 calc(100svh - 100dvh); }
+  .pruvodce, .p2 .pruvodce-satek { top: auto; bottom: 0; }
   /* Doma sedí až u pravého okraje (OKRAJ v pruvodce.ts o 16 px blíž) — tlačítka jdou s ní */
   .p2 .pruvodce-tlacitko { right: -4px; }
   .p2 .pruvodce-zmensit { right: calc(var(--b, 100px) * 0.52 - 16px); }

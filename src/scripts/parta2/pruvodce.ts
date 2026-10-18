@@ -451,21 +451,14 @@ export function pruvodce() {
 
   /* ═══ Rozměry, kotva a klidové místo ═══ */
   let B = 80, W = 0, H = 0;
-  /* Telefon: výška malého okna (100svh). Lišta prohlížeče se při scrollu schovává
-     a vrací a innerHeight se mění až se zpožděním — Vázička by ujela od tlačítek
-     u spodního okraje a pak skočila. Ta drží stejnou výšku (parta2.css). */
-  const vyskaOkna = () => {
-    if (!telefon()) return window.innerHeight;
-    const sonda = document.createElement("div");
-    sonda.style.cssText = "position:fixed;top:0;width:0;height:100svh;visibility:hidden;pointer-events:none";
-    document.body.append(sonda);
-    const h = sonda.offsetHeight;
-    sonda.remove();
-    return h || window.innerHeight;
-  };
+  /* Telefon: rámeček (a uzlík) visí od spodního okraje okna (parta2.css), stejně
+     jako tlačítka u něj. Lišta prohlížeče se při scrollu schovává a vrací a okraj
+     okna se posouvá dřív, než se innerHeight dozví — kdyby rámeček visel odshora,
+     ujel by tlačítkům. Poloha se dál počítá odshora, při zápisu se odečte H − výška. */
+  const odSpodu = telefon();
   const zmer = () => {
     W = document.documentElement.clientWidth;
-    H = vyskaOkna();
+    H = window.innerHeight;
     B = Math.round(omez(Math.min(W * 0.078, H * 0.13), 84, 124));
     O.style.width = O.style.height = `${B}px`;
     tlacitko.style.setProperty("--b", `${B}px`);
@@ -843,7 +836,7 @@ export function pruvodce() {
     }
     /* střed krabičky je střed uzlíku (tam satek.ts posílá kus); pečeť sedí na pravém boku malého, na pravém dolním boku velkého uzlíku */
     const pecet = druh === "velky" ? PECET_VELKEHO : PECET;
-    satekOdkaz.style.transform = `translate3d(${(x - vel / 2).toFixed(1)}px, ${(y - vel / 2).toFixed(1)}px, 0)`;
+    satekOdkaz.style.transform = `translate3d(${(x - vel / 2).toFixed(1)}px, ${(y - vel / 2 - (odSpodu ? H - vel : 0)).toFixed(1)}px, 0)`;
     satekPocet.style.setProperty("--x", `${(vel / 2 + r * pecet.dx).toFixed(1)}px`);
     satekPocet.style.setProperty("--y", `${(vel / 2 + r * pecet.dy).toFixed(1)}px`);
   };
@@ -1236,7 +1229,7 @@ export function pruvodce() {
     if (dt > 0) vlnaVelkeho = kCili(vlnaVelkeho, venku && tezky() ? 6.5 : 0, dt, 0.4);
     const vlna = klidne ? 0 : tezky() ? Math.sin(cas * 1.5) * vlnaVelkeho : Math.sin(cas * 2.3) * (venku ? 4 : 1.6);
     const x0 = s.x - B / 2, y0 = s.y - B / 2 + vlna - skok * 7;
-    const trO = `translate3d(${x0.toFixed(1)}px, ${y0.toFixed(1)}px, 0)`;
+    const trO = `translate3d(${x0.toFixed(1)}px, ${(odSpodu ? y0 - (H - B) : y0).toFixed(1)}px, 0)`;
     const trT = `rotate(${vid.naklon.toFixed(2)}deg) scale(${poz.m.toFixed(3)})`;
     /* zapíše se jen změna; kolik snímků po sobě se nic nepohnulo, řekne smyčce, jestli smí usnout */
     if (trO !== psanoO || trT !== psanoT) {

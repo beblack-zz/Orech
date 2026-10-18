@@ -258,6 +258,58 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       });
       dnyEl.append(b);
     });
+    dnyEl.classList.toggle("ma-kalendar", mqKalendar.matches);
+    if (mqKalendar.matches) kresliKalendar();
+  };
+
+  /* Telefon: místo pásu všech dní jen vybraný (nejbližší) den a vedle kalendář
+     po týdnech — otevírací dny se dají ťuknout, stav berou z jízdenek (rezervace.css, .ma-kalendar) */
+  const mqKalendar = matchMedia("(max-width: 760px)");
+  mqKalendar.addEventListener("change", () => kresliDny());
+  const PO_NE = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"];
+  const kresliKalendar = () => {
+    const listky = new Map<number, HTMLButtonElement>();
+    dnyEl.querySelectorAll<HTMLButtonElement>(".rz-den").forEach((b) => listky.set(Number(b.dataset.den), b));
+    const otevrene = dny.flatMap((d, i) => (maJizdenku(d) ? [{ d, i }] : []));
+    if (!otevrene.length) return;
+    const klic = (t: Date) => `${t.getFullYear()}-${t.getMonth()}-${t.getDate()}`;
+    const podleData = new Map(otevrene.map((o) => [klic(o.d.datum), o]));
+    const od = new Date(otevrene[0].d.datum);
+    od.setDate(od.getDate() - ((od.getDay() + 6) % 7));
+    const doDne = new Date(otevrene[otevrene.length - 1].d.datum);
+    doDne.setDate(doDne.getDate() + ((7 - doDne.getDay()) % 7));
+    const kal = document.createElement("div");
+    kal.className = "rz-kal";
+    kal.setAttribute("role", "group");
+    kal.setAttribute("aria-label", "Kalendář — jiný den");
+    const mesice = [...new Set(otevrene.map((o) => o.d.datum.getMonth()))].map((m) => MESICE[m]).join(" – ");
+    kal.innerHTML = `<p class="rz-kal-mesic" aria-hidden="true">${mesice}</p>` + PO_NE.map((d) => `<span class="rz-kal-hlava" aria-hidden="true">${d}</span>`).join("");
+    for (const t = new Date(od); t <= doDne; t.setDate(t.getDate() + 1)) {
+      const o = podleData.get(klic(t));
+      const prvni = t.getDate() === 1;
+      if (!o) {
+        const s = document.createElement("span");
+        s.className = `rz-kal-den prazdny${prvni ? " prvni" : ""}`;
+        s.setAttribute("aria-hidden", "true");
+        s.textContent = prvni ? `1. ${t.getMonth() + 1}.` : String(t.getDate());
+        kal.append(s);
+        continue;
+      }
+      const listek = listky.get(o.i);
+      const stav = listek ? ["kurz", "plno", "malo", "pryc"].filter((c) => listek.classList.contains(c)) : [];
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = ["rz-kal-den", ...stav, o.d.datum.getDay() === 5 ? "den-5" : ""].filter(Boolean).join(" ");
+      b.textContent = String(t.getDate());
+      b.disabled = listek?.disabled ?? true;
+      b.setAttribute("aria-pressed", String(o.i === den));
+      b.setAttribute("aria-label", listek?.getAttribute("aria-label") ?? String(t.getDate()));
+      b.addEventListener("click", () => {
+        if (o.i !== den) vyberDen(o.i, true);
+      });
+      kal.append(b);
+    }
+    dnyEl.append(kal);
   };
 
   /** Permanentky v pokladně: dva spoje, kolik na nich zbývá a jestli jeden z nich bereš */

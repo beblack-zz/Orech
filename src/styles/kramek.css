@@ -691,3 +691,22 @@
 @media (max-width: 700px) {
   .o2k-detail { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ——— Telefon: obří kresba v klidu ———
+   Svět má 3200 × 2000 px a telefon ho zmenšuje; filtr přes celou vrstvu zboží
+   a nekonečné animace uvnitř SVG ho nutily kresbu pořád překreslovat — krámek
+   problikával a fotky v okně patra se nevykreslily. Noční odstín dostanou jen
+   fotky a balíky (malé plochy), lampiony a noren stojí (ťuknutím se lampion
+   rozhoupe dál). Tlačítko Ke zboží je pryč — dolů se jde scrollem. */
+@media (hover: none) and (pointer: coarse) {
+  .krm-scena:not(.je-den) .krm-zbozi { filter: none; }
+  .krm-scena:not(.je-den) .krm-foto,
+  .krm-scena:not(.je-den) .krm-balik { filter: brightness(calc(1 - var(--tma) * 0.22)) sepia(calc(var(--tma) * 0.38)); }
+  .krm-lampion:not(.kyv),
+  .krm-vitr,
+  .krm-pr-noren-dil,
+  .krm-mury > *,
+  .krm-kocka-ocas:not(.mrska) { animation: none; }
+  .krm-uvod .krm-akce { display: none; }
+  .krm-uvod .krm-ruka { margin-bottom: 0; }
+}
