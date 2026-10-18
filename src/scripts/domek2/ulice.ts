@@ -19,7 +19,8 @@
  * Amplion na lampě pustí hlášení obecního rozhlasu (znělka, bublina
  * a s puštěným zvukem i hlas, pokud prohlížeč umí česky).
  * S omezeným pohybem nic z toho nejezdí: brána je otevřená a dovnitř
- * se chodí kliknutím.
+ * se chodí kliknutím. Stejně na telefonu (do 860 px, jako mobilní
+ * rozvržení v domek2.css): zvětšení obří kresby s filtry se tam sekalo.
  */
 import { priMereni, priScrollu, pozice, omez, hladce, mix, klid } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
@@ -28,6 +29,8 @@ import { hlaseni } from "../../data/domek2";
 
 /** Jak rychle kamera dohání scroll: časová konstanta v milisekundách */
 const DOJEZD = 120;
+/** Telefon: ulice stojí jako s omezeným pohybem (musí sedět s domek2.css) */
+const TELEFON = "(max-width: 860px)";
 
 interface Cile {
   brana: { x: number; y: number };
@@ -50,7 +53,7 @@ export function ulice() {
     if (kridla) kridla.style.transform = `translateX(${(-712 * t).toFixed(1)}px)`;
   };
 
-  if (klid) {
+  if (klid || matchMedia(TELEFON).matches) {
     posunBrany(1);
     sekce.classList.add("brana-otevrena");
     return;

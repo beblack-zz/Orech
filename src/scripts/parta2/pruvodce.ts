@@ -100,6 +100,7 @@ import type { Host } from "./pruvodce-host";
 import { spustVse, zahraj, odemkni } from "../vazicka-gejsa/beh.js";
 import { toraTora } from "./ozashiki";
 import { nacti } from "./stav";
+import { telefon } from "./kvalita";
 import { pocetKusu } from "../../data/pocty";
 import { vzorPodleId, VYCHOZI_VZOR } from "../../data/furoshiki";
 import type { VzorSatku } from "../../data/furoshiki";
@@ -146,7 +147,8 @@ type Scena = {
 /** Kde je postava v rámečku 180 × 180, v násobcích jeho strany od středu (změřeno z kresby) */
 const POSTAVA = { l: -0.21, r: 0.22, t: -0.24, b: 0.43 };
 /** Jak daleko od pravého a dolního okraje okna sedí */
-const OKRAJ = { r: 14, b: 10 };
+/* Na telefonu sedí doma až u pravého okraje (s rezervou 4 px u postavy zbydou 2 px) — tlačítka s ní posouvá parta2.css */
+const OKRAJ = { r: telefon() ? -2 : 14, b: 10 };
 /**
  * S uzlíkem šátku v ruce sahá dál doprava: uzlík visí vpravo od ní a na
  * jeho pravém boku sedí pečeť s počtem. `UZLIK_DOMA` je střed
@@ -449,9 +451,21 @@ export function pruvodce() {
 
   /* ═══ Rozměry, kotva a klidové místo ═══ */
   let B = 80, W = 0, H = 0;
+  /* Telefon: výška malého okna (100svh). Lišta prohlížeče se při scrollu schovává
+     a vrací a innerHeight se mění až se zpožděním — Vázička by ujela od tlačítek
+     u spodního okraje a pak skočila. Ta drží stejnou výšku (parta2.css). */
+  const vyskaOkna = () => {
+    if (!telefon()) return window.innerHeight;
+    const sonda = document.createElement("div");
+    sonda.style.cssText = "position:fixed;top:0;width:0;height:100svh;visibility:hidden;pointer-events:none";
+    document.body.append(sonda);
+    const h = sonda.offsetHeight;
+    sonda.remove();
+    return h || window.innerHeight;
+  };
   const zmer = () => {
     W = document.documentElement.clientWidth;
-    H = window.innerHeight;
+    H = vyskaOkna();
     B = Math.round(omez(Math.min(W * 0.078, H * 0.13), 84, 124));
     O.style.width = O.style.height = `${B}px`;
     tlacitko.style.setProperty("--b", `${B}px`);

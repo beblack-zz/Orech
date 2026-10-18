@@ -724,6 +724,17 @@ body.p2 {
  * větší než on. Lucernu s ním nenosí; barvy má v noci stejné jako ve dne.
  */
 .pruvodce-tlacitko, .pruvodce-zmensit, .pruvodce-nabidka, .pruvodce-kulicky { translate: calc(var(--posun, 0px) * -1) calc(var(--posun-y, 0px) * -1); }
+/* Telefon: Vázička počítá s výškou malého okna (100svh, pruvodce.ts), aby se nehoupala
+   s lištou prohlížeče — tlačítka u spodního okraje se proto drží téže výšky
+   (o rozdíl mezi dynamickým a malým oknem výš), jinak by jí při scrollu ujížděla */
+@media (hover: none) and (pointer: coarse) {
+  .pruvodce-tlacitko, .pruvodce-zmensit, .pruvodce-nabidka, .pruvodce-kulicky { translate: calc(var(--posun, 0px) * -1) calc(var(--posun-y, 0px) * -1 + 100svh - 100dvh); }
+  .p2 .pruvodce-carka { translate: 0 calc(100svh - 100dvh); }
+  /* Doma sedí až u pravého okraje (OKRAJ v pruvodce.ts o 16 px blíž) — tlačítka jdou s ní */
+  .p2 .pruvodce-tlacitko { right: -4px; }
+  .p2 .pruvodce-zmensit { right: calc(var(--b, 100px) * 0.52 - 16px); }
+  .pruvodce-kulicky { right: calc(var(--b, 100px) * 0.52 + 8px); }
+}
 .p2 .pruvodce-satek {
   position: fixed;
   z-index: 50;
@@ -972,6 +983,18 @@ body.p2 {
   .hlava-akce { gap: 2px; }
   .hlava-tema { width: 30px; }
   .sbirka-tlacitko { padding: 5px 6px 5px 4px; }
+}
+/* Telefon: měsíc hned za značkou; vpravo závěs s kami, zvonkohra a menu. Závěs
+   visí z horní hrany pruhu jako zvonkohra (pruh má nahoře 8 px výplň, vrch kresby 1,85 px pod hranou, háček
+   na tahu po okraji) — v pruhu zabere místo, proto o kus užší odkaz. */
+@media (max-width: 860px) {
+  .hlava-akce { display: contents; }
+  .hlava-znacka { order: 1; }
+  .hlava-mistr { order: 2; }
+  .hlava-tema { order: 3; }
+  .zaves { order: 4; position: relative; top: auto; right: auto; align-self: flex-start; flex: none; width: 44px; margin: -6.5px 6px 0 auto; }
+  .zvuk { order: 5; }
+  .hlava-menu-tlacitko { order: 6; }
 }
 
 /* ——— Úvod ——— */

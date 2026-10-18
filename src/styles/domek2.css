@@ -641,3 +641,12 @@
   .u-brana-kridla,
   .dm-polaroid img { transition: none; }
 }
+/* Telefon: ulice bez jízdy kamery, na jednu obrazovku s otevřenou bránou —
+   dovnitř se jde klepnutím (ulice.ts, TELEFON); zvětšování se tu sekalo */
+@media (max-width: 860px) {
+  .ulice { height: auto; }
+  .ulice-scena { position: relative; }
+  .u-brana-kridla { transition: none; }
+  /* bez štítku s adresou a bez „Jít dovnitř“ — zůstane jen mapa (prohlídka je hned pod ulicí) */
+  .ulice-text .stitek, .ulice-akce a[href="#prohlidka"] { display: none; }
+}
