@@ -720,9 +720,12 @@ body.p2 {
  * Počet kusů je rumělková pečeť na pravém boku uzlíku (--x, --y od
  * skriptu); když do uzlíku doletí kus, pečeť cinkne. S uzlíkem v ruce
  * sedí doma víc vlevo a tlačítko, čárka nad ní, nabídka i bubliny jdou
- * s ní o --posun.
+ * s ní o --posun. Velký uzlík (druhá verze, ?uzlik=velky) jí visí pod
+ * tělem: doma se vznáší výš a ty prvky jdou s ní i nahoru o --posun-y;
+ * má tutéž pečeť uvnitř na pravém dolním boku a krabičku jen o kousek
+ * větší než on. Lucernu s ním nenosí; barvy má v noci stejné jako ve dne.
  */
-.pruvodce-tlacitko, .pruvodce-zmensit, .pruvodce-nabidka, .pruvodce-kulicky { translate: calc(var(--posun, 0px) * -1) 0; }
+.pruvodce-tlacitko, .pruvodce-zmensit, .pruvodce-nabidka, .pruvodce-kulicky { translate: calc(var(--posun, 0px) * -1) calc(var(--posun-y, 0px) * -1); }
 .p2 .pruvodce-satek {
   position: fixed;
   z-index: 50;

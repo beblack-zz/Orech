@@ -22,6 +22,7 @@
  */
 import { B, f, chomac, nahoda, mnohouhelnik, obdelnik, obdelniky, cara, kruh, elipsa, mezi, kolmo, plus, pas } from "./zaklad";
 import type { Bod } from "./zaklad";
+import { STETEC, VIEWBOX, SAKU_OD, SAKU_DO } from "../../znacka/stetec-kresba";
 import { VLEVO, bambus, plotDrevo, vlevoDefs, vlevoListi, vlevoSvetlaVpredu, vlevoSvetlaVzadu, vlevoVpredu, vlevoVzadu, zidkaUsek } from "./ulice-vlevo";
 
 export interface UliceVolby {
@@ -316,6 +317,26 @@ function roura() {
     ${cara(a[0] - 2, a[1] - 3, ohyb[0] + 1, ohyb[1] - 3.5, `stroke="${B.pozinkSvetlo}" stroke-width="2" opacity="0.7"`)}
     <path d="M${f(x - 2.4)} ${f(ky + 12)} V${PR.dole}" stroke="${B.pozinkSvetlo}" stroke-width="2" opacity="0.7"/>
     ${[600, 712].map((y) => obdelnik(x - 6, y, 12, 5, `rx="1.5" fill="${B.pozinkTma}"`)).join("")}`;
+}
+
+/**
+ * JIRO saku na cedulce brány: tatáž štětcová značka jako v hlavičce
+ * (znacka/ZnackaStetec.astro) — JIRO tuší, saku soumrakem, struhy suchého
+ * štětce v masce. Roztřepený okraj (filtr) se vynechává, v téhle velikosti
+ * by nebyl vidět a scéna se zvětšuje kamerou.
+ */
+function cedulkaZnacka(p: string) {
+  const [vx, vy, vw, vh] = VIEWBOX;
+  const s = 0.31;
+  const id = `${p}-cz`;
+  return `<g transform="translate(${f(1001 - (vx + vw / 2) * s)} 882) scale(${s})">
+      <linearGradient id="${id}-g" gradientUnits="userSpaceOnUse" x1="${SAKU_OD}" y1="0" x2="${SAKU_DO}" y2="0"><stop offset="0" stop-color="#c4432b"/><stop offset="0.3" stop-color="#c0708a"/><stop offset="0.62" stop-color="#7a5e8e"/><stop offset="1" stop-color="#3e3c78"/></linearGradient>
+      <mask id="${id}-m" maskUnits="userSpaceOnUse" x="${vx}" y="${vy}" width="${vw}" height="${vh}">${obdelnik(vx, vy, vw, vh, `fill="#fff"`)}<g fill="none" stroke="#000" stroke-linecap="round">${STETEC.struhy}</g></mask>
+      <g mask="url(#${id}-m)">
+        <g fill="#2B2420">${STETEC.jiro}</g>
+        <g fill="url(#${id}-g)">${STETEC.saku}</g>
+      </g>
+    </g>`;
 }
 
 /** Večer: rozsvícená lampička u vchodu (dveře jsou celé dřevěné, za nimi nesvítí nic) */
@@ -657,8 +678,9 @@ export function ulice(v: UliceVolby = {}) {
       <path d="M984 862 L1000 852 L1016 862" stroke="#4A4037" stroke-width="1.6" fill="none"/>
       ${kruh(1000, 852, 2.4, `fill="#5C5047"`)}
       ${obdelnik(964, 862, 74, 50, `rx="4" fill="#F2E8D2" stroke="#8A6A48" stroke-width="2"`)}
-      <text x="1001" y="882" text-anchor="middle" font-size="13" font-weight="600" fill="#2B2420" font-family="Fraunces Variable, Fraunces, Georgia, serif">JIRO <tspan fill="#C4432B" font-style="italic" font-weight="400">saku</tspan></text>
-      <text x="1001" y="896" text-anchor="middle" font-size="7.6" letter-spacing="0.8" fill="#5C5047" font-family="Fraunces Variable, Fraunces, Georgia, serif">KERAMICKÁ DÍLNA</text>
+      ${cedulkaZnacka(p)}
+      <!-- šířka napevno (textLength): na cedulce se musí vejít, ať se písmo načte jakékoli -->
+      <text x="1001" y="896" text-anchor="middle" font-size="6.8" textLength="60" lengthAdjust="spacingAndGlyphs" fill="#5C5047" font-family="Fraunces Variable, Fraunces, Georgia, serif">KERAMICKÁ DÍLNA</text>
       <path d="M993 902 L1001 908 L1009 902" stroke="#C4432B" stroke-width="2" fill="none" stroke-linecap="round"/>
     </g>`;
   const brana = `

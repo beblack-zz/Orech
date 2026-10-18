@@ -10,6 +10,12 @@
  *   p 0,45 – 0,86  kamera jede po rampě k dveřím, noren se rozhrne, dveře se rozsvítí
  *   p 0,8 – 1      světlo zaplaví obrazovku — a pod ním začíná prohlídka
  *
+ * Kamera scroll jen dohání: kolečko myši skáče po celých krocích a scéna
+ * by se s ním trhala, takhle dojede plynule za ním (DOJEZD). Proměnné pro
+ * text, světlo, noren a záři se píšou rovnou na prvky, které je čtou, a jen
+ * když se změní — na celé sekci by s každým snímkem přepočítávaly styly
+ * všech tisíců prvků kresby.
+ *
  * Amplion na lampě pustí hlášení obecního rozhlasu (znělka, bublina
  * a s puštěným zvukem i hlas, pokud prohlížeč umí česky).
  * S omezeným pohybem nic z toho nejezdí: brána je otevřená a dovnitř
@@ -19,6 +25,9 @@ import { priMereni, priScrollu, pozice, omez, hladce, mix, klid } from "../parta
 import * as zvuk from "../parta2/zvuk";
 import { rekni } from "../parta2/kami";
 import { hlaseni } from "../../data/domek2";
+
+/** Jak rychle kamera dohání scroll: časová konstanta v milisekundách */
+const DOJEZD = 120;
 
 interface Cile {
   brana: { x: number; y: number };
@@ -59,6 +68,28 @@ export function ulice() {
   let klidCas: number | undefined;
   let jelo = false;
 
+  /* Proměnná jen na prvky, které ji čtou, a jen když se změní */
+  const promenne = new Map<string, { prvky: HTMLElement[]; hodnota: string }>();
+  const cti = (nazev: string, sel: string) =>
+    promenne.set(nazev, { prvky: [...sekce.querySelectorAll<HTMLElement>(sel)], hodnota: "" });
+  cti("--text-pryc", ".ulice-text, .ulice-dolu");
+  cti("--svetlo", ".ulice-svetlo");
+  cti("--rozhrnuti", ".ulice-noren");
+  cti("--zar", ".ulice-zar");
+  const nastav = (nazev: string, h: number) => {
+    const v = promenne.get(nazev);
+    const s = h.toFixed(3);
+    if (!v || v.hodnota === s) return;
+    v.hodnota = s;
+    for (const el of v.prvky) el.style.setProperty(nazev, s);
+  };
+
+  /* Kam scroll ukazuje (cil) a kde kamera je (ted) */
+  let cil = 0;
+  let ted = -1;
+  let ramec = 0;
+  let minule = 0;
+
   priMereni(() => {
     const p = pozice(sekce);
     vw = scena.clientWidth;
@@ -71,11 +102,46 @@ export function ulice() {
     sw = svet.offsetWidth;
     sh = svet.offsetHeight;
     posledni = "";
+    if (ted >= 0) vykresli(ted);
   });
+
+  /* Kamera dojíždí za scrollem; po dojetí se svět po chvíli překreslí načisto (bez will-change) */
+  const dojed = (cas: number) => {
+    const dt = Math.min(64, cas - minule);
+    minule = cas;
+    ted += (cil - ted) * (1 - Math.exp(-dt / DOJEZD));
+    if (Math.abs(cil - ted) < 0.0004) ted = cil;
+    vykresli(ted);
+    if (ted !== cil) {
+      ramec = requestAnimationFrame(dojed);
+      return;
+    }
+    ramec = 0;
+    window.clearTimeout(klidCas);
+    klidCas = window.setTimeout(() => svet.classList.remove("jede"), 250);
+  };
 
   priScrollu((y) => {
     if (!sw || !sh || !vw || !vh) return;
-    const p = omez((y - top) / rozsah);
+    cil = omez((y - top) / rozsah);
+    /* Scéna mimo obrazovku (první snímek, skok kotvou) — kamera tam rovnou stojí */
+    const mimo = y < top - vh || y > top + rozsah + vh;
+    if (ted < 0 || mimo) {
+      cancelAnimationFrame(ramec);
+      ramec = 0;
+      ted = cil;
+      vykresli(ted);
+      return;
+    }
+    if (ramec || ted === cil) return;
+    window.clearTimeout(klidCas);
+    svet.classList.add("jede");
+    minule = performance.now();
+    ramec = requestAnimationFrame(dojed);
+  });
+
+  const vykresli = (p: number) => {
+    if (!sw || !sh || !vw || !vh) return;
     // Dvě jízdy za sebou: nejdřív k bráně, pak k dveřím za ní
     const k1 = hladce(omez((p - 0.04) / 0.3));
     const k2 = hladce(omez((p - 0.45) / 0.41));
@@ -96,9 +162,6 @@ export function ulice() {
     if (t !== posledni) {
       posledni = t;
       svet.style.transform = t;
-      svet.classList.add("jede");
-      window.clearTimeout(klidCas);
-      klidCas = window.setTimeout(() => svet.classList.remove("jede"), 180);
     }
 
     const b = hladce(omez((p - 0.26) / 0.24));
@@ -112,13 +175,13 @@ export function ulice() {
 
     const s = omez((p - 0.6) / 0.24);
     if (svetloDilny) svetloDilny.style.opacity = s.toFixed(3);
-    sekce.style.setProperty("--svetlo", s.toFixed(3));
+    nastav("--svetlo", s);
     // Noren ve dveřích se rozhrne, než světlo zaplaví obrazovku
-    sekce.style.setProperty("--rozhrnuti", hladce(omez((p - 0.55) / 0.27)).toFixed(3));
-    sekce.style.setProperty("--text-pryc", omez((p - 0.02) / 0.2).toFixed(3));
-    sekce.style.setProperty("--zar", hladce(omez((p - 0.8) / 0.2)).toFixed(3));
+    nastav("--rozhrnuti", hladce(omez((p - 0.55) / 0.27)));
+    nastav("--text-pryc", omez((p - 0.02) / 0.2));
+    nastav("--zar", hladce(omez((p - 0.8) / 0.2)));
     sekce.classList.toggle("uvnitr", p > 0.18);
-  });
+  };
 }
 
 /* ——— Obecní rozhlas ——— */

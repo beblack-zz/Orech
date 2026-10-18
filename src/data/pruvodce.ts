@@ -293,11 +293,36 @@ export const stopy: { kde: string[]; co: "futatsu" | "slepeno" | "uzliky" | "lis
   { kde: ["rezervace"], co: "darek", replika: { text: "Pro koho je ta jízdenka, neříkej. Hostitelka se neptá.", vyraz: "mrk" } },
 ];
 
-/** Když host v hlavičce přepne na noc — vezme si lucernu (kresba ji nese, dokud je noc) */
+/** Když host v hlavičce přepne na noc — vezme si lucernu (kresba ji nese, dokud je noc); s velkým uzlíkem ji neunese (`tezkySatek.noc`) */
 export const naNoc: Replika = { text: "Tma? Vezmu si lucernu.", vyraz: "usmev" };
 
 /** Když do uzlíku v její ruce poprvé za stránku doletí kus z krámku (šátek není vidět, nese ho za hosta) */
 export const doSatku: Replika = { text: "Šátek ti podržím. Až ho budeš chtít zavázat, stačí klepnout na uzlík.", vyraz: "usmev", gesto: "uklon" };
+
+/**
+ * Velký uzlík (druhá verze, ?uzlik=velky): šátek skoro tak velký jako ona
+ * nese pod sebou a letí s ním ztěžka. Stěžuje si elegantně — hostitelka
+ * nikdy neřekne, že je něco těžké, jen to trochu ukáže. Shazuje sebe (věk,
+ * porcelán, učednice), nikdy hosta, a na nákup netlačí; přísná je jen na
+ * sebe. Žádné „uff“. První kus dál uvítá `doSatku`; `kus` jsou věty
+ * k dalším kusům po řadě (každá jednou za stránku), `drzi` řekne jednou za
+ * stránku, když ho dlouho drží a nic nepřibude, `noc` místo `naNoc`, když
+ * host zapne noc (lucernu s ním nenese), a `titul` s `napoveda` platí
+ * u nabídky, dokud ho nese (když ji host osloví).
+ */
+export const tezkySatek: { kus: Replika[]; drzi: Replika; noc: Replika; titul: string; napoveda: string } = {
+  kus: [
+    { text: "Další kus. Hostitelka nikdy neřekne, že je něco těžké. Jen to trochu ukáže.", vyraz: "prisna" },
+    { text: "Porcelán se nemá přetěžovat. Pro tebe udělám výjimku.", vyraz: "usmev" },
+    { text: "Maiko se učí nosit těžké kimono. Na tohle nás nikdo nepřipravil.", vyraz: "kouka" },
+    { text: "Sto let jsem jen stála v tokonomě. Teď se učím létat s nákladem.", vyraz: "mrk" },
+    { text: "Záda rovně, i s nákladem. Etiketa nemá výjimky.", vyraz: "prisna" },
+  ],
+  drzi: { text: "Nespěchej, prosím. Podržím ho — stejně se s ním nikam nehnu.", vyraz: "klid" },
+  noc: { text: "Tma? Lucernu už neunesu — ruce mám plné. Poletím po paměti.", vyraz: "mrk" },
+  titul: "Kam tě smím uvést? Jen pomalu, prosím — nesu ti šátek.",
+  napoveda: "Smím? Ruce mám plné.",
+};
 
 /**
  * „Povím ti, co o tobě vím“ — poslední volba v nabídce na každé stránce.

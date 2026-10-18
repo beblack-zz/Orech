@@ -33,6 +33,11 @@ const Zvuk = (() => {
         d[i] = posl * 3.5;
       } else d[i] = w;
     }
+    /* Hnědý šum je posčítaný: konec srovnat se začátkem, jinak smyčka každé kolo cvakne */
+    if (hneda) {
+      const skok = d[d.length - 1] - d[0];
+      for (let i = 0; i < d.length; i++) d[i] -= (skok * i) / (d.length - 1);
+    }
     return b;
   };
   const pripravit = () => {

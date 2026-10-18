@@ -28,12 +28,15 @@
  * Šátek z krámku: `vstup.satek` = { vzor, pocet, cuk } jí dá do pravé ruky
  * uzlík furoshiki (kreslí ho jen podoby průvodce, viz Šátek průvodce níž);
  * kde uzlík zrovna visí, vrací kresba v `dyn.satekBod` a hned po kroku to
- * pošle i do `vstup.uzlikJe`, když ho průvodce dal.
+ * pošle i do `vstup.uzlikJe`, když ho průvodce dal. S `druh: "velky"` je to
+ * druhá verze: uzlík skoro tak velký jako ona nese pod sebou, pořád letí
+ * a vějíř ji ovívá sám (Velký uzlík níž); `vstup.satek.lek` = kolikrát
+ * se s ním lekla.
  */
 import {
   f, rng, clamp, lerp, smooth, rad, deg, mix, pt, kCili, pres, dosed, mrkani, kyvadlo, noveKyvadlo,
   VAZ, DEN, MESICE, KVETY_VETVE, polomer, vazDefs, kvetyDefs, vazTelo, vazTvarNa, vazSnury, vazVetvicka,
-  vazZa, vazPred, vazBoty, vazRukavy, vazRuka, vazVejir, klicRukavu, vazStin, kanzashiStred, kvet, listek,
+  vazZa, vazPred, vazBoty, vazRukavy, vazRuka, vazVejir, klicRukavu, vazStin, kanzashiStred, kvet, listek, PLATEK,
 } from "./spolecne.js";
 import { vzory, vzorPodleId, vzorPattern } from "../../data/furoshiki";
 
@@ -120,9 +123,96 @@ const vrstvaKvetRoku = (st, { svit = true } = {}) => {
 
 /* ═══ Postava ═══ */
 const yawQ = (st) => Math.round(st.yaw / 2) * 2;
-/** Póza pro společné kusy postavy. */
-const kusy = (st) => ({ yaw: st.yaw, m: st.mKvety, rust: st.rust, kyv: st.kyv, ruce: st.ruce, vejir: st.vejir });
-const vrstvaRukavy = (za) => (st) => vPostave(vazRukavy(ID, kusy(st), za, { listky: MESICE[st.mTelo].listB[1] }));
+/** Póza pro společné kusy postavy. S velkým uzlíkem nemá vějíř v ruce — ruce má plné, vějíř ji ovívá sám (vrstva námahy). */
+const kusy = (st) => ({ yaw: st.yaw, m: st.mKvety, rust: st.rust, kyv: st.kyv, ruce: st.ruce, vejir: st.velky ? null : st.vejir });
+const vrstvaRukavy = (za) => (st) =>
+  vPostave(st.velky ? rukavyVelkeho(st, za) : vazRukavy(ID, kusy(st), za, { listky: MESICE[st.mTelo].listB[1] }));
+/**
+ * Rukávy s velkým uzlíkem: rukáv vyrůstá z boku jako u malé verze — nahoře
+ * začíná na obrysu vázy v hrotu, vnější hrana kopíruje její oblouk a od těla
+ * se odkloní plynule až pod ramenem (žádná rovná hrana ani roh); nadloktí
+ * jde dolů kousek vně obrysu a přes předek těla vede jen předloktí
+ * k dlaním těsně nad uzlem — obi i vzor kimona zůstanou vidět. U lokte visí
+ * krátký vak, u zápěstí svítí podšívka. Kreslí se tady (ne vazRukav), ať
+ * jde po těle: střední čára po obrysu k lokti a obloukem k zápěstí, pás
+ * s vnější a vnitřní šířkou zvlášť. Jde s postavou i s předklonem, takže se
+ * od těla nikdy neodtrhne; dlaně jsou na uzlu.
+ */
+const RUKAV_VELKY = {
+  /* výšky na obrysu (souřadnice postavy): kde rukáv začíná v hrotu, do kdy vnější hrana leží na obrysu, loket */
+  vrch: 96, rameno: 106, loket: 127,
+  /* o kolik je střed lokte vně obrysu */
+  vne: 2.8,
+  /* šířka dovnitř přes okraj těla u ramene, půlšířka u lokte a u zápěstí; vak u lokte */
+  dovnitr: 2.8, loketW: 3.7, zapesti: 3, vak: { delka: 9, sirka: 3.2 },
+};
+const rukavVelky = (strana, H, k, listky) => {
+  const R = RUKAV_VELKY, s = strana;
+  const pul = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const k2 = (a, b, q) => [lerp(a[0], b[0], q), lerp(a[1], b[1], q)];
+  const naObrysu = (y, o = 0) => [VAZ.cx + s * (polomer(y) + o), y];
+  /* nadloktí: střed po obrysu, pod ramenem se plynule odkloní ven; šířky ven a dovnitř zvlášť (nahoře hrot) */
+  const NAD = 12, PRED = 12, N = NAD + PRED;
+  const stred = [], ven = [], dov = [];
+  for (let i = 0; i <= NAD; i++) {
+    const y = lerp(R.vrch, R.loket, i / NAD);
+    const q = (y - R.vrch) / (R.loket - R.vrch), pod = smooth(clamp((y - R.rameno) / (R.loket - R.rameno)));
+    stred.push(naObrysu(y, R.vne * pod));
+    ven.push(lerp(0, R.loketW, pod) * smooth(clamp(q / 0.1)));
+    dov.push(lerp(R.dovnitr * smooth(clamp(q / 0.45)), R.loketW, pod));
+  }
+  /* předloktí: z lokte obloukem k zápěstí, navazuje na směr nadloktí */
+  const E = stred[NAD], t1 = [E[0] - stred[NAD - 1][0], E[1] - stred[NAD - 1][1]], d1 = Math.hypot(...t1) || 1;
+  const Q2 = [E[0] + (t1[0] / d1) * 0.45 * Math.hypot(H[0] - E[0], H[1] - E[1]), E[1] + (t1[1] / d1) * 0.45 * Math.hypot(H[0] - E[0], H[1] - E[1])];
+  const bez = (a, c, b, t) => [(1 - t) * (1 - t) * a[0] + 2 * (1 - t) * t * c[0] + t * t * b[0], (1 - t) * (1 - t) * a[1] + 2 * (1 - t) * t * c[1] + t * t * b[1]];
+  for (let j = 1; j <= PRED; j++) {
+    stred.push(bez(E, Q2, H, j / PRED));
+    const w = lerp(R.loketW, R.zapesti, j / PRED);
+    ven.push(w);
+    dov.push(w);
+  }
+  /* dokud uzlík přibývá, paže se teprve ohýbá: z rovného rukávu od ramene k dlani */
+  const T = stred[0];
+  const body = stred.map((P, i) => k2(k2(T, H, i / N), P, k));
+  /* kolmice ven od těla (na stranu `strana`) */
+  const kolmice = (i) => {
+    const a = body[Math.max(0, i - 1)], b = body[Math.min(N, i + 1)];
+    const dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1;
+    return s > 0 ? [dy / d, -dx / d] : [-dy / d, dx / d];
+  };
+  const vne = [], dovnitr = [];
+  body.forEach((P, i) => {
+    const [nx, ny] = kolmice(i);
+    vne.push([P[0] + nx * ven[i], P[1] + ny * ven[i]]);
+    dovnitr.push([P[0] - nx * dov[i], P[1] - ny * dov[i]]);
+  });
+  /* hladce přes středy úseček; nahoře se obě hrany sejdou v hrotu na obrysu */
+  const hladce = (b) => b.slice(1, -1).map((P, i) => `Q${pt(P)} ${pt(pul(P, b[i + 2]))}`).join(" ") + ` L${pt(b[b.length - 1])}`;
+  const pas = `M${pt(vne[0])} ${hladce(vne)} L${pt(dovnitr[N])} ${hladce([...dovnitr].reverse())} Z`;
+  let o = "";
+  /* krátký vak furisode u lokte, vně těla (pod pásem) */
+  if (k > 0.05) {
+    const [ex, ey] = vne[NAD], dl = R.vak.delka * k, sr = R.vak.sirka;
+    o += `<path d="M${f(ex - s * 0.6)} ${f(ey - 2)} Q${f(ex + s * (sr + 1.4))} ${f(ey + dl * 0.45)} ${f(ex + s * sr * 0.4)} ${f(ey + dl)} Q${f(ex - s * sr * 0.9)} ${f(ey + dl * 0.75)} ${f(ex - s * sr * 0.7)} ${f(ey + 2)} Z" fill="url(#${ID}-rukav)" stroke="${P.obrys}" stroke-width="1" stroke-linejoin="round"/>`;
+    o += `<path d="${PLATEK}" transform="translate(${f(ex + s * sr * 0.2)} ${f(ey + dl * 0.78)}) rotate(${f(s * 20)}) scale(0.2)" fill="${listky}" opacity="0.85"/>`;
+  }
+  o += `<path d="${pas}" fill="url(#${ID}-rukav)" stroke="${P.obrys}" stroke-width="1" stroke-linejoin="round"/>`;
+  /* podšívka u zápěstí: rumělkový proužek napříč rukávem */
+  const iM = N - 2, [mx, my] = body[iM], [kx, ky] = kolmice(iM), wM = ven[iM] * 0.92;
+  o += `<path d="M${f(mx + kx * wM)} ${f(my + ky * wM)} L${f(mx - kx * wM)} ${f(my - ky * wM)}" stroke="${P.limec}" stroke-width="1.6" stroke-linecap="round"/>`;
+  return o + vazRuka(ID, H);
+};
+const rukavyVelkeho = (st, za) => {
+  const o = kusy(st), k = st.velky.k, listky = MESICE[st.mTelo].listB[1];
+  let s = "";
+  for (const kdo of ["L", "P"]) {
+    const r = o.ruce[kdo];
+    if (!!r.za !== za) continue;
+    s += rukavVelky(kdo === "L" ? -1 : 1, r.H, k, listky);
+  }
+  return s;
+};
+const klicRukavuVelkeho = (st) => (st.velky ? `,${Math.round(st.velky.k * 20)}` : "");
 const vrstvaListky = (st) =>
   st.listky
     .map((l) => {
@@ -175,7 +265,10 @@ const novaDynamika = () => ({
   lucerna: noveKyvadlo(),
   /* uzlík šátku v pravé ruce (`vstup.satek`): kyvadlo, pružina, která ho pod dopadnutým kusem zhoupne dolů, jak moc ho drží (0…1),
      poslední vzor a počet (ať zmizí ve stejné látce), kolikrát do něj kus dopadl a kde je jeho střed na plátně (čte pruvodce.ts) */
-  satek: noveKyvadlo(), satekPero: { y: 0, v: 0 }, nese: 0, satekVzor: null, satekPocet: 0, satekCuk: 0, satekBod: null,
+  satek: noveKyvadlo(), satekPero: { y: 0, v: 0 }, nese: 0, satekVzor: null, satekPocet: 0, satekCuk: 0, satekLek: 0, satekBod: null,
+  /* velký uzlík (`vstup.satek.druh === "velky"`): jak moc ho má (0…1), kdy začalo kolo trápení a kde v něm byla minule, rána po dopadnutém kusu,
+     natažení uzlíku (pružina), propad po dopadnutém kusu (pružina), kyvadlo, na kterém visí, a fáze mávání vějíře */
+  velky: { k: 0, t0: 0, uPred: 0, rana: 0, pero: { y: 0, v: 0 }, klesani: { y: 0, v: 0 }, kyv: noveKyvadlo(), mava: 0 },
   /* průvodce zvenku: ruka ke kanzashi, ovívání vějířem, dřímání, úklona, vějíř bez otočky (0…1) a měsíc podle kalendáře */
   vlasy: 0, ovivani: 0, spi: 0, uklon: 0, vejir: 0, mesic: null,
 });
@@ -213,6 +306,15 @@ const poza = (d, t) => {
   /* průvodce s uzlíkem šátku (`vstup.satek`) drží pravou ruku o kus výš v každé póze — i s vějířem, ať uzlík nevisí pod nohy */
   const n = d.nese || 0;
   if (n) Pr.H = [Pr.H[0] + RUKA_NESE[0] * n, Pr.H[1] + RUKA_NESE[1] * n];
+  /* velký uzlík: obě ruce svírají jeho uzel pod tělem, paže vedou před tělem (rukávy ve zkratce, viz rukavyVelkeho) — na gesta
+     mu nezbývá žádná (vějíř ji ovívá sám); otočená zády má uzlík i ruce za sebou */
+  const vk = d.velky ? d.velky.k : 0;
+  if (vk > 0.001) {
+    const nat = velkyPoza(d, t).natah;
+    L.H = sm(L.H, [VELKY.ruceL[0], VELKY.ruceL[1] + nat], vk);
+    Pr.H = sm(Pr.H, [VELKY.ruceP[0], VELKY.ruceP[1] + nat], vk);
+    if (vk > 0.5) L.za = Pr.za = Math.cos(rad(yaw)) < 0;
+  }
   return {
     u, toci, yaw, vzlet, ukaz, L, Pr,
     vejir: { smer: lerp(lerp(lerp(78, -62, ukaz), -125, d.stydi), -78 + 16 * Math.sin(t * 7.5), ov), otevreni: Math.max(dosed(ukaz), 0.86 * d.stydi, 0.8 * ov) },
@@ -221,14 +323,22 @@ const poza = (d, t) => {
 /**
  * Jak se hýbe celá postava (`pohyb` vrstev): dýchá, při otočce se nadnese,
  * v póze se maličko ukloní; v dřímotě (průvodce, `vstup.spi`) trochu klesne
- * a pomalu pokyvuje, při úkloně (`vstup.uklon`) se k zemi přikrčí.
+ * a pomalu pokyvuje, při úkloně (`vstup.uklon`) se k zemi přikrčí. S velkým
+ * uzlíkem se navíc vznáší: pohupuje se, kolébá, pod vahou propadá a zabírá
+ * — a je pořád mírně předkloněná k uzlu: kreslí se jako slabší úklona
+ * (níž a maličko stlačená), víc, když se propadá, míň, když se vytahuje.
  */
-const figura = (d, p, t) => ({
-  x: 0,
-  y: 0.7 * Math.sin(t * 1.5) - 2.6 * p.vzlet + d.spi * (1.2 + Math.sin(t * 1.1)) + 3.6 * d.uklon,
-  r: 1.6 * p.ukaz - 1.2 * d.stydi + 0.5 * Math.sin(t * 0.8) + d.spi * 1.8 * Math.sin(t * 0.55),
-  sy: 1 - 0.1 * d.uklon,
-});
+const figura = (d, p, t) => {
+  const vp = d.velky && d.velky.k > 0.001 ? velkyPoza(d, t) : null;
+  /* úklona a předklon jsou tentýž pohyb: úklona ji předkloní celou, jinak drží svůj předklon (nesčítají se) */
+  const pk = Math.max(d.uklon, vp ? vp.predklon : 0);
+  return {
+    x: 0,
+    y: 0.7 * Math.sin(t * 1.5) - 2.6 * p.vzlet + d.spi * (1.2 + Math.sin(t * 1.1)) + 3.6 * pk + (vp ? vp.y : 0),
+    r: 1.6 * p.ukaz - 1.2 * d.stydi + 0.5 * Math.sin(t * 0.8) + d.spi * 1.8 * Math.sin(t * 0.55) + (vp ? vp.r : 0),
+    sy: 1 - 0.1 * pk,
+  };
+};
 const krok = (dyn, t, dt, vstup) => {
   const R = dyn.nahoda;
   const volno = () => t - dyn.zmena > KONEC;
@@ -245,7 +355,10 @@ const krok = (dyn, t, dt, vstup) => {
   dyn.vejir = kCili(dyn.vejir, vstup.vejir ? 1 : 0, dt, 0.14);
   /* průvodce: uzlík šátku se v ruce objeví a zase zmizí plynule; když do něj dopadne kus (`cuk` se zvětší), zhoupne se a klesne */
   const sat = vstup.satek;
-  dyn.nese = kCili(dyn.nese, sat ? 1 : 0, dt, sat ? 0.13 : 0.1);
+  /* velký uzlík (druhá verze): objeví se stejně plynule; když do něj dopadne kus, propadne se s ním o kus níž, natáhne se a zase vyletí */
+  const velky = !!sat && sat.druh === "velky", vel = dyn.velky;
+  dyn.nese = kCili(dyn.nese, sat && !velky ? 1 : 0, dt, sat && !velky ? 0.13 : 0.1);
+  vel.k = kCili(vel.k, velky ? 1 : 0, dt, velky ? 0.2 : 0.12);
   if (sat) {
     dyn.satekVzor = sat.vzor;
     dyn.satekPocet = sat.pocet;
@@ -254,7 +367,19 @@ const krok = (dyn, t, dt, vstup) => {
       dyn.satek.w += (dyn.satek.w >= 0 ? 1 : -1) * UZLIK.cuk.w;
       dyn.satekPero.v += UZLIK.cuk.v;
     }
+    if (cuk > dyn.satekCuk && velky && vel.k > 0.5) {
+      vel.rana = 1;
+      vel.klesani.v += VELKY.rana;
+      vel.pero.v += 1.6;
+    }
     dyn.satekCuk = cuk;
+    /* s velkým se lekla (`lek` se zvětší — probudila se): propadne se jako po kusu, jen míň, a zase vyletí */
+    const lek = sat.lek || 0;
+    if (lek > dyn.satekLek && velky && vel.k > 0.5) {
+      vel.rana = Math.max(vel.rana, 0.7);
+      vel.klesani.v += 0.7 * VELKY.rana;
+    }
+    dyn.satekLek = lek;
   }
   if (vstup.kliky && vstup.kliky.length) {
     vstup.kliky.length = 0;
@@ -274,6 +399,12 @@ const krok = (dyn, t, dt, vstup) => {
   if (vstup.mys && dyn.mx != null && dt > 0) vm = clamp(((vstup.mys.x - dyn.mx) / dt / 90) * (vstup.vitrMysi ?? 1), -3, 3);
   /* v letu ji ofukuje protivítr */
   if (vstup.vitr) vm = clamp(vm + vstup.vitr, -3, 3);
+  /* s velkým uzlíkem jí do šňůr fouká vějíř, který ji sám ovívá */
+  if (vel.k > 0.02) {
+    const vj = vejirSam(dyn, t, velkyPoza(dyn, t));
+    vel.mava += dt * (6 + 6 * vj.sila) * (1 - 0.85 * (dyn.spi || 0));
+    vm = clamp(vm + 0.5 * vj.sila * vel.k * Math.sin(vel.mava), -3, 3);
+  }
   dyn.mx = vstup.mys ? vstup.mys.x : null;
   dyn.vitr = kCili(dyn.vitr, vm, dt, 0.1);
   /* kurzor na tváři: schová se za vějíř — nebo když řekne něco výrazem `stydi` */
@@ -303,7 +434,24 @@ const krok = (dyn, t, dt, vstup) => {
     pero.v += (-UZLIK.pero.k * pero.y - UZLIK.pero.c * pero.v) * dt;
     pero.y += pero.v * dt;
   }
-  dyn.satekBod = bodUzliku(dyn, p, t);
+  /* velký uzlík: když se propadne, natáhne se, když zabere, povolí; rána po kusu odezní, propad po něm se vrátí s přetažením; houpe se pod ní */
+  if (vel.k > 0.001) {
+    vel.rana = kCili(vel.rana, 0, dt, 0.6);
+    const u = faze(dyn, t);
+    if (pres(vel.uPred, u, KOLO_PROPAD)) vel.pero.v += 1.0;
+    if (pres(vel.uPred, u, KOLO_ZABERE)) vel.pero.v -= 0.6;
+    vel.uPred = u;
+    if (dt > 0) {
+      vel.pero.v += (-VELKY.pero.k * vel.pero.y - VELKY.pero.c * vel.pero.v) * dt;
+      vel.pero.y = clamp(vel.pero.y + vel.pero.v * dt, -0.12, 0.22);
+      vel.klesani.v += (-VELKY.klesani.k * vel.klesani.y - VELKY.klesani.c * vel.klesani.v) * dt;
+      vel.klesani.y += vel.klesani.v * dt;
+    }
+    /* kyvadlo se věší za uzel tak, jak je na obrazovce — kolébání i let ho rozhoupou */
+    const g = figura(dyn, p, t);
+    kyvadlo(vel.kyv, naObrazovce(g, VELKY.uzel)[0], dt, { ...VELKY.kyv, vitr: vitr * 1.4 });
+  }
+  dyn.satekBod = vel.k > 0.02 ? bodVelkeho(dyn, p, t) : bodUzliku(dyn, p, t);
   /* průvodce svůj snímek počítá obvykle dřív než kresba — ať jeho odkaz s počtem sedí na uzlíku už v tomhle snímku, ne až v dalším */
   if (typeof vstup.uzlikJe === "function") vstup.uzlikJe(dyn.satekBod);
   /* plíšky na šňůrách cinknou, když se rozhoupou */
@@ -348,10 +496,13 @@ const stav = (t, vstup = {}, dyn) => {
   const maluje = bezi && u < K0 + KT;
   let vyraz = "klid";
   if (p.toci) vyraz = "usmev";
+  /* velký uzlík jí kus vytrhl dolů: úlek přebije i to, s čím zrovna mluví */
+  else if (d.velky && d.velky.k > 0.5 && d.velky.rana > 0.35) vyraz = "uzas";
   else if (vstup.vyraz) vyraz = vstup.vyraz;
   else if (p.ukaz > 0.3) vyraz = "mrk";
   else if (d.stydi > 0.4) vyraz = "stydi";
   else if (d.spi > 0.5 || d.uklon > 0.5) vyraz = "klid";
+  else if (vyrazVelkeho(d, t)) vyraz = vyrazVelkeho(d, t);
   else if (vstup.mys) vyraz = "kouka";
   return {
     t, u, yaw: p.yaw % 360, vyraz, mKvety, rust, mTelo: mKvety,
@@ -360,10 +511,12 @@ const stav = (t, vstup = {}, dyn) => {
     ruce: { L: { ...p.L, kyv: deg(d.rukavy.L.a) }, P: { ...p.Pr, kyv: deg(d.rukavy.P.a) } },
     vejir: p.vejir,
     kyv: { snury: d.snury.map((q) => deg(q.a)), masle: d.masle.a, vetev: deg(d.vetev.a) * 0.5, lucerna: deg(d.lucerna.a) },
-    lucerna: !!vstup.lucerna,
+    /* s velkým uzlíkem lucernu nenese vůbec — ruce má plné; barvy zůstávají stejné ve dne i v noci */
+    lucerna: !!vstup.lucerna && !(d.velky && d.velky.k > 0.5),
     listky: d.listky, pohled: d.pohled, spi: d.spi,
     fig: figura(d, p, t),
     satek: uzlikVeStavu(d),
+    velky: velkyVeStavu(d, t, p),
     mrk: mrkani(t, [1.9, 5.2, 5.45, 8.8], 10.2),
     zare: 0.8 + 0.12 * Math.sin(t * 0.9) + (maluje ? 0.25 * Math.sin(Math.PI * kp) : 0),
   };
@@ -388,14 +541,14 @@ export const kamiKvety = {
     { id: "kvet-roku", kresli: vrstvaKvetRoku, klic: (st) => `${st.kvetRoku.m},${Math.round(st.kvetRoku.k * 50)}` },
     { id: "stin", kresli: () => vPostave(vazStin(VAZ.cx, { rx: 31 })) },
     { id: "za", kresli: (st) => vPostave(vazZa(ID, kusy(st))), klic: (st) => `${kvetyKlic(st)},${Math.round(st.kyv.masle * 30)}`, pohyb },
-    { id: "rukavy-za", kresli: vrstvaRukavy(true), klic: (st) => `${klicRukavu(kusy(st))},${st.mTelo}`, pohyb },
+    { id: "rukavy-za", kresli: vrstvaRukavy(true), klic: (st) => `${klicRukavu(kusy(st))},${st.mTelo}${klicRukavuVelkeho(st)}`, pohyb },
     { id: "okobo", kresli: (st) => vPostave(vazBoty(ID, kusy(st))), klic: yawQ },
     { id: "vetvicka", kresli: (st) => vPostave(vazVetvicka(ID, st.mKvety, { kyv: st.kyv.vetev, rust: st.rust })), klic: (st) => `${st.mKvety},${Math.round(st.rust * 40)},${Math.round(st.kyv.vetev * 4)}`, pohyb },
     { id: "telo", kresli: (st) => vPostave(vazTelo(ID, { yaw: st.yaw, listky: MESICE[st.mTelo].listB[1], listky2: MESICE[st.mTelo].listB[0] })), klic: (st) => `${yawQ(st)},${st.mTelo}`, pohyb },
     { id: "tvar", kresli: (st) => vPostave(vazTvarNa(ID, st.yaw, { dx: st.pohled[0], dy: st.pohled[1], mrk: st.mrk, vyraz: st.vyraz })), klic: (st) => `${f(st.pohled[0])},${f(st.pohled[1])},${f(st.mrk)},${st.vyraz},${yawQ(st)}`, pohyb },
     { id: "pred", kresli: (st) => vPostave(vazPred(ID, kusy(st))), klic: (st) => `${kvetyKlic(st)},${Math.round(st.kyv.masle * 30)}`, pohyb },
     { id: "snury", kresli: (st) => vPostave(vazSnury(ID, st.mKvety, { yaw: st.yaw, kyv: st.kyv.snury, rust: st.rust })), klic: (st) => `${kvetyKlic(st)},${st.kyv.snury.map((a) => Math.round(a * 2)).join(",")}`, pohyb },
-    { id: "rukavy-pred", kresli: vrstvaRukavy(false), klic: (st) => `${klicRukavu(kusy(st))},${st.mTelo}`, pohyb },
+    { id: "rukavy-pred", kresli: vrstvaRukavy(false), klic: (st) => `${klicRukavu(kusy(st))},${st.mTelo}${klicRukavuVelkeho(st)}`, pohyb },
     { id: "listky", kresli: vrstvaListky, klic: (st) => (st.listky.length ? snimek(st) : -1) },
   ],
 };
@@ -424,7 +577,8 @@ const naPruvodce = (s) => (typeof s === "string" ? s.replaceAll("vg1-", "vgp-") 
  * Vázička v levé ruce krátkou bambusovou tyčku a na její špičce papírový
  * čóčin — kyvadlo jako šňůry kanzashi, takže se houpe s větrem i s otočkou.
  * Za ní svítí teplá záře. Lucerna je ve vrstvách dvakrát: za tělem, když
- * má levou ruku za zády, jinak před ním.
+ * má levou ruku za zády, jinak před ním. S velkým uzlíkem ji nenese (ruce
+ * má na uzlu, viz Velký uzlík).
  */
 /** Špička tyčky: od ruky šikmo ven a nahoru (zepředu se tyčka zkrátí) */
 const hrotTycky = (st) => {
@@ -552,14 +706,249 @@ const klicSatku = (st) =>
     ? `${st.satek.vzor},${st.satek.pocet},${Math.round(st.ruce.P.H[0] * 2)},${Math.round(st.ruce.P.H[1] * 2)},${Math.round(st.satek.kyv * 2)},${Math.round(st.satek.k * 40)},${Math.round(st.satek.pero * 5)},${st.ruce.P.za ? 1 : 0}` +
       (st.vejir.otevreni > VEJIR_PRED_UZLIKEM ? `,${Math.round(st.vejir.smer)},${Math.round(st.vejir.otevreni * 40)}` : "")
     : "-";
-/** Vrstvy průvodce s uzlíkem: za zády hned po lucerně za zády, před tělem po lucerně vepředu */
+
+/*
+ * Velký uzlík — druhá verze k porovnání (`vstup.satek.druh === "velky"`;
+ * pruvodce.ts ji vybírá podle ?uzlik=velky / ?uzlik=maly). Šátek skoro tak
+ * velký jako ona nese pod sebou jako včelka: visí jí pod tělem uprostřed
+ * a drží ho za uzel oběma rukama — paže vycházejí po stranách z obrysu,
+ * nadloktí jde podél těla a přes předek jen předloktí k dlaním na uzlu, ať
+ * je vidět obi i vzor kimona (`rukavyVelkeho`) — a je pořád mírně
+ * předkloněná, jako když nese něco těžkého před sebou (slabší úklona, s kolem
+ * se mění; v hlubokém předklonu jí uzlík paže trochu natáhne). Pořád letí, i doma v rohu — vznáší se,
+ * pohupuje se nahoru a dolů a mírně se kolébá. Ve smyčce (`KOLO`) drží
+ * výšku, pod vahou se propadne, oddechne si (u spánku jí kápne pot), zabere
+ * a zase se vytáhne; s každým kusem navíc se propadá hloub. Nic se při tom
+ * netřese a nefuní — námahu nese výraz, pot a vějíř. Když do něj kus doletí
+ * (`cuk`), propadne se o kus níž a zase vyletí (pružina `klesani`); když se
+ * lekne (`lek`, probudila se), propadne se míň. Uzlík visí z uzlu jako těžké
+ * kyvadlo a drží se svisle, i když se ona kolébá; když se propadne, natáhne
+ * se. Ruce má plné, a tak jí vějíř poletuje vlevo od hlavy a ovívá ji sám —
+ * čím víc se namáhá, tím víc (a fouká jí do šňůr kanzashi) — a nikdy se jí
+ * nedotkne: když se stydí, přiletí blíž k tváři, na gesto s vějířem se
+ * rozevře a zvedne, když dřímá, svěsí se a přivře. Lucernu s velkým uzlíkem
+ * nenosí, ve dne ani v noci. Co jinak stojí — okobo a u průvodce pro mistra
+ * kruh za zády s květem měsíce (logo) — s ní letí jako jeden celek
+ * (`sNiVelky`). Otočená zády má uzlík za sebou. Námaha (vějíř, pot) je
+ * zvláštní vrstva před ní.
+ */
+const VELKY = {
+  /* uzel v rukou pod tělem (souřadnice postavy), půlšířka a délka uzlíku od uzlu ke dnu; s kusy maličko roste */
+  uzel: [90, 152], sirka: 36, delka: 62, vel: (n) => 1 + 0.04 * clamp((n || 1) - 1, 0, 5),
+  /* ruce na uzlu: levá a pravá */
+  ruceL: [84.5, 149.5], ruceP: [95.5, 149.5],
+  /* vznášení: pohupování (jednotky postavy, rad/s), kolébání (°, rad/s), propad pod vahou (jednotky) a rána po dopadnutém kusu */
+  houp: 3.2, houpW: 2.8, koleb: 2.4, kolebW: 1.1, propad: 6.5, rana: 110,
+  /* jedno kolo trápení (s) */
+  perioda: 6.6,
+  /* vějíř poletuje vlevo od hlavy, s mezerou: čep a kam míří papír (°, k její tváři) */
+  vejir: [22, 82], vejirSmer: -34,
+  /* uzel a ouška jsou malého uzlíku, jen větší */
+  usi: 1.5,
+  /* natažení po propadu (pružina), propad po dopadnutém kusu (pružina) a těžké kyvadlo */
+  pero: { k: 160, c: 11 }, klesani: { k: 45, c: 7 }, kyv: { g: 16, c: 2.4, L: 40 },
+  /* o kolik jí uzlík v nejhlubším předklonu natáhne paže (dlaně i uzel níž, jednotky postavy) */
+  natah: 3.5,
+};
+/**
+ * Kam se vějíř hne na gesta — pořád vlevo od ní a s mezerou (souřadnice
+ * postavy): když se stydí, přiletí blíž k tváři a skoro se rozevře; na gesto
+ * se rozevře celý a zvedne; když dřímá, klesne o `dolu`, přivře se a svěsí.
+ */
+const VEJIR_GESTA = { stud: { P0: [22, 84], smer: -28, otev: 0.92 }, gesto: { P0: [22, 78], smer: -55, otev: 1 }, spi: { dolu: 6, smer: 100, otev: 0.45 } };
+/**
+ * Jedno kolo trápení ve vzduchu: klíčové body [u, hodnota] (u 0…1, kolo se
+ * opakuje), mezi nimi hladce. Drží výšku (0–0,3), propadne se (do 0,4),
+ * oddychuje (do 0,62), zabere a vytáhne se (0,7–0,8) a zase drží.
+ */
+const KOLO = {
+  /* propad (1 = o `propad` níž): padá zrychleně („pad“), vytahuje se pomalu a kousek přetáhne */
+  propad: [[0, 0], [0.3, 0.12], [0.4, 1, "pad"], [0.62, 0.85], [0.78, -0.15], [0.86, 0], [1, 0]],
+  /* námaha 0…1 — podle ní ji vějíř ovívá víc a rychleji */
+  namaha: [[0, 0.5], [0.3, 0.55], [0.36, 0.9], [0.44, 0.25], [0.62, 0.3], [0.7, 1], [0.8, 0.9], [0.9, 0.55], [1, 0.5]],
+  /* náklon do strany (° krát tíha): při propadu se nakloní, když zabírá, vyrovná na druhou stranu */
+  naklon: [[0, -0.3], [0.3, -0.2], [0.38, 0.8], [0.5, 0.3], [0.62, 0], [0.72, -1.2], [0.84, -0.6], [1, -0.3]],
+  /* předklon k uzlu (krát úklona): pořád trochu, při propadu víc, když zabírá a vytahuje se, narovná se — ale nikdy úplně */
+  predklon: [[0, 0.4], [0.3, 0.42], [0.4, 0.72, "pad"], [0.62, 0.62], [0.72, 0.26], [0.8, 0.2], [0.9, 0.34], [1, 0.4]],
+};
+/** Kdy v kole se propadne a kdy zabere (uzlík se natáhne / povolí) */
+const KOLO_PROPAD = 0.34, KOLO_ZABERE = 0.7;
+/** Výraz během kola (do kterého u platí): námaha, úlek, když se propadá, oddech, námaha, úsilí s pootevřenou pusou, námaha */
+const KOLO_VYRAZ = [[0.32, "prisna"], [0.42, "uzas"], [0.64, "klid"], [0.74, "prisna"], [0.82, "uzas"], [1.01, "prisna"]];
+const vKole = (u, body) => {
+  for (let i = 0; i < body.length - 1; i++) {
+    const [u0, v0] = body[i], [u1, v1, jak] = body[i + 1];
+    if (u > u1) continue;
+    const q = clamp((u - u0) / (u1 - u0 || 1));
+    return lerp(v0, v1, jak === "pad" ? q * q : smooth(q));
+  }
+  return body[body.length - 1][1];
+};
+/** Čím víc kusů, tím těžší (1…1,72) */
+const tihaVelkeho = (n) => 1 + 0.12 * clamp((n || 1) - 1, 0, 6);
+const faze = (d, t) => ((((t - d.velky.t0) / VELKY.perioda) % 1) + 1) % 1;
+/** Póza ve vzduchu: posun dolů (pohupování, propad, rána), náklon (kolébání, kolo, rána), předklon a námaha — krát to, jak moc ho má. Čistá funkce času a `dyn`. */
+const velkyPoza = (d, t) => {
+  const v = d.velky, tiha = tihaVelkeho(d.satekPocet), u = faze(d, t), k = v.k;
+  const kolo = (klic) => vKole(u, KOLO[klic]);
+  /* když dřímá, jen se zlehka vznáší a nenamáhá se */
+  const bdi = 1 - (d.spi || 0) * 0.8;
+  const pk = clamp(lerp(0.4, kolo("predklon"), bdi) + v.rana * 0.25, 0.15, 0.85);
+  return {
+    u, tiha, k,
+    y: k * (VELKY.houp * Math.sin(t * VELKY.houpW) * (0.6 + 0.4 * bdi) + kolo("propad") * VELKY.propad * (0.6 + 0.4 * tiha) * bdi + v.klesani.y),
+    r: k * (VELKY.koleb * Math.sin(t * VELKY.kolebW) + kolo("naklon") * (1 + 0.6 * tiha) * bdi + v.rana * 5),
+    namaha: k * clamp(kolo("namaha") * bdi * (0.75 + 0.25 * tiha) + v.rana * 0.6),
+    /* když dřímá, zůstane v klidném předklonu; po dopadnutém kusu se předkloní víc */
+    predklon: k * pk,
+    /* v hlubokém předklonu jí uzlík paže trochu natáhne: dlaně i uzel jdou o kus níž (souřadnice postavy) */
+    natah: k * VELKY.natah * clamp((pk - 0.35) / 0.4),
+  };
+};
+/** Bod postavy na plátně i s tím, jak se celá hýbe (`pohyb` vrstev) */
+const naObrazovce = (g, P) => {
+  const [x, y] = naPlatno(P), u = rad(g.r || 0);
+  const dx = x - VAZ.cx, dy = (y - ZEM) * (g.sy ?? 1);
+  return [VAZ.cx + g.x + dx * Math.cos(u) - dy * Math.sin(u), ZEM + g.y + dx * Math.sin(u) + dy * Math.cos(u)];
+};
+/**
+ * Tvar uzlíku v souřadnicích postavy: uzel pevně v jejích rukou (v hlubokém
+ * předklonu s nimi o kus níž), natočení vrstvy uzlíku tak, aby visel
+ * svisle podle kyvadla, ať se ona kolébá jak chce (`otoceni` ve stupních),
+ * délka a šířka i s natažením.
+ */
+const velkyTvar = (d, t, g) => {
+  const v = d.velky, S = VELKY.vel(d.satekPocet);
+  return {
+    K: [VELKY.uzel[0], VELKY.uzel[1] + velkyPoza(d, t).natah], S,
+    otoceni: -deg(v.kyv.a) - (g.r || 0),
+    delka: VELKY.delka * S * (1 + 0.6 * v.pero.y),
+    sirka: VELKY.sirka * S * (1 - 0.35 * v.pero.y),
+  };
+};
+/** Bod uzlíku (počátek v uzlu, osa dolů) v souřadnicích postavy */
+const vUzliku = (tv, k, [x, y]) => {
+  const u = rad(tv.otoceni), c = Math.cos(u), s = Math.sin(u);
+  return [tv.K[0] + k * (x * c - y * s), tv.K[1] + k * (x * s + y * c)];
+};
+/** Střed těla velkého uzlíku na plátně a jeho půlšířka — podle toho pruvodce.ts posouvá odkaz s počtem */
+const bodVelkeho = (d, p, t) => {
+  const g = figura(d, p, t), tv = velkyTvar(d, t, g), k = dosed(clamp(d.velky.k / 0.92));
+  const [x, y] = naObrazovce({ ...g, sy: 1 }, vUzliku(tv, k, [0, 0.56 * tv.delka]));
+  return [f(x), f(y), f(tv.sirka * k * K)];
+};
+/**
+ * Vějíř, který ji ovívá sám: poletuje vlevo od hlavy a mává k její tváři,
+ * tím rychleji a víc, čím víc se namáhá (a když se ovívá i sama od sebe);
+ * na gesta se hne podle `VEJIR_GESTA` — a pořád s mezerou, nikdy se jí
+ * nedotkne. Fáze mávání se načítá v kroku (`dyn.velky.mava`).
+ */
+const vejirSam = (d, t, vp) => {
+  const v = d.velky, sila = clamp(0.2 + 0.8 * vp.namaha + 0.4 * (d.ovivani || 0));
+  const sp = d.spi || 0, sm = d.stydi || 0, vj = (d.vejir || 0) * (1 - sm), G = VEJIR_GESTA;
+  let P0 = [VELKY.vejir[0] + 1.6 * Math.sin(t * 1.9), VELKY.vejir[1] + 1.2 * Math.cos(t * 1.4)];
+  /* mává nahoru a zpátky — nikdy níž než výchozí směr, ať nesáhne na rameno ani na rukáv */
+  let smer = VELKY.vejirSmer - (8 + 20 * sila) * (0.5 - 0.5 * Math.cos(v.mava)) * (1 - sp);
+  let otev = 0.78 + 0.08 * Math.sin(v.mava * 0.5);
+  const k2 = (a, b, q) => [lerp(a[0], b[0], q), lerp(a[1], b[1], q)];
+  P0 = k2(P0, G.stud.P0, sm);
+  smer = lerp(smer, G.stud.smer, sm);
+  otev = lerp(otev, G.stud.otev, sm);
+  P0 = k2(P0, G.gesto.P0, vj);
+  smer = lerp(smer, G.gesto.smer, vj);
+  otev = lerp(otev, G.gesto.otev, vj);
+  P0 = [P0[0], P0[1] + G.spi.dolu * sp];
+  smer = lerp(smer, G.spi.smer, sp);
+  otev = lerp(otev, G.spi.otev, sp);
+  return { P0, smer, otevreni: otev * vp.k, sila };
+};
+/** Uzlík pro kreslení: tvar, látka, námaha (vějíř, pot); dokud ho má, i když zrovna mizí */
+const velkyVeStavu = (d, t, p) => {
+  const v = d.velky;
+  if (!(v.k > 0.02) || !d.satekVzor) return null;
+  const g = figura(d, p, t), vp = velkyPoza(d, t), tv = velkyTvar(d, t, g);
+  const u = vp.u, spi = (d.spi || 0) > 0.5;
+  const okno = (q) => (q > 0 && q < 1 ? q : -1);
+  return {
+    ...tv, k: dosed(clamp(v.k / 0.92)), vzor: d.satekVzor, pocet: d.satekPocet,
+    /* otočená zády má uzlík za sebou */
+    za: Math.cos(rad(p.yaw)) < 0,
+    /* kapka potu, když oddychuje */
+    pot: spi ? -1 : okno((u - 0.44) / 0.28),
+    vejir: vejirSam(d, t, vp),
+  };
+};
+/** Výraz při námaze, když zrovna nemluví (podle kola); úlek po dopadnutém kusu přebíjí i řeč (viz stav) */
+const vyrazVelkeho = (d, t) => {
+  const v = d.velky;
+  if (!v || !(v.k > 0.5) || (d.spi || 0) > 0.5) return null;
+  if (v.rana > 0.35) return "uzas";
+  const u = faze(d, t);
+  return KOLO_VYRAZ.find(([kdy]) => u < kdy)[1];
+};
+/* tělo velkého uzlíku od uzlu dolů: úzké hrdlo, dole kulaté a plné */
+const teloVelkeho = (w, l) =>
+  `M${f(-0.17 * w)} ${f(0.1 * l)} C${f(-0.5 * w)} ${f(0.16 * l)} ${f(-w)} ${f(0.3 * l)} ${f(-w)} ${f(0.58 * l)}` +
+  ` C${f(-w)} ${f(0.86 * l)} ${f(-0.58 * w)} ${f(l)} 0 ${f(l)} C${f(0.58 * w)} ${f(l)} ${f(w)} ${f(0.86 * l)} ${f(w)} ${f(0.58 * l)}` +
+  ` C${f(w)} ${f(0.3 * l)} ${f(0.5 * w)} ${f(0.16 * l)} ${f(0.17 * w)} ${f(0.1 * l)} Q0 ${f(0.1 * l - 1.6)} ${f(-0.17 * w)} ${f(0.1 * l)} Z`;
+/* uzlík pod ní: tělo se vzorem, sklady, světlo, lesk, ouška s rubem a uzel a přes něj dlaně */
+const vrstvaVelky = (za) => (st) => {
+  const s = st.velky;
+  if (!s || s.za !== za) return "";
+  const v = vzorPodleId(s.vzor) ?? vzory[0];
+  const { rub, lem } = v.barva;
+  const latka = `url(#${ID}-satek-${v.id})`, svetlo = `url(#${ID}-satek-svetlo)`;
+  const w = s.sirka, l = s.delka;
+  let u = `<path d="${teloVelkeho(w, l)}" fill="${latka}" stroke="${lem}" stroke-width="1.4" stroke-linejoin="round"/>`;
+  u += `<path d="${[[-0.62, 0.5], [-0.3, 0.64], [0.02, 0.6], [0.32, 0.62], [0.6, 0.48]].map(([x, y]) => `M${f(x * 0.12 * w)} ${f(0.13 * l)} Q${f(x * 0.55 * w)} ${f(0.3 * l)} ${f(x * w)} ${f(y * l)}`).join(" ")}" stroke="${lem}" stroke-width="1.1" stroke-linecap="round" fill="none" opacity="0.5"/>`;
+  u += `<path d="${teloVelkeho(w, l)}" fill="${svetlo}"/>`;
+  u += `<path d="M${f(-0.74 * w)} ${f(0.3 * l)} C${f(-0.93 * w)} ${f(0.42 * l)} ${f(-0.96 * w)} ${f(0.57 * l)} ${f(-0.87 * w)} ${f(0.72 * l)}" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" fill="none" opacity="0.28"/>`;
+  u += `<ellipse cx="0" cy="${f(0.2 * l)}" rx="${f(0.3 * w)}" ry="${f(0.05 * l)}" fill="#1E1626" opacity="0.2"/>`;
+  let uzel = "";
+  const obrys = `stroke="${lem}" stroke-width="${f(1.3 / VELKY.usi)}" stroke-linejoin="round"`;
+  for (const o of UZLIK_OUSKA) uzel += `<path d="${o.d}" fill="${latka}" ${obrys}/><path d="${o.rub}" fill="${rub}" stroke="${lem}" stroke-width="${f(0.75 / VELKY.usi)}" stroke-linejoin="round"/><path d="${o.d}" fill="${svetlo}"/>`;
+  uzel += `<ellipse cx="0" cy="4.6" rx="5.4" ry="3.8" fill="${latka}" ${obrys}/><ellipse cx="0" cy="4.6" rx="5.4" ry="3.8" fill="${svetlo}"/>`;
+  u += `<g transform="scale(${VELKY.usi})">${uzel}</g>`;
+  /* vepředu přes uzel znovu obě dlaně, ať ho svírají (rukávy jsou pod uzlíkem, ať jim visí do něj, ne přes něj) */
+  const dlane = za ? "" : vazRuka(ID, st.ruce.L.H) + vazRuka(ID, st.ruce.P.H);
+  return vPostave(`<g transform="translate(${pt(s.K)}) rotate(${f(s.otoceni)}) scale(${f(s.k)})">${u}</g>${dlane}`);
+};
+/* Námaha před ní (souřadnice postavy, jde s ní): vějíř, který ji ovívá sám, a kapka potu u spánku */
+const vrstvaNamaha = (st) => {
+  const s = st.velky;
+  if (!s) return "";
+  const w = rad(st.yaw), c = Math.cos(w);
+  /* tvář je natočená s postavou: kde je vzhledem ke středu vázy */
+  const naTvari = (x, y) => [VAZ.cx + 30.5 * Math.sin(w) + (x - VAZ.cx) * c, y];
+  let o = "";
+  const vj = s.vejir;
+  if (vj.otevreni > 0.04) o += vazVejir(ID, vj.P0, vj.smer, vj.otevreni);
+  if (s.pot >= 0) {
+    const q = s.pot, roste = smooth(q / 0.15), pada = clamp((q - 0.7) / 0.3);
+    /* u spánku nad obočím, ať nevypadá jako slza; sjede po kraji tváře a skápne */
+    const [x, y] = naTvari(108.5, 83 + 9 * smooth((q - 0.15) / 0.55) + 16 * pada * pada);
+    o += `<g transform="translate(${f(x)} ${f(y)}) scale(${f(roste * (1 - 0.3 * pada))})" opacity="${f(1 - pada)}"><path d="M0 -3.2 C1.6 -0.8 2.4 0.6 2.4 1.6 C2.4 3 1.3 3.8 0 3.8 C-1.3 3.8 -2.4 3 -2.4 1.6 C-2.4 0.6 -1.6 -0.8 0 -3.2 Z" fill="#CFEAF6" stroke="#5E9DC4" stroke-width="0.6"/><ellipse cx="-0.8" cy="1.2" rx="0.6" ry="1" fill="#FFFFFF" opacity="0.85"/></g>`;
+  }
+  return vPostave(o);
+};
+const klicVelkeho = (st) => (st.velky ? snimek(st) : -1);
+/** Velký uzlík jde s ní a natáčí se, ale s jejím předklonem se nemačká (`sy`) — je to náklad, ne ona */
+const pohybUzliku = (st) => ({ ...pohyb(st), sy: 1 });
+/**
+ * Vrstvy průvodce s uzlíkem: malý za zády hned po lucerně za zády a před
+ * tělem po lucerně vepředu; velký pod ní za zády před zadními rukávy (ať
+ * ho dlaně drží), vepředu přes přední rukávy (dlaně si kreslí sám);
+ * námaha s vějířem navrchu.
+ */
 const sSatkem = (vrstvy) =>
   vrstvy.flatMap((v) =>
-    v.id === "lucerna-za"
-      ? [v, { id: "satek-za", kresli: vrstvaSatek(true), klic: klicSatku, pohyb }]
-      : v.id === "lucerna"
-        ? [v, { id: "satek", kresli: vrstvaSatek(false), klic: klicSatku, pohyb }]
-        : [v],
+    v.id === "rukavy-za"
+      ? [{ id: "velky-za", kresli: vrstvaVelky(true), klic: klicVelkeho, pohyb: pohybUzliku }, v]
+      : v.id === "lucerna-za"
+        ? [v, { id: "satek-za", kresli: vrstvaSatek(true), klic: klicSatku, pohyb }]
+        : v.id === "lucerna"
+          ? [v, { id: "velky", kresli: vrstvaVelky(false), klic: klicVelkeho, pohyb: pohybUzliku }, { id: "satek", kresli: vrstvaSatek(false), klic: klicSatku, pohyb }, { id: "namaha", kresli: vrstvaNamaha, klic: klicVelkeho, pohyb }]
+          : [v],
   );
 /* Dřímá (průvodce, `vstup.spi`): víčka má sklopená i vzhůru, tak nad hlavou stoupají dvě tušová „z“ */
 const vrstvaSpanek = (st) => {
@@ -573,8 +962,20 @@ const vrstvaSpanek = (st) => {
   }
   return s;
 };
+/**
+ * Co jinak stojí — okobo a u průvodce pro mistra kruh za zády s květem
+ * měsíce (logo): s velkým uzlíkem letí s ní jako jeden celek, posune se
+ * a natočí s postavou (jen se nemačká); bez něj stojí, jak stálo.
+ */
+const S_NI_VELKY = new Set(["kruh", "kruh-zivy", "kvet-roku", "okobo"]);
+const sNiVelky = (st) => {
+  const k = st.velky ? st.velky.k : 0;
+  return { x: k * st.fig.x, y: k * st.fig.y, r: k * st.fig.r, ox: VAZ.cx, oy: ZEM };
+};
 const proPruvodce = (vrstvy) =>
-  [...sSatkem(sLucernou(vrstvy)), { id: "spanek", kresli: vrstvaSpanek, klic: (st) => (st.spi > 0.6 ? snimek(st) : -1) }].map((v) => ({ ...v, kresli: (st) => naPruvodce(v.kresli(st)) }));
+  [...sSatkem(sLucernou(vrstvy)), { id: "spanek", kresli: vrstvaSpanek, klic: (st) => (st.spi > 0.6 ? snimek(st) : -1) }]
+    .map((v) => (S_NI_VELKY.has(v.id) ? { ...v, pohyb: sNiVelky } : v))
+    .map((v) => ({ ...v, kresli: (st) => naPruvodce(v.kresli(st)) }));
 
 export const kamiPruvodce = {
   ...kamiLet,
@@ -587,7 +988,8 @@ export const kamiPruvodce = {
  * Průvodce pro mistra (kdo má mistrovský list z /zkouska): Kami podoba
  * i s kruhem dvanácti květů a květem měsíce v mezeře za zády — bez záře
  * a bez světla kolem květu (17. 10. obojí vypnuté na přání) a bez stínu na
- * zemi, protože létá. Ostatní hosté ji vidí bez kruhu.
+ * zemi, protože létá. S velkým uzlíkem s ní kruh letí (`sNiVelky`).
+ * Ostatní hosté ji vidí bez kruhu.
  */
 const BEZ_ZARE = new Set(["zare", "stin"]);
 export const kamiPruvodceMistr = {

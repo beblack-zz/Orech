@@ -35,6 +35,12 @@ const Zvuk = (() => {
         d[i] = posl * 3.5;
       } else d[i] = w;
     }
+    /* Hnědý šum je posčítaný, takže konec neleží tam, kde začátek — smyčka by
+       každé kolo cvakla (hukot deště „sekal“). Srovnat konec se začátkem. */
+    if (hneda) {
+      const skok = d[d.length - 1] - d[0];
+      for (let i = 0; i < d.length; i++) d[i] -= (skok * i) / (d.length - 1);
+    }
     return b;
   };
   const smycka = (buf, filtr, f, q) => {
@@ -245,6 +251,18 @@ const Zvuk = (() => {
 
 /** Která plocha smí znít: ta pod myší, jinak ta, na kterou se naposledy sáhlo. */
 let znejici = null;
+/**
+ * Plocha, nad kterou je skutečná myš. Tušový flek hraje vystoupení
+ * podstrčenými událostmi myši (scripts/flek/flek.ts) — kdyby si je s pravou
+ * myší nad jinou Vázičkou předávaly každý snímek, déšť by skákal mezi plnou
+ * a nulovou hlasitostí. Pravá myš má přednost, flek zní, když nikde není.
+ */
+let podMysi = null;
+const zaznej = (el, e) => {
+  if (e.isTrusted) podMysi = el;
+  else if (podMysi && podMysi !== el) return;
+  znejici = el;
+};
 
 /* ═══ Scéna: jedna plocha s jednou podobou ═══ */
 const scena = (el, V) => {
@@ -332,9 +350,7 @@ const scena = (el, V) => {
     const r = el.getBoundingClientRect();
     return { x: ((e.clientX - r.left) / r.width) * VB, y: ((e.clientY - r.top) / r.height) * VB };
   };
-  el.addEventListener("pointerenter", () => {
-    znejici = el;
-  });
+  el.addEventListener("pointerenter", (e) => zaznej(el, e));
   el.addEventListener("pointermove", (e) => {
     const p = naJednotky(e);
     const ted = performance.now();
@@ -345,16 +361,17 @@ const scena = (el, V) => {
     }
     mysPred = { ...p, cas: ted };
     vstup.mys = p;
-    znejici = el;
+    zaznej(el, e);
     aktivniDo = Math.max(aktivniDo, t + 1.5);
   });
-  el.addEventListener("pointerleave", () => {
+  el.addEventListener("pointerleave", (e) => {
+    if (e.isTrusted && podMysi === el) podMysi = null;
     vstup.mys = null;
     mysPred = null;
   });
   el.addEventListener("pointerdown", (e) => {
     Zvuk.odemkni();
-    znejici = el;
+    zaznej(el, e);
     vstup.kliky.push(naJednotky(e));
     aktivniDo = t + 12;
   });
@@ -362,7 +379,7 @@ const scena = (el, V) => {
     if (e.key !== "Enter" && e.key !== " ") return;
     e.preventDefault();
     Zvuk.odemkni();
-    znejici = el;
+    zaznej(el, e);
     vstup.kliky.push({ x: 90, y: 90 });
     aktivniDo = t + 12;
   });
@@ -408,6 +425,7 @@ const scena = (el, V) => {
     zastaveno = true;
     viditelna = false;
     io.disconnect();
+    if (podMysi === el) podMysi = null;
     if (znejici === el) {
       Zvuk.nastav({});
       znejici = null;

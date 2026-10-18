@@ -21,7 +21,9 @@
  *                ně dopředu, boční nahoru; řada bodů napříč každým bočním cípem
  *                se stáhne na kroužek pod jádrem uzlu (paprskovité záhyby),
  *                cípy se dvakrát obtočí (ma-musubi), druhá řada se stáhne do
- *                ústí jádra a špičky zůstanou jako uši
+ *                ústí jádra a špičky zůstanou jako uši. Když host látku předtím
+ *                přeházel rukou, šátek se nejdřív uhladí do původní podoby
+ *                (uhlad) — vázat zmuchlanou látku by vypadalo špatně
  *   rozvázání    obráceně, nakonec se celá látka uhladí (cípy první)
  */
 import { NEJVIC_BALIKU, STRANA, indexRohu } from "./typy";
@@ -53,6 +55,10 @@ const DOBEH_ZRYCHLENI = 1.5;
 const USNOUT = 0.008;
 /** Pod touto rychlostí látky (m/s) je klid (stejně jako latka.ts) */
 const KLID = 0.002;
+/** Volný bod dál než tohle (m) od své polohy na rozprostřeném šátku: před zavázáním se látka uhladí */
+const UHLADIT_OD = 0.015;
+/** Jak vysoko nad balíkem vede uhlazení látku, která na něm leží, než ji položí vedle (m) */
+const UHLAZENI_NAD = 0.012;
 
 const hladce = (u: number) => {
   const t = u < 0 ? 0 : u > 1 ? 1 : u;
@@ -1019,11 +1025,14 @@ export class Choreografie implements RozhraniChoreografie {
     const nadBaliky = (start: V3, cil: V3): V3 => [mix(start[0], cil[0], 0.5), mix(start[1], cil[1], 0.45), Math.max(start[2], cil[2]) + (vrch + 0.16 - Math.max(start[2], cil[2])) * 1.6];
 
     /*
+     * 0) Přeházenou látku (host s ní hýbal rukou) nejdřív uhladit do původní
+     * podoby — vázat zmuchlaný šátek vypadá špatně. Rovná látka čekat nemusí.
+     *
      * 1) Přední cíp obloukem přes balíky dozadu; pak ho drží měkký pin.
      * Ruka je i za letu trochu měkká: když se chlopeň přes balík napne, raději
      * povolí, než aby látku vtlačila do vrstvy pod ní.
      */
-    const t1 = cas;
+    const t1 = this.potrebujeUhladit() ? this.uhlad(cas) + 0.05 : cas;
     this.oblouk(kPredni, t1, 0.85, geo.predni, (s) => nadBaliky(s, geo.predni), 3e-4);
     this.drz(kPredni, t1 + 0.85, geo.predni);
     /* 2) Zadní cíp obloukem dopředu, navrch */
@@ -1234,36 +1243,76 @@ export class Choreografie implements RozhraniChoreografie {
     this.oblouk(kPredni, tD, 0.7, klid(kPredni), (s) => nadBaliky(s, klid(kPredni)));
 
     /* E) Celá látka se uhladí: měkké piny ke klidové poloze, cípy první, pak se pustí */
-    const tE = tD + 0.6;
-    /*
-     * Uhlazuje se do jedné rovné vrstvy — tam se nic nekříží, takže srážky se
-     * sebou nejsou potřeba, a kdyby zůstaly, držely by zapletené kusy z uzlu
-     * na špatné straně (strana se bere z minulého pod-kroku). Zapnou se zase,
-     * až látka leží.
-     */
-    this.pridej({ od: tE, do: tE, zacni: () => sim.bezSrazek([0, 0, 0], 10) });
+    this.uhlad(tD + 0.6);
+    this.uvazani = null;
+  }
+
+  /** Leží látka jinak než rozprostřená (host ji přeházel rukou, zůstaly vrásky)? */
+  private potrebujeUhladit() {
+    const { sim } = this;
+    let m = 0;
+    for (let k = 0; k < sim.pocet; k++) {
+      if (sim.pritlaceny(k)) continue;
+      const dx = sim.p[k * 3] - sim.klid[k * 2];
+      const dy = sim.p[k * 3 + 1] - sim.klid[k * 2 + 1];
+      const dz = sim.p[k * 3 + 2] - ODSTUP_PULT;
+      m = Math.max(m, dx * dx + dy * dy + dz * dz);
+    }
+    return m > UHLADIT_OD * UHLADIT_OD;
+  }
+
+  /**
+   * Látka se uhladí do rozprostřeného šátku: měkké piny ke klidové poloze, cípy
+   * první, pak se pustí. Vrací čas, kdy látka leží a srážky se sebou zase platí.
+   *
+   * Uhlazuje se do jedné rovné vrstvy — tam se nic nekříží, takže srážky se
+   * sebou nejsou potřeba, a kdyby zůstaly, držely by zapletené kusy (z uzlu,
+   * nebo co host přehodil přes sebe) na špatné straně (strana se bere
+   * z minulého pod-kroku). Zapnou se zase, až látka leží. Klidová poloha se
+   * posune o to, o kolik leží látka pod balíky jinde než na rozprostřeném
+   * šátku, ať se uhlazení nepere s body, které balíky drží. Co leží na balíku,
+   * ruka přenese nad ním a položí vedle.
+   */
+  private uhlad(od: number): number {
+    const { sim } = this;
+    const n = sim.n;
     const m = n - 1;
+    let sx = 0;
+    let sy = 0;
+    let pod = 0;
+    for (let k = 0; k < sim.pocet; k++) {
+      if (!sim.pritlaceny(k)) continue;
+      sx += sim.p[k * 3] - sim.klid[k * 2];
+      sy += sim.p[k * 3 + 1] - sim.klid[k * 2 + 1];
+      pod++;
+    }
+    const posunX = pod ? sx / pod : 0;
+    const posunY = pod ? sy / pod : 0;
+    this.pridej({ od, do: od, zacni: () => sim.bezSrazek([0, 0, 0], 10) });
     for (let k = 0; k < sim.pocet; k++) {
       if (sim.pritlaceny(k)) continue;
       const i = k % n;
       const j = Math.floor(k / n);
       const odCipu = Math.min(Math.hypot(i, j), Math.hypot(m - i, j), Math.hypot(i, m - j), Math.hypot(m - i, m - j)) / m;
-      const cil = klid(k);
+      const cil: V3 = [sim.klid[k * 2] + posunX, sim.klid[k * 2 + 1] + posunY, ODSTUP_PULT];
       this.let_(
         k,
-        tE + odCipu * 0.3,
+        od + odCipu * 0.3,
         0.55,
         (start, uu, out) => {
           const s = hladce(uu);
           out[0] = mix(start[0], cil[0], s);
           out[1] = mix(start[1], cil[1], s);
           out[2] = mix(start[2], cil[2], s) + 0.025 * Math.sin(Math.PI * uu) * (1 - odCipu);
+          /* Nad balíkem ruka látku drží nad ním; ke konci ji pustí na místo (srážka s balíkem ji zastaví vedle) */
+          const nad = vyskaTeles(this.telesaKusu(), out[0], out[1]);
+          if (nad > 0) out[2] = Math.max(out[2], mix(nad + UHLAZENI_NAD, out[2], hladce((uu - 0.75) / 0.25)));
         },
         2e-3,
         true,
       );
     }
-    this.pridej({ od: tE + 0.85, do: tE + 1.0, konec: () => sim.bezSrazek(null) });
-    this.uvazani = null;
+    this.pridej({ od: od + 0.85, do: od + 1.0, konec: () => sim.bezSrazek(null) });
+    return od + 1.0;
   }
 }

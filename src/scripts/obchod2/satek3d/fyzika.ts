@@ -71,8 +71,13 @@ const TRENI_TELESO_K = 0.42;
 const VZDUCH = 1.2;
 const ODPOR_KOLMO = 1.3;
 const ODPOR_PODEL = 0.02;
-/** Útlum (1/s) — vnitřní tření vláken, ať se látka uklidní */
+/** Útlum (1/s) — celkový, ať se látka uklidní */
 const UTLUM = 0.6;
+/**
+ * Vnitřní tření vláken: o jaký díl si bod za pod-krok srovná rychlost se
+ * sousedy (viz tlumeniVlaken). Bez něj se chlopeň za rukou kývala jako rosol.
+ */
+const TLUMENI_VLAKEN = 0.12;
 /** Poddajnost smyku (m/N) — nezávisí na síti */
 const PODDAJNOST_SMYK = 2e-3;
 /**
@@ -97,6 +102,10 @@ const RYCHLOST_DIL = 0.35;
 const RYCHLOST_TLOUSTKY = 0.6;
 /** Balík stojí na pultu (a přitlačuje látku), když má dno níž než tohle (m) */
 const STOJI = 0.002;
+/** Jak vysoko nad balíkem (navíc k ODSTUP_TELESO) drží pin natvrdo, který by jinak do balíku zajel (m) */
+const PIN_NAD_TELESEM = 0.006;
+/** Druhý průchod srážek se sebou po balících a pultu (viz krok) */
+const DRUHY_PRUCHOD_VRSTEV = true;
 
 /** Tloušťka vrstvy látky pro síť N × N (m) */
 export const tloustkaVrstvy = (n: number) => (void n, TLOUSTKA);
@@ -373,6 +382,8 @@ export class SimLatky implements RozhraniSim {
   /** Poloha na začátku pod-kroku a rychlost */
   private readonly q: Float32Array;
   private readonly v: Float32Array;
+  /** Rychlosti před tlumením vláken (sousedé se srovnávají podle stavu na začátku průchodu) */
+  private readonly vPred: Float32Array;
   /** Převrácená hmotnost; 0 = bod drží (pin natvrdo nebo pod balíkem) */
   private readonly w: Float32Array;
   private readonly w0: number;
@@ -493,6 +504,7 @@ export class SimLatky implements RozhraniSim {
     this.p = new Float32Array(N * 3);
     this.q = new Float32Array(N * 3);
     this.v = new Float32Array(N * 3);
+    this.vPred = new Float32Array(N * 3);
     this.w = new Float32Array(N);
     this.hmotnostBodu = (PLOSNA_HMOTNOST * STRANA * STRANA) / N;
     this.w0 = 1 / this.hmotnostBodu;
@@ -999,7 +1011,15 @@ export class SimLatky implements RozhraniSim {
       this.opora.fill(0);
       this.srazkyTelesa();
       this.pult();
+      /*
+       * Ještě jednou vrstvy proti sobě: balík a pult právě posunuly body, které
+       * se o ně opírají, a mohly je protlačit vrstvou nad nimi. Opřené body jsou
+       * teď skoro nehybné (opora), takže se uhne volná vrstva — jinak by se
+       * vrstvy prolnuly a strana srážky by je pak držela na špatné straně (škubání).
+       */
+      if (DRUHY_PRUCHOD_VRSTEV) this.srazkySeSebou();
       this.rychlosti(h);
+      this.tlumeniVlaken();
     }
     for (let c = 0; c < this.pinPocet; c++) {
       const o = this.pinSeznam[c] * 3;
@@ -1235,6 +1255,21 @@ export class SimLatky implements RozhraniSim {
       pinDo[o + 1] = pinOd[o + 1] + dy * s;
       pinDo[o + 2] = pinOd[o + 2] + dz * s;
       if (pinDruh[k] === 1 && !this.tlak[k]) tvrdych++;
+    }
+    /*
+     * Pin natvrdo nesmí do balíku: ruka, která táhne látku níž, než je vršek
+     * balíku, by ji jinak protlačila skrz (balík prosvítá) a srážka by se s ní
+     * přetahovala — látka se pak klepe. Nad balíkem se cíl zvedne nad jeho vršek.
+     */
+    if (tvrdych && this.telesa.length) {
+      const zdroje = this.telesa.map((t) => t.zdroj);
+      for (let c = 0; c < this.pinPocet; c++) {
+        const k = this.pinSeznam[c];
+        if (pinDruh[k] !== 1 || this.tlak[k]) continue;
+        const o = k * 3;
+        const nad = vyskaTeles(zdroje, pinDo[o], pinDo[o + 1]);
+        if (nad > 0 && pinDo[o + 2] < nad + ODSTUP_TELESO + PIN_NAD_TELESEM) pinDo[o + 2] = nad + ODSTUP_TELESO + PIN_NAD_TELESEM;
+      }
     }
     /* Dokud něco tahá natvrdo (ruka, cíp), kotvy tření nedrží — látka se táhne podle Coulomba; složená je nepotřebuje */
     this.lepit = tvrdych === 0 && !this.prehnuto;
@@ -2015,5 +2050,43 @@ export class SimLatky implements RozhraniSim {
     const { p, q, v } = this;
     const ih = 1 / h;
     for (let o = 0; o < p.length; o++) v[o] = (p[o] - q[o]) * ih;
+  }
+
+  /**
+   * Vnitřní tření vláken: každý volný bod si srovná rychlost se čtyřmi sousedy
+   * o díl TLUMENI_VLAKEN. Krátké vlny (chlopeň za rukou, která by se jinak
+   * kývala jako rosol, chvění napnuté látky) se utlumí za desetiny sekundy,
+   * pohyb velkých kusů látky (pád, překlopení chlopně) skoro vůbec — útlum
+   * roste se čtvercem „hustoty“ vlny. Ležící, přitlačené a pevné body se
+   * nesrovnávají, jen brzdí sousedy (jako tření o pult na kraji chlopně).
+   */
+  private tlumeniVlaken() {
+    const { v, vPred, w, lezi, tlak, n } = this;
+    vPred.set(v);
+    for (let j = 0; j < n; j++) {
+      for (let i = 0; i < n; i++) {
+        const k = j * n + i;
+        if (w[k] === 0 || lezi[k] || tlak[k]) continue;
+        const o = k * 3;
+        let sx = 0;
+        let sy = 0;
+        let sz = 0;
+        let m = 0;
+        const soused = (b: number) => {
+          sx += vPred[b] - vPred[o];
+          sy += vPred[b + 1] - vPred[o + 1];
+          sz += vPred[b + 2] - vPred[o + 2];
+          m++;
+        };
+        if (i > 0) soused(o - 3);
+        if (i < n - 1) soused(o + 3);
+        if (j > 0) soused(o - 3 * n);
+        if (j < n - 1) soused(o + 3 * n);
+        const f = TLUMENI_VLAKEN / m;
+        v[o] += sx * f;
+        v[o + 1] += sy * f;
+        v[o + 2] += sz * f;
+      }
+    }
   }
 }

@@ -17,12 +17,12 @@
  *
  * Bez WebGL2 vrátí vytvorLatku() null a v Satek.astro zůstane SVG kresba.
  */
-import { SimLatky } from "./fyzika";
+import { SimLatky, vyskaTeles } from "./fyzika";
 import { Choreografie } from "./choreografie";
 import { vytvorBalik, tvarBaliku } from "./balik";
 import { vytvorKresleni } from "./kresleni";
 import { NEJVIC_BALIKU } from "./typy";
-import type { BalikDoChoreografie, DataBaliku, KusNaSatku, StavBaliku, V3 } from "./typy";
+import type { BalikDoChoreografie, DataBaliku, KusNaSatku, StavBaliku, Teleso, V3 } from "./typy";
 import type { VzorSatku } from "../../../data/furoshiki";
 
 export type { KusNaSatku };
@@ -54,6 +54,8 @@ const USNE = 20;
 const DOSAH = 26;
 /** Do jaké výšky (m) se chycené místo zvedne, když s ním ruka hýbe */
 const ZVEDNE = 0.09;
+/** O kolik (m) nad vršek balíku ruka látku zvedne, když ji přes něj táhne */
+const NAD_BALIKEM = 0.025;
 /** Jak dlouho (ms) nejvýš čekat na sítě a textury balíku, než stejně dopadne */
 const CEKA_NA_BALIK = 900;
 
@@ -141,6 +143,18 @@ export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; m
   let zbytek = 0;
   let klidnych = 0;
   let tazeny = -1;
+  /** Kolik zavázání a rozvázání ještě nedoběhlo (na jejich konec se čeká) */
+  let cekaNaKonec = 0;
+  /** Splní slib jen jednou a odečte čekání (dobehni volá `hotovo` sám, pak ho volá i fasáda) */
+  const naKonec = (hotovo: () => void) => {
+    let hotovoUz = false;
+    return () => {
+      if (hotovoUz) return;
+      hotovoUz = true;
+      cekaNaKonec = Math.max(0, cekaNaKonec - 1);
+      hotovo();
+    };
+  };
   const snimek = (t: number) => {
     if (!platno.isConnected) {
       bezi = false;
@@ -169,13 +183,18 @@ export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; m
     requestAnimationFrame(snimek);
   };
   function vzbud() {
-    /* Při omezeném pohybu rovnou do klidu */
-    if (volby.klid) {
+    /*
+     * Při omezeném pohybu rovnou do klidu. Mimo obrazovku taky, když na konec
+     * čeká zavázání nebo rozvázání — satek.ts s ním čeká se zprávou o objednávce
+     * (na telefonu je formulář pod šátkem, takže host „Zavázat“ často klepne,
+     * když šátek vidět není).
+     */
+    if (volby.klid || (!videt && cekaNaKonec > 0)) {
       hodiny = ch.dobehni(hodiny);
       kresli();
       return;
     }
-    /* Mimo obrazovku (kus přidaný nahoře v krámku) se nic nepočítá — dohraje se, až host k šátku dojede,
+    /* Jinak se mimo obrazovku (kus přidaný nahoře v krámku) nic nepočítá — dohraje se, až host k šátku dojede,
        a uvidí, jak balíky dopadnou; dopočítat to hned by krámek při každém „Do šátku“ zadrhlo */
     if (!videt || bezi) return;
     bezi = true;
@@ -187,7 +206,8 @@ export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; m
 
   new IntersectionObserver(([e]) => {
     videt = e.isIntersecting;
-    if (videt) vzbud();
+    /* Odjel z obrazovky uprostřed vázání: dopočítat (viz vzbud) */
+    if (videt || cekaNaKonec > 0) vzbud();
   }).observe(platno);
   new ResizeObserver(() => {
     k3.zmer();
@@ -247,6 +267,12 @@ export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; m
     const t = (z - o[2]) / d[2];
     return t > 0 ? [o[0] + d[0] * t, o[1] + d[1] * t, z] : null;
   };
+  /** Balíky, které na látce stojí, jako tělesa (pro výšku pod rukou) */
+  const telesaNaLatce = (): Teleso[] =>
+    ch.baliky().flatMap((b) => {
+      const kus = b.viditelnost > 0.5 ? posledniKusy.find((k) => k.id === b.id) : undefined;
+      return kus ? [{ id: b.id, tvar: tvarBaliku(kus.tvar), poloha: b.poloha, pritlaci: true }] : [];
+    });
   /** Balík pod kurzorem: nejbližší střed balíku na obrazovce v dosahu jeho velikosti */
   const balikPod = (sx: number, sy: number) => {
     let nej: string | null = null;
@@ -309,7 +335,18 @@ export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; m
     }
     /* Chycené místo se zvedá k ruce a jde za ní */
     zdvih = Math.min(ZVEDNE, zdvih + 0.012);
-    const cil = naRovine(sx, sy, zdvih);
+    let cil = naRovine(sx, sy, zdvih);
+    /*
+     * Přes balík ruka látku zvedne nad jeho vršek — jinak by ji ve výšce zdvihu
+     * protlačila balíkem. Rovina se zvedne a průsečík se spočítá znovu, ať chycené
+     * místo zůstane pod kurzorem (na kraji balíku podruhé, potřetí).
+     */
+    const telesa = telesaNaLatce();
+    for (let i = 0; cil && telesa.length && i < 3; i++) {
+      const nad = vyskaTeles(telesa, cil[0], cil[1]);
+      if (nad <= 0 || cil[2] >= nad + NAD_BALIKEM) break;
+      cil = naRovine(sx, sy, nad + NAD_BALIKEM);
+    }
     if (cil) sim.pripni(tazeny, cil);
     vzbud();
   });
@@ -328,18 +365,18 @@ export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; m
 
   k3.zmer();
   /* Pro zkoušky v prohlížeči (headless Edge): stav fyziky, choreografie a obsahu šátku */
-  (platno as HTMLCanvasElement & { __ladeni?: unknown }).__ladeni = { sim, ch, kusy: () => posledniKusy, nahrane };
+  (platno as HTMLCanvasElement & { __ladeni?: unknown }).__ladeni = { sim, ch, kusy: () => posledniKusy, nahrane, smycka: () => ({ hodiny, bezi, videt, klidnych }) };
 
   return {
     start(kusy) {
       posledniKusy = kusy;
       vSatku = new Set(kusy.map((k) => k.id));
+      /* Na klid se čeká mimo frontu — šátek mimo obrazovku se položí až po najetí a další příkazy čekat nemusí */
       return zaradit(async () => {
         if (kusy.length) await pockejNaBaliky(kusy);
         ch.start(hodiny, doChoreografie(kusy));
         vzbud();
-        await doKlidu();
-      });
+      }).then(doKlidu);
     },
     nastavVzor(v) {
       return k3.nastavVzor(v).then(() => {
@@ -359,24 +396,28 @@ export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; m
     },
     zavaz() {
       pustit();
+      cekaNaKonec++;
       return zaradit(
         () =>
           new Promise<void>((hotovo) => {
-            ch.zavaz(hodiny, hotovo);
+            const konec = naKonec(hotovo);
+            ch.zavaz(hodiny, konec);
             vzbud();
-            /* S omezeným pohybem vzbud() dopočítal všechno hned */
-            if (volby.klid) hotovo();
+            /* S omezeným pohybem a mimo obrazovku vzbud() dopočítal všechno hned */
+            if (volby.klid || !videt) konec();
           }),
       );
     },
     rozvaz() {
       pustit();
+      cekaNaKonec++;
       return zaradit(
         () =>
           new Promise<void>((hotovo) => {
-            ch.rozvaz(hodiny, hotovo);
+            const konec = naKonec(hotovo);
+            ch.rozvaz(hodiny, konec);
             vzbud();
-            if (volby.klid) hotovo();
+            if (volby.klid || !videt) konec();
           }),
       );
     },
