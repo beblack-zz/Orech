@@ -8,6 +8,10 @@
  * v souboru napevno. Co se animuje podle stránky (ensō a tah v hlavičce,
  * zvonkohra, značka v hlavičce, která se v noci přebarví), zůstává vložené.
  *
+ * Ke stejným souborům patří i velké kresby stránek: Dílna (_dilna.ts) a svět
+ * v kapce na O nás (_onas.ts) — celé statické kresby v <img>, z kreseb, ve
+ * kterých se něco hýbe, jen statické vrstvy v <image> (_vrstvy.ts).
+ *
  * Adresy nesou otisk obsahu (?v=…), aby šlo soubory cachovat napořád:
  * změněná kresba dostane novou adresu.
  */
@@ -17,6 +21,8 @@ import { koreny, puda, vrstva, nalez } from "../../components/parta2/podzemi";
 import { vrstvy, type VrstvaId } from "../../data/paticka";
 import Enso from "../../components/navrhy-loga/Enso.astro";
 import ZnackaStetec from "../../components/znacka/ZnackaStetec.astro";
+import { dilna } from "./_dilna";
+import { onas } from "./_onas";
 
 /** Barva písma patičky (.pata v styles/parta2.css) — JIRO ve značce ji jinak bere z currentColor */
 const PATA_PISMO = "#EFE5D3";
@@ -52,6 +58,13 @@ async function vyrob() {
   const c = await experimental_AstroContainer.create();
   k.set("paticka-enso", zKomponenty(await c.renderToString(Enso, { props: { size: 54, soumrak: true, tema: "tmave" } }), "enso", "pe", ENSO_STYL));
   k.set("paticka-znacka", zKomponenty(await c.renderToString(ZnackaStetec, { props: { vyska: 26, tema: "tmave", napevno: PATA_PISMO } }), "znacka", "pz"));
+  /* Kresby stránek — jména mají předponu stránky (dilna-, onas-) */
+  for (const sada of [dilna().soubory, onas().soubory]) {
+    for (const [jmeno, obsah] of sada) {
+      if (k.has(jmeno)) throw new Error(`[kresby] soubor ${jmeno} je dvakrát`);
+      k.set(jmeno, obsah);
+    }
+  }
   return k;
 }
 

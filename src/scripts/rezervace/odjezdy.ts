@@ -22,6 +22,7 @@
  */
 import { Klapka, cesta, nahodne } from "../parta2/klapka";
 import { klid } from "../parta2/stav";
+import { naObrazovce } from "../parta2/mimo";
 import * as zvuk from "../parta2/zvuk";
 import { sekkiDne } from "../../data/koyomi";
 import { rezervace as R, permanentka as P, hhmm, cenaZaCloveka } from "../../data/rezervace";
@@ -181,7 +182,16 @@ export function initOdjezdy(n: TabuleNastaveni) {
   if (hodiny.length === 4) {
     koren.classList.add("js-hodiny");
     tik(false);
-    window.setInterval(() => tik(true), 10000);
+    /* Tiká, jen když je tabule na obrazovce. Po návratu ukáže čas hned,
+       bez klapání — jako dřív, kdy se překlapl, zatímco nebyl vidět. */
+    let interval = 0;
+    naObrazovce(koren, (videt) => {
+      window.clearInterval(interval);
+      interval = 0;
+      if (!videt) return;
+      tik(false);
+      interval = window.setInterval(() => tik(true), 10000);
+    });
   }
 
   const klapni = (kl: Klapka, cilova: string, zaklapat: boolean, zpozdeni: number, buben = BUBEN) => {

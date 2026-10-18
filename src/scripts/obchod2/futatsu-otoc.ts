@@ -16,13 +16,20 @@
  * ({ uhel }) při každé změně natočení a el.dataset.uhel; dovnitř:
  * „futatsu-nastav“ ({ uhel?, vypal?, nadhled?, svetlo? }).
  *
- * Kreslí se nejvýš jednou za snímek (svg.innerHTML = podobizna(…)). Při
- * omezeném pohybu (klid) bez setrvačnosti, bez točení a bez vstupu. Posluchače
- * visí na samotném prvku a IntersectionObserver založený kódem stránky odpojí
- * při odchodu prechody.ts, takže se všechno uklidí s obsahem.
+ * Kreslí se nejvýš jednou za snímek (svg.innerHTML = podobizna(…)), samo-otáčení
+ * na telefonu nejvýš 30× za vteřinu (8°/s je i tak plynulých) a během pauzy po
+ * doteku smyčka spí. Při omezeném pohybu (klid) bez setrvačnosti, bez točení
+ * a bez vstupu. Posluchače visí na samotném prvku a IntersectionObserver
+ * založený kódem stránky odpojí při odchodu prechody.ts, takže se všechno
+ * uklidí s obsahem.
+ *
+ * initOtoc(koren, { vstupJenMimo }) — kořen omezí, které hrnky se rozběhnou
+ * (líně stažený modul je zapíná po sekcích); vstupJenMimo vynechá vstup u hrnku,
+ * který už je vidět (skok na kotvu dřív, než se modul stáhl — neotočí se zády).
  */
 import { podobizna, PODOBIZNA } from "../../components/obchod2/futatsu/podobizna";
 import { klid } from "../parta2/stav";
+import { telefon } from "../parta2/kvalita";
 
 type Svetlo = "vlevo" | "shora";
 interface Nastav {
@@ -49,9 +56,17 @@ const cislo = (s: string | undefined, vychozi: number) => {
 };
 const vyjezd = (t: number) => 1 - (1 - t) ** 3;
 
-export function initOtoc(koren: ParentNode = document) {
+/** Je prvek teď aspoň kouskem na obrazovce? */
+const vidimTed = (el: Element) => {
+  const r = el.getBoundingClientRect();
+  return r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
+};
+
+export function initOtoc(koren: ParentNode = document, moznosti: { vstupJenMimo?: boolean } = {}) {
   const prvky = [...koren.querySelectorAll<HTMLElement>("[data-futatsu-otoc]")].filter((el) => !hotove.has(el) && el.querySelector("svg"));
   if (!prvky.length) return;
+  /* Samo-otáčení na telefonu nejvýš 30 snímků za vteřinu (ms mezi snímky) */
+  const autoMs = telefon() ? 32 : 0;
   const ukoly = new Map<Element, (videt: boolean, kolik: number) => void>();
   const io = typeof IntersectionObserver === "function"
     ? new IntersectionObserver((zaznamy) => {
@@ -71,7 +86,7 @@ export function initOtoc(koren: ParentNode = document) {
       vypal: cislo(el.dataset.vypal, 1),
     };
     const auto = el.dataset.auto !== undefined && el.dataset.auto !== "false" && !klid;
-    let vstup = el.dataset.vstup !== undefined && el.dataset.vstup !== "false" && !klid;
+    let vstup = el.dataset.vstup !== undefined && el.dataset.vstup !== "false" && !klid && !(moznosti.vstupJenMimo && vidimTed(el));
 
     /* ——— Kreslení: nejvýš jednou za snímek, událost jen při změně natočení ——— */
     let ceka = 0;
@@ -106,6 +121,9 @@ export function initOtoc(koren: ParentNode = document) {
     let rozjezd = 0; // 0–1, samo-otáčení se po pauze rozjíždí plynule
     let smycka = 0;
     let minule = 0;
+    /** Kdy se samo-otáčení naposled kreslilo a časovač, který smyčku vzbudí po pauze */
+    let nakresleno = 0;
+    let budik = 0;
 
     const krok = (t: number) => {
       smycka = 0;
@@ -128,12 +146,22 @@ export function initOtoc(koren: ParentNode = document) {
         dal = true;
         hned();
       } else if (auto && videt && !tah && !nad && !fokus) {
-        if (t - dotek > PAUZA) {
+        const zbyva = PAUZA - (t - dotek);
+        if (zbyva < 0) {
           rozjezd = Math.min(1, rozjezd + dt / 1200);
           st.uhel += (AUTO / 1000) * dt * rozjezd * rozjezd;
-          hned();
-        } else rozjezd = 0;
-        dal = true;
+          /* Úhel jde dál každý snímek, kreslí se nejvýš po autoMs (telefon) */
+          if (t - nakresleno >= autoMs) {
+            nakresleno = t;
+            hned();
+          }
+          dal = true;
+        } else {
+          rozjezd = 0;
+          /* Pauza po doteku: smyčka spí a vzbudí ji časovač, až pauza skončí */
+          window.clearTimeout(budik);
+          budik = window.setTimeout(rozjed, zbyva + 20);
+        }
       }
       if (dal && el.isConnected) smycka = requestAnimationFrame(krok);
       else minule = 0;

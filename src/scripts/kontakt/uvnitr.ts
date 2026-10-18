@@ -33,6 +33,12 @@
  *
  * S omezeným pohybem nic nekmitá ani nelétá: kolíky se přesunou rovnou,
  * šňůry se hned ustálí, ale hrát se dá stejně.
+ *
+ * Šetrnost: modul je samostatný kousek skriptu (načítá ho scena.ts). Když
+ * ústředna odjede z obrazovky, houpání a šňůry se zastaví (rozběhnuté
+ * scénky doběhnou) a porada mlčí — i na kartě na pozadí; po návratu se
+ * zase rozjede. Kresba, která zrovna není vidět (venku, nebo ústředna,
+ * když je kamera venku), je vypnutá, ať v ní neběží animace.
  */
 import {
   uvnitr as kresba,
@@ -55,6 +61,7 @@ import { repliky, uvnitrHlaseni, uvnitrZavreno } from "../../data/kontakt";
 import { CISLA, POCTY, linkyParty, reci, konference, ustrednaHlaseni } from "../../data/ustredna";
 import type { PostavaId } from "../../data/parta";
 import * as zvuk from "../parta2/zvuk";
+import { naObrazovce } from "../parta2/mimo";
 
 const SIROKA = "(min-aspect-ratio: 6/5) and (min-width: 900px)";
 /** Po kterých klávesách Kachlík skáče (indexy v řadách 11 + 11 + 10 + 9) */
@@ -211,12 +218,18 @@ export function uvnitrScena(sekce: HTMLElement, o: Volby) {
       : uvnitrZavreno[Math.min(i, uvnitrZavreno.length - 1)].replace("{stav}", stav.charAt(0).toUpperCase() + stav.slice(1));
   };
 
-  /* ═══ snímková smyčka: běží, jen když se něco hýbe ═══ */
+  /* ═══ snímková smyčka: běží, jen když se něco hýbe ═══
+     Mimo obrazovku stojí, když už se hýbe jen fyzika (houpání, šňůry, pózy) —
+     ta po návratu pokračuje, kde přestala. Úlohy scének (skoky, světélka,
+     dopis) doběhnou i mimo obrazovku: jsou krátké a navazují na časovače. */
   const ulohy = new Set<(cas: number, dt: number) => boolean>();
   let bezi = false;
   let minule = 0;
+  /** Ústředna je na obrazovce (s předstihem) */
+  let videt = true;
+  const smiBezet = () => uvnitr && (videt || ulohy.size > 0);
   function snimek(cas: number) {
-    if (!uvnitr) {
+    if (!smiBezet()) {
       bezi = false;
       minule = 0;
       return;
@@ -232,7 +245,7 @@ export function uvnitrScena(sekce: HTMLElement, o: Volby) {
     }
   }
   const rozbehni = () => {
-    if (bezi || !uvnitr) return;
+    if (bezi || !smiBezet()) return;
     bezi = true;
     requestAnimationFrame(snimek);
   };
@@ -817,6 +830,8 @@ export function uvnitrScena(sekce: HTMLElement, o: Volby) {
     porada = undefined;
     const sp = spojene();
     if (!uvnitr || sp.length < 3) return;
+    /* mimo obrazovku a na kartě na pozadí porada mlčí — po návratu ji rozjede zkontrolujPoradu */
+    if (!videt || document.hidden) return;
     const dal = (ms: number) => (porada = window.setTimeout(tikPorady, ms));
     /* než doběhne hovor na 二, porada počká */
     if (beh2 && !beh2.zruseno) return dal(1500);
@@ -1491,6 +1506,7 @@ export function uvnitrScena(sekce: HTMLElement, o: Volby) {
     sekce.dataset.zastavka = "uvnitr";
     uvnitr = true;
     vykresli();
+    svg.style.display = "";
     svg.style.visibility = "visible";
     svgVen.style.transformOrigin = `${f(ohniskoPx[0])}px ${f(ohniskoPx[1])}px`;
     const rychle = klidne ? 1 : 0;
@@ -1510,7 +1526,9 @@ export function uvnitrScena(sekce: HTMLElement, o: Volby) {
     ceka = true;
     za(b, klidne ? 0 : 1250, () => {
       ceka = false;
+      /* venku není vidět — vypnout úplně, ať v ní nepadá listí ani nedýchá parta (animace) */
       svgVen.style.visibility = "hidden";
+      svgVen.style.display = "none";
       hotovo();
       if (!body) return;
       if (body.zavreno) sekvenceZavreno();
@@ -1525,6 +1543,7 @@ export function uvnitrScena(sekce: HTMLElement, o: Volby) {
     if (hlaseni) hlaseni.textContent = "";
     uvnitr = false;
     spojeni.clear();
+    svgVen.style.display = "";
     svgVen.style.visibility = "visible";
     svg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: klidne ? 1 : 450, fill: "forwards" });
     svgVen.animate([{ transform: "scale(4.2)", opacity: 0 }, { transform: "scale(1)", opacity: 1 }], {
@@ -1535,10 +1554,29 @@ export function uvnitrScena(sekce: HTMLElement, o: Volby) {
     });
     sekce.dataset.zastavka = "venku";
     window.setTimeout(() => {
-      if (!uvnitr) svg.style.visibility = "hidden";
+      if (!uvnitr) {
+        /* ústředna venku není vidět — vypnout i její animace (spící parta dýchá) */
+        svg.style.visibility = "hidden";
+        svg.style.display = "none";
+      }
       hotovo();
     }, klidne ? 0 : 1060);
   }
+
+  /* ═══ mimo obrazovku: fyzika stojí, porada mlčí; po návratu se zase rozjede ═══ */
+  const navrat = () => {
+    if (!uvnitr || !videt || document.hidden) return;
+    rozbehni();
+    zkontrolujPoradu();
+  };
+  naObrazovce(sekce, (v) => {
+    videt = v;
+    if (v) return navrat();
+    /* čekající tik porady rovnou zrušit — mimo obrazovku by se stejně neozval */
+    window.clearTimeout(porada);
+    porada = undefined;
+  });
+  document.addEventListener("visibilitychange", navrat);
 
   /** Okno se změnilo, když je kamera uvnitř — překreslit a ukázat hotový stav; spojení zůstanou */
   function prekresli() {

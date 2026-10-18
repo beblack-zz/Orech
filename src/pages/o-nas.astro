@@ -15,6 +15,9 @@
  *
  * Texty jsou ze stávající stránky O nás
  * (uvod2.ts, onas2.ts), milníky z uvod2.ts, termíny z kurzy.ts.
+ *
+ * Krajina v kapce je soubor /kresby/onas-*.svg (pages/kresby/_onas.ts) —
+ * je na první obrazovce, proto se stahuje hned s hlavičkou.
  */
 import Hlava from "../components/Hlava.astro";
 import { ClientRouter } from "astro:transitions";
@@ -37,14 +40,15 @@ import Kintsugi from "../components/onas2/Kintsugi.astro";
 import Foto from "../components/onas2/Foto.astro";
 import Vitani from "../components/onas2/Vitani.astro";
 import Spolu from "../components/onas2/Spolu.astro";
+import { onas } from "./kresby/_onas";
 
-
-
+const predem = onas().predem;
 ---
 <!doctype html>
 <html lang="cs">
   <head>
     <Hlava titulek="O nás — dílna v Ořechu · JIRO saku" popis="Malá keramická dílna v Ořechu. Začalo to vodovodní havárií v garáži — projdi si první rok dílny měsíc po měsíci, seznam se s Jiříkem a Renčou a nakresli si ensō." barva="#141B42" />
+    {predem.map((h) => <link rel="preload" href={h} as="image" fetchpriority="high" />)}
     <ClientRouter />
   </head>
   <body class="p2 n2" data-stranka="o-nas-2">

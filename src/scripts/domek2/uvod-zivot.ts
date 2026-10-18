@@ -29,7 +29,12 @@
  *
  * Při návratu na stránku bez načtení (prechody.ts) se init volá znovu —
  * uvodZivot() si proto nejdřív uklidí po minulém běhu.
+ *
+ * Na telefonu (kvalita.ts) je kusů zhruba polovina: počty se sice zmenšují
+ * s plochou úvodu, ale jen do 0,4 — na malé obrazovce by jich bylo hustěji
+ * než na počítači. Ptáků je v hejnu o dvě pětiny méně.
  */
+import { castic } from "../parta2/kvalita";
 
 type Bod = { x: number; y: number };
 type Mapa = (u: number, v: number) => Bod;
@@ -397,7 +402,7 @@ export function uvodZivot() {
 
   /* ═══ Sníh: vzadu malé a pomalé vločky, vpředu větší a rychlejší; padají dokola ═══ */
   const snih = () => {
-    const n = Math.round(40 * omez(plocha, 0.5, 1.15));
+    const n = castic(Math.round(40 * omez(plocha, 0.5, 1.15)));
     const kusySnehu = document.createDocumentFragment();
     for (let i = 0; i < n; i++) {
       const q = i / n;
@@ -421,7 +426,8 @@ export function uvodZivot() {
     if (!ptaci || !W) return 0;
     ptaci.querySelectorAll<HTMLElement>(".dmz-hejno").forEach(odeber);
     const vlastovky = sezona === "leto";
-    const n = vlastovky ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5);
+    /* klín potřebuje aspoň tři husy */
+    const n = Math.max(vlastovky ? 2 : 3, castic(vlastovky ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5), 0.6));
     const rozpeti = (vlastovky ? nahodne(9, 12) : nahodne(11, 14)) * omez(m, 0.85, 1.2);
     const w = vlastovky ? (rozpeti * 20) / ROZPETI.vlastovka : (rozpeti * 24) / ROZPETI.husa;
     const body: Bod[] = [{ x: 0, y: 0 }];
@@ -489,7 +495,7 @@ export function uvodZivot() {
     /* podzim: 12–16 listů najednou, občas poryv změní kolik; léto: tu a tam jeden zelený */
     const podzim = sezona === "podzim";
     let zaklad = podzim ? nahodne(12, 16) : 3;
-    const cil = () => Math.max(podzim ? 4 : 1, Math.round(zaklad * plocha));
+    const cil = () => Math.max(podzim ? 4 : 1, castic(Math.round(zaklad * plocha)));
     planuj(podzim ? 300 : nahodne(1500, 4000), () => {
       if (podzim && Math.random() < 0.06) zaklad = nahodne(12, 16);
       if (pocet("list") < cil()) pustList();
@@ -501,13 +507,13 @@ export function uvodZivot() {
   }
   if (sezona === "podzim") {
     planuj(nahodne(2500, 6000), () => {
-      if (pocet("orech") < 3) pustOrech();
+      if (pocet("orech") < castic(3)) pustOrech();
       return nahodne(5000, 11000);
     });
   }
   if (sezona === "jaro") {
     planuj(nahodne(800, 2500), () => {
-      if (pocet("semeno") < Math.max(2, Math.round(5 * plocha))) pustSemeno();
+      if (pocet("semeno") < Math.max(2, castic(Math.round(5 * plocha)))) pustSemeno();
       return nahodne(1800, 4200);
     });
     predem.push(() => {
@@ -547,20 +553,20 @@ export function uvodZivot() {
       veverkaId = window.setTimeout(() => v.classList.remove("dmz-vykoukni"), KLEPANI.veverka);
     }
 
-    /* a něco spadne — podle období */
-    if (pocet("naraz") > 80) return;
-    const kolik = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
+    /* a něco spadne — podle období (na telefonu zhruba polovina) */
+    if (pocet("naraz") > castic(80)) return;
+    const kolik = (a: number, b: number) => castic(a + Math.floor(Math.random() * (b - a + 1)));
     if (sezona === "podzim") {
-      for (let i = 0; i < 8; i++) pustList(nahodne(0, 0.5), "naraz");
+      for (let i = castic(8); i > 0; i--) pustList(nahodne(0, 0.5), "naraz");
       for (let i = kolik(2, 3); i > 0; i--) pustOrech(nahodne(0.05, 0.6), undefined, "naraz");
     } else if (sezona === "leto") {
-      for (let i = 0; i < 4; i++) pustList(nahodne(0, 0.5), "naraz");
+      for (let i = castic(4); i > 0; i--) pustList(nahodne(0, 0.5), "naraz");
       if (Math.random() < 0.4) pustOrech(nahodne(0.1, 0.5), false, "naraz");
     } else if (sezona === "zima") {
-      for (let i = 0; i < 6; i++) pustTize(KRESBA.chumac, nahodne(6, 11) * m, nahodne(0, 0.6), 0.55, nahodne(20, 80));
-      for (let i = 0; i < 8; i++) pustPrach(false, nahodne(0, 0.8));
+      for (let i = castic(6); i > 0; i--) pustTize(KRESBA.chumac, nahodne(6, 11) * m, nahodne(0, 0.6), 0.55, nahodne(20, 80));
+      for (let i = castic(8); i > 0; i--) pustPrach(false, nahodne(0, 0.8));
     } else if (sezona === "jaro") {
-      for (let i = 0; i < 10; i++) pustPrach(true, nahodne(0, 0.7));
+      for (let i = castic(10); i > 0; i--) pustPrach(true, nahodne(0, 0.7));
     } else {
       /* předjaří: z tajícího sněhu skápne pár kapek, občas suchá větvička */
       for (let i = kolik(3, 4); i > 0; i--) pustTize(KRESBA.kapka, nahodne(5.5, 7.5) * m, nahodne(0, 0.5), 1, 0);

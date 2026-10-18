@@ -13,6 +13,12 @@
  *
  * Bublina kami se kreslí do okna, ne do <body> — dialog je v horní vrstvě
  * a všechno v <body> by bylo pod ním.
+ *
+ * Každá hra je samostatný kus skriptu a stáhne se, až se její úroveň
+ * otevře (scéna je v HTML, takže pod úvodní kartou je vidět hned). Když
+ * člověk klikne na Začít dřív, než je hra stažená, tlačítko ukáže
+ * „Načítám…“ a hra se rozběhne sama, jakmile dorazí. Po prošlé úrovni
+ * se potichu stáhne ta další, ať je „Další“ hned.
  */
 import { urovne, urovenPodleId, znamky, znamkaZBodu, stupne, stupenPodlePoctu } from "../../data/mistr";
 import type { UrovenId } from "../../data/mistr";
@@ -24,19 +30,38 @@ import * as zvuk from "../parta2/zvuk";
 import { schovej } from "../parta2/sber";
 import { KLIC_NALEZENI } from "../parta2/zaves";
 import { nacti } from "../parta2/stav";
+import { priOdchodu, zaStranku } from "../parta2/prechody";
 import type { Hra, Prostredi, Uroven, Vysledek } from "./hra";
 import { pocitejPokus, zapisVysledek, zaznam, proslych, odemcena, jeMistrem } from "./postup";
-import { hrouda } from "./urovne/hrouda";
-import { hneteni } from "./urovne/hneteni";
-import { voda } from "./urovne/voda";
-import { tvar } from "./urovne/tvar";
-import { rovina } from "./urovne/rovina";
-import { jmeno as jmenoHra } from "./urovne/jmeno";
-import { police } from "./urovne/police";
-import { ohen } from "./urovne/ohen";
-import { strep } from "./urovne/strep";
 
-const HRY: Record<UrovenId, Uroven> = { hrouda, hneteni, voda, tvar, rovina, jmeno: jmenoHra, police, ohen, strep };
+/** Hry se stahují, až když jsou potřeba — každý import() je samostatný kus skriptu */
+const HRY: Record<UrovenId, () => Promise<Uroven>> = {
+  hrouda: () => import("./urovne/hrouda").then((m) => m.hrouda),
+  hneteni: () => import("./urovne/hneteni").then((m) => m.hneteni),
+  voda: () => import("./urovne/voda").then((m) => m.voda),
+  tvar: () => import("./urovne/tvar").then((m) => m.tvar),
+  rovina: () => import("./urovne/rovina").then((m) => m.rovina),
+  jmeno: () => import("./urovne/jmeno").then((m) => m.jmeno),
+  police: () => import("./urovne/police").then((m) => m.police),
+  ohen: () => import("./urovne/ohen").then((m) => m.ohen),
+  strep: () => import("./urovne/strep").then((m) => m.strep),
+};
+const stazene: Partial<Record<UrovenId, Uroven>> = {};
+const stahuje: Partial<Record<UrovenId, Promise<Uroven>>> = {};
+
+/** Hra úrovně: stažená, nebo se stáhne (jednou — další volání dostanou tentýž slib) */
+function stahniHru(id: UrovenId): Promise<Uroven> {
+  const hotova = stazene[id];
+  if (hotova) return Promise.resolve(hotova);
+  return (stahuje[id] ??= HRY[id]().then(
+    (u) => (stazene[id] = u),
+    (e: unknown) => {
+      /* Nepovedlo se (bez sítě) — příště se zkusí znovu */
+      delete stahuje[id];
+      throw e;
+    },
+  ));
+}
 
 /** Okno se zavřelo — deska si dopočítá, co je nového, a posune figurku */
 export const ZAVRENO = "mistr:zavreno";
@@ -52,6 +77,12 @@ let poradiReplik = 0;
 let bublina: HTMLElement | null = null;
 let bublinaCas: number | undefined;
 let zpravaCas: number | undefined;
+/** Kolikáté otevření okna — stažení hry pro dřívější otevření se zahodí */
+let otevreni = 0;
+/** Hra se ještě stahuje / klepnutí na Začít čeká, až se stáhne / stažení selhalo */
+let stahujeSe = false;
+let cekaStart = false;
+let chybaStazeni = false;
 
 const $ = <T extends Element>(s: string) => dialog!.querySelector<T>(s)!;
 
@@ -131,19 +162,64 @@ function prostredi(id: UrovenId, muj: number): Prostredi {
   };
 }
 
-/** Vytvoří hru úrovně znovu — scéna se uvede do výchozího stavu */
+/** Vytvoří hru úrovně znovu — scéna se uvede do výchozího stavu (hra musí být stažená) */
 function nachystej(id: UrovenId) {
   hra?.stop();
   pokus++;
   skoncila = false;
   bezi = false;
   $<HTMLElement>(".mu-ukazatel").textContent = "";
+  const u = stazene[id];
+  if (!u) {
+    hra = null;
+    return;
+  }
   try {
-    hra = HRY[id](prostredi(id, pokus));
+    hra = u(prostredi(id, pokus));
   } catch (e) {
     hra = null;
     console.error(e);
   }
+}
+
+/** Tlačítko Začít podle toho, jestli se na hru čeká */
+function ukazZacit() {
+  const b = $<HTMLButtonElement>(".mu-zacit");
+  b.textContent = chybaStazeni ? "Zkusit znovu" : cekaStart ? "Načítám…" : "Začít";
+  if (cekaStart) b.setAttribute("aria-busy", "true");
+  else b.removeAttribute("aria-busy");
+}
+
+/**
+ * Stáhne hru otevřené úrovně a nachystá ji. Volá se z otevření okna
+ * a z klepnutí na Začít po neúspěšném stažení — vždycky za stránku, takže
+ * pokračování po stažení obalí zaStranku (posluchače hry se po přechodu uklidí).
+ */
+function stahniANachystej(id: UrovenId) {
+  const muj = otevreni;
+  stahujeSe = true;
+  chybaStazeni = false;
+  ukazZacit();
+  stahniHru(id).then(
+    zaStranku(() => {
+      if (muj !== otevreni || aktivni !== id || !dialog?.open) return;
+      stahujeSe = false;
+      nachystej(id);
+      const start = cekaStart;
+      cekaStart = false;
+      ukazZacit();
+      if (start) spust(id);
+    }),
+    zaStranku((e: unknown) => {
+      if (muj !== otevreni || aktivni !== id) return;
+      console.error(e);
+      stahujeSe = false;
+      cekaStart = false;
+      chybaStazeni = true;
+      ukazZacit();
+      zprava("Hra se nestáhla. Zkontroluj připojení a zkus to znovu.");
+    }),
+  );
 }
 
 function spust(id: UrovenId) {
@@ -170,6 +246,9 @@ export function otevriUroven(id: UrovenId) {
   hra = null;
   zavriBublinu();
   aktivni = id;
+  otevreni++;
+  cekaStart = false;
+  chybaStazeni = false;
 
   /* Záhlaví */
   dialog.dataset.uroven = id;
@@ -178,6 +257,8 @@ export function otevriUroven(id: UrovenId) {
   $<HTMLElement>(".mu-znak").textContent = u.znak;
   $<HTMLElement>(".mu-stanice").textContent = `${u.stanice} · ${u.cteni}`;
   $<HTMLElement>(".mu-nazev").textContent = u.nazev;
+  /* Ukazatel minulé hry pryč hned — nestažená hra si ho nastaví až po stažení */
+  $<HTMLElement>(".mu-ukazatel").textContent = "";
   dialog.querySelectorAll<HTMLElement>("[data-portret]").forEach((p) => (p.hidden = p.dataset.portret !== id));
   dialog.querySelectorAll<HTMLElement>("[data-uroven-scena]").forEach((s) => {
     s.hidden = s.dataset.urovenScena !== id;
@@ -203,11 +284,17 @@ export function otevriUroven(id: UrovenId) {
   $<HTMLElement>(".mu-vysledek").hidden = true;
   dialog.classList.remove("hraje");
 
-  nachystej(id);
+  if (stazene[id]) {
+    stahujeSe = false;
+    nachystej(id);
+    ukazZacit();
+  }
   if (!dialog.open) {
     dialog.showModal();
     document.documentElement.classList.add("mu-otevreno");
   }
+  /* Nestažená hra se stahuje, až je okno otevřené (stažení kontroluje dialog.open) */
+  if (!stazene[id]) stahniANachystej(id);
   $<HTMLButtonElement>(".mu-zacit").focus();
   window.setTimeout(() => rekni(u.uvod, null, u.kdo), klid ? 0 : 450);
 }
@@ -288,6 +375,8 @@ function dokonci(id: UrovenId, v: Vysledek) {
     dalsi.hidden = false;
     dalsi.textContent = `Další: ${nasledujici.cislo} ${nasledujici.stanice} →`;
     dalsi.dataset.kam = nasledujici.id;
+    /* Další hra se potichu stáhne už teď, ať je po klepnutí na Další hned */
+    stahniHru(nasledujici.id).catch(() => {});
   } else if (v.proslo && jeMistrem()) {
     dalsi.hidden = false;
     dalsi.textContent = "Do síně mistra →";
@@ -301,6 +390,20 @@ function dokonci(id: UrovenId, v: Vysledek) {
 
 /* ——— Ovládání okna ——— */
 
+/* Odchod ze stránky s otevřeným oknem (gesto zpět): close nepřijde, protože dialog
+   zmizí s celou stránkou — hra se zastaví tady (i se zvukem kruhu nebo pece)
+   a <html>, který přechod přežije, nesmí zůstat bez posuvníku */
+priOdchodu(() => {
+  hra?.stop();
+  hra = null;
+  bezi = false;
+  skoncila = true;
+  aktivni = null;
+  cekaStart = false;
+  bublina = null;
+  document.documentElement.classList.remove("mu-otevreno");
+});
+
 export function initUrovne() {
   dialog = document.querySelector<HTMLDialogElement>(".mu-dialog");
   if (!dialog) return;
@@ -308,7 +411,18 @@ export function initUrovne() {
 
   $<HTMLButtonElement>(".mu-zavrit").addEventListener("click", () => d.close());
   $<HTMLButtonElement>(".mu-na-desku").addEventListener("click", () => d.close());
-  $<HTMLButtonElement>(".mu-zacit").addEventListener("click", () => aktivni && spust(aktivni));
+  $<HTMLButtonElement>(".mu-zacit").addEventListener("click", () => {
+    if (!aktivni) return;
+    if (hra) {
+      spust(aktivni);
+      return;
+    }
+    /* Hra se ještě stahuje: rozběhne se sama, až dorazí. Po chybě se stahuje znovu. */
+    if (!stahujeSe && !chybaStazeni) return;
+    cekaStart = true;
+    if (chybaStazeni) stahniANachystej(aktivni);
+    else ukazZacit();
+  });
   $<HTMLButtonElement>(".mu-znovu").addEventListener("click", () => {
     if (!aktivni) return;
     $<HTMLElement>(".mu-vysledek").hidden = true;

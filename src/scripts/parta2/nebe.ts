@@ -7,18 +7,28 @@
  * Hodina se z data-hodina čte při každém snímku, ne jen při měření —
  * na Rezervaci ji sekce s tabulí přepisuje podle toho, na kterou hodinu
  * člověk ukazuje, a obloha jde s ní.
+ *
+ * Hvězdy a světlušky, které jsou zrovna úplně průhledné, se ani nekreslí
+ * (třídy bez-hvezd a bez-svetlusek na <html>, parta2.css) — ve dne tak
+ * nic nebliká ani nelétá naprázdno. Na telefonu se obloha přebarví až
+ * po větším kousku hodiny: každé přebarvení přepočítá styly celé stránky
+ * a rozdíl o pár vteřin denní doby stejně není vidět.
  */
 import { omez, mix, mixBarva, priScrollu, priMereni, pozice } from "./stav";
 import { paleta, PROMENNE } from "./paleta";
+import { telefon } from "./kvalita";
 import * as zvuk from "./zvuk";
 
 /** Přebarví oblohu na danou hodinu (desetinnou, klidně přes půlnoc). */
 export function kresliNebe(h: number) {
   const koren = document.documentElement;
   const p = paleta(h);
+  const svetlusky = omez((p.noc - 0.45) * 1.8);
   p.barvy.forEach((c, k) => koren.style.setProperty(PROMENNE[k], c));
   koren.style.setProperty("--hvezdy", p.hvezdy.toFixed(3));
-  koren.style.setProperty("--svetlusky", omez((p.noc - 0.45) * 1.8).toFixed(3));
+  koren.style.setProperty("--svetlusky", svetlusky.toFixed(3));
+  koren.classList.toggle("bez-hvezd", p.hvezdy < 0.005);
+  koren.classList.toggle("bez-svetlusek", svetlusky <= 0);
   koren.classList.toggle("je-noc", p.noc > 0.55);
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", p.barvy[0]);
   zvuk.nastavNoc(p.noc);
@@ -42,6 +52,8 @@ export function kresliNebe(h: number) {
 export function initNebe() {
   let kotvy: { s: number; el: HTMLElement }[] = [];
   let posledni = -1;
+  /** O kolik hodin se musí obloha posunout, než se přebarví — na telefonu o 43 s denní doby, jinak o 14 s */
+  const krok = telefon() ? 0.012 : 0.004;
   const hodina = (el: HTMLElement) => Number(el.dataset.hodina);
 
   priMereni(() => {
@@ -69,7 +81,7 @@ export function initNebe() {
         }
       }
     }
-    if (Math.abs(h - posledni) < 0.004) return;
+    if (Math.abs(h - posledni) < krok) return;
     posledni = h;
     kresliNebe(h);
   });

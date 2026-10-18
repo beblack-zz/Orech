@@ -21,7 +21,8 @@
  */
 import { f, smichej, omez } from "../../dilna/kresba/zaklad";
 import type { Bod } from "../../dilna/kresba/zaklad";
-import { KRAK, Rin, IN, TECKY, NUBS, rng, rad } from "./kresba";
+import { KRAK } from "./kresba";
+import { Rin, IN, TECKY, NUBS, rng, rad } from "./tvar";
 import { BARVY } from "./podobizna";
 
 const o3 = (n: number) => (Math.round(n * 1000) / 1000).toString();

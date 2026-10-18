@@ -1,27 +1,37 @@
 /**
- * Hlavička nového vzhledu: mobilní menu, zvonkohra s nabídkou zvuků,
- * přepínač den / noc (bublina v noční modré), tah štětce po okraji
- * bubliny (tah.ts) a závěs s nalezenými kami pod pruhem (zaves.ts), který
- * otevírá omamori (omamori.ts). Sdílí
- * ji všechny stránky nového vzhledu, a proto spouští i tušový flek, který
- * je s patičkou na každé stránce (scripts/flek/flek.ts), a průvodce —
- * Vázičku v pravém dolním rohu, která poradí a ukáže (pruvodce.ts).
+ * Hlavička nového vzhledu: mobilní menu, nabídka zvuků u zvonkohry,
+ * přepínač den / noc (bublina v noční modré) a závěs s nalezenými kami pod
+ * pruhem (zaves.ts), který otevírá omamori (omamori.ts). To všechno je
+ * vidět od prvního vykreslení a musí hned reagovat, proto se to načítá se
+ * stránkou.
  *
- * Při přechodu mezi stránkami (prechody.ts) se tlačítko se zvonkohrou
- * přenáší do nové stránky (transition:persist), takže zvonkohra a zvuk se
- * nastaví jen poprvé a běží dál; stejně tak závěs. Menu a tah jsou na každé
- * stránce nové a závěs se na každé znovu naplní podle toho, co je nalezeno.
+ * Ostatní, co hlavička spouští, se při prvním načtení stránky stahuje až po
+ * prvním vykreslení, když má prohlížeč klid (requestIdleCallback, kde není,
+ * časovač) — jedno po druhém:
+ *
+ *   hlavicka-pohyb.ts  zvonkohra ve větru, pohyb závěsu a tah štětce po
+ *                      okraji bubliny (tah.ts); do té doby visí zvonkohra
+ *                      i závěs v klidové poloze z buildu
+ *   pruvodce.ts        průvodce — Vázička v pravém dolním rohu, která
+ *                      poradí a ukáže; s kresbou je to největší kus
+ *   flek/flek.ts       tušový flek, který je s patičkou na každé stránce
+ *
+ * Při přechodu na jinou stránku bez načtení (prechody.ts) už je všechno
+ * v paměti a spustí se hned jako dřív. Tlačítko se zvonkohrou se přenáší
+ * do nové stránky (transition:persist), takže zvonkohra a zvuk se nastaví
+ * jen poprvé a běží dál; stejně tak závěs. Menu a tah jsou na každé stránce
+ * nové a závěs se na každé znovu naplní podle toho, co je nalezeno.
  */
 import * as zvuk from "./zvuk";
-import { initZvonkohra } from "./zvonkohra";
-import { initTah } from "./tah";
 import { initZaves, ukazZaves, KLIC_NALEZENI } from "./zaves";
 import { initOmamori } from "./omamori";
 import { nacti, uloz } from "./stav";
-import { trvale } from "./prechody";
+import { trvale, zaStranku } from "./prechody";
 import { ukazMistra } from "./mistr";
-import { initFlek } from "../flek/flek";
-import { pruvodce } from "./pruvodce";
+
+type Pohyb = typeof import("./hlavicka-pohyb");
+type Pruvodce = typeof import("./pruvodce");
+type Flek = typeof import("../flek/flek");
 
 const KLIC_ZTLUMENO = "zvuk-ztlumeno";
 /** Které skupiny zvuků host v nabídce u zvonkohry vypnul */
@@ -31,35 +41,129 @@ const KLIC_TEMA = "hlava-tema";
 /** V téhle záložce už zvuk jednou hrál */
 const KLIC_HRALO = "zvuk-hralo";
 let zvukHotovy = false;
-/** Zvonkohra žije přes všechny stránky — tah na každé nové o ni zavadí */
-let zk: ReturnType<typeof initZvonkohra> | null = null;
+/** Zvonkohra žije přes všechny stránky — tah na každé nové o ni zavadí. Dokud se pohyb hlavičky nestáhne, je null. */
+let zk: ReturnType<Pohyb["initZvonkohra"]> | null = null;
+/** Zvuk se zapnul dřív, než se zvonkohra stáhla — rozhoupe se, jakmile bude */
+let rozhoupat = false;
+const rozhoupejZvonkohru = () => {
+  if (zk) zk.rozhoupej();
+  else rozhoupat = true;
+};
 
-/* Nová hlavička po přechodu dostane noc dřív, než se poprvé vykreslí */
+/* Nová hlavička po přechodu dostane noc dřív, než se poprvé vykreslí, a je
+   už namalovaná — úvodní kreslení kruhu (HlavickaEnso.astro) se nespustí */
 document.addEventListener("astro:after-swap", () => {
-  if (nacti(KLIC_TEMA, "den") === "noc") document.querySelector(".hlava")?.classList.add("je-noc");
+  const hlava = document.querySelector(".hlava");
+  if (nacti<string>(KLIC_TEMA, "den") === "noc") hlava?.classList.add("je-noc");
+  hlava?.classList.add("je-namalovana");
   ukazMistra();
 });
 
+/* ——— Co se stahuje až po prvním vykreslení ——— */
+
+/** Stažené moduly — při přechodu mezi stránkami se už jen spouštějí */
+let pohyb: Pohyb | null = null;
+let pruvodceModul: Pruvodce | null = null;
+let flekModul: Flek | null = null;
+/** Každý se stahuje jednou; když stažení selže (výpadek sítě), zkusí se znovu na další stránce */
+let slibPohybu: Promise<Pohyb> | null = null;
+let slibPruvodce: Promise<Pruvodce> | null = null;
+let slibFleku: Promise<Flek> | null = null;
+
+/** Zvonkohra a pohyb závěsu se po stažení rozhýbou jednou a jako trvalé — přežijí přechod mezi stránkami */
+const nactiPohyb = () =>
+  (slibPohybu ??= import("./hlavicka-pohyb").then(
+    (m) => {
+      pohyb = m;
+      trvale(() => {
+        const kresba = document.querySelector<SVGSVGElement>(".zvuk-tlacitko .zvonkohra svg");
+        zk = kresba ? m.initZvonkohra(kresba) : null;
+        if (zk && rozhoupat) zk.rozhoupej();
+        rozhoupat = false;
+        m.rozhybejZaves(() => zk?.vitrX() ?? 0);
+      });
+      return m;
+    },
+    (e) => {
+      slibPohybu = null;
+      throw e;
+    },
+  ));
+const nactiPruvodce = () =>
+  (slibPruvodce ??= import("./pruvodce").then(
+    (m) => (pruvodceModul = m),
+    (e) => {
+      slibPruvodce = null;
+      throw e;
+    },
+  ));
+const nactiFlek = () =>
+  (slibFleku ??= import("../flek/flek").then(
+    (m) => (flekModul = m),
+    (e) => {
+      slibFleku = null;
+      throw e;
+    },
+  ));
+
+/**
+ * Zavolá fn, až bude po vykreslení klid: po příštím snímku, a pak, až má
+ * prohlížeč volnou chvíli (requestIdleCallback), nejpozději za `nejdele` ms.
+ * Kde requestIdleCallback není (Safari), stačí časovač.
+ */
+const vKlidu = (fn: () => void, nejdele: number) =>
+  requestAnimationFrame(() =>
+    window.setTimeout(() => {
+      if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(() => fn(), { timeout: nejdele });
+      else window.setTimeout(fn, Math.round(nejdele / 3));
+    }, 0),
+  );
+
+/** Jeden kus po druhém: počká na klid, stáhne ho a spustí; chyba jednoho kusu ostatní nezastaví */
+const poKlidu = <M>(retez: Promise<unknown>, nejdele: number, stahni: () => Promise<M>, spust: (m: M) => void) =>
+  retez
+    .then(() => new Promise<void>((hotovo) => vKlidu(hotovo, nejdele)))
+    .then(stahni)
+    .then(spust)
+    .catch((e) => console.error("[hlavicka]", e));
+
 export function hlavicka() {
+  /* Kdy se hlavička spustila — tah podle toho na první stránce počká, až se namaluje kruh */
+  const od = performance.now();
   initMenu();
   initTema();
   if (!zvukHotovy) {
     zvukHotovy = true;
-    trvale(zvonkohraAZvuk);
-    /* Závěs s kami se přenáší mezi stránkami stejně jako zvonkohra a fouká do něj její vítr */
-    trvale(() => initZaves(() => zk?.vitrX() ?? 0));
+    trvale(nabidkaZvuku);
+    /* Závěs s kami se přenáší mezi stránkami stejně jako zvonkohra a fouká do něj její vítr (zaves-pohyb.ts) */
+    trvale(initZaves);
   }
   ukazZaves(nacti<string[]>(KLIC_NALEZENI, []));
   initOmamori();
   ukazMistra();
-  initTah({ zavadi: (sila) => zk?.cukni(sila) });
-  initFlek();
+
+  const tah = (m: Pohyb, pozde: boolean) => m.initTah({ zavadi: (sila) => zk?.cukni(sila), od, pozde });
   /* Průvodce je navíc — kdyby selhal, stránka musí běžet dál */
-  try {
-    pruvodce();
-  } catch (e) {
-    console.error("[pruvodce]", e);
-  }
+  const pruvodce = (m: Pruvodce) => {
+    try {
+      m.pruvodce();
+    } catch (e) {
+      console.error("[pruvodce]", e);
+    }
+  };
+  const flek = (m: Flek, pozde: boolean) => m.initFlek(pozde);
+
+  /* Po přechodu mezi stránkami je všechno v paměti — spustí se hned */
+  if (pohyb) tah(pohyb, false);
+  if (flekModul) flek(flekModul, false);
+  if (pruvodceModul) pruvodce(pruvodceModul);
+  if (pohyb && pruvodceModul && flekModul) return;
+
+  /* Při prvním načtení jedno po druhém, každé v klidu po vykreslení — a jen dokud tahle stránka trvá */
+  let retez: Promise<unknown> = Promise.resolve();
+  if (!pohyb) retez = poKlidu(retez, 1000, nactiPohyb, zaStranku((m: Pohyb) => tah(m, true)));
+  if (!pruvodceModul) retez = poKlidu(retez, 2500, nactiPruvodce, zaStranku(pruvodce));
+  if (!flekModul) poKlidu(retez, 4000, nactiFlek, zaStranku((m: Flek) => flek(m, true)));
 }
 
 function initMenu() {
@@ -88,7 +192,7 @@ function initTema() {
     tlacitko.setAttribute("aria-label", noc ? "Denní hlavička" : "Noční hlavička");
     tlacitko.title = noc ? "Denní hlavička" : "Noční hlavička";
   };
-  hlava.classList.toggle("je-noc", nacti(KLIC_TEMA, "den") === "noc");
+  hlava.classList.toggle("je-noc", nacti<string>(KLIC_TEMA, "den") === "noc");
   ukaz();
   tlacitko.addEventListener("click", () => {
     const noc = hlava.classList.toggle("je-noc");
@@ -97,17 +201,16 @@ function initTema() {
   });
 }
 
-function zvonkohraAZvuk() {
+function nabidkaZvuku() {
   /*
    * Zvuk je ve výchozím stavu zapnutý. Prohlížeč ho ale pustí až po prvním
    * gestu, takže se rozezní při prvním kliknutí nebo klávese kdekoli na
    * stránce. Kliknutí na zvonkohru otevře nabídku — vypnout jde celý zvuk
-   * i jednotlivé skupiny (zvuk.ts) a web si volbu pamatuje.
+   * i jednotlivé skupiny (zvuk.ts) a web si volbu pamatuje. Zvonkohru samu
+   * (její pohyb a údery) rozhýbe až stažený pohyb hlavičky.
    */
   const obal = document.querySelector<HTMLElement>(".zvuk");
   const zv = obal?.querySelector<HTMLButtonElement>(".zvuk-tlacitko");
-  const kresba = zv?.querySelector<SVGSVGElement>(".zvonkohra svg");
-  zk = kresba ? initZvonkohra(kresba) : null;
   if (!obal || !zv) return;
   const nabidka = obal.querySelector<HTMLElement>(".zvuk-nabidka")!;
   const vse = nabidka.querySelector<HTMLInputElement>("[data-zvuk-vse]")!;
@@ -130,7 +233,7 @@ function zvonkohraAZvuk() {
     if (!zvuk.jeZapnuto()) {
       await zvuk.prepni();
       // Hned po zapnutí se zvonkohra rozhoupe, ať je slyšet, že zvuk jde
-      zk?.rozhoupej();
+      rozhoupejZvonkohru();
       try {
         sessionStorage.setItem(KLIC_HRALO, "1");
       } catch {}
@@ -178,7 +281,7 @@ function zvonkohraAZvuk() {
       else {
         zvuk.odemkni();
         // Zapnutá zvonkohra se ozve, ať je slyšet, že zase zvoní
-        if (s === "zvonkohra" && v.checked) zk?.rozhoupej();
+        if (s === "zvonkohra" && v.checked) rozhoupejZvonkohru();
       }
     });
   }

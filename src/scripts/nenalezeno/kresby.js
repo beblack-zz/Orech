@@ -351,15 +351,20 @@ const vrstvaZlatoZive = (st) => {
     (zablesky ? `<g stroke="#FFFBEA" stroke-linecap="round" stroke-linejoin="round" fill="none">${zablesky}</g>` : "")
   );
 };
-/* odlesk na zlatě: jde za kurzorem, jinak obchází nulu sám */
+/* odlesk na zlatě: jde za kurzorem, jinak obchází nulu sám. Spáry se
+   nakreslí jednou a běh (beh.js) pak posouvá jen střed přechodu (uzly) —
+   po půlkách jednotky, jako dřív klíč vrstvy. */
+const pul = (n) => f(Math.round(n * 2) / 2);
 const lesk = (id, d, [x, y], r) =>
-  `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${f(x)}" cy="${f(y)}" r="${r}"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"/><stop offset="0.5" stop-color="#FFF6D8" stop-opacity="0.4"/><stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/></radialGradient></defs>` +
+  `<defs><radialGradient id="${id}" data-u="0" gradientUnits="userSpaceOnUse" cx="${pul(x)}" cy="${pul(y)}" r="${r}"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"/><stop offset="0.5" stop-color="#FFF6D8" stop-opacity="0.4"/><stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/></radialGradient></defs>` +
   `<path d="${d}" fill="url(#${id})"/>`;
+const leskTela = (st) => [(st.lesk[0] - B0[0] - st.fig.x) / K + 91, (st.lesk[1] - B0[1] - st.fig.y) / K + 90];
 const vrstvaLesk = (st) => {
   const d = VECI.filter((_, o) => st.celist[o] > 0.99).map((V) => V.zlato).join(" ");
   return d ? lesk(`${ID}-lv`, d, st.lesk, 24) : "";
 };
-const vrstvaLeskTela = (st) => vPostave(lesk(`${ID}-lt`, ZLATO_TELA, [(st.lesk[0] - B0[0] - st.fig.x) / K + 91, (st.lesk[1] - B0[1] - st.fig.y) / K + 90], 30));
+const vrstvaLeskTela = (st) => vPostave(lesk(`${ID}-lt`, ZLATO_TELA, leskTela(st), 30));
+const uzlyLesku = (bod) => [{ cx: pul(bod[0]), cy: pul(bod[1]) }];
 
 /* stíny na papíře pod tím, co se vznáší: pod čtyřkami, pod nulou a pod obláčkem */
 const vrstvaStiny = (st) =>
@@ -891,12 +896,12 @@ export const scena = {
     { id: "kusy", kresli: vrstvaKusy, klic: snimek, tma: true },
     ...veci,
     { id: "zlato-zive", kresli: vrstvaZlatoZive, klic: (st) => (st.celist.some((c) => c < 1) || st.spary.some((s) => st.t - s.kdy < 0.5) ? snimek(st) : -1) },
-    { id: "lesk", kresli: vrstvaLesk, klic: (st) => `${Math.round(st.lesk[0] * 2)},${Math.round(st.lesk[1] * 2)},${st.celist.map((c) => (c > 0.99 ? 1 : 0)).join("")}` },
+    { id: "lesk", kresli: vrstvaLesk, klic: (st) => st.celist.map((c) => (c > 0.99 ? 1 : 0)).join(""), uzly: (st) => uzlyLesku(st.lesk) },
     { id: "zablesk", kresli: vrstvaZablesk, klic: (st) => (st.zablesk > 0.01 ? snimek(st) : -1) },
     { id: "oblacky", kresli: vrstvaOblacky, pohyb: (st) => ({ x: 0, y: 1.8 * Math.sin(st.t * 0.9 + 2), r: 0, ox: B0[0], oy: B0[1] }) },
     { id: "oblak-zadni", kresli: () => vPostave(OBLAK_ZADNI), pohyb: pohybOblaku },
     { id: "telo", kresli: () => vPostave(strTelo(ID) + strZlato(ID)), tezka: true, tma: true, pohyb },
-    { id: "lesk-tela", kresli: vrstvaLeskTela, klic: (st) => `${Math.round(st.lesk[0] * 2)},${Math.round((st.lesk[1] - st.fig.y) * 2)}`, pohyb },
+    { id: "lesk-tela", kresli: vrstvaLeskTela, klic: () => 1, uzly: (st) => uzlyLesku(leskTela(st)), pohyb },
     { id: "oblak-predni", kresli: () => vPostave(OBLAK_PREDNI), tezka: true, pohyb: pohybOblaku },
     { id: "tvar", kresli: vrstvaTvar, klic: (st) => `${f(st.pohled[0])},${f(st.pohled[1])},${f(st.mrk)},${st.vyraz},${st.strana}`, tma: true, pohyb },
     { id: "koncetiny", kresli: vrstvaKoncetiny, klic: (st) => (st.skok || st.soustr || st.radost || st.zved ? snimek(st) : Math.floor(st.t * 15)), tma: true, pohyb },

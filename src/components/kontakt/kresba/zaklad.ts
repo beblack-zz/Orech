@@ -14,7 +14,7 @@ import { nahoda, chomac } from "../../parta2/tvary";
 import { vzorkuj, hladka, vyskaNa, lerp } from "../../domek2/kresba/krivky";
 import type { Bod } from "../../domek2/kresba/krivky";
 import { podobizna } from "../../obchod2/futatsu/podobizna";
-import { LOUZE } from "../../obchod2/futatsu/kresba";
+import { LOUZE } from "../../obchod2/futatsu/tvar";
 import type { PostavaId } from "../../../data/parta";
 
 export { nahoda, chomac, vzorkuj, hladka, vyskaNa, lerp };

@@ -89,6 +89,13 @@ const id = noveId("hlava-enso");
       opacity: 0.86;
     }
   }
+  /* Na telefonu záře svítí, ale nepulzuje: filtr se dvěma rozmazáními by se
+     v hlavičce, která je vidět pořád, překresloval každý snímek */
+  @media (hover: none) and (pointer: coarse) {
+    .hlava-enso-mesic {
+      animation: none;
+    }
+  }
 
   /* Úvod: štětec dosedne a obejde kruh, pak rýha a nakonec rozkvete květ */
   .hlava-enso-odhal {

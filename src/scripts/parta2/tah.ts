@@ -12,8 +12,15 @@
  *
  * Při přechodu na jinou stránku (prechody.ts) se vlas stáhne zpátky do kruhu,
  * rýha se odtočí a maluje se znovu. Úvodní kreslení kruhu (HlavickaEnso.astro)
- * patří jen k prvnímu načtení. Kdo si nepřeje pohyb, má vlas bez zpoždění,
+ * patří jen k prvnímu načtení — třídu je-namalovana dává nové hlavičce po
+ * přechodu hlavicka.ts. Kdo si nepřeje pohyb, má vlas bez zpoždění,
  * rýhu v klidu a zvonkohra se nezhoupne.
+ *
+ * Při prvním načtení stránky se tah dotáhne s ostatním pohybem hlavičky až
+ * po prvním vykreslení (hlavicka-pohyb.ts) — na první stránce stejně čeká,
+ * až se kruh namaluje (`od` je chvíle, kdy se spustila hlavička). Měření
+ * a první scroll stránky (spust ve stav.ts) jsou pak už pryč, tak si
+ * stránku změří a dojede, kam je odscrollováno, sám (`pozde`).
  */
 import { tahBublinou, R0, type TahBublinou } from "./tah-kresba";
 import { priScrollu, priMereni, omez, klid, SVGNS } from "./stav";
@@ -29,19 +36,13 @@ const ZPOZDENI_NAVRATU = 0.42;
 let minule = 0;
 let minulaRyha = 0;
 
-/* Nová hlavička po přechodu už je namalovaná — třída přijde dřív, než se
-   poprvé vykreslí, takže se úvodní kreslení kruhu nespustí */
-document.addEventListener("astro:after-swap", () => {
-  document.querySelector(".hlava")?.classList.add("je-namalovana");
-});
-
 const prvek = <K extends keyof SVGElementTagNameMap>(jmeno: K, atributy: Record<string, string | number>) => {
   const el = document.createElementNS(SVGNS, jmeno);
   for (const [a, h] of Object.entries(atributy)) el.setAttribute(a, String(h));
   return el;
 };
 
-export function initTah({ zavadi }: { zavadi: (sila: number) => void }) {
+export function initTah({ zavadi, od = performance.now(), pozde = false }: { zavadi: (sila: number) => void; od?: number; pozde?: boolean }) {
   const hlava = document.querySelector<HTMLElement>(".hlava");
   const platno = hlava?.querySelector<SVGSVGElement>(".hlava-tah");
   if (!hlava || !platno) return;
@@ -68,7 +69,7 @@ export function initTah({ zavadi }: { zavadi: (sila: number) => void }) {
   let zavadilo = -Infinity;
   let dokresleno = false;
   /* Při prvním načtení se počká, až se kruh namaluje */
-  const odklad = !klid && !hlava.classList.contains("je-namalovana") ? performance.now() + 1400 : 0;
+  const odklad = !klid && !hlava.classList.contains("je-namalovana") ? od + 1400 : 0;
 
   const postav = () => {
     kresba = tahBublinou(sirka);
@@ -136,7 +137,8 @@ export function initTah({ zavadi }: { zavadi: (sila: number) => void }) {
     if (navrat && ted <= cil) navrat = false;
     const k = 1 - Math.exp(-dt / (navrat ? ZPOZDENI_NAVRATU : ZPOZDENI));
     ted = klid ? cil : ted + (cil - ted) * k;
-    if (kresba && Math.abs(cil - ted) * kresba.delka < 0.3) ted = cil;
+    /* do cíle se dotáhne, až chybí méně než třetina pixelu — i bez kresby (pruh bez šířky), ať smyčka nejede donekonečna */
+    if (Math.abs(cil - ted) * (kresba?.delka ?? 1000) < 0.3) ted = cil;
     if (ted !== pred) ukaz();
     minule = ted;
     /* Štětec zavadil o závěs zvonkohry — jen když jde dopředu; čím rychleji, tím víc */
@@ -175,16 +177,22 @@ export function initTah({ zavadi }: { zavadi: (sila: number) => void }) {
     postav();
   }).observe(hlava);
 
-  priMereni(() => {
+  const zmerStranku = () => {
     maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     zmerZaves();
-  });
-
-  priScrollu((y) => {
+  };
+  const naScroll = (y: number) => {
     cil = maxY > 0 ? omez(y / maxY) : 0;
     if (!klid) ryhaCil = y * STUPNE_NA_PX;
     rozjed();
-  });
+  };
+  priMereni(zmerStranku);
+  priScrollu(naScroll);
+  /* Načteno až po spuštění stránky (spust v stav.ts už proběhlo): změří se a dojede, kam je odscrollováno, hned */
+  if (pozde) {
+    zmerStranku();
+    naScroll(window.scrollY);
+  }
 
   hlava.querySelector(".hlava-znacka")?.addEventListener("pointerenter", () => {
     if (klid || roztoceno >= 0) return;

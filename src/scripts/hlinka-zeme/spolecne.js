@@ -266,6 +266,16 @@ const hlTvar = (id, { oci = "spi", usta = "usmev", mrk = 0, dx = 0, dy = 0, tvar
 };
 
 /* ——— Co přibylo s novými podobami ——— */
+/*
+ * Telefon dostane méně částic — stejný dotaz jako telefon() v parta2/kvalita.ts.
+ * Kresby musí jít pustit i v Node (první snímek při buildu, zkouška vystoupení),
+ * proto bez importu; mimo prohlížeč platí plný počet.
+ */
+const NA_TELEFONU = typeof matchMedia === "function" && matchMedia("(hover: none) and (pointer: coarse)").matches;
+/** Kolik částic: na telefonu podíl z n (jako castic v parta2/kvalita.ts) */
+export const castic = (n, podil = 0.5) => (NA_TELEFONU ? Math.max(1, Math.round(n * podil)) : n);
+/** Hustota částic jako násobek četnosti: 1, na telefonu 0,5 */
+export const HUSTOTA = NA_TELEFONU ? 0.5 : 1;
 /** Pružina k cíli, nezávislá na snímkovce: k je časová konstanta v sekundách. */
 export const kCili = (v, cil, dt, k) => v + (cil - v) * (1 - Math.exp(-dt / k));
 /** Překročil čas mezi dvěma snímky hranici x? */

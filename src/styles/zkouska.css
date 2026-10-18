@@ -107,6 +107,11 @@ html.mu-otevreno { overflow: hidden; }
 
 /* ——— Deska sugoroku ——— */
 
+/* Deska a síň se ukážou, až je nastaví jejich skript (scripts/zkouska/vnitrek.ts). Ten se
+   stahuje až po otevření dveří a výchozí HTML by na okamžik ukázalo jiný stav (deska.ts, sin.ts). */
+.msd:not(.je-nachystana) > .msd-mriz,
+.msn:not(.je-nachystana) > .msn-mriz { visibility: hidden; }
+
 .msd { position: relative; z-index: 2; padding: clamp(70px, 11vh, 130px) clamp(16px, 4vw, 48px) clamp(60px, 9vh, 110px); scroll-margin-top: 70px; }
 .msd-mriz {
   display: grid;
@@ -776,6 +781,28 @@ html.mu-otevreno { overflow: hidden; }
   .msn { padding-inline: 10px; }
   .msn-vyklenek { padding: 30px 8px 60px; }
 }
+
+/* ——— Telefon: lehčí vykreslování ———
+   Rozmazání pod průsvitnými vrstvami a velké stíny přes animované kresby
+   telefon přepočítává s každým snímkem, a tak je na dotyku nejsou. Pod oknem
+   úrovně (na telefonu přes celou obrazovku) animace stránky a oblohy stojí. */
+@media (hover: none) and (pointer: coarse) {
+  /* Stín přes celou dílnu by se překresloval s každým obláčkem kouře a kapkou */
+  .zk-stavba-kresba { filter: none; }
+  /* Rozmazání za oknem, pod jeho záhlavím a pod úvodní a výsledkovou kartou
+     (::backdrop zvlášť — prohlížeč, který ho nezná, by zahodil celé pravidlo) */
+  .mu-dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .mu-hlava,
+  .mu-uvod,
+  .mu-vysledek { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* Krabice se svitkem se jen vznáší — pulzující záře by se počítala každý snímek */
+  .msn[data-stav="obrad"] .msn-krabice { animation-name: msn-krabice-telefon; }
+  html.mu-otevreno main *,
+  html.mu-otevreno main *::before,
+  html.mu-otevreno main *::after,
+  html.mu-otevreno .nebe * { animation-play-state: paused !important; }
+}
+@keyframes msn-krabice-telefon { 50% { transform: translateY(-6px); } }
 
 /* ——— Méně pohybu ——— */
 

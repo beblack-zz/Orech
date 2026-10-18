@@ -8,6 +8,10 @@
  * tak načtou, až když se kus otevře. Dialog plní a listuje v něm
  * scripts/obchod2/kramek.ts v pořadí šablon — tedy jako ve vitrínách pod
  * krámkem: nejdřív vlastní tvorba, pak keramika z Japonska.
+ *
+ * Id v šablonách se s krámkem nepotkají: balík v novinách má předponu
+ * o2d-zab (v krámku zab, ve vitríně o2v-zab, v ikonách šátku o2i-zab) a nadpis
+ * o2k-detail-nazev-<id kusu> — na ten dialog ukáže kramek.ts při otevření.
  */
 import { Image } from "astro:assets";
 import Zabaleno from "./Zabaleno.astro";
@@ -28,7 +32,7 @@ const detaily = [...zDilny, ...zJaponska].map((kus) => {
   return { kus, i, km, glazura, g, mail, ...cenovka(kus.cena) };
 });
 ---
-<dialog class="omamori-dialog o2k-dialog" aria-labelledby="o2k-detail-nazev">
+<dialog class="omamori-dialog o2k-dialog" aria-label="Detail kusu">
   <div class="o2k-detail-obal">
     <button type="button" class="omamori-zavrit" aria-label="Zavřít">×</button>
     <div class="o2k-detail" data-detail-obsah></div>
@@ -68,7 +72,7 @@ const detaily = [...zDilny, ...zJaponska].map((kus) => {
           )}
         </>
       ) : (
-        <Zabaleno tvar={kus.tvar ?? "bowl"} seme={i + 1} slama={false} class="o2k-detail-balik" />
+        <Zabaleno tvar={kus.tvar ?? "bowl"} seme={i + 1} slama={false} predpona="o2d-zab" class="o2k-detail-balik" />
       )}
     </div>
 
@@ -76,7 +80,7 @@ const detaily = [...zDilny, ...zJaponska].map((kus) => {
       <p class="stitek">
         {kus.odkud === "japonsko" ? <><span lang="ja">航空便</span> · z Japonska</> : <><span lang="ja">手作り</span> · z dílny</>}
       </p>
-      <h2 id="o2k-detail-nazev" class="o2k-detail-nazev">{kus.nazev}</h2>
+      <h2 id={`o2k-detail-nazev-${kus.id}`} class="o2k-detail-nazev">{kus.nazev}</h2>
       <p class="o2k-detail-autor">{kus.autor}</p>
       {kus.novinka && <p class="o2k-detail-novinka"><span lang="ja">新作</span> novinka</p>}
 

@@ -28,7 +28,7 @@ import { zaromerky } from "../../dilna/kresba/pec";
 import { f, smichej, omez, hladce } from "../../dilna/kresba/zaklad";
 import type { Bod } from "../../dilna/kresba/zaklad";
 import { PODOBIZNA, obrys } from "./podobizna";
-import { Rout, rng } from "./kresba";
+import { Rout, rng } from "./tvar";
 
 const RAD = Math.PI / 180;
 const plynule = (a: number, b: number, t: number) => {

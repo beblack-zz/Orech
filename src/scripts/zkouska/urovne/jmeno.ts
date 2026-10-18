@@ -25,11 +25,17 @@
  *
  * Všechen pohyb jede v jedné snímkové smyčce s herním časem: anim() a
  * pockej() vracejí sliby, které smyčka splní — děj se tak dá psát po
- * sobě (async), a po stop() už nic nedoběhne.
+ * sobě (async), a po stop() už nic nedoběhne. Když se nic nehýbe (při
+ * vyplňování pečeti), smyčka spí a herní čas stojí; probudí ji anim()
+ * nebo pockej().
+ *
+ * Na telefonu (kvalita.ts) odletuje při rytí polovina třísek a u správné
+ * misky polovina jiskřiček.
  */
 import type { Uroven } from "../hra";
 import * as zvuk from "../../parta2/zvuk";
 import { omez, mix } from "../../parta2/stav";
+import { castic } from "../../parta2/kvalita";
 import { nactiPecet, ulozPecet, nactiJmeno, ulozJmeno } from "../postup";
 import { pecetSvg, inicialy, cistaZnaky, vychoziPecet, tvaryPeceti, stylyPeceti } from "../../../components/zkouska/pecet";
 import type { Pecet, TvarPeceti, StylPeceti } from "../../../components/zkouska/pecet";
@@ -85,6 +91,8 @@ const ZDVIH = 140;
 const ZVETSENI = 2 / MISKA_MERITKO;
 /** Úhel rydla při rytí (stupně) */
 const UHEL_RYTI = 32;
+/** Kolikrát řidčeji odletují třísky: na telefonu dvakrát (castic), jinak stejně */
+const RIDCEJI = 100 / castic(100);
 
 /** Výchozí DOM scény — každý nový pokus z něj začíná (DOM zůstává z minulého pokusu) */
 const puvodni = new WeakMap<HTMLElement, string>();
@@ -229,16 +237,33 @@ export const jmeno: Uroven = (p) => {
       console.error(e);
       dokonci();
     }
+    /* Nic se nehýbe ani na nic nečeká (vyplňuje se pečeť): smyčka usne, probudí ji anim() nebo pockej() */
+    if (necinna()) {
+      cancelAnimationFrame(snimek);
+      snimek = 0;
+    }
+  };
+  const probud = () => {
+    if (snimek || zastaveno || !spusteno) return;
+    posledni = 0;
+    snimek = requestAnimationFrame(tik);
   };
 
   /** Animace po dobu `doba` ms: krok(t) dostává 0–1. Po stop() se slib nesplní. */
   const anim = async (doba: number, krok: (t: number) => void) => {
     if (doba <= 1) krok(1);
-    else await new Promise<void>((hotovo) => animace.push({ od: cas, doba, krok, hotovo }));
+    else
+      await new Promise<void>((hotovo) => {
+        animace.push({ od: cas, doba, krok, hotovo });
+        probud();
+      });
     if (zastaveno) throw PRERUSENO;
   };
   const pockej = async (ms: number) => {
-    await new Promise<void>((hotovo) => cekani.push({ kdy: cas + ms, hotovo }));
+    await new Promise<void>((hotovo) => {
+      cekani.push({ kdy: cas + ms, hotovo });
+      probud();
+    });
     if (zastaveno) throw PRERUSENO;
   };
   /** Animace, na kterou se nečeká */
@@ -298,6 +323,8 @@ export const jmeno: Uroven = (p) => {
   const jiskry: { el: SVGGElement; x: number; y: number; vx: number; vy: number; vek: number }[] = [];
   let vyberOd = 0;
   let napovezeno = false;
+  /** Smyčka nemá co dělat: Cedulka ještě nevisí (nekývá se), nic se nehýbe, nic neletí a nečeká se na výběr */
+  const necinna = () => !ced.visi && !animace.length && !cekani.length && !trisky.length && !jiskry.length && faze !== "vyber";
 
   function priSnimku(dt: number) {
     const s = dt / 1000;
@@ -503,7 +530,7 @@ export const jmeno: Uroven = (p) => {
       polozRydlo(x + Math.cos(osa) * j, y + Math.sin(osa) * j, UHEL_RYTI + (p.klid ? 0 : Math.sin(cas * 0.011) * 3));
       if (!p.klid && cas >= dalsiTriska) {
         pridejTrisku(x, y);
-        dalsiTriska = cas + 45 + Math.random() * 70;
+        dalsiTriska = cas + (45 + Math.random() * 70) * RIDCEJI;
       }
       if (cas >= dalsiZvuk) {
         zvuk.sumik(0.05, 2600 + Math.random() * 1600, 2.4, 0.06);
@@ -948,11 +975,12 @@ export const jmeno: Uroven = (p) => {
 
   const pridejJiskry = (m: Miska) => {
     const cy = POLICE_Y - ZDVIH + MISKA_STRED * MISKA_MERITKO * ZVETSENI;
-    for (let i = 0; i < 9; i++) {
+    const n = castic(9);
+    for (let i = 0; i < n; i++) {
       const g = document.createElementNS(SVGNS, "g");
       g.innerHTML = jiskra();
       jiskryG.append(g);
-      const u = (i / 9) * Math.PI * 2 + Math.random() * 0.5;
+      const u = (i / n) * Math.PI * 2 + Math.random() * 0.5;
       const v = 140 + Math.random() * 90;
       jiskry.push({ el: g, x: m.x + Math.cos(u) * 70, y: cy + Math.sin(u) * 70, vx: Math.cos(u) * v, vy: Math.sin(u) * v - 40, vek: 0 });
     }

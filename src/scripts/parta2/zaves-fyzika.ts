@@ -15,11 +15,11 @@
  * vykreslí klidovou polohu už při buildu.
  */
 
+import { SNUR, MIST, KOTVY } from "./zaves-miry";
+
+/* Počty a kotvy jsou v zaves-miry.ts — potřebuje je i lehká část závěsu bez fyziky */
+export { SNUR, MIST, KOTVY };
 /** Počátek souřadnic je ve středu kroužku, za který závěs visí */
-export const SNUR = 3;
-export const MIST = 3;
-/** Kde na břevnu šňůrky visí */
-export const KOTVY = [-19, 0, 19];
 export const KOTVA_Y = 16.4;
 /** Od břevna k prvnímu místu na nejkratší šňůrce a o kolik je každá další delší */
 const PRVNI = 12.6;

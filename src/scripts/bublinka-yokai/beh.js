@@ -291,6 +291,8 @@ const scena = (el, V) => {
   const vstup = { mys: null, kliky: [] };
   let dyn = V.novaDynamika();
   let t = 0, posledniCas = null, viditelna = false, zastaveno = false, aktivniDo = 0;
+  /* smyčka běží, jen když je scéna vidět a má co dělat (bezi = je naplánovaný snímek) */
+  let bezi = false;
 
   const vykresli = () => {
     const st = V.stav(t, vstup, dyn);
@@ -318,18 +320,25 @@ const scena = (el, V) => {
     dyn.zvuk.length = 0;
     if (slysi) Zvuk.nastav(V.id === "v1" ? { vitr: V.hukot(st) } : V.id === "v2" ? { pec: V.hukot(st) } : {});
   };
+  /* Při omezeném pohybu scéna stojí, když jí došlo bdění — smyčka pak nečeká
+     na další snímek naprázdno, rozjede ji až rozbehni(). */
+  const spi = () => klidne && t >= aktivniDo;
   const smycka = (ted) => {
-    if (!viditelna || zastaveno) {
+    if (!viditelna || zastaveno || spi()) {
       posledniCas = null;
+      bezi = false;
       return;
     }
     const dt = posledniCas == null ? 0 : Math.min(0.05, (ted - posledniCas) / 1000);
     posledniCas = ted;
-    if (!klidne || t < aktivniDo) {
-      t += dt;
-      V.krok(dyn, t, dt, vstup);
-      vykresli();
-    }
+    t += dt;
+    V.krok(dyn, t, dt, vstup);
+    vykresli();
+    requestAnimationFrame(smycka);
+  };
+  const rozbehni = () => {
+    if (bezi || !viditelna || zastaveno || spi()) return;
+    bezi = true;
     requestAnimationFrame(smycka);
   };
 
@@ -345,6 +354,7 @@ const scena = (el, V) => {
     vstup.mys = naJednotky(e);
     znejici = el;
     aktivniDo = Math.max(aktivniDo, t + 1.5);
+    rozbehni();
   });
   el.addEventListener("pointerleave", () => {
     vstup.mys = null;
@@ -354,6 +364,7 @@ const scena = (el, V) => {
     znejici = el;
     vstup.kliky.push(naJednotky(e));
     aktivniDo = t + 10;
+    rozbehni();
   });
   el.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" && e.key !== " ") return;
@@ -363,14 +374,14 @@ const scena = (el, V) => {
     /* z klávesnice míří poryv šikmo nahoru, jinam to je jedno */
     vstup.kliky.push({ x: 40 + Math.random() * 100, y: 30 });
     aktivniDo = t + 10;
+    rozbehni();
   });
 
   const io = new IntersectionObserver(
     (z) => {
-      const byla = viditelna;
       viditelna = z[0].isIntersecting;
       if (!viditelna && znejici === el) Zvuk.nastav({});
-      if (viditelna && !byla) requestAnimationFrame(smycka);
+      if (viditelna) rozbehni();
     },
     { threshold: 0.08 },
   );

@@ -23,13 +23,15 @@
  * Prošlo od 40.
  *
  * Kresba je v components/zkouska/urovne/ohen-kresba.ts, vzhled
- * v styles/zkouska-urovne/ohen.css.
+ * v styles/zkouska-urovne/ohen.css. Na telefonu (kvalita.ts) je obláčků
+ * páry polovina.
  */
 import type { Uroven, Vysledek } from "../hra";
 import type { PostavaId } from "../../../data/parta";
 import { milniky, zaromerky } from "../../../data/kami";
 import * as zvuk from "../../parta2/zvuk";
 import { cislo } from "../../parta2/stav";
+import { castic } from "../../parta2/kvalita";
 import { kusSvg } from "../../../components/dilna/kus";
 import type { Kus } from "../../../components/dilna/kus";
 import type { StavKusu } from "../../../data/dilna";
@@ -374,7 +376,7 @@ export const ohen: Uroven = (p) => {
   };
   /** Obláčky páry ze spáry dvířek a ze špehýrky */
   const para = (silne: boolean) => {
-    const pocet = p.klid ? 3 : silne ? 9 : 4;
+    const pocet = p.klid ? 3 : castic(silne ? 9 : 4);
     let html = "";
     for (let i = 0; i < pocet; i++) {
       const x = DVIRKA.x + 10 + ((i * 47) % (DVIRKA.w - 10));

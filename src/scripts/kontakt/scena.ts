@@ -26,6 +26,13 @@
  *
  * Údaje v panelu jsou obyčejné odkazy (tel:, mailto:, mapa) — skript je jen
  * obohacuje. S omezeným pohybem se nic nekmitá ani nelétá.
+ *
+ * Šetrnost: ústředna uvnitř (uvnitr.ts) je samostatný kousek skriptu —
+ * načte se chvíli po první obrazovce, dřív při prvním doteku scény,
+ * nejpozději se zvednutím hrnku. Snímková smyčka běží, jen když se něco
+ * hýbe a scéna je na obrazovce; minutové hodiny na kartě na pozadí
+ * nekontrolují nic a zvonění hrnku čeká, až se scéna vrátí na oči. Na
+ * telefonu padá méně listů a při Sakuře vykvete méně lístků (kvalita.ts).
  */
 import { venku, VENKU_DEFS, type VenkuBody, type Rezim } from "../../components/kontakt/kresba/venku";
 import { provazek, prohnuty, vrabec, visacka, dopis, list, f, omez, lerp, hladce, nahoda, type Bod } from "../../components/kontakt/kresba/zaklad";
@@ -35,7 +42,10 @@ import type { PostavaId } from "../../data/parta";
 import { paleta } from "../parta2/paleta";
 import { kresliNebe } from "../parta2/nebe";
 import * as zvuk from "../parta2/zvuk";
-import { uvnitrScena } from "./uvnitr";
+import { zaStranku } from "../parta2/prechody";
+import { naObrazovce } from "../parta2/mimo";
+import { castic } from "../parta2/kvalita";
+import type { uvnitrScena } from "./uvnitr";
 import { ted, posunUkazky } from "./cas";
 import { stupen, brnk, hlidacMotivu } from "./struna";
 import { svatekDne, zaves, type Svatek } from "../../components/kontakt/kresba/svatky";
@@ -75,7 +85,15 @@ interface Vrabec {
   t0: number;
 }
 
-export function scena() {
+interface Volby {
+  /** Zavolá se před sjetím na louku (Kudy k nám, otázky) — ať se načte hned (hlavni.ts) */
+  naLouku?: () => void;
+}
+
+/** Ústředna uvnitř (uvnitr.ts) — samostatný kousek, načtený až později */
+type Uvnitr = ReturnType<typeof uvnitrScena>;
+
+export function scena(volby: Volby = {}) {
   const sekce = document.querySelector<HTMLElement>(".ko-scena");
   if (!sekce) return;
   const svgVen = sekce.querySelector<SVGSVGElement>(".ko-venku")!;
@@ -121,22 +139,30 @@ export function scena() {
   const motiv = hlidacMotivu();
   let el: { lem: SVGPathElement; jadro: SVGPathElement; zkrut: SVGPathElement; chyt: SVGPathElement; koralky: SVGGElement; dopis: SVGGElement; kladka: SVGGElement | null; cesta: SVGPathElement; hrnek: SVGGElement | null } | null = null;
 
-  /* ——— snímková smyčka: běží, jen když se něco hýbe ——— */
+  /* ——— snímková smyčka: běží, jen když se něco hýbe a scéna je na obrazovce ——— */
   const ulohy = new Set<Uloha>();
   let bezi = false;
+  /** Scéna je na obrazovce (s předstihem) — mimo ni smyčka stojí; rozběhnuté úlohy po návratu doběhnou */
+  let videt = true;
   const snimek = (cas: number) => {
+    if (!videt) {
+      bezi = false;
+      return;
+    }
     posledniCas = cas;
     for (const u of [...ulohy]) if (!u(cas)) ulohy.delete(u);
     kresliDynamiku(cas);
     if (ulohy.size) requestAnimationFrame(snimek);
     else bezi = false;
   };
+  const rozbehni = () => {
+    if (bezi || !videt || !ulohy.size) return;
+    bezi = true;
+    requestAnimationFrame(snimek);
+  };
   const pridej = (u: Uloha) => {
     ulohy.add(u);
-    if (!bezi) {
-      bezi = true;
-      requestAnimationFrame(snimek);
-    }
+    rozbehni();
   };
   /** Plynulý přechod 0 → 1 za `doba` ms */
   const tween = (doba: number, krok: (p: number) => void, hotovo?: () => void) => {
@@ -339,11 +365,11 @@ export function scena() {
     bublina("konec", svatek.pozdrav, naPx(body.hlava), 3200);
   }
 
-  /** Padající listy ořešáku, okvětní lístky sakury nebo vločky — podle ročního období */
+  /** Padající listy ořešáku, okvětní lístky sakury nebo vločky — podle ročního období (na telefonu méně) */
   function padani() {
     if (klidne || sezona === "leto") return "";
     const R = nahoda(77);
-    const pocet = rezim === "siroka" ? 9 : 6;
+    const pocet = castic(rezim === "siroka" ? 9 : 6);
     let s = "";
     for (let i = 0; i < pocet; i++) {
       const x = W * (0.2 + R() * 0.85);
@@ -511,14 +537,16 @@ export function scena() {
   const nota = () => `<g fill="#3A2A22" opacity="0.78"><ellipse cx="-3" cy="6" rx="5" ry="3.6" transform="rotate(-22 -3 6)"/><path d="M1.2 5 V-14 Q8 -11 9 -5 Q6 -9 2.8 -9.4 V5 Z"/></g>`;
   const lupen = (i: number) => `<path d="M0 -6 C4 -6 6 -2 5 2 C4 5 1 6 0 4 C-1 6 -4 5 -5 2 C-6 -2 -4 -6 0 -6 Z" fill="${i % 3 ? "#F6C3CF" : "#FBDDE3"}" stroke="#E79AAB" stroke-width="0.6"/>`;
 
-  /** Sakura: po provázku vykvetou okvětní lístky a ten na plotě dohraje další takty */
+  /** Sakura: po provázku vykvetou okvětní lístky (na telefonu méně) a ten na plotě dohraje další takty */
   function sakura() {
     if (!body) return;
     const m = body.m;
     if (!klidne) {
-      for (let i = 0; i < 34; i++) {
+      const pocet = castic(34);
+      for (let i = 0; i < pocet; i++) {
         const t = 0.06 + Math.random() * 0.9;
-        letec(t, lupen(i), 2200 + Math.random() * 1400, (Math.random() - 0.3) * 160 * m, -(60 + Math.random() * 140) * m, (Math.random() - 0.5) * 540, (0.8 + Math.random() * 0.7) * m, i * 45);
+        /* kvetou stejně dlouho jako na počítači, jen řidčeji */
+        letec(t, lupen(i), 2200 + Math.random() * 1400, (Math.random() - 0.3) * 160 * m, -(60 + Math.random() * 140) * m, (Math.random() - 0.5) * 540, (0.8 + Math.random() * 0.7) * m, (i * 45 * 34) / pocet);
       }
     }
     /* odpověď z plotu: A H C H · A H A F */
@@ -625,6 +653,8 @@ export function scena() {
     }
     hovor = true;
     pouzito = true;
+    /* než světélka doběhnou k domu, je ústředna dávno načtená */
+    void nactiUvnitr();
     zvuk.cvak();
     el?.hrnek?.classList.add("zvednuty");
     napni(true);
@@ -643,24 +673,54 @@ export function scena() {
     });
   }
 
-  /* ——— dovnitř k ústředně a zase ven ——— */
-  const uvnitr = uvnitrScena(sekce, {
-    klidne,
-    jmeno: (id) => data.jmena[id] ?? id,
-    bublina,
-    smazBubliny,
-    ted,
-  });
+  /* ——— dovnitř k ústředně a zase ven ———
+     Ústředna (uvnitr.ts) je samostatný kousek skriptu: načte se chvíli po
+     první obrazovce (2,5 s), dřív při prvním doteku scény, nejpozději se
+     zvednutím hrnku. Kdyby ještě nebyla, vjezd dovnitř na ni počká. */
+  let uvnitr: Uvnitr | null = null;
+  let nacitani: Promise<Uvnitr | undefined> | null = null;
+  const nactiUvnitr = () =>
+    (nacitani ??= import("./uvnitr").then(
+      /* po importu už kód stránce nepatří — zaStranku jí vrátí posluchače ústředny */
+      zaStranku((m: typeof import("./uvnitr")) =>
+        (uvnitr = m.uvnitrScena(sekce, {
+          klidne,
+          jmeno: (id) => data.jmena[id] ?? id,
+          bublina,
+          smazBubliny,
+          ted,
+        })),
+      ),
+      () => {
+        /* nenačetlo se (bez sítě): příště se zkusí znovu */
+        nacitani = null;
+        return undefined;
+      },
+    ));
+  /** S ústřednou hned, nebo až se načte; `jinak`, když se načíst nepodařilo */
+  function sUstrednou(fn: (u: Uvnitr) => void, jinak: () => void) {
+    if (uvnitr) return fn(uvnitr);
+    void nactiUvnitr().then(zaStranku((u?: Uvnitr) => (u ? fn(u) : jinak())));
+  }
+  /** Hovor se nepovedl (ústředna se nenačetla): hrnek zpátky do trávy */
+  function zpatkyVen() {
+    hovor = false;
+    el?.hrnek?.classList.remove("zvednuty");
+    napni(false, 900);
+  }
   function dovnitr() {
     if (!body) return;
     smazBubliny();
-    const [ox, oy] = body.okno;
-    uvnitr.dovnitr(kdo, [ox * k, oy * k], () => {
-      el?.hrnek?.classList.remove("zvednuty");
-    }, vzhuru, stav);
+    sUstrednou((u) => {
+      if (!body) return;
+      const [ox, oy] = body.okno;
+      u.dovnitr(kdo, [ox * k, oy * k], () => {
+        el?.hrnek?.classList.remove("zvednuty");
+      }, vzhuru, stav);
+    }, zpatkyVen);
   }
   function ven() {
-    uvnitr.ven(() => {
+    uvnitr?.ven(() => {
       hovor = false;
       napni(false, 900);
       sekce!.querySelector<HTMLElement>(".ko-zvednout")?.focus({ preventScroll: true });
@@ -766,6 +826,8 @@ export function scena() {
   const dlgDopis = document.querySelector<HTMLDialogElement>(".ko-dopis");
   /** Sjet k sekci pod první obrazovkou — Kudy k nám, nebo otázky (odkazy #kudy a #otazky fungují i bez skriptu) */
   function sjed(kam: string, e?: Event) {
+    /* louka (hlavni.ts) se načte hned, ne až s blížícím se scrollem */
+    volby.naLouku?.();
     const cil = document.getElementById(kam);
     /* bez scrollIntoView zůstane obyčejný odkaz #kudy */
     if (!cil || typeof cil.scrollIntoView !== "function") return;
@@ -872,17 +934,31 @@ export function scena() {
     pouzito = true;
     smazBubliny();
     zvuk.cvak();
-    const [ox, oy] = body.okno;
-    uvnitr.dovnitr(kdo, [ox * k, oy * k], () => {}, vzhuru, stav, false);
+    sUstrednou((u) => {
+      if (!body) return;
+      const [ox, oy] = body.okno;
+      u.dovnitr(kdo, [ox * k, oy * k], () => {}, vzhuru, stav, false);
+    }, () => (hovor = false));
   }
   /* Zvoní chvíli po načtení a pak po každých dvaceti vteřinách, nejvýš čtyřikrát.
      Nikdy hned po kliknutí do scény (aby to nevypadalo jako odpověď na klik),
      ani když je scéna odscrollovaná, otevřený dialog nebo karta na pozadí. */
   let naOcich = true;
-  new IntersectionObserver(([z]) => (naOcich = z.intersectionRatio >= 0.4), { threshold: [0, 0.4, 0.8] }).observe(sekce);
+  new IntersectionObserver(
+    ([z]) => {
+      naOcich = z.intersectionRatio >= 0.4;
+      zvonZnovu();
+    },
+    { threshold: [0, 0.4, 0.8] },
+  ).observe(sekce);
   let ruka = -Infinity;
-  sekce.addEventListener("pointerdown", () => (ruka = performance.now()));
+  sekce.addEventListener("pointerdown", () => {
+    ruka = performance.now();
+    void nactiUvnitr();
+  });
   let zazvonilo = 0;
+  /** Zvonění čeká, až se scéna vrátí na oči a karta do popředí — mezitím se nekontroluje */
+  let zvonCeka = false;
   /** Hrnek zazvoní a od domu k němu přiběhnou světélka; false, když se to teď nehodí */
   function pozvani() {
     if (pouzito || hovor || !body || !el || !naOcich || sekce!.dataset.zastavka !== "venku" || document.querySelector("dialog[open]") || document.hidden) return false;
@@ -895,12 +971,24 @@ export function scena() {
   }
   function zvon() {
     if (pouzito || zazvonilo >= 4) return;
+    /* scéna odscrollovaná nebo karta na pozadí: počká na návrat (zvonZnovu), nekontroluje dokola */
+    if (!naOcich || document.hidden) {
+      zvonCeka = true;
+      return;
+    }
     const klid = performance.now() - ruka;
     if (klid < 5000) return void window.setTimeout(zvon, 5200 - klid);
     if (!pozvani()) return void window.setTimeout(zvon, 3000);
     zazvonilo++;
     window.setTimeout(zvon, 20000);
   }
+  /** Scéna je zpátky na očích: zvonění se ozve za chvilku jako dřív */
+  function zvonZnovu() {
+    if (!zvonCeka || !naOcich || document.hidden) return;
+    zvonCeka = false;
+    window.setTimeout(zvon, 3000);
+  }
+  document.addEventListener("visibilitychange", zvonZnovu);
   window.setTimeout(zvon, 3500);
 
   /* ——— start ——— */
@@ -912,16 +1000,41 @@ export function scena() {
     pockej = window.setTimeout(() => {
       smazBubliny();
       vykresli();
-      uvnitr.prekresli();
+      uvnitr?.prekresli();
     }, 160);
   }).observe(sekce);
   document.fonts?.ready.then(() => {
     window.clearTimeout(pockej);
     pockej = window.setTimeout(vykresli, 30);
   });
-  window.setInterval(() => {
-    if (cas() && sekce!.dataset.zastavka === "venku" && !hovor) vykresli();
-  }, 60000);
+
+  /* Hodiny po minutách: na kartě na pozadí se nekontroluje nic, po návratu hned.
+     Změnu (otevřeno, služba, roční období, svátek) scéna překreslí, až když je
+     na obrazovce — mimo ni počká na návrat. */
+  let prekreslit = false;
+  const minuta = () => {
+    if (document.hidden) return;
+    if (cas() && sekce!.dataset.zastavka === "venku" && !hovor) {
+      if (videt) vykresli();
+      else prekreslit = true;
+    }
+  };
+  window.setInterval(minuta, 60000);
+  document.addEventListener("visibilitychange", minuta);
+  naObrazovce(sekce, (v) => {
+    videt = v;
+    if (v && prekreslit && sekce!.dataset.zastavka === "venku" && !hovor) {
+      prekreslit = false;
+      vykresli();
+    }
+    rozbehni();
+  });
+
+  /* ústředna se načte v klidu, až první obrazovka stojí (před prvním zazvoněním hrnku),
+     nebo dřív, když na scénu sáhne myš, prst či Tab */
+  window.setTimeout(() => void nactiUvnitr(), 2500);
+  sekce.addEventListener("pointerover", () => void nactiUvnitr(), { once: true });
+  sekce.addEventListener("focusin", () => void nactiUvnitr(), { once: true });
 
   function oznam(html: string) {
     const o = document.querySelector<HTMLElement>(".oznameni");

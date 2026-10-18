@@ -41,6 +41,14 @@ export const pt = (p) => `${f(p[0])} ${f(p[1])}`;
 export const cara = (body) => "M" + body.map(pt).join(" L");
 /** Pružina k cíli, nezávislá na snímkovce: k je časová konstanta v sekundách. */
 export const kCili = (v, cil, dt, k) => v + (cil - v) * (1 - Math.exp(-dt / k));
+/*
+ * Telefon dostane méně částic — stejný dotaz jako telefon() v parta2/kvalita.ts.
+ * Kresby musí jít pustit i v Node (první snímek při buildu, zkouška vystoupení),
+ * proto bez importu; mimo prohlížeč platí plný počet.
+ */
+const NA_TELEFONU = typeof matchMedia === "function" && matchMedia("(hover: none) and (pointer: coarse)").matches;
+/** Hustota částic jako násobek četnosti: 1, na telefonu 0,5 */
+export const HUSTOTA = NA_TELEFONU ? 0.5 : 1;
 /** Překročil čas mezi dvěma snímky hranici x? */
 export const pres = (a, b, x) => a < x && b >= x;
 

@@ -15,9 +15,15 @@
  * na prvcích sekce, takže se s obsahem při přechodu stránky uklidí.
  * Barvy a tvary počítají kresby (ohen.ts, cas.ts, furoshiki.ts) — skript
  * je jen přepisuje prvkům s data-z, data-c a data-f.
+ *
+ * Modul se stahuje, až se kapitola blíží (futatsu.ts, priblizeni.ts), a každá
+ * kapitola se rozběhne zvlášť. Přehrávaný výpal se mimo obrazovku zastaví
+ * a při návratu pokračuje, kde byl; šátek v závěru se mimo obrazovku
+ * nezavazuje pomalu, ale rovnou.
  */
 import { klid, omez } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
+import { naObrazovce } from "../parta2/mimo";
 import { obrys } from "../../components/obchod2/futatsu/podobizna";
 import { stavVypalu, barvyVypalu, kuzely, fazeVypalu, stinZarD, CINKNUTI, PASKY, kxPasek, kyPasek, hodinaZ, NADHLED_OHEN } from "../../components/obchod2/futatsu/ohen";
 import type { Pasek } from "../../components/obchod2/futatsu/ohen";
@@ -104,6 +110,8 @@ export function initOhen() {
   let posledniOhnuti = -1;
   let aktivni = -1;
   let videt = false;
+  /** Je kapitola na obrazovce? Jen tehdy běží smyčka (přehrávání i dojezd) */
+  let naDosah = true;
   let hraje = false;
   let pauza = 0;
   let smycka = 0;
@@ -205,7 +213,7 @@ export function initOhen() {
       }
       kresli(h, predtim);
     }
-    if (hraje || h !== cil) smycka = requestAnimationFrame(krok);
+    if ((hraje || h !== cil) && naDosah) smycka = requestAnimationFrame(krok);
     else {
       smycka = 0;
       cas = 0;
@@ -313,6 +321,11 @@ export function initOhen() {
     videt = e.isIntersecting;
     zvuk.nastavPec(videt ? silaZaru(teplotaV(h)) * 0.6 : 0);
   }).observe(pec);
+  /* Mimo obrazovku se výpal zastaví (smyčka v krok), při návratu jede dál, kde byl */
+  naObrazovce(sekce, (je) => {
+    naDosah = je;
+    if (je && (hraje || h !== cil)) rozjed();
+  });
 
   kresli(h, h);
 }
@@ -405,6 +418,9 @@ export function initZaver() {
   let start = 0;
   let doba = 1;
   let smycka = 0;
+  /** Je závěr na obrazovce? Mimo ni se šátek nezavazuje pomalu, ale rovnou */
+  let videt = false;
+  naObrazovce(sekce, (je) => (videt = je));
 
   const kresli = (tt: number) => {
     const A = satekTvary(tt);
@@ -432,7 +448,7 @@ export function initZaver() {
     const novy = je ? 1 : 0;
     if (novy === cil && (smycka || t === cil)) return;
     cil = novy;
-    if (!animovat || klid) {
+    if (!animovat || klid || !videt) {
       if (smycka) cancelAnimationFrame(smycka);
       smycka = 0;
       t = cil;

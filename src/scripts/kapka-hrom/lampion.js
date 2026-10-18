@@ -47,7 +47,7 @@
  * boku. Filtry tu nejsou žádné.
  */
 import {
-  f, rng, clamp, lerp, smooth, rad, deg, mix, pt, cara, vzorkuj, pasPoBodech, hrouda, kCili, mrkani, jiskraD, kapickaD,
+  f, rng, clamp, lerp, smooth, rad, deg, mix, pt, cara, vzorkuj, pasPoBodech, hrouda, kCili, mrkani, jiskraD, kapickaD, HUSTOTA,
   TELO, VODA, KAP, RAMENA, ZLUTA, tomoe,
   kapDefs, kapTelo, kapTvar, naGeta, getaSvg, chodidloSvg, kapRuka, svih,
   bubenDefs, bubenSvg, znakBubnu, stuhaDefs, stuhaSvg, novyProvaz, krokProvazu, hodProvazem,
@@ -855,9 +855,9 @@ const krok = (dyn, t, dt, vstup) => {
     d.zvuk.push({ druh: "plesk", sila: clamp(svist / 320, 0.3, 0.8), pan: pan(d.stuha.p[n][0]) });
   }
 
-  /* ——— déšť: pár kapek pořád, po ráně do bubnu přeháňka ——— */
+  /* ——— déšť: pár kapek pořád, po ráně do bubnu přeháňka (na telefonu poloviční) ——— */
   d.lijak = kCili(d.lijak, 0, dt, 0.9);
-  d.akum += dt * (3.2 + 30 * Math.min(1.5, d.lijak));
+  d.akum += dt * HUSTOTA * (3.2 + 30 * Math.min(1.5, d.lijak));
   while (d.akum >= 1) {
     d.akum -= 1;
     novaKapka(d);

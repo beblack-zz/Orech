@@ -229,9 +229,9 @@ export interface RozhraniChoreografie {
   dobehni(cas: number): number;
 }
 
-/** kresleni.ts — `vytvorKresleni(platno, { n, uspora })`, bez WebGL2 null */
+/** kresleni.ts — `vytvorKresleni(platno, { n, uspora, lehka? })`, bez WebGL2 null */
 export interface Kresleni {
-  /** Canvas změnil velikost — přepočítat (CSS px × devicePixelRatio, nejvýš 2) */
+  /** Canvas změnil velikost — přepočítat (CSS px × poměr pixelů: nejvýš 2, na telefonu 1,5, lehká varianta 1) */
   zmer(): void;
   /** Vzor látky (líc, rub a lem z data/furoshiki.ts); splní se, až je textura nahraná */
   nastavVzor(v: VzorSatku): Promise<void>;

@@ -4,17 +4,23 @@
  * tytéž po výpalu (kresba/glazura.ts, barvy z kurzy2.ts a dilna.ts).
  * Pod textem čtyři způsoby, jak se glazuje, a vinětka s namáčením
  * a otíráním dna; u kbelíku sedí Kapka.
+ *
+ * Statické vrstvy obou kreseb jsou soubory v <image> (pages/kresby/_dilna.ts);
+ * houpající se střepy zůstávají ve stránce jako skupiny s obrázkem uvnitř,
+ * popisky a to, co se hýbe, celé.
  */
 import Kapitola from "./Kapitola.astro";
 import Kami from "../parta2/Kami.astro";
 import { kapitoly, glazovani, glazuraJaponsky } from "../../data/dilna";
 import { glazury } from "../../data/kurzy2";
-import { vzornikSvg, namaceniSvg, MISTA_GLAZURA } from "./kresba/glazura";
+import { MISTA_GLAZURA } from "./kresba/glazura";
 import { mista } from "./misto";
 import { odloz } from "../../scripts/parta2/pozdeji";
+import { dilna } from "../../pages/kresby/_dilna";
 
 const k = kapitoly.find((x) => x.id === "glazura")!;
 const m = mista(800, 640);
+const { vzornik, namaceni } = dilna().kresby;
 ---
 <Kapitola kapitola={k} strana="vpravo" trida="d-kap-glazura">
   <ul slot="text" class="d-karticky" aria-label="Jak se glazuje">
@@ -24,7 +30,7 @@ const m = mista(800, 640);
   </ul>
 
   <figure class="d-obraz d-vzornik">
-    <div class="d-kresba" set:html={odloz(vzornikSvg())} />
+    <div class="d-kresba" set:html={odloz(vzornik)} />
     <figcaption>
       Vzorník: nahoře syrová glazura, dole tatáž po výpalu —
       {glazury.map((g, i) => (
@@ -37,7 +43,7 @@ const m = mista(800, 640);
   </figure>
   <figure class="d-obraz d-namaceni">
     <div class="d-obraz-kresba">
-      <div class="d-kresba" set:html={odloz(namaceniSvg("dgn"))} />
+      <div class="d-kresba" set:html={odloz(namaceni)} />
       <Kami id="kapka" class="d-kami-nad" style={m.kami(MISTA_GLAZURA.kapka)} />
     </div>
     <figcaption>Tři vteřiny ve kbelíku, pak houbičkou dočista otřít dno.</figcaption>

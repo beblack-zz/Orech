@@ -11,7 +11,10 @@
  * Vlak: když stránka začíná nahoře, přijede zleva a zastaví u nástupiště.
  * Jak člověk sjíždí k výběru, odjíždí doprava; v noci (sekce #rz-noc)
  * přijede znovu, s rozsvícenými okny. Kde je, říká proměnná --vl-x na
- * kořeni moře — dědí ji scéna i její odraz, takže se nic nekopíruje znovu.
+ * obou SVG trati (scéna a odraz) — dědí ji vlak i jeho odraz přes <use>,
+ * takže se nic nekopíruje znovu. Ne na celém moři: proměnná by s každým
+ * snímkem přepočítala styly i hvězdám a mrakům v zrcadle. A píše se, jen
+ * když se změní — většinu stránky vlak stojí nebo je pryč.
  * S omezeným pohybem stojí vlak pořád u nástupiště.
  */
 import { priMereni, priScrollu, pozice, klid, omez, mix } from "../parta2/stav";
@@ -99,6 +102,14 @@ export function initMore() {
   const vlevo = () => x0 - L - 260;
   const vpravo = () => x0 + W + 260;
 
+  /* Proměnné vlaku na obou SVG trati, a jen když se změní */
+  const naposled = new Map<string, string>();
+  const zapis = (nazev: string, hodnota: string) => {
+    if (naposled.get(nazev) === hodnota) return;
+    naposled.set(nazev, hodnota);
+    for (const svg of svgs) svg.style.setProperty(nazev, hodnota);
+  };
+
   /** Příjezd při načtení: 0 → 1, null = vlak už stojí */
   let prijezd: number | null = null;
   let x = STANICE;
@@ -145,8 +156,8 @@ export function initMore() {
       posledniTukani = ted;
       tadam();
     }
-    koren.style.setProperty("--vl-x", x.toFixed(1));
-    koren.style.setProperty("--vl-rychlost", rychlost.toFixed(3));
+    zapis("--vl-x", x.toFixed(1));
+    zapis("--vl-rychlost", rychlost.toFixed(3));
   };
   priScrollu(nastav);
 
@@ -154,7 +165,7 @@ export function initMore() {
   let doznivani = 0;
   const doznij = () => {
     rychlost *= 0.9;
-    koren.style.setProperty("--vl-rychlost", rychlost.toFixed(3));
+    zapis("--vl-rychlost", rychlost.toFixed(3));
     if (rychlost > 0.01) doznivani = requestAnimationFrame(doznij);
   };
   window.addEventListener("scroll", () => {

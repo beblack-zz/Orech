@@ -15,6 +15,7 @@
 import { glazury } from "../../data/kurzy2";
 import type { Tvar } from "../../data/obchod";
 import { klid } from "../parta2/stav";
+import { dprPlatna } from "../parta2/kvalita";
 
 type Rgb = [number, number, number];
 /** Bod profilu: poloměr, výška a jestli je to ostrá hrana (okraj, pata) */
@@ -223,6 +224,7 @@ export class Haiken {
   private tazeno = false;
   private posledniPohyb = 0;
   private bezi = false;
+  private budik = 0;
   private videt = true;
   private auto: boolean;
   private vychoziPitch: number;
@@ -558,10 +560,14 @@ export class Haiken {
       }
       // Sám se pomalu točí, když na něj nikdo nesahá a není otočený dnem
       if (this.auto && this.videt && this.pitch > -0.6) {
-        dal = true;
-        if (t - this.posledniPohyb > 2600) {
+        const zbyva = 2600 - (t - this.posledniPohyb);
+        if (zbyva < 0) {
           this.yaw += 0.0045;
-          zmena = true;
+          zmena = dal = true;
+        } else {
+          // Pauza po doteku: smyčka spí, vzbudí ji časovač
+          window.clearTimeout(this.budik);
+          this.budik = window.setTimeout(() => this.spust(), zbyva + 20);
         }
       }
     }
@@ -572,7 +578,8 @@ export class Haiken {
 
   private velikost() {
     const r = this.canvas.getBoundingClientRect();
-    this.dpr = Math.min(2, window.devicePixelRatio || 1);
+    /* Na telefonu plátno nejvýš v poměru 1,5 (kvalita.ts) */
+    this.dpr = dprPlatna();
     this.sirka = Math.max(1, Math.round(r.width * this.dpr));
     this.vyskaPx = Math.max(1, Math.round(r.height * this.dpr));
     this.canvas.width = this.sirka;

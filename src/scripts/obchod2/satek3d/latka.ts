@@ -15,6 +15,14 @@
  *              sítě a textury (noviny, visačka s fotkou) se dopečou a teprve
  *              pak balík dopadne, ať nepřistane neviditelný.
  *
+ * Náročnost: počítač má síť 48 × 48, malá obrazovka a slabý procesor (maly)
+ * 32 × 32 a úspornější kreslení. Varianta k porovnání `lehka` (?satek=lehky
+ * v satek.ts) jde ještě níž: síť 28 × 28 a 10 pod-kroků místo 12 (fyzika
+ * zhruba o 40 % levnější; složení, dopad, uzel i rozvázání doběhnou stejně
+ * a látka se v uzlu natáhne skoro stejně jako dnes na telefonu), nejvýš
+ * 2 kroky na snímek (pomalý telefon látku spíš zpomalí, než aby se zadrhl)
+ * a kreslení podle kresleni.ts (lehka). Výchozí plná látka se nemění.
+ *
  * Bez WebGL2 vrátí vytvorLatku() null a v Satek.astro zůstane SVG kresba.
  */
 import { SimLatky, vyskaTeles } from "./fyzika";
@@ -65,18 +73,20 @@ const seme = (s: string) => {
   return h >>> 0;
 };
 
-export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; maly: boolean }): Latka | null {
-  const n = volby.maly ? 32 : 48;
+export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; maly: boolean; lehka?: boolean }): Latka | null {
+  const lehka = !!volby.lehka;
+  const n = lehka ? 28 : volby.maly ? 32 : 48;
+  const nejvicKroku = lehka ? 2 : NEJVIC_KROKU;
   let kresleni: ReturnType<typeof vytvorKresleni>;
   try {
-    kresleni = vytvorKresleni(platno, { n, uspora: volby.maly });
+    kresleni = vytvorKresleni(platno, { n, uspora: volby.maly || lehka, lehka });
   } catch (e) {
     console.warn("[šátek] WebGL2 se nepodařilo rozjet, zůstává kresba", e);
     return null;
   }
   if (!kresleni) return null;
   const k3 = kresleni;
-  const sim = new SimLatky({ n });
+  const sim = new SimLatky({ n, podkroku: lehka ? 10 : undefined });
   const ch = new Choreografie(sim);
 
   /* ——— Balíky: data pro kreslení se pečou zvlášť, tvar pro fyziku je hned ——— */
@@ -166,14 +176,14 @@ export function vytvorLatku(platno: HTMLCanvasElement, volby: { klid: boolean; m
     zbytek += Math.max(0, Math.min(0.05, (t - posledni) / 1000));
     posledni = t;
     let kroku = 0;
-    while (zbytek >= KROK && kroku < NEJVIC_KROKU) {
+    while (zbytek >= KROK && kroku < nejvicKroku) {
       hodiny += KROK;
       ch.tik(hodiny);
       sim.krok(KROK);
       zbytek -= KROK;
       kroku++;
     }
-    if (kroku === NEJVIC_KROKU) zbytek = Math.min(zbytek, KROK);
+    if (kroku === nejvicKroku) zbytek = Math.min(zbytek, KROK);
     kresli();
     klidnych = !ch.bezi() && tazeny < 0 && sim.pohyb() < KLID ? klidnych + 1 : 0;
     if (klidnych > USNE || !videt) {

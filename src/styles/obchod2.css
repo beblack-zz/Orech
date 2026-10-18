@@ -928,6 +928,13 @@
 .o2-let { position: fixed; left: 0; top: 0; z-index: 95; width: 56px; height: 56px; pointer-events: none; }
 .o2-let svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 8px 10px rgba(28, 20, 44, 0.35)); }
 
+/* ——— Telefon: plovoucí šátek bez rozmazaného pozadí ———
+   backdrop-filter na pevně umístěném tlačítku se počítá znovu s každým posunem
+   stránky; papír je i tak skoro neprůhledný, plný vypadá stejně. Na počítači beze změny. */
+@media (hover: none) and (pointer: coarse) {
+  .o2-satek-tlacitko { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--papir); }
+}
+
 /* ——— Méně pohybu ——— */
 
 @media (prefers-reduced-motion: reduce) {

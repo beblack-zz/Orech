@@ -4,7 +4,7 @@
 /*
   X-Robots-Tag: noindex, nofollow, noarchive, nosnippet, noimageindex
 
-# Kresby patičky (src/pages/kresby): adresa nese otisk obsahu (?v=…),
+# Kresby patičky a stránek (src/pages/kresby): adresa nese otisk obsahu (?v=…),
 # takže si je prohlížeč smí nechat napořád — po změně kresby má jinou adresu.
 /kresby/*
   Cache-Control: public, max-age=31536000, immutable

@@ -898,6 +898,17 @@
   .ft-polaroid figcaption { font-size: 17px; }
 }
 
+/* ——— Telefon: méně rozmazávání ———
+   Stín osvědčení nese jen papír, který se nemění — na celém washi se rozmazával
+   znovu s každou změnou obsahu (jezdec karty, skutečná velikost při točení
+   výkresem); papír pokrývá celý obsah, takže stín vypadá stejně. Stín pod listem
+   výkresu (na telefonu skoro dva tisíce px vysokým) se rozmazává užší. Na počítači beze změny. */
+@media (hover: none) and (pointer: coarse) {
+  .ft-washi { filter: none; }
+  .ft-washi-papir { filter: drop-shadow(0 30px 34px rgba(40, 30, 50, 0.32)); }
+  .ft-list-stin { filter: blur(8px); }
+}
+
 /* ——— Méně pohybu ——— */
 
 @media (prefers-reduced-motion: reduce) {

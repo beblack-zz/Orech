@@ -31,10 +31,13 @@
  *
  * Ovládání: dvě velké plochy pod scénou (pointerdown, ne click — kvůli
  * zpoždění), z klávesnice F, J a mezerník tlačí, D, K a Enter otáčí.
+ *
+ * Na telefonu (kvalita.ts) prskne z hroudy a z bublin polovina hlíny.
  */
 import type { Uroven, Vysledek } from "../hra";
 import * as zvuk from "../../parta2/zvuk";
 import { cislo, mix, omez, SVGNS } from "../../parta2/stav";
+import { castic } from "../../parta2/kvalita";
 import { CARY, DOBA, HUDBA, KONEC, NOTY, ODPOCET, POCET, VALEC, VALEC_DOST, ZACATKY } from "./hneteni-noty";
 import type { Nota, Typ, Udalost } from "./hneteni-noty";
 import {
@@ -406,7 +409,7 @@ export const hneteni: Uroven = (p) => {
 
   const prskni = (x: number, y: number, pocet: number, barva: string, sila = 1) => {
     if (klid) return;
-    for (let i = 0; i < pocet; i++) {
+    for (let i = 0, n = castic(pocet); i < n; i++) {
       const el = document.createElementNS(SVGNS, "circle");
       el.setAttribute("r", f1(1.6 + Math.random() * 2.4 * sila));
       el.setAttribute("fill", barva);

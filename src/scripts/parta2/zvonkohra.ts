@@ -6,9 +6,15 @@
  *
  * Když si člověk nepřeje pohyb, zvonkohra visí rovně; se zapnutým zvukem
  * ale fyzika běží dál a zvoní, jen se kresba nehýbe.
+ *
+ * Smyčka spí, když nemá co dělat: kresba se nehýbe (omezený pohyb) nebo
+ * není vidět, a zvuk nehraje. Probudí ji rozhoupání po zapnutí zvuku
+ * a návrat kresby na obrazovku. Do kresby se zapisuje jen to, co se
+ * změnilo — trubka, která zrovna nesvítí, se nepřepisuje.
  */
 import { zvonkohra, zapis } from "./zvonkohra-fyzika";
 import { klid } from "./stav";
+import { naObrazovce } from "./mimo";
 import * as zvuk from "./zvuk";
 
 /** Výřez kresby (viewBox v Zvonkohra.astro) */
@@ -18,7 +24,14 @@ export function initZvonkohra(kresba: SVGSVGElement) {
   const zk = zvonkohra();
   const prvky = new Map<string, Element>();
   kresba.querySelectorAll("[data-zk]").forEach((el) => prvky.set(el.getAttribute("data-zk")!, el));
-  const nastav = (klic: string, atribut: string, hodnota: string) => prvky.get(klic)?.setAttribute(atribut, hodnota);
+  /** Co je v kresbě zapsané — co se nezměnilo, se nepřepisuje */
+  const zapsano = new Map<string, string>();
+  const nastav = (klic: string, atribut: string, hodnota: string) => {
+    const k = `${klic}|${atribut}`;
+    if (zapsano.get(k) === hodnota) return;
+    zapsano.set(k, hodnota);
+    prvky.get(klic)?.setAttribute(atribut, hodnota);
+  };
   const visi = prvky.get("visi")!;
   let poradi = "";
 
@@ -46,21 +59,38 @@ export function initZvonkohra(kresba: SVGSVGElement) {
     for (const i of p.poradi) visi.append(prvky.get(i < 0 ? "stred" : `trubka-${i}`)!);
   };
 
+  let videt = true;
+  let bezi = false;
   let predtim = 0;
   let vitrCas = 0;
+  /** Nemá co dělat: kresba se nehýbe nebo není vidět, a zvonit taky nemá komu */
+  const spi = () => (klid || !videt) && !zvuk.jeZapnuto();
   const snimek = (t: number) => {
+    if (spi()) {
+      bezi = false;
+      predtim = 0;
+      return;
+    }
     requestAnimationFrame(snimek);
     const dt = predtim ? (t - predtim) / 1000 : 0;
     predtim = t;
-    if (klid && !zvuk.jeZapnuto()) return;
     for (const u of zk.krok(dt, 1 - 0.35 * zvuk.miraNoci())) zvuk.zvonek(u.ton, u.sila, pan(u.kde));
     if (t - vitrCas > 120) {
       vitrCas = t;
       zvuk.nastavVitr(zk.vitr);
     }
-    if (!klid) vykresli();
+    if (!klid && videt) vykresli();
   };
-  requestAnimationFrame(snimek);
+  const probud = () => {
+    if (bezi) return;
+    bezi = true;
+    requestAnimationFrame(snimek);
+  };
+  naObrazovce(kresba, (v) => {
+    videt = v;
+    if (v) probud();
+  });
+  probud();
 
   let mx = 0, my = 0, mt = 0;
   window.addEventListener(
@@ -83,13 +113,18 @@ export function initZvonkohra(kresba: SVGSVGElement) {
   );
 
   return {
+    /** Po zapnutí zvuku: rozhoupe se, ať je slyšet, že zvuk jde — a smyčka se probudí, kdyby spala */
     rozhoupej: () => {
       zmer();
       zk.rozhoupej();
+      probud();
     },
     /** Tah štětce v hlavičce (tah.ts) zavadil o závěs */
-    cukni: (sila: number) => zk.cukni(sila),
-    /** Vítr zleva doprava (px/s) pro závěs s kami (zaves.ts) */
+    cukni: (sila: number) => {
+      zk.cukni(sila);
+      probud();
+    },
+    /** Vítr zleva doprava (px/s) pro závěs s kami (zaves-pohyb.ts) */
     vitrX: () => zk.vitrX,
   };
 }

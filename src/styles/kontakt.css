@@ -465,6 +465,11 @@
 .ko-okno.sklada .ko-papir > * { opacity: 0; transition: opacity 0.22s ease; }
 .ko-okno.sklada::backdrop { transition: opacity 0.5s ease; }
 .ko-okno.odchazi::backdrop { opacity: 0; }
+/* telefon: scéna pod dopisem se hýbe a rozmazávala by se v každém snímku —
+   místo rozmazání o kousek tmavší závoj */
+@media (hover: none) and (pointer: coarse) {
+  .ko-okno::backdrop { background: rgba(28, 22, 18, 0.5); backdrop-filter: none; }
+}
 
 /* ——— Kudy k nám: lístek s cestou a kresba domu přes fotku (vývěska je v kontakt-dole.css) ——— */
 .ko-kudy-adresa { margin: 0 0 14px; font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 19px; }

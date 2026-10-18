@@ -338,6 +338,8 @@ const scena = (el, V) => {
   let t = V.zacatek || 0;
   let dyn = t > 0 ? pretoc(V, t) : V.novaDynamika();
   let posledniCas = null, viditelna = false, zastaveno = false, aktivniDo = 0, mysPred = null;
+  /* smyčka běží, jen když je scéna vidět a má co dělat (bezi = je naplánovaný snímek) */
+  let bezi = false;
 
   /* divadlo na /parta-3 umí scénu podržet na prvním snímku, než se rozhrne opona (el.__scena.stuj) */
   let stoji = false;
@@ -358,19 +360,26 @@ const scena = (el, V) => {
     dyn.zvuk.length = 0;
     if (slysi) Zvuk.nastavHukot(V.hukot(st), V.hukotFrekvence || 260);
   };
+  /* Scéna stojí: podržená divadlem, nebo při omezeném pohybu, když jí došlo bdění.
+     Pak smyčka nečeká na další snímek naprázdno — rozjede ji až rozbehni(). */
+  const spi = () => stoji || (klidne && t >= aktivniDo);
   const smycka = (ted) => {
-    if (!viditelna || zastaveno) {
+    if (!viditelna || zastaveno || spi()) {
       posledniCas = null;
+      bezi = false;
       return;
     }
     const dt = posledniCas == null ? 0 : Math.min(0.05, (ted - posledniCas) / 1000);
     posledniCas = ted;
-    if (!stoji && (!klidne || t < aktivniDo)) {
-      t += dt;
-      vstup.rychlost *= Math.exp(-dt / 0.15);
-      V.krok(dyn, t, dt, vstup);
-      vykresli();
-    }
+    t += dt;
+    vstup.rychlost *= Math.exp(-dt / 0.15);
+    V.krok(dyn, t, dt, vstup);
+    vykresli();
+    requestAnimationFrame(smycka);
+  };
+  const rozbehni = () => {
+    if (bezi || !viditelna || zastaveno || spi()) return;
+    bezi = true;
     requestAnimationFrame(smycka);
   };
 
@@ -395,6 +404,7 @@ const scena = (el, V) => {
     if (vstup.drzi) vstup.drzi = p;
     znejici = el;
     aktivniDo = Math.max(aktivniDo, t + 1.5);
+    rozbehni();
   });
   el.addEventListener("pointerleave", () => {
     if (vstup.drzi) return;
@@ -412,6 +422,7 @@ const scena = (el, V) => {
       el.setPointerCapture(e.pointerId);
     } catch {}
     aktivniDo = t + 10;
+    rozbehni();
   });
   const pustit = (e) => {
     vstup.drzi = null;
@@ -428,14 +439,14 @@ const scena = (el, V) => {
     znejici = el;
     vstup.kliky.push({ x: 90, y: 90 });
     aktivniDo = t + 10;
+    rozbehni();
   });
 
   const io = new IntersectionObserver(
     (z) => {
-      const byla = viditelna;
       viditelna = z[0].isIntersecting;
       if (!viditelna && znejici === el) Zvuk.nastavHukot(0);
-      if (viditelna && !byla) requestAnimationFrame(smycka);
+      if (viditelna) rozbehni();
     },
     { threshold: 0.08 },
   );
@@ -453,6 +464,7 @@ const scena = (el, V) => {
     stav: () => ({ t, dyn, vstup }),
     stuj: (ano) => {
       stoji = !!ano;
+      rozbehni();
     },
     znovu: (bdi = 0) => {
       t = V.zacatek || 0;
@@ -464,6 +476,7 @@ const scena = (el, V) => {
       mysPred = null;
       aktivniDo = t + bdi;
       vykresli();
+      rozbehni();
       return t;
     },
   };

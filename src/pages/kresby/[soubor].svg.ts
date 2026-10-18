@@ -1,6 +1,7 @@
 /**
- * Kresby z patičky jako samostatné soubory /kresby/<jméno>.svg (obsah
- * v _kresby.ts). Staví se při buildu jako statické soubory.
+ * Kresby z patičky a velké kresby stránek (Dílna, O nás) jako samostatné
+ * soubory /kresby/<jméno>.svg (obsah v _kresby.ts). Staví se při buildu
+ * jako statické soubory.
  */
 import type { APIRoute, GetStaticPaths } from "astro";
 import { kresby } from "./_kresby";

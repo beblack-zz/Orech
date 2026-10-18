@@ -16,11 +16,15 @@
  * v components/zkouska/urovne/tvar-kresba.ts.
  *
  * Klávesnice: Enter odřízne kus. Kreslit se dá jen myší, prstem nebo perem.
+ *
+ * Na telefonu (kvalita.ts) odkapává šlikru a drobků polovina, jiskřiček
+ * kolem shody taky.
  */
 import type { Uroven } from "../hra";
 import { casText } from "../hra";
 import * as zvuk from "../../parta2/zvuk";
 import { omez, mix, hladce, SVGNS } from "../../parta2/stav";
+import { castic } from "../../parta2/kvalita";
 import { kusSvg } from "../../../components/dilna/kus";
 import { kamiInfo } from "../../../data/kami";
 import {
@@ -37,6 +41,9 @@ const DOBA = 35000;
 const R_MAX = 150;
 const H_MAX = 300;
 const KOL = PREDLOHY.length;
+/** Kolik kapek šlikru najednou ve vzduchu a kolikrát řidčeji kapou při kreslení — na telefonu půl a dvakrát */
+const KAPEK_NAJEDNOU = castic(26);
+const RIDCEJI = 100 / castic(100);
 
 const VAROVANI: Record<string, string> = {
   siroke: "Takhle široké to patka neunese.",
@@ -274,7 +281,7 @@ export const tvar: Uroven = (p) => {
   /* ——— Kapky šlikru a drobky ——— */
   const kapni = (x: number, y: number, pocet: number, smer: number, barva = "#8E6A52", velikost = 2.2) => {
     if (p.klid) return;
-    for (let i = 0; i < pocet && kapky.length < 26; i++) {
+    for (let i = 0, n = castic(pocet); i < n && kapky.length < KAPEK_NAJEDNOU; i++) {
       const el = document.createElementNS(SVGNS, "circle");
       el.setAttribute("r", f1(velikost * (0.6 + Math.random() * 0.7)));
       el.setAttribute("fill", barva);
@@ -351,7 +358,7 @@ export const tvar: Uroven = (p) => {
         hlidejPad(o);
       }
     }
-    if (cas - posledniKapka > 90 && b.h > 4) {
+    if (cas - posledniKapka > 90 * RIDCEJI && b.h > 4) {
       posledniKapka = cas;
       kapni(zx + 6, zy + 4, 1, 1);
     }
@@ -510,7 +517,7 @@ export const tvar: Uroven = (p) => {
         if (stav !== "ok") return;
         if (s >= 0.85) {
           zvuk.nalezeno();
-          jiskryKolem(14);
+          jiskryKolem(castic(14));
           reaguj("radost");
         } else zvuk.cink();
       },

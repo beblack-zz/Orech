@@ -1,59 +1,76 @@
 /**
  * Vstup pro /obchod/futatsu. Obloha, hlavička, kami a šátek jsou společné
- * s krámkem, hrnek do ruky (futatsu-otoc.ts) a noční kapitoly
- * (futatsu-noc.ts) mají vlastní moduly. Tady je zbytek stránky:
+ * s krámkem, hrnek do ruky (futatsu-otoc.ts), výkres se skutečnou velikostí
+ * (futatsu-vykres.ts) a noční kapitoly (futatsu-noc.ts) mají vlastní moduly.
+ * Tady je úvod a co stránka potřebuje hned:
  *
  *   úvod          odraz hrnku v laku se překreslí s každým pootočením;
  *                 nápověda „vezmi ho do ruky“ zmizí, jakmile ho vezmeš
- *   výkres        na úzké obrazovce se list i pauzák přestaví na výšku;
- *                 jezdec, tah do strany a „Roztočit“ otáčí hrnkem ve všech
- *                 pohledech; když přijdeš z úvodu, stojí jako hrnek tam
- *   kusovník      řádek ↔ číslo na výkrese ↔ číslo na fotce se rozsvítí spolu
- *   origami       platební karta na obrazovce → kolik px má milimetr
- *                 (pamatuje si prohlížeč) a Futatsu ve skutečné velikosti
+ *   rozvržení     místo pro výkres, pauzák a skutečnou velikost (a zkrácené
+ *                 texty pece a stárnutí) hned, ať stránka pod rukama
+ *                 neposkočí, až se kapitoly stáhnou
+ *   líně          výkres a noční kapitoly se stáhnou a rozběhnou, až se
+ *                 k nim člověk blíží (priblizeni.ts; kotva z obsahu hned)
  *
  * Kresby skládá components/obchod2/futatsu. Posluchače visí na obsahu
- * stránky, takže se s ním při přechodu jinam uklidí.
+ * stránky, takže se s ním při přechodu jinam uklidí; co zaregistruje líně
+ * stažený modul (přes zaStranku), uklidí prechody.ts stejně.
  */
-import { stranka, priOdchodu } from "../parta2/prechody";
-import { spust, nacti, uloz, klid } from "../parta2/stav";
+import { stranka, zaStranku } from "../parta2/prechody";
+import { spust } from "../parta2/stav";
 import { initNebe } from "../parta2/nebe";
 import { initKami } from "../parta2/kami";
 import { hlavicka } from "../parta2/hlavicka";
 import { initSatek } from "./satek";
 import { initOtoc } from "./futatsu-otoc";
-import { initOhen, initCas, initZaver } from "./futatsu-noc";
+import { kdyzBlizko } from "./priblizeni";
+import { pxNaMm, rozvrzeniListu, uzkyPauzak } from "./futatsu-miry";
 import { podobizna, obrys } from "../../components/obchod2/futatsu/podobizna";
 import { odrazObrys } from "../../components/obchod2/futatsu/uvod";
-import * as K from "../../components/obchod2/futatsu/kresba";
-
-/** Natočení hrnku sdílí výkres a skutečná velikost; začíná jako hrnek v úvodu */
-interface Stav {
-  a: number;
-  lay: string;
-  pauzUzky: boolean;
-}
-
-/* Konstanty musí stát nad stranka(): ta spouští init hned při načtení modulu
-   a const níž by byla ještě v „mrtvé zóně“ (ReferenceError, nic by nenaběhlo) */
-const KLIC_MM = "futatsu-pxmm";
-/** Kratší strana platební karty (ISO/IEC 7810 ID-1) */
-const KARTA_MM = 53.98;
+import { LAY, PAUZ, VEL } from "../../components/obchod2/futatsu/tvar";
 
 stranka("futatsu", () => {
   hlavicka();
   initKami();
   initNebe();
   initSatek();
-  const st: Stav = { a: 62, lay: "", pauzUzky: false };
   /* Odraz poslouchá hrnek dřív, než se pohne — vstup z odvrácené strany už posílá úhly */
   const uhelHrnku = odraz();
-  initOtoc();
-  const skutecna = origami(st);
-  vykres(st, uhelHrnku, skutecna);
-  initOhen();
-  initCas();
-  initZaver();
+  /* Do ruky hned jen hrnek v úvodu; v peci a v šátku se rozběhne s noční kapitolou */
+  initOtoc(document.querySelector("#ft-uvod") ?? document);
+  rozvrzeni();
+
+  /* Výkres a skutečná velikost jsou jeden modul i s kresbou výkresu — stáhne se s tou kapitolou, ke které člověk dojede dřív */
+  let vykres = false;
+  const nactiVykres = () => {
+    if (vykres) return;
+    vykres = true;
+    import("./futatsu-vykres")
+      .then(zaStranku((m: typeof import("./futatsu-vykres")) => m.initVykres(uhelHrnku)))
+      .catch((e) => console.warn("[futatsu] výkres se nepodařilo stáhnout", e));
+  };
+  kdyzBlizko(document.getElementById("vykres"), nactiVykres);
+  kdyzBlizko(document.getElementById("origami"), nactiVykres);
+
+  /* Noční kapitoly: jeden modul, každá kapitola (i její hrnek do ruky) se rozběhne, až se k ní blíží */
+  const noc = [
+    ["ohen", (m: typeof import("./futatsu-noc")) => m.initOhen()],
+    ["cas", (m: typeof import("./futatsu-noc")) => m.initCas()],
+    ["zaver", (m: typeof import("./futatsu-noc")) => m.initZaver()],
+  ] as const;
+  for (const [id, init] of noc) {
+    const sekce = document.getElementById(id);
+    kdyzBlizko(sekce, () => {
+      import("./futatsu-noc")
+        .then(
+          zaStranku((m: typeof import("./futatsu-noc")) => {
+            if (sekce) initOtoc(sekce);
+            init(m);
+          }),
+        )
+        .catch((e) => console.warn("[futatsu] noční kapitolu se nepodařilo stáhnout", e));
+    });
+  }
   spust();
 });
 
@@ -104,237 +121,35 @@ function odraz(): () => number | null {
   hrnek.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") vzal();
   });
-  priOdchodu(() => {
-    if (ceka) cancelAnimationFrame(ceka);
-    window.clearTimeout(klidTimer);
-  });
+  /* Snímek a časovač po odchodu ze stránky nedoběhnou — uklidí je prechody.ts */
   return () => posledni;
 }
 
-/* ——— Origami: skutečná velikost podle platební karty ——— */
-function origami(st: Stav): () => void {
-  const karta = document.querySelector<HTMLElement>("#kal-karta");
-  const jezdec = document.querySelector<HTMLInputElement>("#kal-sirka");
-  const kalTxt = document.querySelector<HTMLOutputElement>("#kal-txt");
-  const obal = document.querySelector<HTMLElement>("#skut-obal");
-  const pozn = document.querySelector<HTMLElement>("#skut-pozn");
-  const souhrn = document.querySelector<HTMLElement>("[data-kal-souhrn]");
-  const ulozeno = nacti<number | null>(KLIC_MM, null);
-  let pxmm = ulozeno ?? 96 / 25.4;
-  if (!(pxmm > 2 && pxmm < 12)) pxmm = 96 / 25.4;
-  /* Kdo už kartu přiložil, vidí, že velikost sedí na milimetr */
-  const doladeno = () => {
-    if (souhrn) souhrn.textContent = "Doladěno podle karty — změnit";
-  };
-  if (ulozeno) doladeno();
-  if (jezdec) jezdec.value = (pxmm * KARTA_MM).toFixed(1);
-  const skutecna = () => {
-    if (!obal) return;
-    obal.innerHTML = K.velikost(st);
-    const svg = obal.firstElementChild as SVGSVGElement | null;
-    const w = K.VEL.W * pxmm;
-    if (svg) {
-      svg.style.width = `${w}px`;
-      svg.style.height = `${K.VEL.H * pxmm}px`;
-    }
-    if (pozn) pozn.hidden = !obal.clientWidth || obal.clientWidth >= w - 1;
-  };
-  const kal = (ulozit: boolean) => {
-    if (!jezdec) return;
-    const w = Number(jezdec.value);
-    pxmm = w / KARTA_MM;
-    if (karta) {
-      karta.style.width = `${w}px`;
-      karta.style.height = `${(w * 85.6) / KARTA_MM}px`;
-    }
-    if (kalTxt) kalTxt.textContent = `1 mm = ${pxmm.toFixed(2).replace(".", ",")} px`;
-    skutecna();
-    if (ulozit) {
-      uloz(KLIC_MM, pxmm);
-      doladeno();
-    }
-  };
-  jezdec?.addEventListener("input", () => kal(true));
-  kal(false);
-  if (obal) {
-    const ro = new ResizeObserver(() => skutecna());
-    ro.observe(obal);
-    priOdchodu(() => ro.disconnect());
-  }
-  return skutecna;
-}
-
-/* ——— Výkres, pauzák a kusovník ——— */
-function vykres(st: Stav, uhelHrnku: () => number | null, poOtoceni: () => void) {
-  const koren = document.querySelector<HTMLElement>("#vykres");
+/* ——— Rozvržení hned: výkres, skutečná velikost a noční texty zaberou místo, než se stáhnou ——— */
+function rozvrzeni() {
+  /* List výkresu na úzké obrazovce je na výšku (skoro čtyřikrát vyšší) — místo podle rozměrů z tvar.ts, kreslí ho futatsu-vykres.ts */
   const list = document.querySelector<HTMLElement>("#dv-list");
+  if (list) {
+    const lay = rozvrzeniListu(list.clientWidth);
+    if (lay !== list.dataset.lay) list.style.aspectRatio = `${LAY[lay].W} / ${LAY[lay].H}`;
+  }
   const pauz = document.querySelector<HTMLElement>("#dv-pauz");
-  const rozsah = document.querySelector<HTMLInputElement>("#natoceni");
-  const rozsahTxt = document.querySelector<HTMLOutputElement>("#natoceni-txt");
-  const tlTocit = document.querySelector<HTMLButtonElement>("#roztocit");
-  if (!koren || !list || !pauz || !rozsah || !rozsahTxt || !tlTocit) return;
-  st.a = Number(rozsah.value) || 62;
-  st.lay = list.dataset.lay ?? "";
-  st.pauzUzky = pauz.dataset.uzky === "1";
-  /** Sáhl už člověk na výkres? Pak už ho úhel hrnku z úvodu nepřepisuje. */
-  let dotkl = false;
-
-  /* Zvýraznění dílu: řádek kusovníku ↔ číslo na výkrese ↔ číslo na fotce */
-  let pin = "";
-  let nad = "";
-  const hl = () => {
-    const n = nad || pin;
-    list.dataset.hl = n;
-    pauz.dataset.hl = n;
-    koren.querySelectorAll<HTMLElement>(".ft-dil").forEach((r) => r.classList.toggle("je", r.dataset.dil === n));
-    koren.querySelectorAll<HTMLElement>(".ft-fb").forEach((b) => b.classList.toggle("je", b.dataset.dil === n));
-  };
-  const cil = (e: Event) => ((e.target as Element | null)?.closest?.(".ft-dil, .balon, .ft-fb") as HTMLElement | SVGElement | null) ?? null;
-  koren.addEventListener("pointerover", (e) => {
-    const n = cil(e)?.dataset.dil ?? "";
-    if (n !== nad) {
-      nad = n;
-      hl();
-    }
-  });
-  koren.addEventListener("pointerleave", () => {
-    nad = "";
-    hl();
-  });
-  koren.addEventListener("focusin", (e) => {
-    nad = cil(e)?.dataset.dil ?? "";
-    hl();
-  });
-  koren.addEventListener("click", (e) => {
-    const c = cil(e);
-    if (!c) return;
-    const n = c.dataset.dil ?? "";
-    pin = pin === n ? "" : n;
-    hl();
-    if (pin && !c.classList.contains("ft-dil")) {
-      const radek = koren.querySelector<HTMLElement>(`.ft-dil[data-dil="${n}"]`);
-      radek?.scrollIntoView({ block: "nearest", behavior: klid ? "auto" : "smooth" });
-    }
-  });
-  koren.addEventListener("keydown", (e) => {
-    const b = (e.target as Element | null)?.closest?.(".balon, .ft-dil");
-    if (b && (e.key === "Enter" || e.key === " ")) {
-      e.preventDefault();
-      b.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    }
-  });
-
-  /* Výkres a pauzák: rozvržení podle šířky, otáčení */
-  const sestav = () => {
-    const lay = list.clientWidth && list.clientWidth < 700 ? "uzky" : "siroky";
-    if (lay !== st.lay) {
-      st.lay = lay;
-      list.innerHTML = K.list(lay, st);
-      list.dataset.lay = lay;
-      hl();
-    }
-    const u = !!pauz.clientWidth && pauz.clientWidth < 460;
-    if (u !== st.pauzUzky) {
-      st.pauzUzky = u;
-      pauz.innerHTML = K.pauzak(st, u);
-      pauz.dataset.uzky = u ? "1" : "0";
-    }
-  };
-  let ceka = 0;
-  const prekresli = () => {
-    ceka = 0;
-    const d = K.dyn(st.lay, st);
-    const kam: [string, string][] = [["#dv-front", d.front], ["#dv-topd", d.top], ["#dv-botd", d.bot], ["#dvp-izod", K.pauzakDyn(st, st.pauzUzky)]];
-    for (const [sel, html] of kam) {
-      const el = koren.querySelector(sel);
-      if (el) el.innerHTML = html;
-    }
-    poOtoceni();
-  };
-  const nastav = (a: number) => {
-    st.a = ((a % 360) + 360) % 360;
-    const t = Math.round(st.a) % 360;
-    rozsah.value = String(t);
-    rozsahTxt.textContent = `${String(t).padStart(3, "0")}°`;
-    if (!ceka) ceka = requestAnimationFrame(prekresli);
-  };
-  let toci = 0;
-  let posl = 0;
-  const krok = (t: number) => {
-    if (!toci) return;
-    if (posl) nastav(st.a + ((t - posl) / 1000) * 30);
-    posl = t;
-    toci = requestAnimationFrame(krok);
-  };
-  const stopTocit = () => {
-    if (toci) cancelAnimationFrame(toci);
-    toci = 0;
-    posl = 0;
-    tlTocit.setAttribute("aria-pressed", "false");
-    tlTocit.textContent = "Roztočit";
-  };
-  tlTocit.addEventListener("click", () => {
-    dotkl = true;
-    if (toci) return stopTocit();
-    tlTocit.setAttribute("aria-pressed", "true");
-    tlTocit.textContent = "Zastavit";
-    toci = requestAnimationFrame(krok);
-  });
-  rozsah.addEventListener("input", () => {
-    dotkl = true;
-    stopTocit();
-    nastav(Number(rozsah.value));
-  });
-  document.querySelector<HTMLInputElement>("#koty")?.addEventListener("change", (e) => list.classList.toggle("bez-kot", !(e.target as HTMLInputElement).checked));
-
-  /* Tah do strany otáčí hrnkem na výkrese i na pauzáku */
-  const tahni = (el: HTMLElement, kolik: number) => {
-    let tah: { x: number; a: number; id: number } | null = null;
-    el.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0 || (e.target as Element).closest(".balon")) return;
-      tah = { x: e.clientX, a: st.a, id: e.pointerId };
-      dotkl = true;
-      try {
-        el.setPointerCapture(e.pointerId);
-      } catch {
-        /* starší prohlížeč: táhne se i bez zachycení */
-      }
-      stopTocit();
-      el.classList.add("tahne");
-    });
-    el.addEventListener("pointermove", (e) => {
-      if (!tah || e.pointerId !== tah.id) return;
-      nastav(tah.a + (e.clientX - tah.x) * (kolik / Math.max(300, el.clientWidth)));
-    });
-    const pust = (e: PointerEvent) => {
-      if (tah && e.pointerId === tah.id) {
-        tah = null;
-        el.classList.remove("tahne");
-      }
-    };
-    el.addEventListener("pointerup", pust);
-    el.addEventListener("pointercancel", pust);
-    el.addEventListener("lostpointercapture", pust);
-  };
-  tahni(list, 300);
-  tahni(pauz, 360);
-
-  /* Kdo přijde z úvodu, najde výkres natočený jako hrnek, který tam nechal */
-  const io = new IntersectionObserver((zaznamy) => {
-    if (dotkl || !zaznamy.some((z) => z.isIntersecting)) return;
-    const u = uhelHrnku();
-    if (u !== null && Math.abs(((u - st.a + 540) % 360) - 180) > 0.5) nastav(u);
-  });
-  io.observe(koren);
-
-  sestav();
-  const ro = new ResizeObserver(() => sestav());
-  ro.observe(list);
-  ro.observe(pauz);
-  priOdchodu(() => {
-    ro.disconnect();
-    io.disconnect();
-    stopTocit();
-    if (ceka) cancelAnimationFrame(ceka);
-  });
+  if (pauz) {
+    const u = uzkyPauzak(pauz.clientWidth);
+    const p = PAUZ[u ? "uzky" : "siroky"];
+    if (u !== (pauz.dataset.uzky === "1")) pauz.style.aspectRatio = `${p.W} / ${p.H}`;
+  }
+  /* Skutečná velikost: kresba v HTML je natočená stejně, jen dostane rozměr v milimetrech podle karty */
+  const obal = document.querySelector<HTMLElement>("#skut-obal");
+  const svg = obal?.firstElementChild as SVGSVGElement | null | undefined;
+  if (obal && svg) {
+    const { pxmm } = pxNaMm();
+    const w = VEL.W * pxmm;
+    svg.style.width = `${w}px`;
+    svg.style.height = `${VEL.H * pxmm}px`;
+    const pozn = document.querySelector<HTMLElement>("#skut-pozn");
+    if (pozn) pozn.hidden = !obal.clientWidth || obal.clientWidth >= w - 1;
+  }
+  /* Pec a stárnutí se skriptem ukazují jen text zastavení, kde zrovna jsou (v HTML má .ted první) — zkrátit hned */
+  document.querySelectorAll("#ohen[data-ohen], #cas[data-cas]").forEach((s) => s.classList.add("s-js"));
 }

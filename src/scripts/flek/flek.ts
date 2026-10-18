@@ -21,10 +21,17 @@
  * kliknutí. Načtení je jediné místo s čekáním na slib — a protože kód po
  * něm už nepatří stránce (parta2/prechody.ts), slib jen uloží výsledek
  * a dál se pokračuje z časovače.
+ *
+ * Ani flek sám se nestahuje se stránkou: hlavička (parta2/hlavicka.ts) ho
+ * při prvním načtení dotáhne až v klidu po vykreslení — stránka je pak už
+ * změřená, tak si místo vylosuje hned sám (`pozde`). Kaňka dýchá, jen když
+ * je na obrazovce: vrstva leží mimo sekce stránky, takže jí animaci
+ * nezastaví hlídání sekcí (parta2/mimo.ts) — hlídá si ji sama.
  */
 import { novyHerec } from "../parta3/herec.js";
 import { klid, omez, pozice, priMereni, nacti, uloz } from "../parta2/stav";
 import { paleta } from "../parta2/paleta";
+import { naObrazovce } from "../parta2/mimo";
 
 type Stav = "ceka" | "roste" | "hraje" | "mizi";
 interface Kus { kdo: string; kus: string; jmeno: string; nazev: string }
@@ -74,7 +81,7 @@ const vNoci = (el: HTMLElement) => {
   return Number.isFinite(h) && paleta(h).noc > 0.3;
 };
 
-export function initFlek() {
+export function initFlek(pozde = false) {
   const vrstva = document.querySelector<HTMLElement>("[data-flek]");
   const zona = document.querySelector<HTMLElement>("main");
   if (!vrstva || !zona) return;
@@ -290,5 +297,9 @@ export function initFlek() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") zmiz();
   });
+  /* Mimo obrazovku stojí (třída mimo-obr pozastaví animace, parta2.css) */
+  naObrazovce(flek, (videt) => flek.classList.toggle("mimo-obr", !videt));
   priMereni(umisti);
+  /* Načteno až po spuštění stránky (spust v stav.ts už proběhlo) — místo se vylosuje hned */
+  if (pozde) umisti();
 }

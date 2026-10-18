@@ -53,6 +53,11 @@
   translate: 0 0;
   filter: drop-shadow(0 26px 30px rgba(20, 12, 6, 0.42));
 }
+/* telefon: velký rozmazaný stín pod destičkou, která letí a otáčí se, by se
+   počítal v každém snímku — od stojanu ji tu odliší sám závoj */
+@media (hover: none) and (pointer: coarse) {
+  .ko-ema-sekce.js .ko-ema.cte .ko-ema-deska { filter: none; }
+}
 /* závoj přes stojan, dokud se čte */
 .ko-ema-zavoj {
   position: absolute;

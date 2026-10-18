@@ -124,13 +124,16 @@ export function ulice() {
   priScrollu((y) => {
     if (!sw || !sh || !vw || !vh) return;
     cil = omez((y - top) / rozsah);
-    /* Scéna mimo obrazovku (první snímek, skok kotvou) — kamera tam rovnou stojí */
+    /* Scéna mimo obrazovku (první snímek, skok kotvou) — kamera tam rovnou stojí.
+       Když už tam stojí, nepřekresluje se nic: scroll jinde na stránce ji nemění. */
     const mimo = y < top - vh || y > top + rozsah + vh;
     if (ted < 0 || mimo) {
       cancelAnimationFrame(ramec);
       ramec = 0;
-      ted = cil;
-      vykresli(ted);
+      if (ted !== cil) {
+        ted = cil;
+        vykresli(ted);
+      }
       return;
     }
     if (ramec || ted === cil) return;

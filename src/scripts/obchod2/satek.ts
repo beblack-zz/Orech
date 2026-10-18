@@ -18,6 +18,12 @@
  * pamatuje (obchod2-satek-vzor) a posílá se s objednávkou. Bez WebGL2
  * zůstává SVG kresba z Satek.astro.
  *
+ * Látka (satek3d/ i s fyzikou a shadery) se stahuje, až se šátek blíží
+ * (priblizeni.ts, kotva #satek hned) — do té doby a bez WebGL2 drží místo
+ * SVG kresba a košík funguje stejně. Zavázaný šátek si kresbu nechá, látka
+ * se ujme až po rozvázání. Varianta k porovnání ?satek=lehky (kvalita.ts)
+ * počítá a kreslí látku úsporněji (latka.ts), výchozí ?satek=plny.
+ *
  * Vázička (scripts/parta2/pruvodce.ts) nosí hostovi zavázaný uzlík
  * s počtem kusů, když šátek není vidět. Posílá se jí na document:
  *   satek:zmena    { pocet, vzor }  — při startu a po každé změně
@@ -28,15 +34,19 @@
  * (pruvodce:schovana) nebo na stránce není.
  */
 import { nacti, uloz, klid } from "../parta2/stav";
+import { zaStranku } from "../parta2/prechody";
+import { varianta } from "../parta2/kvalita";
 import { pocetKusu } from "../../data/pocty";
 import * as zvuk from "../parta2/zvuk";
 import { posliObjednavku, platnyEmail, proc, zaloha } from "../parta2/objednavka";
-import { vytvorLatku } from "./satek3d/latka";
 import type { Latka, KusNaSatku } from "./satek3d/latka";
 import { NEJVIC_BALIKU } from "./satek3d/typy";
 import type { TvarBaliku } from "./satek3d/typy";
 import { vzory, vzorPodleId, VYCHOZI_VZOR } from "../../data/furoshiki";
 import type { VzorSatku } from "../../data/furoshiki";
+import { kdyzBlizko } from "./priblizeni";
+
+type ModulLatky = typeof import("./satek3d/latka");
 
 interface Zbozi {
   id: string;
@@ -87,18 +97,14 @@ export function initSatek(): Satek {
   let satekVidet = false;
   let vzor: VzorSatku = vzorPodleId(nacti<string>(KLIC_VZOR, VYCHOZI_VZOR)) ?? vzory[0];
 
-  /* ——— Látka ve 3D a balíky na ní ——— */
+  /* ——— Látka ve 3D a balíky na ní (modul se stáhne, až se šátek blíží — zapniLatku níž) ——— */
   const platno = kresba?.querySelector<HTMLCanvasElement>(".o2-satek-platno") ?? null;
   const vrstva = kresba?.querySelector<HTMLElement>(".o2-satek-vrstva") ?? null;
   let latka: Latka | null = null;
-  if (platno && vrstva && kresba) {
-    platno.hidden = false;
-    latka = vytvorLatku(platno, { klid, maly: window.innerWidth < 700 || (navigator.hardwareConcurrency ?? 8) <= 4 });
-    if (latka) {
-      vrstva.hidden = false;
-      kresba.classList.add("zive");
-    } else platno.hidden = true;
-  }
+  /** Stažený modul látky, dokud se jí šátek neujme (zavázaný šátek počká na rozvázání) */
+  let modulLatky: ModulLatky | null = null;
+  /** Lehčí látka k porovnání (?satek=lehky), výchozí je plná */
+  const lehka = varianta("satek", ["plny", "lehky"] as const, "plny") === "lehky";
   /** Kusy pro látku v pořadí šátku; číslo na visačce je stejné jako na účtence */
   const kusyProLatku = (ids: string[]): KusNaSatku[] =>
     ids.slice(0, NEJVIC_BALIKU).map((id, i) => {
@@ -122,10 +128,6 @@ export function initSatek(): Satek {
       vrstva.append(t);
     }
   };
-  /* Najetí na balík prosvětlí řádek účtenky */
-  latka?.priNajeti((id) => {
-    seznam?.querySelectorAll<HTMLElement>(".o2-satek-polozka").forEach((li) => li.classList.toggle("najeto", li.dataset.id === id));
-  });
 
   /* ——— Vzor šátku ——— */
   const vzorEl = koren?.querySelector<HTMLElement>(".o2-vzory");
@@ -225,7 +227,8 @@ export function initSatek(): Satek {
     zavazat.removeAttribute("aria-disabled");
   };
 
-  const kresli = () => {
+  /** Účtenka, kusy na šátku a tlačítka podle obsahu; `ohlasit` = poslat Vázičce satek:zmena */
+  const kresli = (ohlasit = true) => {
     const ids = [...vSatku];
     let celkem = 0;
     if (seznam) {
@@ -315,8 +318,36 @@ export function initSatek(): Satek {
     obnovPlovouci();
     mail();
     obnovTlacitka();
-    ohlas("satek:zmena", { pocet: ids.length, vzor: vzor.id });
+    if (ohlasit) ohlas("satek:zmena", { pocet: ids.length, vzor: vzor.id });
   };
+
+  /**
+   * Šátek se ujme látky ve 3D, jakmile je modul stažený — ne uprostřed vázání:
+   * zavázaný šátek drží kresbu až do rozvázání (látka by se jinak vázala podruhé).
+   * Bez WebGL2 (vytvorLatku vrátí null) zůstává kresba natrvalo. Obalené za
+   * stránku: rozvázání po neúspěšném odeslání běží až po await, a smyčka,
+   * observery i posluchače látky mají patřit stránce (uklidí je prechody.ts).
+   */
+  const zapniLatku = zaStranku((prekreslit = true) => {
+    if (!modulLatky || latka || zavazano || odesila || !platno || !vrstva || !kresba || !platno.isConnected) return;
+    const { vytvorLatku } = modulLatky;
+    modulLatky = null;
+    platno.hidden = false;
+    latka = vytvorLatku(platno, { klid, maly: window.innerWidth < 700 || (navigator.hardwareConcurrency ?? 8) <= 4, lehka });
+    if (!latka) {
+      platno.hidden = true;
+      return;
+    }
+    vrstva.hidden = false;
+    kresba.classList.add("zive");
+    /* Najetí na balík prosvětlí řádek účtenky */
+    latka.priNajeti((id) => {
+      seznam?.querySelectorAll<HTMLElement>(".o2-satek-polozka").forEach((li) => li.classList.toggle("najeto", li.dataset.id === id));
+    });
+    latka.nastavVzor(vzor).catch((e) => console.warn("[šátek] vzor se nepodařilo nakreslit", e));
+    /* Čísla balíků na účtence a balíky na látce podle toho, co už v šátku je */
+    if (prekreslit) kresli(false);
+  });
 
   /** Kus odletí od tlačítka k šátku — nebo k Vázičce, která nese uzlík (záložně k plovoucímu tlačítku) */
   const odlet = (odkud: Element, id: string) => {
@@ -377,6 +408,8 @@ export function initSatek(): Satek {
     if (rozvazat) rozvazat.hidden = true;
     if (zprava) zprava.hidden = true;
     if (zvukem) zvuk.latka();
+    /* Látka stažená během vázání se ujme až teď */
+    zapniLatku();
   };
 
   const prepni = (id: string, odkud?: Element) => {
@@ -395,6 +428,8 @@ export function initSatek(): Satek {
       kresba?.classList.remove("zavazano");
       if (rozvazat) rozvazat.hidden = true;
       if (zprava) zprava.hidden = true;
+      /* Látka stažená během vázání se ujme teď — vykreslí ji kresli() hned pod tím */
+      zapniLatku(false);
     }
     uloz(KLIC, [...vSatku]);
     kresli();
@@ -469,6 +504,19 @@ export function initSatek(): Satek {
       ohlas("satek:videt", { videt: satekVidet });
     }, { threshold: 0.2 }).observe(sekce);
   }
+
+  /* Látka ve 3D se stáhne, až se šátek blíží (kotva #satek hned); bez WebGL2 se nestahuje vůbec */
+  if (platno && vrstva && kresba && typeof WebGL2RenderingContext !== "undefined")
+    kdyzBlizko(sekce ?? kresba, () => {
+      import("./satek3d/latka")
+        .then(
+          zaStranku((m: ModulLatky) => {
+            modulLatky = m;
+            zapniLatku();
+          }),
+        )
+        .catch((e) => console.warn("[šátek] látku ve 3D se nepodařilo stáhnout, zůstává kresba", e));
+    });
 
   nastavVzor(vzor, false);
   kresli();

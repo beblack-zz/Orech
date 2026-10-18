@@ -31,7 +31,7 @@
  */
 import {
   f, rng, clamp, lerp, smooth, rad, pt, hladka, vzorkuj, naCare, pasPoBodech, kvetD, LISTEK, pruzina, mrkani,
-  HL, hlDefs, hlTelo, hlNohy, hlVyhonek, hlTvar, zzz, svetylko, kCili, pres, delky,
+  HL, hlDefs, hlTelo, hlNohy, hlVyhonek, hlTvar, zzz, svetylko, kCili, pres, delky, castic, HUSTOTA,
 } from "./spolecne.js";
 
 const ID = "hzk";
@@ -604,6 +604,10 @@ const vitrV = (dyn, x) => {
   const j = clamp((x + 6) / 192) * (SLOUPCU - 1), i = Math.min(SLOUPCU - 2, Math.floor(j));
   return lerp(dyn.sl[i], dyn.sl[i + 1], j - i);
 };
+/* Na telefonu polovina lístků ve vzduchu i na zemi, ve vánici po kýchnutí i v poryvu po klepnutí (castic ze spolecne.js) */
+const LETICICH_MAX = castic(210), LEZICICH_MAX = castic(170), LEZICICH_NA_ZACATKU = castic(84), LETICICH_NA_ZACATKU = castic(24);
+const VANICE = { listky: castic(150), kvety: castic(12), nadNi: castic(60) };
+const FOUKNUTI = castic(14);
 const novyListek = (R, x, y, volby = {}) => ({
   x, y, vx: (volby.vx || 0) + (R() - 0.5) * 8, vy: (volby.vy ?? 2) + R() * 5, rot: R() * 360, vr: (R() - 0.5) * 260, fz: R() * 6.28, toc: 1.6 + R() * 2.6,
   m: 0.82 + R() * 0.5, vek: 0, zem: ZEM - 2.5 + R() * 9, pad: 9 + R() * 6,
@@ -621,7 +625,7 @@ const utrhni = (dyn, volby = {}) => {
 };
 const poloz = (dyn, l) => {
   dyn.lezici.push({ x: l.x, y: l.zem, rot: l.rot, m: l.m, k: l.k });
-  if (dyn.lezici.length > 170) dyn.lezici.splice(0, dyn.lezici.length - 170);
+  if (dyn.lezici.length > LEZICICH_MAX) dyn.lezici.splice(0, dyn.lezici.length - LEZICICH_MAX);
   dyn.verze++;
 };
 const zacniKych = (dyn, t) => {
@@ -648,12 +652,12 @@ const novaDynamika = () => {
     puk: 2, pukCeka: 0,
   };
   /* pár lístků a květů už leží a pár je ve vzduchu, ať první snímek není holý */
-  for (let i = 0; i < 84; i++) {
+  for (let i = 0; i < LEZICICH_NA_ZACATKU; i++) {
     const x = 14 + R() * 156;
     if (Math.abs(x - FIG.x) < 19 && R() < 0.7) continue;
     dyn.lezici.push({ x, y: ZEM - 2.5 + R() * 9, rot: R() * 360, m: 0.82 + R() * 0.5, k: R() < 0.1 ? Math.floor(R() * 9) : undefined });
   }
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < LETICICH_NA_ZACATKU; i++) {
     const l = utrhni(dyn);
     l.y += R() * 80;
     l.vek = 1 + R() * 3;
@@ -751,7 +755,7 @@ const krok = (dyn, t, dt, vstup) => {
       const s = kl.x < 90 ? 1 : -1;
       dyn.poryv += s * 0.9;
       dyn.zvuk.push({ druh: "poryv", sila: 0.6, pan: -s * 0.5 });
-      for (let i = 0; i < 14; i++) utrhni(dyn, { vx: s * 26 });
+      for (let i = 0; i < FOUKNUTI; i++) utrhni(dyn, { vx: s * 26 });
     }
   }
   if (k.faze === "nic" && t > dyn.dalsiKych) zacniKych(dyn, t);
@@ -771,10 +775,10 @@ const krok = (dyn, t, dt, vstup) => {
     for (const mj of dyn.mejiro) prelet(dyn, mj, t, true);
     dyn.zvuk.push({ druh: "civ", sila: 0.8, pan: 0.2, za: 0.12 });
     /* hanafubuki: strom se otřese a sype se z něj vánice, s ní i celé květy */
-    for (let i = 0; i < 150; i++) utrhni(dyn, { vx: (R() - 0.5) * 60, vy: -6 + R() * 10 }).m *= 1.3;
-    for (let i = 0; i < 12; i++) utrhni(dyn, { vx: (R() - 0.5) * 40, vy: -4 + R() * 8, cely: true });
+    for (let i = 0; i < VANICE.listky; i++) utrhni(dyn, { vx: (R() - 0.5) * 60, vy: -6 + R() * 10 }).m *= 1.3;
+    for (let i = 0; i < VANICE.kvety; i++) utrhni(dyn, { vx: (R() - 0.5) * 40, vy: -4 + R() * 8, cely: true });
     /* nejvíc se sype z prutů přímo nad ní */
-    for (let i = 0; i < 60; i++) utrhni(dyn, { vx: (R() - 0.5) * 50, vy: -4 + R() * 12, pruty: NAD_NI }).m *= 1.5;
+    for (let i = 0; i < VANICE.nadNi; i++) utrhni(dyn, { vx: (R() - 0.5) * 50, vy: -4 + R() * 12, pruty: NAD_NI }).m *= 1.5;
     /* a co leželo kolem ní na zemi, vyletí do vzduchu */
     for (let i = dyn.lezici.length - 1; i >= 0; i--) {
       const l = dyn.lezici[i], dx = l.x - FIG.x;
@@ -813,9 +817,9 @@ const krok = (dyn, t, dt, vstup) => {
 
   /* ——— Lístky ——— */
   const sila = Math.abs(dyn.vitr);
-  if (dyn.listky.length < 210 && R() < dt * (2.1 + sila * 8 + Math.max(0, sila - 0.6) * 24)) utrhni(dyn, { vx: dyn.vitr * 20 });
+  if (dyn.listky.length < LETICICH_MAX && R() < dt * HUSTOTA * (2.1 + sila * 8 + Math.max(0, sila - 0.6) * 24)) utrhni(dyn, { vx: dyn.vitr * 20 });
   /* otřes ještě chvíli sype */
-  if (dyn.otres > 0.45 && R() < dt * 90) utrhni(dyn, { vx: (R() - 0.5) * 40, vy: R() * 6 });
+  if (dyn.otres > 0.45 && R() < dt * 90 * HUSTOTA) utrhni(dyn, { vx: (R() - 0.5) * 40, vy: R() * 6 });
   if (R() < dt * 0.09) utrhni(dyn, { cely: true });
   const vir = m && rych > 40 ? Math.min(1, rych / 200) : 0, toc = dyn.mv[0] < 0 ? -1 : 1;
   for (const l of dyn.listky) {

@@ -25,11 +25,16 @@
  * Klávesnice: Tab chodí po střepech (neviditelná tlačítka .ms9-fokus),
  * šipky posouvají (se Shiftem víc), Q a E otáčí, Enter přiloží. Při zlacení
  * Enter obtáhne další spáru sám — pomaleji než ruka, ale bez kapek.
+ *
+ * Na telefonu (kvalita.ts) je zlatého prachu za štětcem polovina a třpyt
+ * zlata se posouvá jen každý třetí snímek — jinak by se všechny zlaté
+ * spáry překreslovaly šedesátkrát za vteřinu.
  */
 import type { Uroven, Vysledek } from "../hra";
 import { casText } from "../hra";
 import * as zvuk from "../../parta2/zvuk";
 import { omez, SVGNS } from "../../parta2/stav";
+import { castic, telefon } from "../../parta2/kvalita";
 import {
   MISKA,
   MEZE,
@@ -71,6 +76,10 @@ const NAPOVEDA_PO = 25_000;
 const SAM_RYCHLOST = 80;
 
 const PENTA = [1318.5, 1568, 1760, 1975.5, 2349.3, 2637, 3136, 3520, 3951];
+/** Nejvýš tolik zlatých zrnek naráz (na telefonu polovina) */
+const ZRNEK_NARAZ = castic(28);
+/** Po kolika snímcích se posune třpyt zlata: na telefonu každý třetí */
+const TRPYT_PO = telefon() ? 3 : 1;
 
 type Faze = "ceka" | "skladani" | "prechod" | "zlaceni" | "konec";
 
@@ -195,6 +204,7 @@ export const strep: Uroven = (p) => {
   let vybrany: Strep | null = null;
   let zlatoZmena = false;
   let otocZmena = true;
+  let snimkuTrpytu = 0;
   const animace: Animace[] = [];
   const castice: Castice[] = [];
   /** Kdo za co tahá — pointerId → bod ve scéně */
@@ -513,7 +523,7 @@ export const strep: Uroven = (p) => {
   };
 
   const castici = (x: number, y: number) => {
-    if (p.klid || castice.length > 28) return;
+    if (p.klid || castice.length > ZRNEK_NARAZ) return;
     const el = document.createElementNS(SVGNS, "circle");
     el.setAttribute("r", f(0.8 + Math.random() * 1.3));
     el.setAttribute("fill", Math.random() < 0.5 ? "#FFF3C4" : "#F3D27A");
@@ -588,7 +598,7 @@ export const strep: Uroven = (p) => {
     if (nove) {
       zlatoZmena = true;
       posledniPokrok = ted();
-      for (let k = 0; k < Math.min(3, Math.ceil(nove / 2)); k++) castici(b[0] + (Math.random() - 0.5) * 6, b[1] + (Math.random() - 0.5) * 6);
+      for (let k = 0, kolik = castic(Math.min(3, Math.ceil(nove / 2))); k < kolik; k++) castici(b[0] + (Math.random() - 0.5) * 6, b[1] + (Math.random() - 0.5) * 6);
     }
     /* Kapky vedle: po tahu v krocích po 3 jednotkách */
     const delka = Math.hypot(B[0] - A[0], B[1] - A[1]);
@@ -779,7 +789,8 @@ export const strep: Uroven = (p) => {
     krokSam();
     if (zlatoZmena) kresliZlato();
     if (otocZmena) umistiOtoceni();
-    if (zlatoGrad && !p.klid && (faze === "zlaceni" || faze === "konec" || faze === "prechod")) {
+    if (zlatoGrad && !p.klid && (faze === "zlaceni" || faze === "konec" || faze === "prechod") && ++snimkuTrpytu >= TRPYT_PO) {
+      snimkuTrpytu = 0;
       zlatoGrad.setAttribute("gradientTransform", `translate(${f(Math.sin(t / 700) * 46)} ${f(Math.cos(t / 900) * 30)})`);
     }
     if (stetec && t - stetec.cas > 90) zvuk.stetecSila(0);

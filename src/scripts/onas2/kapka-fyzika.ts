@@ -440,6 +440,11 @@ export class Divadlo {
     if (this.faze === "visi") this.odpocet = s;
   }
 
+  /** Za kolik vteřin visící kapka spadne sama — skript podle toho nastaví budík, když smyčka v tichu stojí */
+  zbyva(): number | null {
+    return this.faze === "visi" ? Math.max(0, this.odpocet) : null;
+  }
+
   snimek(): Snimek {
     const sn: Snimek = {
       kapka: null,

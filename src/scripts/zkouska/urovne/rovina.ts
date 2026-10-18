@@ -16,10 +16,14 @@
  *
  * Klávesy: 1–5 vybere kus, C přikryje, F obrátí, O zavře okno.
  * Hra skončí v neděli večer, nebo dřív, když je všechno hotové.
+ *
+ * Na telefonu (kvalita.ts) vlétá průvanem polovina listí a střepů
+ * a obláčků je taky polovina.
  */
 import type { Uroven, Vysledek } from "../hra";
 import * as zvuk from "../../parta2/zvuk";
 import { cislo, SVGNS } from "../../parta2/stav";
+import { castic } from "../../parta2/kvalita";
 import { kamiInfo } from "../../../data/kami";
 import { DRUHY, novyKus, krok, mezera, hodnot, PRAH, T_HRY, PRUVAN_DOBA } from "./rovina-model";
 import type { Kus, KusId } from "./rovina-model";
@@ -61,6 +65,8 @@ const PRILETY: [number, number][] = [
 const OTEVRE_ZA = 0.8;
 /** Jak dlouho trvá obrácení (ms); v půlce je kus na hraně a prohodí se kresba */
 const OBRAT_MS = 560;
+/** Kolikrát řidčeji vlétá listí — na telefonu dvakrát (castic), jinak stejně */
+const RIDCEJI = 100 / castic(100);
 
 interface Castice {
   el: SVGElement;
@@ -441,7 +447,7 @@ export const rovina: Uroven = (p) => {
     });
   };
   const strepy = (x: KusHry) => {
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0, n = castic(6); i < n; i++) {
       const el = document.createElementNS(SVGNS, "path");
       const s = 3 + Math.random() * 3.5;
       el.setAttribute("d", `M0 ${-s} L${s * 0.9} ${s * 0.6} L${-s * 0.8} ${s * 0.5} Z`);
@@ -462,14 +468,16 @@ export const rovina: Uroven = (p) => {
     }
   };
   const oblacky = (x: KusHry) => {
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0, n = castic(4); i < n; i++) {
       const el = document.createElementNS(SVGNS, "circle");
       el.setAttribute("r", "4");
       el.setAttribute("fill", "#FFF6E8");
+      /* Rovnoměrně pod celým kusem: 4 → −1,5 … 1,5, na telefonu 2 → −1,5 a 1,5 */
+      const s = n > 1 ? (i / (n - 1) - 0.5) * 3 : 0;
       pridej(el, {
-        x: x.m.x + (i - 1.5) * 30 + (Math.random() - 0.5) * 10,
+        x: x.m.x + s * 30 + (Math.random() - 0.5) * 10,
         y: x.m.y + 6,
-        vx: (i - 1.5) * 26,
+        vx: s * 26,
         vy: -16 - Math.random() * 10,
         rot: 0,
         vr: 0,
@@ -719,7 +727,7 @@ export const rovina: Uroven = (p) => {
       if (t >= pruvanDo) zavriOkno(false);
       else {
         if (t >= dalsiList) {
-          dalsiList = t + 0.22 + Math.random() * 0.25;
+          dalsiList = t + (0.22 + Math.random() * 0.25) * RIDCEJI;
           list();
         }
         if (t >= dalsiPoryv) {

@@ -5,10 +5,12 @@
  * hladině, korunky, sloupky a perly. Prvky pro sprška se nezakládají při
  * každém snímku — berou se ze zásoby a nepotřebné se schovají.
  *
- * Smyčka běží, jen když je úvod vidět (kdyzVidet ze stav.ts) — mimo
+ * Smyčka běží, jen když je úvod vidět (naObrazovce z mimo.ts) — mimo
  * obrazovku se nic nepočítá a kapka počká. Když plná kapka jen visí,
- * nepřepisuje se nic: kapka má vlastní vrstvu SVG a dýchá transformací
- * v CSS (třída pk-dycha), takže se svět uvnitř nepřekresluje. Při prvním dopadu se za kapkou
+ * nepřepisuje se nic a smyčka stojí: kapka má vlastní vrstvu SVG a dýchá
+ * transformací v CSS (třída pk-dycha), takže se svět uvnitř nepřekresluje.
+ * Smyčku pak znovu rozjede budík (za kolik vteřin by kapka spadla sama)
+ * nebo klepnutí. Při prvním dopadu se za kapkou
  * namaluje ensō (logo dostane třídu anim), Kapka na trubce poskočí
  * a tečka za nadpisem s ní. Zvuky jsou z parta2/zvuk.ts a hrají jen se
  * zapnutým zvukem.
@@ -16,7 +18,8 @@
  * S omezeným pohybem se nic nespouští: kapka visí, ensō stojí, klidné
  * kruhy jsou nakreslené rovnou (Pocatek.astro).
  */
-import { klid, kdyzVidet, SVGNS } from "../parta2/stav";
+import { klid, SVGNS } from "../parta2/stav";
+import { naObrazovce } from "../parta2/mimo";
 import * as zvuk from "../parta2/zvuk";
 import { Divadlo, type Snimek } from "./kapka-fyzika";
 import { KAPKA_R } from "../../components/onas2/kresba/miry";
@@ -117,15 +120,18 @@ export function pocatek() {
     },
   };
 
-  /* Klepnutí: na kapku — spadne; na hladinu — kápne tam malá */
+  /* Klepnutí: na kapku — spadne; na hladinu — kápne tam malá. Obojí probudí smyčku, kdyby v tichu stála. */
   if (pustit) {
     pustit.hidden = false;
-    pustit.addEventListener("click", () => divadlo.pust());
+    pustit.addEventListener("click", () => {
+      divadlo.pust();
+      rozbehni();
+    });
   }
   najdi(".pk-voda").addEventListener("click", (e) => {
     const r = zad.getBoundingClientRect();
     const ev = e as MouseEvent;
-    divadlo.kapni(((ev.clientX - r.left) / r.width) * 1000, ((ev.clientY - r.top) / r.height) * 1000);
+    if (divadlo.kapni(((ev.clientX - r.left) / r.width) * 1000, ((ev.clientY - r.top) / r.height) * 1000)) rozbehni();
   });
 
   const nastav = (el: Element, a: Record<string, string>) => {
@@ -207,21 +213,73 @@ export function pocatek() {
     z.zablesky.hotovo(i);
   }
 
+  /*
+   * Smyčka jede, jen když je úvod vidět a něco se hýbe. V tichu stojí
+   * a čeká na budík nebo na klepnutí (rozbehni).
+   */
   let minule = 0;
   let ticho = false;
-  kdyzVidet(sekce, (t) => {
+  let videt = false;
+  let bezi = false;
+  let budik = 0;
+  /** Kdy budík zazvoní (performance.now); 0 = nečeká */
+  let budikNa = 0;
+  const zrusBudik = () => {
+    window.clearTimeout(budik);
+    budik = 0;
+    budikNa = 0;
+  };
+  /** Visící kapka v tichu: budík na chvíli, kdy by spadla sama */
+  const natahni = () => {
+    zrusBudik();
+    const s = divadlo.zbyva() ?? 0;
+    budikNa = performance.now() + s * 1000;
+    budik = window.setTimeout(() => {
+      budik = 0;
+      budikNa = 0;
+      divadlo.nastavOdpocet(0);
+      rozbehni();
+    }, s * 1000);
+  };
+  const krok = (t: number) => {
+    if (!videt) {
+      bezi = false;
+      minule = 0;
+      return;
+    }
     /* Po návratu na obrazovku nepřeskakovat — dlouhá pauza je jeden krok */
     const dt = minule ? Math.min(0.05, (t - minule) / 1000) : 1 / 60;
     minule = t;
     divadlo.krok(dt);
-    /* V tichu se kreslí jen jednou, pak dýchání převezme CSS */
+    /* V tichu se kreslí jen jednou, pak dýchání převezme CSS a smyčka se zastaví */
     const ted = divadlo.klidna();
     if (!ted || !ticho) vykresli(divadlo.snimek());
     if (ted !== ticho) sekce.classList.toggle("pk-dycha", ted);
     ticho = ted;
-  });
-  /* Když se odroluje pryč a zpátky, začít bez skoku */
-  new IntersectionObserver(([e]) => {
-    if (!e.isIntersecting) minule = 0;
-  }).observe(sekce);
+    if (ticho) {
+      bezi = false;
+      minule = 0;
+      natahni();
+      return;
+    }
+    requestAnimationFrame(krok);
+  };
+  function rozbehni() {
+    zrusBudik();
+    if (bezi || !videt) return;
+    bezi = true;
+    requestAnimationFrame(krok);
+  }
+  naObrazovce(
+    sekce,
+    (v) => {
+      videt = v;
+      if (v) return rozbehni();
+      /* Mimo obrazovku čas kapky stojí — co zbývalo budíku, dostane zpátky odpočet. Po návratu začít bez skoku. */
+      if (budikNa) divadlo.nastavOdpocet(Math.max(0, (budikNa - performance.now()) / 1000));
+      zrusBudik();
+      minule = 0;
+    },
+    "0px",
+  );
 }

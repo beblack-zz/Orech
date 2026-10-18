@@ -26,7 +26,13 @@
  * každé návštěvě.
  *
  * Musí se importovat jako první, dřív než cokoli, co něco registruje.
+ *
+ * Po spuštění stránky se zapne hlídání sekcí (mimo.ts): co je mimo
+ * obrazovku, má pozastavené CSS animace. S variantou ?filtry=lehke se
+ * stáhne a spustí i odlehčení velkých SVG filtrů (filtry.ts).
  */
+import { hlidejSekce } from "./mimo";
+import { varianta } from "./kvalita";
 
 /** Pořadí stránky od načtení */
 let strana = 1;
@@ -64,7 +70,18 @@ function spustStranku() {
   const init = klic ? inity.get(klic) : undefined;
   if (!init || spustena === strana) return;
   spustena = strana;
-  jako(strana, init);
+  jako(strana, () => {
+    try {
+      init();
+    } finally {
+      hlidejSekce();
+      /* Lehčí filtry jen jako varianta k porovnání — výchozí návštěvník modul nestahuje.
+         Bez sítě zůstanou plné. */
+      if (varianta("filtry", ["plne", "lehke"], "plne") === "lehke") {
+        import("./filtry").then(obal((m: typeof import("./filtry")) => m.odlehciFiltry())).catch(() => {});
+      }
+    }
+  });
 }
 
 document.addEventListener("astro:after-swap", () => {
@@ -138,6 +155,14 @@ export function stranka(klic: string, init: () => void) {
   inity.set(klic, init);
   spustStranku();
 }
+
+/**
+ * Pokračování po `await` nebo `import()`: obalí funkci tak, aby poběžela za
+ * stránku, která ji obalila (jen dokud je naživu), a její posluchače, smyčky
+ * a observery se po přechodu uklidily. Obalit je potřeba hned, dokud kód
+ * stránce ještě patří:  import("./tezke").then(zaStranku((m) => m.init()))
+ */
+export const zaStranku = obal;
 
 /** Spustí kód, jehož posluchače, časovače a smyčky mají přežít přechod */
 export const trvale = <T>(fn: () => T): T => jako(0, fn);

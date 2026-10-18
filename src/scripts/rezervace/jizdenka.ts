@@ -180,37 +180,53 @@ export function initJizdenka() {
 
   /* Nad zvláštním vlakem jde obloha pomalu celým dnem kurzu a zase zpátky —
      jen když je obrázek vidět a pohyb není omezený. Překresluje se po krocích,
-     ne v každém snímku. */
+     ne v každém snímku: hodiny dne se kontrolují patnáctkrát za vteřinu
+     (krok oblohy zůstává zhruba stejný) a když obrázek není vidět, nekontrolují
+     se vůbec — den jde dál podle času, po návratu je obloha, kde má být. */
   let denOd = 0;
   let denDo = 0;
   let denStart = 0;
-  let denSmycka = 0;
+  /** Obloha jde dnem (je zvláštní jízdenka) — i když zrovna stojí mimo obrazovku */
+  let denBezi = false;
+  /** Časovač dalšího kroku; 0 = nečeká se */
+  let denCas = 0;
   let denNaposled = -1;
-  const krokDne = (t: number) => {
-    denSmycka = 0;
-    if (druh !== "kurz" || !pocet) return;
-    if (videt) {
-      const f = ((t - denStart) / DEN_KURZU) % 2;
-      const h = mix(denOd, denDo, hladce(f < 1 ? f : 2 - f));
-      if (Math.abs(h - denNaposled) > 0.03) {
-        denNaposled = h;
-        osvetli(h);
-      }
+  const KROK_DNE = 66;
+  const krokDne = () => {
+    denCas = 0;
+    if (druh !== "kurz" || !pocet) {
+      denBezi = false;
+      return;
     }
-    denSmycka = requestAnimationFrame(krokDne);
+    /* Mimo obrazovku stojí — rozjede ho IntersectionObserver níž */
+    if (!videt) return;
+    const f = ((performance.now() - denStart) / DEN_KURZU) % 2;
+    const h = mix(denOd, denDo, hladce(f < 1 ? f : 2 - f));
+    if (Math.abs(h - denNaposled) > 0.03) {
+      denNaposled = h;
+      osvetli(h);
+    }
+    denCas = window.setTimeout(krokDne, KROK_DNE);
   };
   const spustDen = (od: number, kam: number) => {
     denOd = od;
     denDo = kam;
-    if (klid || denSmycka) return;
+    if (klid || denBezi) return;
+    denBezi = true;
     denStart = performance.now();
     denNaposled = -1;
-    denSmycka = requestAnimationFrame(krokDne);
+    if (!denCas) denCas = window.setTimeout(krokDne, KROK_DNE);
+  };
+  const zastavDen = () => {
+    denBezi = false;
+    window.clearTimeout(denCas);
+    denCas = 0;
   };
 
   new IntersectionObserver(([e]) => {
     videt = e.isIntersecting;
     if (videt && cekaPrijezd) prijed();
+    if (videt && denBezi && !denCas) krokDne();
   }, { threshold: 0.35 }).observe(obraz);
 
   const vyrez = (L: number) => {
@@ -354,9 +370,10 @@ export function initJizdenka() {
         vlakG.innerHTML = zvlastniVlak({ mista: mistaKurzu(u.kurz, u.osob, true), emblem: c.emblem, cedule: c.nazev });
         const hodinyKurzu = c.program.map((z) => z.h);
         /* Když už obloha dnem jde, zůstane, kde je — jinak začíná ráno */
-        osvetli(denSmycka && denNaposled >= 0 ? denNaposled : Math.min(...hodinyKurzu));
+        osvetli(denBezi && denNaposled >= 0 ? denNaposled : Math.min(...hodinyKurzu));
         spustDen(Math.min(...hodinyKurzu), Math.max(...hodinyKurzu));
       } else if (druh === "pas" && u.pas) {
+        zastavDen();
         vyrez(delka(n));
         /* Na spoji sedí i ostatní držitelé permanentky — jako stíny na krajích vozu */
         const vozy = u.pas.spoje.map((h) => {
@@ -368,6 +385,7 @@ export function initJizdenka() {
         vlakG.innerHTML = vlak(vozy, { smer: 1 });
         osvetli(u.pas.spoje[0]);
       } else {
+        zastavDen();
         vyrez(delka(Math.max(1, n)));
         /* Skupina sedí uprostřed vozu, kdo už na odjezd jízdenku má, sedí jako stín po krajích */
         const vozy = hodiny.map((h) => {

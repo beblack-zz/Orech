@@ -15,11 +15,14 @@
  * Ukazatele: terč vpravo nahoře (tečka obíhá jako hrouda, zlatý oblouk
  * kolem se plní, jak se drží na středu), kapka vlevo (voda) a v záhlaví
  * čas a vyosení.
+ *
+ * Na telefonu (kvalita.ts) z houby padá a cáká méně kapek.
  */
 import type { Uroven, Vysledek } from "../hra";
 import { casText } from "../hra";
 import * as zvuk from "../../parta2/zvuk";
 import { cislo, omez, mix, hladce } from "../../parta2/stav";
+import { castic } from "../../parta2/kvalita";
 import {
   SIRKA, VYSKA, STRED, R_HLAVA, R_HROUDA, MM, TERC, VLHKOMER, CIL_MM,
   obrysHroudy, hladinaVlhkomeru, yVlhkomeru, polomerNaTerci,
@@ -298,9 +301,9 @@ export const voda: Uroven = (p) => {
   /* ——— Voda ——— */
   const postrikni = (x: number, y: number) => {
     if (p.klid) return;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0, n = castic(3); i < n; i++) {
       const kapicka = document.createElementNS(SVGNS, "circle");
-      const sx = x + (i - 1) * 9 + (Math.random() - 0.5) * 6;
+      const sx = x + (i - (n - 1) / 2) * 9 + (Math.random() - 0.5) * 6;
       const sy0 = y - 26;
       const sy1 = y + 4 + Math.random() * 10;
       kapicka.setAttribute("r", "3.6");
@@ -329,8 +332,8 @@ export const voda: Uroven = (p) => {
       kruh.setAttribute("stroke-width", f1(2.4 * (1 - k) + 0.4));
       kruh.setAttribute("opacity", (1 - k).toFixed(2));
     });
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * Math.PI * 2 + Math.random() * 0.8;
+    for (let i = 0, n = castic(5); i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.8;
       const d = 12 + Math.random() * 14;
       const sprsk = document.createElementNS(SVGNS, "circle");
       sprsk.setAttribute("r", f1(1.3 + Math.random() * 1.2));

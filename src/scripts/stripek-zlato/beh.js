@@ -6,7 +6,10 @@
  * Každá vrstva je vlastní <svg> přes celou plochu. Statické se nakreslí
  * jednou a prohlížeč si je drží jako hotový obraz; živé se přepisují,
  * jen když se jim změní klíč. Vrstvy s `pohyb` (střep, obláček, tvář) se
- * nepřekreslují, když se jen hýbou — dostanou CSS transformaci.
+ * nepřekreslují, když se jen hýbou — dostanou CSS transformaci. Vrstvy
+ * s `uzly` (odlesk na zlatě) se mezi změnami klíče nepřekreslují celé:
+ * mění se jen atributy prvků s data-u (jako u Hlínky) — zlatá spára
+ * zůstane, posune se jen přechod, který ji osvětluje.
  *
  * Zvuk poslouchá vypínač v hlavičce nového vzhledu (parta2/zvuk.ts): hraje,
  * jen když je zvuk webu zapnutý. Kresby stojí vedle sebe, a tak zní jen
@@ -260,12 +263,14 @@ const scena = (el, V) => {
       svg.style.transformOrigin = `${((p.ox / VB) * 100).toFixed(3)}% ${((p.oy / VB) * 100).toFixed(3)}%`;
     }
     el.appendChild(svg);
-    return { v, svg, klic: undefined, nakresleno: false, tr: "", op: "" };
+    return { v, svg, klic: undefined, nakresleno: false, tr: "", op: "", uzly: null, posledni: [] };
   });
 
   const vstup = { mys: null, rychlost: 0, kliky: [] };
   let dyn = V.novaDynamika();
   let t = 0, posledniCas = null, viditelna = false, zastaveno = false, aktivniDo = 0, mysPred = null;
+  /* smyčka běží, jen když je scéna vidět a má co dělat (bezi = je naplánovaný snímek) */
+  let bezi = false;
 
   /* divadlo na /parta-3 umí scénu podržet na prvním snímku, než se rozhrne opona (el.__scena.stuj) */
   let stoji = false;
@@ -278,6 +283,25 @@ const scena = (el, V) => {
         L.svg.innerHTML = obsahVrstvy(v, st);
         L.klic = k;
         L.nakresleno = true;
+        L.uzly = null;
+        L.posledni = [];
+      } else if (v.uzly) {
+        /* jen atributy prvků s data-u (poloha odlesku), zbytek vrstvy zůstává */
+        if (!L.uzly) {
+          L.uzly = [];
+          for (const u of L.svg.querySelectorAll("[data-u]")) L.uzly[Number(u.getAttribute("data-u"))] = u;
+        }
+        const atr = v.uzly(st);
+        for (let i = 0; i < atr.length; i++) {
+          const uzel = L.uzly[i];
+          if (!uzel || !atr[i]) continue;
+          const pred = L.posledni[i] || (L.posledni[i] = {});
+          for (const a in atr[i]) {
+            if (pred[a] === atr[i][a]) continue;
+            uzel.setAttribute(a, atr[i][a]);
+            pred[a] = atr[i][a];
+          }
+        }
       }
       if (v.pohyb) {
         const p = v.pohyb(st);
@@ -301,19 +325,26 @@ const scena = (el, V) => {
     dyn.zvuk.length = 0;
     if (slysi) Zvuk.nastav(V.hukot(st));
   };
+  /* Scéna stojí: podržená divadlem, nebo při omezeném pohybu, když jí došlo bdění.
+     Pak smyčka nečeká na další snímek naprázdno — rozjede ji až rozbehni(). */
+  const spi = () => stoji || (klidne && t >= aktivniDo);
   const smycka = (ted) => {
-    if (!viditelna || zastaveno) {
+    if (!viditelna || zastaveno || spi()) {
       posledniCas = null;
+      bezi = false;
       return;
     }
     const dt = posledniCas == null ? 0 : Math.min(0.05, (ted - posledniCas) / 1000);
     posledniCas = ted;
-    if (!stoji && (!klidne || t < aktivniDo)) {
-      t += dt;
-      vstup.rychlost *= Math.exp(-dt / 0.15);
-      V.krok(dyn, t, dt, vstup);
-      vykresli();
-    }
+    t += dt;
+    vstup.rychlost *= Math.exp(-dt / 0.15);
+    V.krok(dyn, t, dt, vstup);
+    vykresli();
+    requestAnimationFrame(smycka);
+  };
+  const rozbehni = () => {
+    if (bezi || !viditelna || zastaveno || spi()) return;
+    bezi = true;
     requestAnimationFrame(smycka);
   };
 
@@ -337,6 +368,7 @@ const scena = (el, V) => {
     vstup.mys = p;
     znejici = el;
     aktivniDo = Math.max(aktivniDo, t + 1.5);
+    rozbehni();
   });
   el.addEventListener("pointerleave", () => {
     vstup.mys = null;
@@ -347,6 +379,7 @@ const scena = (el, V) => {
     znejici = el;
     vstup.kliky.push(naJednotky(e));
     aktivniDo = t + 12;
+    rozbehni();
   });
   el.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" && e.key !== " ") return;
@@ -355,14 +388,14 @@ const scena = (el, V) => {
     znejici = el;
     vstup.kliky.push({ x: 90, y: 90 });
     aktivniDo = t + 12;
+    rozbehni();
   });
 
   const io = new IntersectionObserver(
     (z) => {
-      const byla = viditelna;
       viditelna = z[0].isIntersecting;
       if (!viditelna && znejici === el) Zvuk.nastav({});
-      if (viditelna && !byla) requestAnimationFrame(smycka);
+      if (viditelna) rozbehni();
     },
     { threshold: 0.08 },
   );
@@ -380,6 +413,7 @@ const scena = (el, V) => {
     stav: () => ({ t, dyn, vstup }),
     stuj: (ano) => {
       stoji = !!ano;
+      rozbehni();
     },
     znovu: (bdi = 0) => {
       t = V.zacatek || 0;
@@ -390,6 +424,7 @@ const scena = (el, V) => {
       mysPred = null;
       aktivniDo = t + bdi;
       vykresli();
+      rozbehni();
       return t;
     },
   };

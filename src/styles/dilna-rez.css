@@ -90,6 +90,10 @@
   from { transform: rotate(-35deg) scaleX(1); }
   to { transform: rotate(50deg) scaleX(0.45); }
 }
+/* Telefon: padá polovina kusů (Ulice.astro jich staví dvanáct) */
+@media (hover: none) and (pointer: coarse) {
+  .castice .castice-kus:nth-child(2n) { display: none; }
+}
 
 /* ——— Dílna v řezu ——— */
 

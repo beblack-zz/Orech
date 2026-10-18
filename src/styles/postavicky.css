@@ -243,3 +243,8 @@
   .kour-2 { opacity: 0.18; transform: translate(5px, -8px); }
   .kour-3 { opacity: 0.12; transform: translate(3px, -16px); }
 }
+
+/* Pohyb party zastaví zděděná proměnná --kami-pohyb: paused. Selektorem to u klonů
+   <use> (destičky ema, sprity) nejde, proměnná do nich projde. Nastavuje ji parta2.css
+   v sekcích mimo obrazovku (.mimo-obr) a Kontakt na malbách destiček a ve spritu. */
+:is(.char-breathe, .kapka-telo, .kapka-stin, .char-sway, .char-wobble, .zzz, .plamen, .bublinka-telo, .bublinka-stin, .kachlik-telo, .cedulka-telo, .samotka-zar, .jiskra, .kour, .kami-shide, .kami-vlnka, .kami-onibi, .kami-ohen, .kami-svetlo) { animation-play-state: var(--kami-pohyb, running); }

@@ -11,6 +11,11 @@
  * Zvuk poslouchá vypínač v hlavičce nového vzhledu (parta2/zvuk.ts): hraje,
  * jen když je zvuk webu zapnutý. Kresby stojí vedle sebe, a tak zní jen
  * ta, nad kterou je myš, nebo na kterou se naposledy klepnulo.
+ *
+ * Smyčka běží, jen když je co kreslit: plocha je vidět, nestojí (`stuj` —
+ * flek před představením, průvodce schovaný do čárky) a s omezeným pohybem
+ * ještě bdí. Jinak usne a probudí ji až podnět: návrat na obrazovku, myš,
+ * klepnutí, `znovu` nebo `stuj(false)`.
  */
 import { kresby, pretoc, obsahVrstvy } from "./kresby.js";
 import { smi } from "../parta2/zvuk";
@@ -329,19 +334,34 @@ const scena = (el, V) => {
     dyn.zvuk.length = 0;
     if (slysi) Zvuk.nastav(V.hukot(st));
   };
+  /* smyčka je naplánovaná — ať se nerozběhne dvakrát */
+  let bezi = false;
   const smycka = (ted) => {
+    bezi = false;
     if (!viditelna || zastaveno) {
       posledniCas = null;
       return;
     }
     const dt = posledniCas == null ? 0 : Math.min(0.05, (ted - posledniCas) / 1000);
     posledniCas = ted;
-    if (!stoji && (!klidne || t < aktivniDo)) {
+    const bdi = !stoji && (!klidne || t < aktivniDo);
+    if (bdi) {
       t += dt;
       vstup.rychlost *= Math.exp(-dt / 0.15);
       V.krok(dyn, t, dt, vstup);
       vykresli();
     }
+    /* stojí, nebo s omezeným pohybem dobděla — nic se nemění, smyčka usne do dalšího podnětu (rozjed) */
+    if (!bdi) {
+      posledniCas = null;
+      return;
+    }
+    bezi = true;
+    requestAnimationFrame(smycka);
+  };
+  const rozjed = () => {
+    if (bezi || !viditelna || zastaveno) return;
+    bezi = true;
     requestAnimationFrame(smycka);
   };
 
@@ -363,6 +383,7 @@ const scena = (el, V) => {
     vstup.mys = p;
     zaznej(el, e);
     aktivniDo = Math.max(aktivniDo, t + 1.5);
+    rozjed();
   });
   el.addEventListener("pointerleave", (e) => {
     if (e.isTrusted && podMysi === el) podMysi = null;
@@ -374,6 +395,7 @@ const scena = (el, V) => {
     zaznej(el, e);
     vstup.kliky.push(naJednotky(e));
     aktivniDo = t + 12;
+    rozjed();
   });
   el.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" && e.key !== " ") return;
@@ -382,14 +404,14 @@ const scena = (el, V) => {
     zaznej(el, e);
     vstup.kliky.push({ x: 90, y: 90 });
     aktivniDo = t + 12;
+    rozjed();
   });
 
   const io = new IntersectionObserver(
     (z) => {
-      const byla = viditelna;
       viditelna = z[0].isIntersecting;
       if (!viditelna && znejici === el) Zvuk.nastav({});
-      if (viditelna && !byla) requestAnimationFrame(smycka);
+      rozjed();
     },
     { threshold: 0.08 },
   );
@@ -407,6 +429,7 @@ const scena = (el, V) => {
     stav: () => ({ t, dyn, vstup }),
     stuj: (ano) => {
       stoji = !!ano;
+      if (!stoji) rozjed();
     },
     znovu: (bdi = 0) => {
       t = V.zacatek || 0;
@@ -417,6 +440,7 @@ const scena = (el, V) => {
       mysPred = null;
       aktivniDo = t + bdi;
       vykresli();
+      rozjed();
       return t;
     },
   };

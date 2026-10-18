@@ -18,19 +18,23 @@
  * Jeviště je čtverec 1000 × 1000 na výšku sekce s osou kapky na --kx
  * (onas2.css); trubka a hladina z něj přesahují přes celou šířku.
  *
+ * Krajina uvnitř kapky je statická — je to soubor v <image> (pages/kresby/
+ * _onas.ts), ve stránce zůstanou jen okna a lampiony, které blikají, a vše,
+ * na co sahá skript. o-nas.astro soubory kapky stahuje hned s hlavičkou.
+ *
  * S omezeným pohybem kapka jen visí, ensō stojí a hladina je klidná.
  */
 import Enso from "../navrhy-loga/Enso.astro";
 import Kami from "../parta2/Kami.astro";
 import { oDilne } from "../../data/uvod2";
-import { kapkaDefs, kapka, hladinaDefs, hladina, bokeh } from "./kresba/kapka";
-import { svetVKapce } from "./kresba/svet";
+import { hladina, bokeh } from "./kresba/kapka";
 import { trubka } from "./kresba/trubka";
 import { KAPKA_KAMI_X, TRUBKA_Y, TRUBKA_R, ENSO_Y, ENSO_R, OSA_X, PRASKLINA_Y, KAPKA_R, OBZOR_Y } from "./kresba/miry";
+import { onas } from "../../pages/kresby/_onas";
 
-const svet = svetVKapce();
 const tr = trubka();
-const defs = kapkaDefs() + hladinaDefs() + svet.defs + tr.defs;
+/* Kapka se světem a společné definice jeviště (bez definic krajiny, ty má soubor) */
+const { kapka, defs } = onas();
 
 /* Polohy HTML vrstev v procentech jeviště — z týchž měr jako kresba */
 const pct = (n: number) => `${(n / 10).toFixed(2)}%`;
@@ -82,7 +86,7 @@ const stylPoznamka = `right:${pct(1000 - KAPKA_KAMI_X + 22)};top:${pct(PRASKLINA
     </svg>
 
     {/* Kapka ve vlastní vrstvě — v klidu jen dýchá transformací a nepřekresluje se */}
-    <svg class="pk-kresba pk-kresba-kapka" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false" set:html={kapka(svet.svg)} />
+    <svg class="pk-kresba pk-kresba-kapka" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false" set:html={kapka} />
 
     {/* Vpředu: trubka (schová vršek kapky), přední půlka korunky, perly a záblesk */}
     <svg class="pk-kresba pk-kresba-pred" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">

@@ -79,6 +79,11 @@ body.p2 {
 
 /* ——— Společné kousky ——— */
 
+/* Sekce mimo obrazovku (scripts/parta2/mimo.ts): CSS animace v ní stojí, dokud se nevrátí */
+.mimo-obr, .mimo-obr *, .mimo-obr *::before, .mimo-obr *::after { animation-play-state: paused !important; }
+/* …i v klonech <use>, kam pauza selektorem nedosáhne — tam ji donese proměnná (postavicky.css) */
+.mimo-obr { --kami-pohyb: paused; }
+
 .papir {
   position: relative;
   background: var(--papir);
@@ -146,6 +151,8 @@ body.p2 {
 .nebe-hvezdy { position: absolute; inset: 0; width: 100%; height: 100%; opacity: var(--hvezdy); }
 .hvezda-blik { animation: hvezda-blik 4s ease-in-out infinite; }
 @keyframes hvezda-blik { 50% { opacity: 0.12; } }
+/* Úplně průhledné hvězdy a světlušky se ani nekreslí, ať nic nebliká a nelétá naprázdno (třídy dává nebe.ts) */
+.bez-hvezd .nebe-hvezdy, .bez-svetlusek .svetlusky { display: none; }
 
 .nebe-slunce {
   position: absolute;
@@ -478,7 +485,7 @@ body.p2 {
  * jsou jinak v VazickaGejsa.astro, který tu na stránce být nemusí.
  */
 .pruvodce { position: fixed; z-index: 48; left: 0; top: 0; width: 80px; height: 80px; visibility: hidden; pointer-events: none; will-change: transform; transition: opacity 0.5s; }
-/* Schovaná do čárky — kresba zmizí, smyčka běží dál, ať se umí vrátit */
+/* Schovaná do čárky — kresba zmizí; až dozmizí, přestane se kreslit a smyčka spí, dokud se nevrátí (pruvodce.ts) */
 .pruvodce.schovana { opacity: 0; }
 .pruvodce.pripravena { visibility: visible; }
 .pruvodce-telo { width: 100%; height: 100%; transform-origin: 50% 60%; transition: filter 0.7s ease; }
@@ -886,6 +893,8 @@ body.p2 {
 .hlava-tema-paprsky { transform-origin: 12px 12px; animation: hlava-tema-tocit 24s linear infinite; }
 @keyframes hlava-tema-svit { 50% { filter: drop-shadow(0 0 4.5px rgba(255, 196, 92, 0.95)); } }
 @keyframes hlava-tema-tocit { to { transform: rotate(360deg); } }
+/* V noci je slunce schované — nesvítí ani se netočí naprázdno */
+.je-noc .hlava-tema-slunce, .je-noc .hlava-tema-paprsky { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .hlava-tema-slunce, .hlava-tema-paprsky { animation: none; } }
 
 /*
@@ -2377,6 +2386,24 @@ a.omamori-komnata[href]:hover { transform: translateY(-2px); }
 .omamori-mistr-pecet { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 5px; background: var(--rumelka); color: #FFF8EA; font-family: var(--f-kanji); font-size: 13px; line-height: 1; writing-mode: vertical-rl; transform: rotate(-6deg); }
 .omamori-mistr-text { font-family: var(--f-display); font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 16px; }
 .omamori-mistr-odkaz { margin-left: auto; font-family: var(--f-ruka); font-size: 20px; color: var(--rumelka); }
+
+/* ——— Lehčí telefon ———
+ * Na dotykovém telefonu (stejný dotaz jako telefon() ve scripts/parta2/kvalita.ts)
+ * je obloha řidší a velké nebo pohyblivé věci jsou bez filtrů, které se počítají
+ * znovu s každým snímkem; na počítači se nemění nic. Z mraků zůstanou tři větší,
+ * bliká jen každá druhá blikající hvězda a světlušek je polovina (Nebe.astro).
+ * Zvonkohra a závěs se hýbou každý snímek — stín pod nimi by se pokaždé rozmazával
+ * znovu. Měsíc na obloze jede se scrollem a jeho záře je rozmazání přes velkou
+ * plochu, slunce v přepínači den / noc svítí, ale nepulzuje, a pod omamori se
+ * stránka jen ztmaví, nerozmaže.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .mrak-navic, .svetlusky span:nth-child(2n) { display: none; }
+  .hvezda-blik-2 { animation: none; }
+  .zvonkohra svg, .zaves > svg, .nebe-mesic { filter: none; }
+  .hlava-tema-slunce { animation: none; }
+  .omamori-dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
 
 /* ——— Méně pohybu ——— */
 

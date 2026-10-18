@@ -151,9 +151,11 @@
 .ko-ema-lic:focus-visible { outline-offset: -1cqw; }
 /* malba na destičce je namalovaná — kami na ní stojí (a malba se nemusí překreslovat).
    Pohyb z postavicky.css se do klonu <use> nedá vypnout selektorem, ale zděděná
-   proměnná tam projde. */
-:is(.char-breathe, .kapka-telo, .kapka-stin, .char-sway, .char-wobble, .zzz, .plamen, .bublinka-telo, .bublinka-stin, .kachlik-telo, .cedulka-telo, .samotka-zar, .jiskra, .kour, .kami-shide, .kami-vlnka, .kami-onibi, .kami-ohen, .kami-svetlo) { animation-play-state: var(--kami-pohyb, running); }
+   proměnná --kami-pohyb tam projde (pravidlo je v postavicky.css). */
 .ko-ema-malba { --kami-pohyb: paused; }
+/* Stejně stojí parta ve spritu s partou (kontakt.astro), který vidět není. Sekce
+   mimo obrazovku pozastavuje celý web v parta2.css (.mimo-obr). */
+.ko-sprite { --kami-pohyb: paused; }
 .ko-ema-malba, .ko-ema-drevo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
 /* otázka velkým ručním písmem na holém dřevě pod malbou */
 .ko-ema-otazka {

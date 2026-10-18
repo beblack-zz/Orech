@@ -150,12 +150,17 @@ const vrstvaPrstenecZivy = (st) => {
     (zablesky ? `<g stroke="#FFFBEA" stroke-linecap="round" stroke-linejoin="round" fill="none">${zablesky}</g>` : "")
   );
 };
-/* odlesk na zlatě: jde za kurzorem, jinak obchází prstenec sám */
+/* odlesk na zlatě: jde za kurzorem, jinak obchází prstenec sám. Spára se
+   nakreslí jednou a běh (beh.js) pak posouvá jen střed přechodu (uzly) —
+   po půlkách jednotky, jako dřív klíč vrstvy. */
+const pul = (n) => f(Math.round(n * 2) / 2);
 const lesk = (id, d, [x, y], r) =>
-  `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${f(x)}" cy="${f(y)}" r="${r}"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"/><stop offset="0.5" stop-color="#FFF6D8" stop-opacity="0.4"/><stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/></radialGradient></defs>` +
+  `<defs><radialGradient id="${id}" data-u="0" gradientUnits="userSpaceOnUse" cx="${pul(x)}" cy="${pul(y)}" r="${r}"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"/><stop offset="0.5" stop-color="#FFF6D8" stop-opacity="0.4"/><stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/></radialGradient></defs>` +
   `<path d="${d}" fill="url(#${id})"/>`;
+const leskTela = (st) => [(st.lesk[0] - B0[0] - st.fig.x) / K + 91, (st.lesk[1] - B0[1] - st.fig.y) / K + 90];
 const vrstvaLeskPrstence = (st) => (st.celist > 0.99 ? lesk(`${ID}-lp`, ZLATO_PRSTENCE, st.lesk, 22) : "");
-const vrstvaLeskTela = (st) => vPostave(lesk(`${ID}-lt`, ZLATO_TELA, [(st.lesk[0] - B0[0] - st.fig.x) / K + 91, (st.lesk[1] - B0[1] - st.fig.y) / K + 90], 30));
+const vrstvaLeskTela = (st) => vPostave(lesk(`${ID}-lt`, ZLATO_TELA, leskTela(st), 30));
+const uzlyLesku = (bod) => [{ cx: pul(bod[0]), cy: pul(bod[1]) }];
 
 /*
  * Světlo svatozáře: uvnitř prstence zlatý nádech, který k okraji sílí, s jemnými
@@ -396,12 +401,12 @@ export const kamiPrstenec = {
     { id: "kusy", kresli: vrstvaKusy, klic: snimek },
     { id: "prstenec-zivy", kresli: vrstvaPrstenecZivy, klic: (st) => (st.zivy ? snimek(st) : -1) },
     { id: "prstenec", kresli: vrstvaPrstenec, klic: (st) => st.verze, tezka: true, pruhlednost: (st) => f(st.celist) },
-    { id: "lesk-prstence", kresli: vrstvaLeskPrstence, klic: (st) => (st.celist > 0.99 ? `${Math.round(st.lesk[0] * 2)},${Math.round(st.lesk[1] * 2)}` : -1) },
+    { id: "lesk-prstence", kresli: vrstvaLeskPrstence, klic: (st) => (st.celist > 0.99 ? 1 : -1), uzly: (st) => uzlyLesku(st.lesk) },
     { id: "zablesk", kresli: vrstvaZablesk, klic: (st) => (st.zablesk > 0.01 ? snimek(st) : -1) },
     { id: "oblacky", kresli: vrstvaOblacky, pohyb: (st) => ({ x: 0, y: 1.8 * Math.sin(st.t * 0.9 + 2), r: 0, ox: B0[0], oy: B0[1] }) },
     { id: "oblak-zadni", kresli: () => vPostave(oblakZadni(ID)), pohyb: pohybOblaku },
     { id: "telo", kresli: () => vPostave(strTelo(ID) + strZlato(ID)), tezka: true, pohyb },
-    { id: "lesk-tela", kresli: vrstvaLeskTela, klic: (st) => `${Math.round(st.lesk[0] * 2)},${Math.round((st.lesk[1] - st.fig.y) * 2)}`, pohyb },
+    { id: "lesk-tela", kresli: vrstvaLeskTela, klic: () => 1, uzly: (st) => uzlyLesku(leskTela(st)), pohyb },
     { id: "oblak-predni", kresli: () => vPostave(oblakPredni(ID)), tezka: true, pohyb: pohybOblaku },
     { id: "tvar", kresli: vrstvaTvar, klic: (st) => `${f(st.pohled[0])},${f(st.pohled[1])},${f(st.mrk)},${st.vyraz},${st.strana}`, pohyb },
     { id: "koncetiny", kresli: vrstvaKoncetiny, klic: (st) => (st.skok || st.soustr || st.radost ? snimek(st) : Math.floor(st.t * 15)), pohyb },

@@ -17,7 +17,7 @@
  * obletí Bublince klobouk a vrátí se dovnitř.
  */
 import {
-  f, rng, clamp, lerp, smooth, rad, pt, mrkani, jiskraD, kCili,
+  f, rng, clamp, lerp, smooth, rad, pt, mrkani, jiskraD, kCili, HUSTOTA,
   bubDefs, bubTelo, bubLesk, bubTvar, bubKlobouk, filmPruhy, filmSamo, ruckaB, ruckaDucha, plaminek, onibiDefs, krokOnibi,
 } from "./spolecne.js";
 
@@ -257,8 +257,8 @@ const krok = (dyn, t, dt, vstup) => {
   krokOnibi(dyn.onibi[1], [B0[0] - 47 + 4 * Math.sin(t * 0.9), B0[1] + fig.y * 0.6 - 10 + 4 * Math.sin(t * 1.3)], dt, { tuhost: 12, tlumeni: 5 });
   /* letí se doprava, ocásek jí vlaje dozadu */
   dyn.onibi[1].smer = Math.PI + 0.22 * Math.sin(t * 2.1);
-  /* bublinky v brázdě */
-  dyn.akum += dt * 4.2;
+  /* bublinky v brázdě (na telefonu poloviční) */
+  dyn.akum += dt * 4.2 * HUSTOTA;
   while (dyn.akum >= 1) {
     dyn.akum -= 1;
     novaBublina(dyn, R2, fig, t);

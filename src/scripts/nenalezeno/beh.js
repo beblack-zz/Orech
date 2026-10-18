@@ -8,6 +8,8 @@
  * jednou a prohlížeč si je drží jako hotový obraz; živé se přepisují,
  * jen když se jim změní klíč. Vrstvy s `pohyb` (střep, obláček, tvář) se
  * nepřekreslují, když se jen hýbou — dostanou CSS transformaci. Vrstvy
+ * s `uzly` (odlesk na zlatě) mezi změnami klíče mění jen atributy prvků
+ * s data-u (jako u Hlínky). Vrstvy
  * s `tma` v noci ztmavnou (proměnná --nn-tma na ploše, styl v nenalezeno.css).
  *
  * Obloha: scéna vrací hodinu a běh ji zapisuje do data-hodina své sekce —
@@ -236,7 +238,7 @@ const scena = (el) => {
       svg.style.transformOrigin = `${((p.ox / W) * 100).toFixed(3)}% ${((p.oy / H) * 100).toFixed(3)}%`;
     }
     el.appendChild(svg);
-    return { v, svg, klic: undefined, nakresleno: false, tr: "", op: "" };
+    return { v, svg, klic: undefined, nakresleno: false, tr: "", op: "", uzly: null, posledni: [] };
   });
   /* co Střípek říká — bublina jako u kami na Partě 2 */
   const bublina = document.createElement("p");
@@ -250,6 +252,8 @@ const scena = (el) => {
   let dyn = V.novaDynamika();
   let t = 0, posledniCas = null, viditelna = false, zastaveno = false, aktivniDo = 0, mysPred = null;
   let rec = "", hodina = dyn.hodina, tma = 0;
+  /* smyčka běží, jen když je scéna vidět a má co dělat (bezi = je naplánovaný snímek) */
+  let bezi = false;
 
   const vykresli = () => {
     const st = V.stav(t, vstup, dyn);
@@ -260,6 +264,25 @@ const scena = (el) => {
         L.svg.innerHTML = obsahVrstvy(v, st);
         L.klic = k;
         L.nakresleno = true;
+        L.uzly = null;
+        L.posledni = [];
+      } else if (v.uzly) {
+        /* jen atributy prvků s data-u (poloha odlesku), zbytek vrstvy zůstává */
+        if (!L.uzly) {
+          L.uzly = [];
+          for (const u of L.svg.querySelectorAll("[data-u]")) L.uzly[Number(u.getAttribute("data-u"))] = u;
+        }
+        const atr = v.uzly(st);
+        for (let i = 0; i < atr.length; i++) {
+          const uzel = L.uzly[i];
+          if (!uzel || !atr[i]) continue;
+          const pred = L.posledni[i] || (L.posledni[i] = {});
+          for (const a in atr[i]) {
+            if (pred[a] === atr[i][a]) continue;
+            uzel.setAttribute(a, atr[i][a]);
+            pred[a] = atr[i][a];
+          }
+        }
       }
       if (v.pohyb) {
         const p = v.pohyb(st);
@@ -309,19 +332,26 @@ const scena = (el) => {
     /* zprávy pro stránku: nn:rozbito, nn:slepeno (kolikrát už) */
     for (const u of dyn.udalosti.splice(0)) el.dispatchEvent(new CustomEvent(`nn:${u.druh}`, { detail: u, bubbles: true }));
   };
+  /* Při omezeném pohybu scéna stojí, když jí došlo bdění — smyčka pak nečeká
+     na další snímek naprázdno, rozjede ji až rozbehni(). */
+  const spi = () => klidne && t >= aktivniDo;
   const smycka = (ted) => {
-    if (!viditelna || zastaveno) {
+    if (!viditelna || zastaveno || spi()) {
       posledniCas = null;
+      bezi = false;
       return;
     }
     const dt = posledniCas == null ? 0 : Math.min(0.05, (ted - posledniCas) / 1000);
     posledniCas = ted;
-    if (!klidne || t < aktivniDo) {
-      t += dt;
-      vstup.rychlost *= Math.exp(-dt / 0.15);
-      V.krok(dyn, t, dt, vstup);
-      vykresli();
-    }
+    t += dt;
+    vstup.rychlost *= Math.exp(-dt / 0.15);
+    V.krok(dyn, t, dt, vstup);
+    vykresli();
+    requestAnimationFrame(smycka);
+  };
+  const rozbehni = () => {
+    if (bezi || !viditelna || zastaveno || spi()) return;
+    bezi = true;
     requestAnimationFrame(smycka);
   };
 
@@ -341,6 +371,7 @@ const scena = (el) => {
     mysPred = { ...p, cas: ted };
     vstup.mys = p;
     aktivniDo = Math.max(aktivniDo, t + 1.5);
+    rozbehni();
   });
   el.addEventListener("pointerleave", () => {
     vstup.mys = null;
@@ -350,6 +381,7 @@ const scena = (el) => {
     Zvuk.odemkni();
     vstup.kliky.push(naJednotky(e));
     aktivniDo = t + 12;
+    rozbehni();
   });
   el.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" && e.key !== " ") return;
@@ -357,14 +389,14 @@ const scena = (el) => {
     Zvuk.odemkni();
     vstup.kliky.push({ x: W / 2, y: H * 0.42 });
     aktivniDo = t + 12;
+    rozbehni();
   });
 
   const io = new IntersectionObserver(
     (z) => {
-      const byla = viditelna;
       viditelna = z[0].isIntersecting;
       if (!viditelna) Zvuk.nastav({});
-      if (viditelna && !byla) requestAnimationFrame(smycka);
+      if (viditelna) rozbehni();
     },
     { threshold: 0.08 },
   );

@@ -6,13 +6,19 @@
  * hroudy po vypálený kus (kresba/regal.ts). Štítky pod kusy vedou na
  * kapitoly druhé části. Na regálu spí Hlínka (začátek) a na konci stojí
  * Vázička, nejstarší kus v dílně.
+ *
+ * Regál je ve stránce jen paprsek, prach a jiskra (hýbou se), zbytek je
+ * soubor v <image> (pages/kresby/_dilna.ts); dilna.astro ho stahuje hned
+ * s hlavičkou, je na první obrazovce.
  */
 import Kami from "../parta2/Kami.astro";
-import { regalSvg, KUSY, stitek, MISTA_REGAL, REGAL_W, REGAL_H } from "./kresba/regal";
+import { KUSY, stitek, MISTA_REGAL, REGAL_W, REGAL_H } from "./kresba/regal";
 import { mista } from "./misto";
 import { kdy, celkem, kapitoly } from "../../data/dilna";
+import { dilna } from "../../pages/kresby/_dilna";
 
 const m = mista(REGAL_W, REGAL_H);
+const K = dilna().kresby;
 const kapitola = (kam: string) => kapitoly.find((k) => `#${k.id}` === kam)?.nazev ?? "";
 ---
 <section class="d-uvod" id="dilna-uvod" data-hodina="9" aria-labelledby="d-nadpis">
@@ -40,7 +46,7 @@ const kapitola = (kam: string) => kapitoly.find((k) => `#${k.id}` === kam)?.naze
 
     <figure class="d-uvod-scena">
       <div class="d-okno">
-        <div class="d-regal" set:html={regalSvg()} />
+        <div class="d-regal" set:html={K.regal} />
         {KUSY.map((k) => {
           const s = stitek(k);
           return (

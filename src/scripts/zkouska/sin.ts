@@ -10,6 +10,11 @@
  * Titul se ukládá přes scripts/parta2/mistr.ts — od té chvíle oslovuje
  * parta mistra po celém webu. Známky na listu jsou ty nejlepší, jaké kdy
  * byly; když se úroveň potom zlepší, list se přepíše sám.
+ *
+ * Obrázek listu ke stažení (list-obrazek.ts) se stáhne, až na něj někdo
+ * klepne. Síň je skrytá (.je-nachystana v zkouska.css), dokud ji tenhle
+ * skript nenastaví — skript se stahuje až po otevření dveří a výchozí
+ * HTML by na okamžik ukázalo zamčenou krabici i mistrovi.
  */
 import { urovne, znamky, osloveni, poradiZnamky } from "../../data/mistr";
 import type { OsloveniId, UrovenId, Znamka } from "../../data/mistr";
@@ -17,11 +22,12 @@ import { klid } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
 import { mistr, ulozMistra } from "../parta2/mistr";
 import type { Mistr } from "../parta2/mistr";
+import { castic } from "../parta2/kvalita";
+import { zaStranku } from "../parta2/prechody";
 import { kusSvg } from "../../components/dilna/kus";
 import { pecetSvg, vychoziPecet, stylyPeceti, tvaryPeceti } from "../../components/zkouska/pecet";
 import { nactiPostup, zaznam, jeMistrem, proslych, nactiPecet, nactiJmeno, ulozJmeno, ZMENA } from "./postup";
 import { datumCesky, datumJaponsky, rokJaponsky } from "./datum";
-import { stahniList } from "./list-obrazek";
 import { ZAVRENO } from "./uroven";
 
 /** Nejlepší známky: co je na listu, nebo lepší z postupu */
@@ -38,7 +44,8 @@ function nejlepsiZnamky(m: Mistr | null) {
 function oslava() {
   const vrstva = document.createElement("div");
   vrstva.className = "oslava";
-  for (let i = 0; i < 70; i++) {
+  /* Na telefonu polovina plátků */
+  for (let i = 0, n = castic(70); i < n; i++) {
     const p = document.createElement("span");
     p.className = "oslava-platek";
     p.style.left = `${Math.random() * 100}%`;
@@ -169,7 +176,7 @@ export function initSin() {
     stahuje.textContent = "Kreslím list…";
     const kus = m.kus ?? zaznam("tvar")?.kus;
     const partaSvg = [...listEl.querySelectorAll<SVGSVGElement>(".mls-parta svg")].map((s) => new XMLSerializer().serializeToString(s));
-    stahniList({
+    const data = {
       jmeno: m.jmeno,
       osloveni: m.osloveni,
       kdy: m.kdy,
@@ -177,12 +184,18 @@ export function initSin() {
       pecet: pecetHrace(m.jmeno),
       kusSvg: kus ? kusSvg(kus, "hotovy", { id: "mlo-kus", sirka: 240, vyska: 240 }) : undefined,
       partaSvg,
-    })
-      .then(() => (stahuje.textContent = "Hotovo — list je ve stažených souborech."))
-      .catch(() => (stahuje.textContent = "Obrázek se nepovedl. Zkus Vytisknout — tisk jde uložit i jako PDF."));
+    };
+    /* Kreslení na plátno je samostatný kus skriptu — stáhne se až teď */
+    import("./list-obrazek")
+      .then((x) => x.stahniList(data))
+      .then(
+        zaStranku(() => (stahuje.textContent = "Hotovo — list je ve stažených souborech.")),
+        zaStranku(() => (stahuje.textContent = "Obrázek se nepovedl. Zkus Vytisknout — tisk jde uložit i jako PDF.")),
+      );
   });
 
   document.addEventListener(ZMENA, ukaz);
   document.addEventListener(ZAVRENO, ukaz);
   ukaz();
+  sin.classList.add("je-nachystana");
 }

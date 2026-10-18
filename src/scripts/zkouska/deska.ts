@@ -6,6 +6,10 @@
  * Deska si pamatuje, co naposledy ukazovala. Když se okno úrovně zavře,
  * porovná to s postupem: nové razítko na políčko dopadne, kami se přidá
  * na cestu, figurka doskáče na další políčko a při povýšení se otočí.
+ *
+ * Skript desky se stahuje až po otevření dveří (vnitrek.ts), a tak je
+ * deska skrytá (.je-nachystana v zkouska.css), dokud ji nenastaví —
+ * výchozí HTML by na okamžik ukázalo odemčená políčka a figurku v rohu.
  */
 import { urovne, znamky, stupne, stupenPodlePoctu } from "../../data/mistr";
 import type { UrovenId } from "../../data/mistr";
@@ -193,6 +197,7 @@ export function initDeska() {
 
   /* Cedulka schovaná ve střeše síně — hra na hledání kami */
   deska.querySelectorAll<HTMLElement>("[data-skryty]").forEach(schovej);
+  deska.classList.add("je-nachystana");
 
   /* Na stránku se dá přijít i odkazem na úroveň: /zkouska#hrouda */
   const kotva = location.hash.slice(1) as UrovenId;

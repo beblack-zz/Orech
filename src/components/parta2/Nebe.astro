@@ -5,19 +5,23 @@
  * nastavuje scripts/parta2/nebe.ts podle denní doby právě viditelného
  * stanoviště. Výchozí hodnoty v parta2.css odpovídají svítání, takže
  * se nic nepřebarví, ani když se skript nenačte.
+ *
+ * Telefon má oblohu lehčí (parta2.css, Lehčí telefon): z mraků zůstanou
+ * tři větší (`navic` jsou dva nejmenší), bliká jen každá druhá blikající
+ * hvězda (hvezda-blik-2 ne) a světlušek je polovina.
  */
 import { chomac, body } from "./tvary";
 
 const hvezdy = body(150, 7, 1600, 620);
 const svetlusky = body(30, 31);
 
-/** Mraky: výška na obloze, velikost, doba přeletu a kde v ní jsou při načtení. */
+/** Mraky: výška na obloze, velikost, doba přeletu, kde v ní jsou při načtení a jestli je na telefonu navíc. */
 const mraky = [
   { y: 9, s: 1.15, doba: 300, start: 0.15, seed: 3 },
   { y: 22, s: 0.7, doba: 240, start: 0.55, seed: 11 },
-  { y: 5, s: 0.55, doba: 360, start: 0.8, seed: 19 },
+  { y: 5, s: 0.55, doba: 360, start: 0.8, seed: 19, navic: true },
   { y: 31, s: 0.9, doba: 280, start: 0.35, seed: 27 },
-  { y: 16, s: 0.45, doba: 420, start: 0.95, seed: 41 },
+  { y: 16, s: 0.45, doba: 420, start: 0.95, seed: 41, navic: true },
 ];
 
 const mrak = (seed: number) => ({
@@ -37,7 +41,7 @@ const mrak = (seed: number) => ({
   <svg class="nebe-hvezdy" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMin slice">
     {hvezdy.map((h, i) => (
       <circle
-        class={i % 7 === 0 ? "hvezda-blik" : undefined}
+        class={i % 14 === 7 ? "hvezda-blik hvezda-blik-2" : i % 7 === 0 ? "hvezda-blik" : undefined}
         cx={h.x}
         cy={h.y}
         r={0.6 + h.s * 1.5}
@@ -65,7 +69,7 @@ const mrak = (seed: number) => ({
       const t = mrak(m.seed);
       return (
         <div
-          class="mrak"
+          class={m.navic ? "mrak mrak-navic" : "mrak"}
           style={`--y:${m.y}%;--s:${m.s};--doba:${m.doba}s;--zpozdeni:${(-m.start * m.doba).toFixed(1)}s`}
         >
           <svg viewBox="0 0 600 260">

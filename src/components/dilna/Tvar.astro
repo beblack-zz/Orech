@@ -4,22 +4,32 @@
  * vedle textu a pod kapitolou šest snímků z kruhu: centrování,
  * otevření, vytažení, tvarování, odříznutí a obrábění druhý den.
  * Kreslí kresba/tvar.ts, popisky jsou z dilna.ts.
+ *
+ * Kresby jsou soubory (pages/kresby/_dilna.ts): dvě vinětky V ruce celé
+ * v <img>, u plátů zůstane ve stránce popisek, u snímků z kruhu šipky
+ * a stužka, které se hýbou.
  */
 import Kapitola from "./Kapitola.astro";
 import { kapitoly, naKruhu, vRuce } from "../../data/dilna";
-import { kruhKrok, vRuce as vRuceSvg } from "./kresba/tvar";
 import { odloz } from "../../scripts/parta2/pozdeji";
+import { dilna } from "../../pages/kresby/_dilna";
 
 const k = kapitoly.find((x) => x.id === "tvar")!;
-const kroky = naKruhu.map((x, i) => ({ ...x, svg: kruhKrok(i as 0 | 1 | 2 | 3 | 4 | 5) }));
+const K = dilna().kresby;
+const ruce = vRuce.map((v) => ({ ...v, ...K.vRuce[v.id] }));
+const kroky = naKruhu.map((x, i) => ({ ...x, svg: K.kruh[i] }));
 ---
 <Kapitola kapitola={k} strana="vlevo" trida="d-kap-tvar">
   <figure class="d-obraz d-vruce">
     <p class="d-obraz-nadpis"><span lang="ja">手びねり</span> V ruce</p>
     <ul class="d-vruce-seznam">
-      {vRuce.map((v) => (
+      {ruce.map((v) => (
         <li>
-          <span class="d-kresba" set:html={odloz(vRuceSvg(v.id))} />
+          {v.img ? (
+            <span class="d-kresba"><img src={v.img.src} width={v.img.sirka} height={v.img.vyska} alt="" loading="lazy" decoding="async" /></span>
+          ) : (
+            <span class="d-kresba" set:html={odloz(v.svg ?? "")} />
+          )}
           <b>{v.nazev}</b>
           <small>{v.text}</small>
         </li>

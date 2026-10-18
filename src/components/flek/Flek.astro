@@ -80,6 +80,7 @@ const kusy = ucinkujici.flatMap((u) =>
   .flek[data-stav="mizi"] { opacity: 0; scale: 0.12; pointer-events: none; transition: opacity 0.8s ease-in, scale 0.9s cubic-bezier(0.6, 0, 0.9, 0.4); }
 
   .flek-dech, .flek-plocha, .flek-tus { position: absolute; inset: 0; }
+  /* dýchá, jen když je na obrazovce — mimo ni dostane flek třídu mimo-obr (flek.ts) a parta2.css dech pozastaví */
   .flek-dech { animation: flek-dech 5.6s ease-in-out infinite; transition: opacity 0.5s 0.5s; }
   .flek-tus { width: 100%; height: 100%; overflow: visible; pointer-events: none; rotate: var(--flek-uhel, 0deg); transition: scale 0.45s cubic-bezier(0.3, 1.5, 0.5, 1); }
   @keyframes flek-dech {

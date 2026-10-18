@@ -8,9 +8,15 @@
  *
  * Kreslí se do pásu 1400 × 56 px a ořízne se zprava (slice), takže se
  * na užší bublině nic nedeformuje. Náhoda je pevná — pokaždé stejná obloha.
+ *
+ * Hlavička stojí a sekce stránky jí animace nezastaví, tak si to hlídá
+ * sama: hvězdy blikají jen v noci a ptáci mávají jen ve dne, a co leží za
+ * pravým koncem užší bubliny (za500, za1000), se na ní nehýbe vůbec.
  */
 const SIRKA = 1400;
 const VYSKA = 56;
+/** Na bublině užší než 500 / 1000 px už není vidět, co leží dál zleva (bublina je o 24 px užší než okno) */
+const daleko = (x: number) => (x > 1005 ? "hlava-nebe-za500 hlava-nebe-za1000" : x > 505 ? "hlava-nebe-za500" : "");
 
 let semeno = 17;
 const nahoda = () => ((semeno = (semeno * 16807) % 2147483647) / 2147483647);
@@ -77,7 +83,7 @@ const stop = (den: string, noc: string) => `--den:${den};--noc:${noc}`;
           cy={f(h.y)}
           r={h.r.toFixed(2)}
           opacity={h.o.toFixed(2)}
-          class={h.mrka ? "hlava-nebe-mrka" : undefined}
+          class={h.mrka ? `hlava-nebe-mrka ${daleko(h.x)}`.trim() : undefined}
           style={h.mrka ? `animation-delay: ${h.zpozdeni.toFixed(2)}s` : undefined}
         />
       ))}
@@ -85,7 +91,7 @@ const stop = (den: string, noc: string) => `--den:${den};--noc:${noc}`;
     <g class="hlava-nebe-den" fill="none" stroke="#8A7C70" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
       {ptaci.map((p) => (
         <g transform={`translate(${f(p.x)} ${f(p.y)}) scale(${p.s.toFixed(2)})`}>
-          <path class="hlava-nebe-ptak" d="M-4 0 Q-2 -2.2 0 0 Q2 -2.2 4 0" style={`animation-delay: ${p.zpozdeni.toFixed(2)}s`} />
+          <path class={`hlava-nebe-ptak ${daleko(p.x)}`.trim()} d="M-4 0 Q-2 -2.2 0 0 Q2 -2.2 4 0" style={`animation-delay: ${p.zpozdeni.toFixed(2)}s`} />
         </g>
       ))}
     </g>
@@ -151,6 +157,22 @@ const stop = (den: string, noc: string) => `--den:${den};--noc:${noc}`;
   @keyframes hlava-nebe-mava {
     50% {
       d: path("M-4 -1.2 Q-2 0.6 0 0 Q2 0.6 4 -1.2");
+    }
+  }
+  /* Co zrovna není vidět, nebliká ani nemává: hvězdy ve dne, ptáci v noci */
+  :global(.hlava:not(.je-noc)) .hlava-nebe-mrka,
+  :global(.hlava.je-noc) .hlava-nebe-ptak {
+    animation-play-state: paused;
+  }
+  /* Za pravým koncem užší bubliny se nic nehýbe — stejně je to oříznuté */
+  @media (max-width: 524px) {
+    .hlava-nebe-za500 {
+      animation: none;
+    }
+  }
+  @media (max-width: 1024px) {
+    .hlava-nebe-za1000 {
+      animation: none;
     }
   }
   @media (prefers-reduced-motion: reduce) {

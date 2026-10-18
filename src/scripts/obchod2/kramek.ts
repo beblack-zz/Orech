@@ -27,6 +27,8 @@ export function kramek(satek: Satek) {
     if (!sablona) return;
     obsah.replaceChildren(sablona.content.cloneNode(true));
     obsah.dataset.kus = ids[i];
+    /* Každá šablona má nadpis s vlastním id (DetailKusu.astro) — dialog se jmenuje podle toho, který je vidět */
+    dialog.setAttribute("aria-labelledby", `o2k-detail-nazev-${ids[i]}`);
     if (poradi) poradi.textContent = `${i + 1} / ${ids.length}`;
     satek.obnovTlacitka();
   };

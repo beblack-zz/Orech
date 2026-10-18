@@ -10,12 +10,15 @@
  *
  * Kresby jsou SVG s pevným viewBoxem roztažené na šířku; postavičky
  * a štítky nad nimi mají místa v procentech (components/dilna/misto.ts).
+ * Statické kresby jsou soubory v <img> (pages/kresby/_dilna.ts) — rozměr
+ * mají stejný jako <svg>, poměr stran z atributů width a height.
  */
 
 /* ——— Společné ——— */
 
 .d-kresba,
-.d-kresba > svg { display: block; width: 100%; height: auto; }
+.d-kresba > svg,
+.d-kresba > img { display: block; width: 100%; height: auto; }
 .d-kami-nad { position: absolute; z-index: 3; }
 .d-mezititulek {
   margin: 20px 0 10px;

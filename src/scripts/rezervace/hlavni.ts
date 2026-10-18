@@ -40,7 +40,7 @@
  * Celé se to spustí při každé návštěvě stránky, i po přechodu bez
  * načtení (parta2/prechody.ts) — proto je import přechodů první.
  */
-import { stranka } from "../parta2/prechody";
+import { stranka, zaStranku } from "../parta2/prechody";
 import { spust, vyzadej, klid } from "../parta2/stav";
 import { initNebe } from "../parta2/nebe";
 import { hlavicka } from "../parta2/hlavicka";
@@ -894,15 +894,24 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   nebeVychozi();
 }
 
-/** Stránka se rozběhne hned; pokladna a tabule až s kalendářem — skutečným, nebo ukázkou */
-async function start() {
+/**
+ * Stránka se rozběhne hned; pokladna a tabule až s kalendářem — skutečným,
+ * nebo ukázkou. Pokračování po načtení je obalené zaStranku: hodiny tabule,
+ * observery a posluchače z init() tak patří stránce a po přechodu jinam se
+ * uklidí (jinak by hodiny tikaly dál i na jiných stránkách a s každou
+ * návštěvou Rezervace by přibyly další).
+ */
+function start() {
   const koren = document.querySelector<HTMLElement>("[data-rezervace]");
   if (!koren) return;
   const dnes = new Date();
   dnes.setHours(0, 0, 0, 0);
-  const kal = await nactiKalendar(dnes);
-  /* Mezitím se mohlo odejít jinam */
-  if (koren.isConnected) init(koren, dnes, kal);
+  void nactiKalendar(dnes).then(
+    zaStranku((kal: Kalendar) => {
+      /* Mezitím se mohlo odejít jinam */
+      if (koren.isConnected) init(koren, dnes, kal);
+    }),
+  );
 }
 
 stranka("rezervace", () => {
@@ -915,6 +924,6 @@ stranka("rezervace", () => {
   document.querySelectorAll<HTMLElement>(".rz-darky [data-skryty]").forEach(schovej);
   /* Dárkové jízdenky na kalendáři nezávisí — jedou hned */
   initDarky();
-  void start();
+  start();
   spust();
 });

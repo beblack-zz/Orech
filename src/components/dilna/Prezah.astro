@@ -3,21 +3,26 @@
  * 四 Přežah — pec v řezu při prvním výpalu (kresba/pec.ts): suché kusy
  * naskládané úsporně, smějí se dotýkat i stát v sobě. Na spodní polici
  * leží Šamotka a drží všechno ostatní.
+ *
+ * Ve stránce zůstanou jen mihotavé spirály, zbytek pece jsou soubory
+ * v <image> (pages/kresby/_dilna.ts).
  */
 import Kapitola from "./Kapitola.astro";
 import Kami from "../parta2/Kami.astro";
 import { kapitoly } from "../../data/dilna";
-import { pecRez, MISTA_PEC } from "./kresba/pec";
+import { MISTA_PEC } from "./kresba/pec";
 import { mista } from "./misto";
 import { odloz } from "../../scripts/parta2/pozdeji";
+import { dilna } from "../../pages/kresby/_dilna";
 
 const k = kapitoly.find((x) => x.id === "prezah")!;
 const m = mista(800, 760);
+const { prezah } = dilna().kresby;
 ---
 <Kapitola kapitola={k} strana="vlevo" trida="d-kap-prezah">
   <figure class="d-obraz d-pec">
     <div class="d-obraz-kresba">
-      <div class="d-kresba" set:html={odloz(pecRez("prezah"))} />
+      <div class="d-kresba" set:html={odloz(prezah)} />
       <Kami id="samotka" class="d-kami-nad" style={m.kami(MISTA_PEC.samotka)} />
     </div>
     <figcaption>Pec v řezu při přežahu: šamotové police na sloupcích, spirály ve vyzdívce a kusy, které se smějí dotýkat.</figcaption>

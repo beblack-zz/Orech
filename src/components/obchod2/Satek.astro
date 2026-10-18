@@ -9,14 +9,16 @@
  *
  * Obsah šátku si pamatuje prohlížeč (scripts/obchod2/satek.ts). Seznam
  * zboží pro skript je v JSON níže, obrázky kusů v <template>: fotka,
- * nebo balík v novinách, dokud kus fotku nemá.
+ * nebo balík v novinách, dokud kus fotku nemá (s vlastní předponou id
+ * o2i-zab, ať si klon na účtence nepůjčí ořez a stín z krámku).
  *
  * Šátek je skutečná látka ve 3D (scripts/obchod2/satek3d/, WebGL2 na
  * <canvas>): prázdný leží složený do trojúhelníku, s prvním kusem se
  * rozloží, kusy na něj dopadají jako balíky v novinách s visačkou (fotka
  * z `naVisacku`, číslo jako na účtence) a myší jde látku chytit a zvednout;
  * „Zavázat“ je otsukai-tsutsumi s uzlem ma-musubi. SVG kresba pod plátnem
- * zůstává jako náhrada, kde WebGL2 není, a drží místo v rozvržení.
+ * zůstává jako náhrada, kde WebGL2 není (a než se látka stáhne — stahuje
+ * se, až se šátek blíží), a drží místo v rozvržení.
  *
  * Plovoucí tlačítko šátku vpravo dole se ukáže, jen když Vázička nenese
  * uzlík sama (je schovaná do čárky) — jinak by se s ní v rohu překrývalo.
@@ -201,7 +203,7 @@ const roh = {
           <image href={nahledy.get(k.id)} x="4" y="4" width="72" height="72" preserveAspectRatio="xMidYMid slice" clip-path={`url(#o2-ikona-orez-${i})`} />
         </svg>
       ) : (
-        <svg data-ikona={k.id} viewBox="0 0 200 200"><Zabaleno tvar={k.tvar ?? "bowl"} seme={i + 1} slama={false} /></svg>
+        <svg data-ikona={k.id} viewBox="0 0 200 200"><Zabaleno tvar={k.tvar ?? "bowl"} seme={i + 1} slama={false} predpona="o2i-zab" /></svg>
       ),
     )}
   </template>

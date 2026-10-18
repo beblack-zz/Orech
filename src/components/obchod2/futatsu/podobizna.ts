@@ -23,7 +23,7 @@
  * PODOBIZNA.pata pro každé natočení i nadhled. Čisté funkce bez DOM —
  * běží při buildu i v prohlížeči (otáčení tahem: scripts/obchod2/futatsu-otoc.ts).
  */
-import { Rout, NUBS, hull, rayR, TAHY, TECKY, LOUZE, rng, rad, r2 } from "./kresba";
+import { Rout, NUBS, hull, rayR, TAHY, TECKY, LOUZE, rng, rad, r2 } from "./tvar";
 
 type Bod = [number, number];
 type Bod3 = [number, number, number];

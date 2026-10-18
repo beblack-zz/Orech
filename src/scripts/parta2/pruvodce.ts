@@ -80,7 +80,15 @@
  * Odkaz s pečetí má u velkého jen malý okraj, ať tlačítko s ní nepřekrývá víc
  * než malý.
  *
- * Spouští ji hlavicka.ts na každé stránce s hlavičkou nového vzhledu.
+ * Spouští ji hlavicka.ts na každé stránce s hlavičkou nového vzhledu. S kresbou
+ * je to největší kus skriptu, tak ho hlavička při prvním načtení stránky stahuje
+ * až v klidu po prvním vykreslení; při přechodu bez načtení už je v paměti.
+ *
+ * Smyčka jede každý snímek, dokud se něco hýbe — doma se pořád zlehka vlní.
+ * Spí jen tehdy, když se hýbat nic nemůže: schovaná do čárky (kresba je
+ * průhledná a po zmizení stojí, beh.js `stuj`), nebo s omezeným pohybem doma,
+ * když se nic nemění. Pak čtyřikrát za vteřinu jen dohlédne na noc, čekající
+ * věty a odpočty; probudí ji, co host udělá, šátek a návrat z čárky.
  */
 import { rekni, dobaPsani } from "./kami";
 import { samisen, dozvuk } from "./pruvodce-hlas";
@@ -89,7 +97,7 @@ import { NALEZEN } from "./sber";
 import { MISTR_ZMENA } from "./mistr";
 import { zjisti, vypln, vyplnRepliku, radaPro, coVimPolozky, coVimTitul } from "./pruvodce-host";
 import type { Host } from "./pruvodce-host";
-import { spustVse, zahraj } from "../vazicka-gejsa/beh.js";
+import { spustVse, zahraj, odemkni } from "../vazicka-gejsa/beh.js";
 import { toraTora } from "./ozashiki";
 import { nacti } from "./stav";
 import { pocetKusu } from "../../data/pocty";
@@ -107,6 +115,8 @@ interface Akce { delka: number; krok: (q: number) => void; start?: () => void }
 type Scena = {
   /** Překreslí kresbu od čisté simulace a `bdi` s ji nechá běžet — s omezeným pohybem jinak stojí na jednom snímku (beh.js) */
   znovu?: (bdi?: number) => number;
+  /** Zastaví kresbu na místě (a její smyčka usne), nebo ji zase rozběhne — schovaná do čárky se nekreslí (beh.js) */
+  stuj?: (ano: boolean) => void;
   stav: () => {
     /** `satekBod` je střed uzlíku a jeho poloměr v rámečku 180 × 180 */
     dyn: { otoc?: number; satekBod?: [number, number, number] | null };
@@ -397,6 +407,9 @@ export function pruvodce() {
 
   document.body.append(O, tlacitko, zmensit, carka, satekOdkaz, nabidka, kulicky, hlas);
   spustVse();
+  /* Kresba se při prvním načtení stahuje až po vykreslení — gesto, které přišlo dřív, jí zvuk
+     neodemklo; odemkne se hned (jako u líných scén v lina-scena.ts), jinak až dalším gestem */
+  if (navigator.userActivation?.hasBeenActive) odemkni();
 
   /* Po každé radě se zatočí a vymění si květy za další měsíc — umí to sama na klepnutí (beh.js, kami-kvety.js), tak se jí klepnutí jen pošle.
      S velkým uzlíkem v ruce se netočí — je na to moc těžký */
@@ -846,6 +859,8 @@ export function pruvodce() {
     const sc = scena();
     if (ano && satekOdkaz.hidden) umistiSatek(sc?.stav().dyn.satekBod ?? undefined);
     satekOdkaz.hidden = !ano;
+    /* s uzlíkem sedí doma jinde — smyčka, kdyby spala, se probudí a posune ji */
+    probud();
     const klic = ano ? `${druh},${satek.vzor},${Math.min(satek.pocet, druh === "velky" ? 7 : 5)}` : "";
     if (klic === kreslenyUzlik || !sc) return;
     kreslenyUzlik = klic;
@@ -971,6 +986,10 @@ export function pruvodce() {
       enso = window.setInterval(protoc, ENSO_KAZDYCH);
       /* poprvé hned, ať je vidět, kam se schovala */
       if (!hned) window.setTimeout(protoc, 600);
+      /* až kresba dozmizí (0,5 s v parta2.css), přestane se kreslit — průhledná by se překreslovala naprázdno */
+      window.setTimeout(() => {
+        if (schovana) scena()?.stuj?.(true);
+      }, hned || klidne ? 0 : 600);
     };
     if (hned || klidne) return dorekni();
     rekniTu(hlasky.schovat);
@@ -982,6 +1001,7 @@ export function pruvodce() {
     window.clearInterval(enso);
     carka.hidden = true;
     carka.classList.remove("toci");
+    scena()?.stuj?.(false);
     O.classList.remove("schovana");
     tlacitko.hidden = false;
     zmensit.hidden = false;
@@ -990,9 +1010,46 @@ export function pruvodce() {
     ohlasSchovani(false);
     rekniTu(hlasky.zpatky);
     tlacitko.focus({ preventScroll: true });
+    probud();
   };
   zmensit.addEventListener("click", () => schovej());
   carka.addEventListener("click", ukazSe);
+
+  /* ═══ Kdy smyčka spí ═══
+     Jede každý snímek, dokud se něco hýbe. Usne, jen když se hýbat nic nemůže — schovaná do čárky, nebo
+     s omezeným pohybem doma, když se `beze` snímků po sobě nic nepohnulo — a pak jde čtyřikrát za vteřinu:
+     dohlédne na noc, čekající věty a odpočty. Probudí ji, co host udělá (aktivita), šátek a návrat z čárky. */
+  /** Kolik snímků po sobě se doma nic nepohnulo — počítá vykresli (bez omezeného pohybu se pořád vlní) */
+  let beze = 0;
+  /** Čeká snímek (requestAnimationFrame), nebo pomalý krok spánku (časovač) */
+  let snimekCeka = false;
+  let tik = 0;
+  const smyckaSpi = () => !venku && !kotva && !akce && !fronta.length && !bublina && ((schovana && vCarce) || (klidne && beze > 30));
+  const planuj = () => {
+    if (smyckaSpi()) {
+      if (!snimekCeka && !tik) {
+        tik = window.setTimeout(() => {
+          tik = 0;
+          smycka(performance.now(), true);
+        }, 250);
+      }
+      return;
+    }
+    if (tik) {
+      window.clearTimeout(tik);
+      tik = 0;
+    }
+    if (snimekCeka) return;
+    snimekCeka = true;
+    requestAnimationFrame((t) => {
+      snimekCeka = false;
+      smycka(t);
+    });
+  };
+  function probud() {
+    beze = 0;
+    planuj();
+  }
 
   const naKlavesu = (e: KeyboardEvent) => {
     aktivita();
@@ -1053,9 +1110,10 @@ export function pruvodce() {
   const pohled = (vyraz: Vyraz) => {
     vyrazChvili = { vyraz, do: cas + 1.6 };
   };
-  /** Cokoli host udělá, je pohyb: vzbudí ji, a když spala, lekne se — poskočí, s velkým uzlíkem se propadne (kresba) — a poprvé to i řekne */
+  /** Cokoli host udělá, je pohyb: vzbudí ji (i spící smyčku), a když spala, lekne se — poskočí, s velkým uzlíkem se propadne (kresba) — a poprvé to i řekne */
   const aktivita = () => {
     posledniAktivita = performance.now();
+    probud();
     if (!spi) return;
     spi = false;
     vyrazChvili = { vyraz: "uzas", do: cas + 1.1 };
@@ -1129,6 +1187,8 @@ export function pruvodce() {
   /* ═══ Vykreslení ═══ */
   /** Jak hluboko se s velkým uzlíkem vlní rámeček (px): jen v letu — po vzletu i po přistání se to rozběhne a doběhne plynule, ať necukne */
   let vlnaVelkeho = 0;
+  /** Co je zapsané v transformacích rámečku a těla */
+  let psanoO = "", psanoT = "";
   const vykresli = (dt: number) => {
     /* kurzoru si všimne jen doma — ne v letu a ne schovaná do čárky */
     const s0 = naObrazovce();
@@ -1162,8 +1222,14 @@ export function pruvodce() {
     if (dt > 0) vlnaVelkeho = kCili(vlnaVelkeho, venku && tezky() ? 6.5 : 0, dt, 0.4);
     const vlna = klidne ? 0 : tezky() ? Math.sin(cas * 1.5) * vlnaVelkeho : Math.sin(cas * 2.3) * (venku ? 4 : 1.6);
     const x0 = s.x - B / 2, y0 = s.y - B / 2 + vlna - skok * 7;
-    O.style.transform = `translate3d(${x0.toFixed(1)}px, ${y0.toFixed(1)}px, 0)`;
-    T.style.transform = `rotate(${vid.naklon.toFixed(2)}deg) scale(${poz.m.toFixed(3)})`;
+    const trO = `translate3d(${x0.toFixed(1)}px, ${y0.toFixed(1)}px, 0)`;
+    const trT = `rotate(${vid.naklon.toFixed(2)}deg) scale(${poz.m.toFixed(3)})`;
+    /* zapíše se jen změna; kolik snímků po sobě se nic nepohnulo, řekne smyčce, jestli smí usnout */
+    if (trO !== psanoO || trT !== psanoT) {
+      O.style.transform = psanoO = trO;
+      T.style.transform = psanoT = trT;
+      beze = 0;
+    } else beze++;
     ram.x0 = x0;
     ram.y0 = y0;
     posunRoh();
@@ -1319,11 +1385,13 @@ export function pruvodce() {
     akce = null;
   }
 
-  /* ═══ Smyčka — skončí, když stránka odejde (přechod bez načtení ji vymění) ═══ */
+  /* ═══ Smyčka — skončí, když stránka odejde (přechod bez načtení ji vymění); kdy spí, řídí planuj ═══ */
   let minule: number | null = null;
-  const smycka = (ted: number) => {
+  /** `pomalu` = pomalý krok spánku: čas běží dál po větších kusech, ať odpočty sedí */
+  const smycka = (ted: number, pomalu = false) => {
     if (!O.isConnected) {
       window.clearInterval(enso);
+      window.clearTimeout(tik);
       document.removeEventListener("keydown", naKlavesu);
       document.removeEventListener("pointerdown", naKlik);
       window.removeEventListener("resize", naZmenu);
@@ -1341,32 +1409,36 @@ export function pruvodce() {
       pozorovatel?.disconnect();
       return;
     }
-    requestAnimationFrame(smycka);
-    const dt = minule == null ? 0 : Math.min(0.05, (ted - minule) / 1000);
-    minule = ted;
-    cas += dt;
-    if (!akce && fronta.length) {
-      akce = fronta.shift() ?? null;
-      akceCas = 0;
-      akce?.start?.();
+    try {
+      const dt = minule == null ? 0 : Math.min(pomalu ? 0.3 : 0.05, (ted - minule) / 1000);
+      minule = ted;
+      cas += dt;
+      if (!akce && fronta.length) {
+        akce = fronta.shift() ?? null;
+        akceCas = 0;
+        akce?.start?.();
+      }
+      if (akce) {
+        akceCas += dt;
+        const q = Math.min(1, akceCas / akce.delka);
+        akce.krok(q);
+        if (q >= 1) akce = null;
+      }
+      /* doma: když vezme nebo pustí uzlík, sedí o kus jinde — plynule se tam posune */
+      if (!venku && !kotva && !akce && !fronta.length) {
+        const d = doma();
+        poz.x = klidne || !dt ? d.x : kCili(poz.x, d.x, dt, 0.35);
+        poz.y = klidne || !dt ? d.y : kCili(poz.y, d.y, dt, 0.35);
+      }
+      zkusPromluvit(ted);
+      ticho(ted);
+      vykresli(dt);
+    } finally {
+      /* další snímek, nebo pomalý krok spánku — i kdyby se něco nepovedlo, smyčka jede dál */
+      planuj();
     }
-    if (akce) {
-      akceCas += dt;
-      const q = Math.min(1, akceCas / akce.delka);
-      akce.krok(q);
-      if (q >= 1) akce = null;
-    }
-    /* doma: když vezme nebo pustí uzlík, sedí o kus jinde — plynule se tam posune */
-    if (!venku && !kotva && !akce && !fronta.length) {
-      const d = doma();
-      poz.x = klidne || !dt ? d.x : kCili(poz.x, d.x, dt, 0.35);
-      poz.y = klidne || !dt ? d.y : kCili(poz.y, d.y, dt, 0.35);
-    }
-    zkusPromluvit(ted);
-    ticho(ted);
-    vykresli(dt);
   };
-  requestAnimationFrame(smycka);
+  planuj();
   /* Po změně velikosti okna se doma přesune do nového rohu */
   const naZmenu = () => {
     zmer();
@@ -1375,6 +1447,7 @@ export function pruvodce() {
       poz.x = predX = d.x;
       poz.y = predY = d.y;
     }
+    probud();
   };
   window.addEventListener("resize", naZmenu);
 }

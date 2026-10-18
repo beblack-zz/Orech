@@ -140,6 +140,24 @@
   .svitek-rada { width: 1340px; padding-left: 20px; padding-right: 20px; }
   .svitek-clen { scroll-snap-align: center; }
 }
+/*
+ * Telefon: stín svitku bez filtru. Drop-shadow na celém svitku by se kvůli
+ * živým postavičkám a ujíždějícímu pozadí počítal znovu v každém snímku;
+ * tady je to obyčejný box-shadow na pseudoprvku za papírem, který se
+ * nakreslí jednou. Na počítači zůstává filtr.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .svitek { filter: none; isolation: isolate; }
+  .svitek::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: 8px;
+    box-shadow: 0 30px 40px rgba(20, 14, 44, 0.42);
+    pointer-events: none;
+  }
+}
 
 /* ——— Obsazení: kdo je kdo ——— */
 

@@ -20,7 +20,16 @@
  *
  * Po ztrátě kontextu se všechno postaví znovu z toho, co si kreslení pamatuje
  * (vzor, sítě a textury balíků, poslední snímek).
+ *
+ * Rozlišení plátna: CSS px × poměr pixelů, nejvýš 2 a na telefonu 1,5
+ * (kvalita.ts dprPlatna). Úsporné kreslení (uspora: malá obrazovka nebo slabý
+ * procesor) má poloviční mapy, textury a méně vzorků stínu. Varianta k porovnání
+ * `lehka` (?satek=lehky): plátno v poměru 1, mapa stínů 512 a výšková 128,
+ * vzor 512 px, dvakrát (ne třikrát) hustší vykreslovací síť a 6/6/4 vzorků
+ * stínu a tmy v záhybech — stíny jsou měkčí a hrubší, kraje a vzor o kus
+ * méně ostré, záhyby v uzlu o chlup hranatější.
  */
+import { dprPlatna } from "../../parta2/kvalita";
 import { STRANA } from "./typy";
 import type { DataBaliku, Kresleni, Poloha, Sit, Snimek, StavUzlu, V3 } from "./typy";
 import { vzory } from "../../../data/furoshiki";
@@ -133,14 +142,14 @@ const hexLin = (h: string): V3 => [1, 3, 5].map((i) => lin(parseInt(h.slice(i, i
 
 /* ——— Sítě, které kreslení staví samo ——— */
 
-/** Vykreslovací síť látky: (3·(N−1)+1)² bodů v jednotkách mřížky; trojúhelníky proti směru hodin v (u, v) = líc vpředu */
-function sitLatky(n: number) {
-  const m = 3 * (n - 1) + 1;
+/** Vykreslovací síť látky: (h·(N−1)+1)² bodů v jednotkách mřížky (h = hustota, 3, v lehké variantě 2); trojúhelníky proti směru hodin v (u, v) = líc vpředu */
+function sitLatky(n: number, hustota: number) {
+  const m = hustota * (n - 1) + 1;
   const st = new Float32Array(m * m * 2);
   for (let j = 0; j < m; j++)
     for (let i = 0; i < m; i++) {
-      st[(j * m + i) * 2] = i / 3;
-      st[(j * m + i) * 2 + 1] = j / 3;
+      st[(j * m + i) * 2] = i / hustota;
+      st[(j * m + i) * 2 + 1] = j / hustota;
     }
   const idx = new Uint32Array((m - 1) * (m - 1) * 6);
   let t = 0;
@@ -158,9 +167,9 @@ function sitLatky(n: number) {
 }
 
 /** Lem: body na zaobleném obvodu látky (uv), směr ven (uv) a průřez (cos, sin) */
-function sitLemu(n: number) {
+function sitLemu(n: number, hustota: number) {
   const roh = 0.006 / STRANA;
-  const usek = 3 * (n - 1);
+  const usek = hustota * (n - 1);
   const oblouk = 6;
   const body: number[][] = [];
   const strana = (ax: number, ay: number, bx: number, by: number, ox: number, oy: number) => {
@@ -251,7 +260,7 @@ interface Zdroje {
 /** Jednotky textur: stejné pro všechny programy */
 const JEDNOTKA = { u_vzor: 0, u_krep: 1, u_body: 2, u_stinMapa: 3, u_stinHloubka: 4, u_vyskaMapa: 5, u_tex: 6 } as const;
 
-export function vytvorKresleni(platno: HTMLCanvasElement, volby: { n: number; uspora: boolean }): Kresleni | null {
+export function vytvorKresleni(platno: HTMLCanvasElement, volby: { n: number; uspora: boolean; lehka?: boolean }): Kresleni | null {
   const kontext = platno.getContext("webgl2", {
     alpha: true,
     premultipliedAlpha: true,
@@ -264,15 +273,18 @@ export function vytvorKresleni(platno: HTMLCanvasElement, volby: { n: number; us
   const gl: WebGL2RenderingContext = kontext;
   const N = volby.n;
   const uspora = volby.uspora;
-  const MAPA_STINU = uspora ? 1024 : 2048;
-  const MAPA_VYSKY = uspora ? 256 : 512;
-  const VZOR_PX = uspora ? 1024 : 2048;
-  const KREP_PX = uspora ? 256 : 512;
+  const lehka = !!volby.lehka;
+  const MAPA_STINU = lehka ? 512 : uspora ? 1024 : 2048;
+  const MAPA_VYSKY = lehka ? 128 : uspora ? 256 : 512;
+  const VZOR_PX = lehka ? 512 : uspora ? 1024 : 2048;
+  const KREP_PX = lehka ? 128 : uspora ? 256 : 512;
+  /** Kolikrát hustší je vykreslovací síť než body fyziky */
+  const HUSTOTA = lehka ? 2 : 3;
   const zdrojeShaderu = zdrojeProgramu({
     strana: STRANA,
-    stinHledani: uspora ? 8 : 12,
-    stinMekceni: uspora ? 10 : 16,
-    tmaVzorku: uspora ? 6 : 8,
+    stinHledani: lehka ? 6 : uspora ? 8 : 12,
+    stinMekceni: lehka ? 6 : uspora ? 10 : 16,
+    tmaVzorku: lehka ? 4 : uspora ? 6 : 8,
   });
 
   /* ——— Co si kreslení pamatuje i přes ztrátu kontextu ——— */
@@ -538,9 +550,9 @@ export function vytvorKresleni(platno: HTMLCanvasElement, volby: { n: number; us
     const body = textura();
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, N, N, 0, gl.RGBA, gl.FLOAT, null);
 
-    const sl = sitLatky(N);
+    const sl = sitLatky(N, HUSTOTA);
     const latka = vao([{ data: sl.st, velikosti: [2] }], sl.idx);
-    const sm = sitLemu(N);
+    const sm = sitLemu(N, HUSTOTA);
     const lem = vao([{ data: sm.data, velikosti: [2, 2, 2] }], sm.idx);
     const pult = vao([{ data: rohyPultu, velikosti: [2] }], new Uint16Array([0, 1, 2, 0, 2, 3]));
     let uzel: Vao | null = null;
@@ -835,7 +847,8 @@ export function vytvorKresleni(platno: HTMLCanvasElement, volby: { n: number; us
     if (r.width < 1 || r.height < 1) return;
     cssW = r.width;
     cssH = r.height;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    /* Na telefonu nejvýš 1,5 (kvalita.ts), v lehké variantě 1 */
+    const dpr = lehka ? dprPlatna(1) : dprPlatna();
     const w = Math.max(1, Math.round(cssW * dpr));
     const h = Math.max(1, Math.round(cssH * dpr));
     if (platno.width !== w || platno.height !== h) {

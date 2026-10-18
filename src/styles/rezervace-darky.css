@@ -489,6 +489,17 @@
   .rz-dar-fakta { font-size: 13.5px; }
 }
 
+/*
+ * Telefon: stín jízdenky bez filtru. Drop-shadow na kresbě by se kvůli
+ * hologramu a páře z vláčku počítal znovu v každém snímku — deska je
+ * zaoblený obdélník přes celou kresbu (rx 18 z 400 × 720), takže stejný
+ * stín udělá box-shadow na straně. Na počítači zůstává filtr.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .rzd-listek { filter: none; transition: none; }
+  .rzd-strana { border-radius: 4.5% / 2.5%; box-shadow: 0 18px 16px rgba(20, 12, 30, 0.26), 0 3px 3px rgba(20, 12, 30, 0.2); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rzd-otacec,
   .rzd-listek,

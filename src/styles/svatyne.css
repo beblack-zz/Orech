@@ -331,7 +331,31 @@
 .sv-listek.je-novy .sv-ustrizek { animation: sv-ustrizek 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.2) 1.5s both; }
 @keyframes sv-ustrizek { from { transform: translateY(-70%); opacity: 0; } to { transform: none; opacity: 1; } }
 
+/*
+ * Telefon: lehčí svatyně. Stín lístku bez filtru — drop-shadow by se kvůli
+ * hvězdám, plátkům a lesku uvnitř počítal znovu v každém snímku; tady je to
+ * box-shadow na pseudoprvku za lístkem, nakreslený jednou. Nový lístek ho
+ * dostane, až se rozvine a vyjede ústřižek. Světlušek u brány je polovina.
+ * Na počítači beze změny.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .sv-listek { filter: none; isolation: isolate; }
+  .sv-listek::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: 6px;
+    box-shadow: 0 26px 36px rgba(28, 20, 44, 0.32);
+    pointer-events: none;
+  }
+  .sv-listek.je-novy::after { animation: sv-stin 2.3s ease both; }
+  .sv-svetlusky span:nth-child(2n) { display: none; }
+}
+@keyframes sv-stin { 0%, 60% { opacity: 0; } to { opacity: 1; } }
+
 @media (prefers-reduced-motion: reduce) {
+  .sv-listek.je-novy::after { animation: none; }
   .sv-provaz, .sv-svetlo, .sv-kami svg, .sv-dvere-l, .sv-dvere-p, .sv-svetlusky { transition: none; }
   .sv-brana.je-otevreno .sv-kami, .sv-plamen, .sv-shide, .sv-zvonek, .sv-proud, .sv-kruh, .sv-paprsky, .sv-svetlusky span,
   .sv-stupen::before, .sv-stupen::after, .sv-sleva b, .sv-ustrizek-les .sv-lampionek, .sv-listek.je-novy *,

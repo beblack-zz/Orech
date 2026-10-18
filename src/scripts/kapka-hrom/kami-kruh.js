@@ -20,7 +20,7 @@
  * a nakonec všechno naráz.
  */
 import {
-  f, rng, clamp, lerp, smooth, rad, deg, pt, mrkani, kCili, vzorkuj, kapickaD, chomac,
+  f, rng, clamp, lerp, smooth, rad, deg, pt, mrkani, kCili, vzorkuj, kapickaD, chomac, HUSTOTA,
   KAP, RAMENA, SOUMRAK, kapDefs, kapTelo, kapGeta, kapNohy, kapTvar, kapRuka, naGeta, svih,
   bubenDefs, bubenSvg, znakBubnu, stuhaDefs, stuhaSvg, poCare, novyProvaz, krokProvazu, hodProvazem,
   mrakDefs, mrakZadni, mrakPredni, mrakSvit,
@@ -376,8 +376,8 @@ const krok = (dyn, t, dt, vstup) => {
   dyn.poryv *= Math.exp(-dt / 0.7);
   dyn.tempo *= Math.exp(-dt / 0.7);
   dyn.dup *= Math.exp(-dt / 0.12);
-  /* déšť zpod mraku */
-  dyn.akum += dt * (dyn.lije > 0.03 ? 5 + 30 * dyn.lije : 0);
+  /* déšť zpod mraku (na telefonu poloviční) */
+  dyn.akum += dt * HUSTOTA * (dyn.lije > 0.03 ? 5 + 30 * dyn.lije : 0);
   while (dyn.akum >= 1) {
     dyn.akum -= 1;
     const y0 = PATA[1] + 8.5 + R0() * 3 + bob;

@@ -4,19 +4,22 @@
  * za námi, na prkně stojí hotové kusy a jedno místo je volné: čárkovaný
  * obrys hrnku a pod ním štítek. Dole kontakt a cesta na Rezervaci.
  * Ráno je obloha světlá, proto je všechno na papíře.
+ *
+ * Police je statická — soubor v <img> (pages/kresby/_dilna.ts).
  */
-import { polickaSvg, VOLNE, POLICKA_W, POLICKA_H } from "./kresba/regal";
+import { VOLNE, POLICKA_W, POLICKA_H } from "./kresba/regal";
 import { mista } from "./misto";
 import { kontakt, mapa } from "../../data/uvod2";
 import { kdy } from "../../data/dilna";
-import { odloz } from "../../scripts/parta2/pozdeji";
+import { dilna } from "../../pages/kresby/_dilna";
 
 const m = mista(POLICKA_W, POLICKA_H);
+const { policka } = dilna().kresby;
 ---
 <section class="d-sekce d-zaver" id="kontakt" data-hodina="33" aria-labelledby="zaver-nadpis">
   <div class="d-zaver-papir papir">
     <div class="d-policka">
-      <div class="d-kresba" set:html={odloz(polickaSvg())} />
+      <div class="d-kresba"><img src={policka.src} width={policka.sirka} height={policka.vyska} alt="" loading="lazy" decoding="async" /></div>
       <p class="d-stitek d-stitek-volny" style={m.bod(VOLNE.x, VOLNE.y)} aria-hidden="true">
         <span class="d-stitek-provazek"></span>
         <span class="d-stitek-papir">tvůj kus</span>

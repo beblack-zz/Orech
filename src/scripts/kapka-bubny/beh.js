@@ -241,6 +241,8 @@ const scena = (el, V) => {
   const dyn = V.novaDynamika ? V.novaDynamika() : null;
   let t = 0, tPred = 0, posledniCas = null, viditelna = false, pxNaJednotku = el.clientWidth / VB, aktivniDo = 0;
   let zastaveno = false, tahZ = null, posledniStav = null;
+  /* smyčka běží, jen když je scéna vidět a má co dělat (bezi = je naplánovaný snímek) */
+  let bezi = false;
 
   const vykresli = () => {
     const st = V.stav(t, dyn ? { ...vstup, dyn } : vstup);
@@ -276,21 +278,28 @@ const scena = (el, V) => {
     if (V.dest && viditelna) Zvuk.nastavDest(V.dest(st));
     return st;
   };
+  /* Při omezeném pohybu scéna stojí, když jí došlo bdění — smyčka pak nečeká
+     na další snímek naprázdno, rozjede ji až rozbehni(). */
+  const spi = () => klidne && t >= aktivniDo;
   const smycka = (ted) => {
-    if (!viditelna || zastaveno) {
+    if (!viditelna || zastaveno || spi()) {
       posledniCas = null;
+      bezi = false;
       return;
     }
     const dt = posledniCas == null ? 0 : Math.min(0.05, (ted - posledniCas) / 1000);
     posledniCas = ted;
     /* ruka drží kruh, ale nehýbe s ním — kruh stojí */
     if (tahZ && performance.now() - tahZ.cas > 70) vstup.tah = tahZ.ujeto > 3 ? { v: 0 } : null;
-    if (!klidne || t < aktivniDo) {
-      tPred = t;
-      t += dt;
-      if (dyn) V.krok(dyn, t, dt, vstup);
-      posledniStav = vykresli();
-    }
+    tPred = t;
+    t += dt;
+    if (dyn) V.krok(dyn, t, dt, vstup);
+    posledniStav = vykresli();
+    requestAnimationFrame(smycka);
+  };
+  const rozbehni = () => {
+    if (bezi || !viditelna || zastaveno || spi()) return;
+    bezi = true;
     requestAnimationFrame(smycka);
   };
 
@@ -319,6 +328,7 @@ const scena = (el, V) => {
     vstup.posledni = t;
     aktivniDo = t + 4;
     vstup.udery = vstup.udery.filter((u) => t - u.cas < 4);
+    rozbehni();
   };
   el.addEventListener("pointermove", (e) => {
     const p = naJednotky(e);
@@ -335,6 +345,7 @@ const scena = (el, V) => {
       if (tahZ.ujeto > 3) vstup.tah = { v: tahZ.vyhl };
       aktivniDo = t + 6;
     }
+    rozbehni();
     if (V.id === "v3") el.style.cursor = tahZ ? "grabbing" : "grab";
     else el.style.cursor = nejblizsi(p, true) ? "pointer" : "default";
   });
@@ -380,10 +391,9 @@ const scena = (el, V) => {
   ro.observe(el);
   const io = new IntersectionObserver(
     (z) => {
-      const byla = viditelna;
       viditelna = z[0].isIntersecting;
       if (!viditelna && V.dest) Zvuk.nastavDest(0);
-      if (viditelna && !byla) requestAnimationFrame(smycka);
+      if (viditelna) rozbehni();
     },
     { threshold: 0.08 },
   );

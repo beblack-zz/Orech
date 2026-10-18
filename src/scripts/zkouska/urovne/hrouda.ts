@@ -23,10 +23,13 @@
  * Klávesnice: šipky posouvají drát o 1 cm, se Shiftem o 2 mm, mezerník
  * a Enter krojí. Tlačítka pod scénou posouvají po 2 mm (podržením
  * rychleji) a krojí.
+ *
+ * Na telefonu (kvalita.ts) odletuje od drátu polovina drobků.
  */
 import type { Uroven, Vysledek } from "../hra";
 import * as zvuk from "../../parta2/zvuk";
 import { omez, mix, hladce, cislo, SVGNS } from "../../parta2/stav";
+import { castic } from "../../parta2/kvalita";
 import { urovenPodleId } from "../../../data/mistr";
 import {
   CM, X0, ZAKLAD, CIL, HROUD, PROBUZENI_MAX,
@@ -500,7 +503,7 @@ export const hrouda: Uroven = (p) => {
 
   const drobkyZ = (X: number) => {
     const h = (ZAKLAD - povrch(X + 1)) || 60;
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0, n = castic(7); i < n; i++) {
       const el = document.createElementNS(SVGNS, "circle");
       el.setAttribute("r", f1(1.3 + Math.random() * 1.8));
       el.setAttribute("fill", i % 3 ? "#7A5A47" : "#A07D64");

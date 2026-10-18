@@ -9,6 +9,7 @@
  * Kdo nechce nebo nemůže kreslit, nechá kruh nakreslit („za mě“).
  */
 import { klid } from "../parta2/stav";
+import { dprPlatna } from "../parta2/kvalita";
 import { jmeno } from "../parta2/kami";
 import { ensoReakce } from "../../data/onas2";
 import type { EnsoDruh } from "../../data/onas2";
@@ -135,7 +136,8 @@ export function enso() {
     const r = canvas.getBoundingClientRect();
     if (!r.width) return;
     const stareW = W;
-    dpr = Math.min(2, window.devicePixelRatio || 1);
+    /* Na telefonu menší rozlišení plátna (nejvýš 1,5) — štětec je měkký, rozdíl není vidět */
+    dpr = dprPlatna();
     W = Math.round(r.width * dpr);
     H = Math.round(r.height * dpr);
     if (stareW && stareW !== W) {

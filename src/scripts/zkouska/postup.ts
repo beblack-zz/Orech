@@ -9,10 +9,31 @@
 import { nacti, uloz } from "../parta2/stav";
 import { urovne, znamkaZBodu, poradiZnamky } from "../../data/mistr";
 import type { UrovenId, Znamka } from "../../data/mistr";
-import { platnyKus } from "../../components/dilna/kus";
 import type { Kus } from "../../components/dilna/kus";
 import { platnaPecet } from "../../components/zkouska/pecet";
 import type { Pecet } from "../../components/zkouska/pecet";
+
+/**
+ * Stejná kontrola jako platnyKus v components/dilna/kus.ts. Postup potřebují
+ * už dveře, tedy skript, který se načítá hned — import z kus.ts by do něj
+ * přitáhl celou kresbu kusu i s glazurami, která je potřeba až za dveřmi.
+ */
+function platnyKus(x: unknown): x is Kus {
+  const k = x as Kus;
+  return (
+    !!k &&
+    typeof k === "object" &&
+    Array.isArray(k.r) &&
+    k.r.length >= 4 &&
+    k.r.length <= 64 &&
+    k.r.every((v) => typeof v === "number" && Number.isFinite(v) && v > 0 && v < 400) &&
+    typeof k.v === "number" &&
+    k.v > 4 &&
+    k.v < 500 &&
+    Array.isArray(k.glazury) &&
+    k.glazury.length <= 2
+  );
+}
 
 export const KLIC_POSTUP = "mistr-postup";
 export const KLIC_PECET = "mistr-pecet";
