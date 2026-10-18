@@ -326,29 +326,34 @@
 
 /* ——— Prohlídka ——— */
 
+/* Jedna obrazovka jako Rok dílny na O nás — zastávky se přepínají kliknutím,
+   ne scrollem (scripts/domek2/prohlidka.ts) */
 .prohlidka {
   position: relative;
   z-index: 2;
-  padding: 0 20px;
+  height: 100vh;
+  height: 100svh;
+  padding: 86px clamp(64px, 6vw, 96px) 16px;
   background: linear-gradient(to bottom, #FFF8EA 0, rgba(255, 248, 234, 0.7) 22vh, rgba(255, 248, 234, 0) 70vh);
 }
 .prohlidka-mriz {
   width: min(1400px, 100%);
+  height: 100%;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
-  gap: clamp(20px, 3vw, 48px);
+  grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.2fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 18px clamp(20px, 3vw, 48px);
 }
 .prohlidka-scena {
   grid-column: 2;
   grid-row: 1;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
+  position: relative;
+  min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  padding: 86px 0 18px;
+  place-items: center;
+  /* Rám se do buňky vejde na šířku i na výšku (cqw/cqh) */
+  container-type: size;
 }
 .prohlidka-ram {
   position: relative;
@@ -380,34 +385,81 @@
   background: linear-gradient(#A9835C, #6E5236);
   box-shadow: 0 10px 20px -10px rgba(20, 14, 30, 0.6);
 }
-.prohlidka-mapa { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; padding-top: 22px; }
-.prohlidka-mapa a {
+.prohlidka-mapa { grid-column: 1 / -1; grid-row: 2; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+.prohlidka-mapa button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 11px 5px 8px;
+  padding: 7px 14px 7px 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--papir) 82%, transparent);
   box-shadow: 0 6px 14px -10px rgba(28, 20, 44, 0.6);
-  font-size: 13.5px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 14.5px;
   color: var(--inkoust-2);
-  text-decoration: none;
   transition: background 0.25s, color 0.25s;
 }
-.prohlidka-mapa a span { font-family: var(--f-kanji); font-size: 15px; line-height: 1; color: var(--rumelka); }
-.prohlidka-mapa a:hover { background: var(--papir); color: var(--inkoust); }
-.prohlidka-mapa a.je { background: var(--inkoust); color: var(--papir); }
-.prohlidka-mapa a.je span { color: #FFB45A; }
+.prohlidka-mapa button span { font-family: var(--f-kanji); font-size: 16px; line-height: 1; color: var(--rumelka); }
+.prohlidka-mapa button:hover { background: var(--papir); color: var(--inkoust); }
+.prohlidka-mapa button.je { background: var(--inkoust); color: var(--papir); }
+.prohlidka-mapa button.je span { color: #FFB45A; }
 
+/* Šipky po stranách: v okrajích sekce, aby nezakrývaly kartu ani kresbu */
+.prohlidka .prohlidka-sipka {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--papir) 92%, transparent);
+  color: var(--inkoust);
+  box-shadow: 0 12px 26px -14px rgba(22, 16, 40, 0.7);
+  transform: translateY(-50%);
+  transition: background 0.2s, transform 0.2s, opacity 0.2s;
+}
+.prohlidka-sipka svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.prohlidka .prohlidka-sipka-zpet { left: clamp(8px, 1.4vw, 24px); }
+.prohlidka .prohlidka-sipka-dal { right: clamp(8px, 1.4vw, 24px); }
+.prohlidka .prohlidka-sipka:hover:not(:disabled) { background: var(--papir); transform: translateY(-50%) scale(1.06); }
+.prohlidka .prohlidka-sipka:disabled { opacity: 0; pointer-events: none; }
+
+/* Karty stojí v pásu vedle sebe a pás odjíždí do strany o celou kartu.
+   Okraj kolem pásu je místo pro stín a natočení karet. */
 .prohlidka-karty {
   grid-column: 1;
   grid-row: 1;
-  display: grid;
-  align-content: start;
-  gap: 36vh;
-  padding: 22vh 0 34vh;
+  min-height: 0;
+  margin: -14px -16px -28px;
+  padding: 14px 16px 28px;
+  overflow: hidden;
+  touch-action: pan-y;
 }
-.stanice { position: relative; padding: clamp(22px, 2.4vw, 34px); scroll-margin-top: 18vh; }
+.prohlidka-pas {
+  --mezera: 48px;
+  display: flex;
+  gap: var(--mezera);
+  height: 100%;
+  transform: translateX(calc(var(--i, 0) * -1 * (100% + var(--mezera))));
+  transition: transform 0.7s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.stanice {
+  position: relative;
+  flex: 0 0 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(22px, 2.4vw, 34px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  transition: opacity 0.5s;
+}
+.stanice:not(.aktivni) { opacity: 0.4; }
 .stanice:nth-child(odd) { transform: rotate(-0.35deg); }
 .stanice:nth-child(even) { transform: rotate(0.3deg); }
 .stanice p { margin: 0 0 12px; }
@@ -572,26 +624,27 @@
 .stanice-foto figcaption { margin-top: 6px; font-family: var(--f-ruka); font-size: 20px; color: var(--inkoust-2); }
 
 @media (max-width: 860px) {
-  .prohlidka { padding: 0 14px; }
-  .prohlidka-mriz { display: block; }
-  .prohlidka-scena {
-    z-index: 3;
-    height: 52vh;
-    height: 52svh;
-    margin: 0 -14px;
-    padding: 70px 14px 6px;
-    background: linear-gradient(to bottom, var(--nebe-nahore) 0%, color-mix(in srgb, var(--nebe-nahore) 35%, var(--nebe-stred)) 100%);
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
-  }
-  .prohlidka-mapa { padding-top: 14px; gap: 3px; }
+  /* Nahoře okno do dílny, pod ním karta, dole značky a po jejich stranách šipky */
+  .prohlidka { padding: 66px 12px 10px; }
+  .prohlidka-mriz { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; }
+  .prohlidka-scena { grid-column: 1; grid-row: 1; container-type: inline-size; }
+  .prohlidka-karty { grid-column: 1; grid-row: 2; margin: -6px -12px -10px; padding: 6px 12px 10px; }
+  .prohlidka-pas { --mezera: 24px; }
+  .prohlidka-mapa { grid-row: 3; gap: 3px; padding: 0 44px; }
   /* na telefonu jen české názvy — znaky by nikdo nepřečetl */
-  .prohlidka-mapa a { padding: 4px 8px; font-size: 13px; gap: 0; }
-  .prohlidka-mapa a span { display: none; }
-  .prohlidka-karty { position: relative; z-index: 2; gap: 24vh; padding: 4vh 0 30vh; }
-  .stanice { scroll-margin-top: calc(52svh + 16px); }
+  .prohlidka-mapa button { padding: 5px 9px; font-size: 13px; gap: 0; }
+  .prohlidka-mapa button span { display: none; }
+  .prohlidka .prohlidka-sipka { top: auto; bottom: 10px; width: 40px; height: 40px; transform: none; }
+  .prohlidka .prohlidka-sipka-zpet { left: 6px; }
+  .prohlidka .prohlidka-sipka-dal { right: 6px; }
+  .prohlidka .prohlidka-sipka:hover:not(:disabled) { transform: scale(1.06); }
+  .stanice { padding: 18px 18px 14px; }
   .stanice:nth-child(n) { transform: none; }
-  .stanice-nazev { font-size: 38px; }
+  .stanice-nazev { font-size: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prohlidka-pas, .stanice, .prohlidka .prohlidka-sipka { transition: none; }
 }
 
 /* Dílna v řezu je v dilna-rez.css — sdílí ji Úvod 2 a Dílna. */

@@ -1,8 +1,12 @@
 /**
- * Prohlídka dílny v suterénu. Stejný princip jako prohlídka na Úvodu 2
- * (scripts/uvod2/prohlidka.ts): karty mají data-kamera a kamera mezi nimi
- * jede podle toho, jak daleko je člověk mezi dvěma kartami. Záběry
+ * Prohlídka dílny v suterénu. Na jednu obrazovku jako Rok dílny na O nás
+ * (scripts/uvod2/rok.ts): scroll s ní nehýbe, zastávky se přepínají
+ * značkami dole, šipkami po stranách, šipkami na klávesnici, když je
+ * prohlídka na obrazovce, nebo tažením prstu po kartě. Karta odjede do
+ * strany a kamera plynule dojede k záběru z její data-kamera. Záběry
  * spočítala kresba ze stejných metrů, ve kterých je dílna nakreslená.
+ * Obloha jde se zastávkou: karty mají každá svou hodinu (data-hodina)
+ * a při přepnutí se všechny přetočí na hodinu vybrané.
  *
  * Do dílny se dá klikat: roztočit kruh (kopací i elektrický), prohníst
  * hroudu (a vyplašit Bublinku), vypálit a otevřít pec (vykoukne Šamotka),
@@ -10,17 +14,19 @@
  * lampu, a u zadní stěny dveře, knihy a glazury. Tlačítka v kresbě
  * i v kartách mají data-akce, obsluha je jedna.
  */
-import { priMereni, priScrollu, pozice, omez, hladce, klid, cislo } from "../parta2/stav";
+import { priMereni, omez, mix, hladce, klid, cislo, vyzadej } from "../parta2/stav";
 import { rekni } from "../parta2/kami";
 import * as zvuk from "../parta2/zvuk";
 import { kamiInfo, krivka } from "../../data/kami";
 import type { PostavaId } from "../../data/parta";
-import { kamera, cil } from "../uvod2/kamera";
+import { kamera, cil, smichej } from "../uvod2/kamera";
+import type { Cil } from "../uvod2/kamera";
 import { UDALOST } from "../parta2/pozdeji";
 
 const T_MAX = krivka[krivka.length - 1][1];
 const T_NULA = krivka[0][1];
-const mobil = () => window.matchMedia("(max-width: 860px)").matches;
+/** Jak dlouho kamera jede k další zastávce, v milisekundách */
+const JIZDA = 1100;
 
 export function prohlidka() {
   const sekce = document.querySelector<HTMLElement>("#prohlidka");
@@ -28,12 +34,16 @@ export function prohlidka() {
   const okno = sekce.querySelector<HTMLElement>(".prohlidka-okno")!;
   const svet = sekce.querySelector<HTMLElement>(".prohlidka-svet")!;
   const rez = svet.querySelector<HTMLElement>(".rez")!;
+  const pas = sekce.querySelector<HTMLElement>(".prohlidka-pas")!;
   const karty = [...sekce.querySelectorAll<HTMLElement>(".stanice")];
-  const mapa = [...sekce.querySelectorAll<HTMLAnchorElement>("[data-mapa]")];
+  const mapa = [...sekce.querySelectorAll<HTMLButtonElement>("[data-mapa]")];
+  const zpet = sekce.querySelector<HTMLButtonElement>(".prohlidka-sipka-zpet");
+  const dal = sekce.querySelector<HTMLButtonElement>(".prohlidka-sipka-dal");
   const k = kamera(okno, svet);
   const cile = karty.map((el) => cil(el.dataset.kamera) ?? { x: 800, y: 500, w: 1480, h: 700 });
-  let kotvy: number[] = [];
-  let aktivni = "";
+  const hodiny = karty.map((el) => Number(el.dataset.hodina));
+  const n = karty.length;
+  let aktivni = -1;
   /* Kresba dílny se do .rez-kresba vloží až cestou k prohlídce (parta2/pozdeji.ts),
      proto se v ní hledá až ve chvíli, kdy je potřeba, a po vložení se do ní
      přenese, co se mezitím změnilo (displej pece, vzatý kus, lampa) */
@@ -55,56 +65,146 @@ export function prohlidka() {
     rekni(el, id, veta);
   };
 
-  /* ——— Kamera ——— */
-  const nastavAktivni = (s: string) => {
-    if (s === aktivni) return;
-    aktivni = s;
-    mapa.forEach((a) => {
-      const je = a.dataset.mapa === s;
-      a.classList.toggle("je", je);
-      if (je) a.setAttribute("aria-current", "step");
-      else a.removeAttribute("aria-current");
-    });
-    karty.forEach((kt) => kt.classList.toggle("aktivni", kt.dataset.stanice === s));
+  /* ——— Obloha: hodina vybrané zastávky na všech kartách ——— */
+  let hodina = hodiny[0] ?? 10;
+  let ramecNebe = 0;
+  const nastavNebe = (h: number) => {
+    hodina = h;
+    for (const kt of karty) kt.dataset.hodina = h.toFixed(3);
+    vyzadej();
   };
+  const nebeNa = (cilova: number, hned: boolean) => {
+    cancelAnimationFrame(ramecNebe);
+    if (!Number.isFinite(cilova)) return;
+    if (hned) return nastavNebe(cilova);
+    const odkud = hodina;
+    const start = performance.now();
+    const krok = (cas: number) => {
+      const t = omez((cas - start) / JIZDA);
+      nastavNebe(mix(odkud, cilova, hladce(t)));
+      if (t < 1) ramecNebe = requestAnimationFrame(krok);
+    };
+    ramecNebe = requestAnimationFrame(krok);
+  };
+
+  /* ——— Kamera: kde je teď a kam jede ——— */
+  let ted: Cil = cile[0];
+  let ramec = 0;
+  const jedNa = (kam: Cil, hned: boolean) => {
+    cancelAnimationFrame(ramec);
+    if (hned) {
+      ted = kam;
+      k.na(kam);
+      return;
+    }
+    const odkud = ted;
+    const start = performance.now();
+    const krok = (cas: number) => {
+      const t = omez((cas - start) / JIZDA);
+      ted = smichej(odkud, kam, hladce(t));
+      k.na(ted);
+      if (t < 1) ramec = requestAnimationFrame(krok);
+    };
+    ramec = requestAnimationFrame(krok);
+  };
+
+  /* ——— Zastávky ——— */
+  const stanice = (i: number, hned = false) => {
+    const j = Math.max(0, Math.min(i, n - 1));
+    if (j === aktivni) return;
+    aktivni = j;
+    const s = karty[j].dataset.stanice;
+    pas.style.setProperty("--i", String(j));
+    karty.forEach((kt, x) => {
+      kt.classList.toggle("aktivni", x === j);
+      /* Karty mimo obrazovku nejdou proklikat tabulátorem a čtečka je přeskočí */
+      kt.inert = x !== j;
+    });
+    mapa.forEach((b) => {
+      const je = b.dataset.mapa === s;
+      b.classList.toggle("je", je);
+      if (je) b.setAttribute("aria-current", "step");
+      else b.removeAttribute("aria-current");
+    });
+    if (zpet) zpet.disabled = j === 0;
+    if (dal) dal.disabled = j === n - 1;
+    jedNa(cile[j], hned || klid);
+    nebeNa(hodiny[j], hned || klid);
+  };
+  const naStanici = (s: string | undefined) => {
+    const i = karty.findIndex((kt) => kt.dataset.stanice === s);
+    if (i >= 0) stanice(i);
+  };
+
+  mapa.forEach((b) => b.addEventListener("click", () => naStanici(b.dataset.mapa)));
+  zpet?.addEventListener("click", () => stanice(aktivni - 1));
+  dal?.addEventListener("click", () => stanice(aktivni + 1));
+
+  /* Odkazy na zastávky v kartách (1 pec · 2 stoly · 3 kruhy) přepnou kartu, nerolují */
+  sekce.addEventListener("click", (e) => {
+    const a = (e.target as Element).closest<HTMLAnchorElement>("a[href^='#stanice-']");
+    if (!a) return;
+    e.preventDefault();
+    naStanici(a.getAttribute("href")?.slice("#stanice-".length));
+  });
+
+  /* Šipky na klávesnici, když je prohlídka z větší části na obrazovce a nepíše se do pole */
+  let videt = false;
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(([e]) => (videt = e.intersectionRatio >= 0.5), { threshold: [0, 0.5, 1] }).observe(sekce);
+  }
+  const naKlavesy = (e: KeyboardEvent) => {
+    if (!sekce.isConnected) return document.removeEventListener("keydown", naKlavesy);
+    if (!videt || e.altKey || e.ctrlKey || e.metaKey) return;
+    if ((e.target as Element | null)?.closest?.("input, textarea, select, [contenteditable]")) return;
+    if (e.key === "ArrowLeft" && aktivni > 0) {
+      e.preventDefault();
+      stanice(aktivni - 1);
+    } else if (e.key === "ArrowRight" && aktivni < n - 1) {
+      e.preventDefault();
+      stanice(aktivni + 1);
+    }
+  };
+  document.addEventListener("keydown", naKlavesy);
+
+  /* Prstem po kartě do strany: dost daleko a víc do strany než nahoru */
+  const kartyEl = sekce.querySelector<HTMLElement>(".prohlidka-karty")!;
+  let tah: { x: number; y: number; id: number } | null = null;
+  kartyEl.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse") tah = { x: e.clientX, y: e.clientY, id: e.pointerId };
+  });
+  kartyEl.addEventListener("pointerup", (e) => {
+    if (!tah || tah.id !== e.pointerId) return;
+    const dx = e.clientX - tah.x;
+    const dy = e.clientY - tah.y;
+    tah = null;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    stanice(aktivni + (dx < 0 ? 1 : -1));
+  });
+  kartyEl.addEventListener("pointercancel", () => (tah = null));
 
   priMereni(() => {
     k.zmer();
-    const vh = window.innerHeight;
-    const scena = sekce.querySelector<HTMLElement>(".prohlidka-scena");
-    const fokus = mobil() && scena ? scena.offsetHeight + 16 : vh * 0.18;
-    kotvy = karty.map((el) => pozice(el).top - fokus);
-    if (klid) k.na(cile[0]);
+    /* Po změně velikosti okna stojí kamera rovnou u zastávky, nejede znovu */
+    cancelAnimationFrame(ramec);
+    ted = cile[Math.max(0, aktivni)];
+    k.na(ted);
   });
 
-  priScrollu((y) => {
-    if (!kotvy.length) return;
-    let i = 0;
-    while (i < kotvy.length - 1 && y >= kotvy[i + 1]) i++;
-    const t = i < kotvy.length - 1 ? omez((y - kotvy[i]) / Math.max(1, kotvy[i + 1] - kotvy[i])) : 0;
-    if (!klid) {
-      if (i >= kotvy.length - 1) k.na(cile[cile.length - 1]);
-      else k.mezi(cile[i], cile[i + 1], hladce(omez((t - 0.6) / 0.4)));
-    }
-    nastavAktivni(karty[t > 0.8 ? Math.min(i + 1, karty.length - 1) : i].dataset.stanice ?? "");
-  });
-
-  /* Klávesnicí po kresbě: zaměřené místo z jiné zastávky přiveze svou kartu.
-     Jen z klávesnice — kliknutí myší věc taky zaměří, ale stránka se kvůli němu hýbat nemá */
+  /* Klávesnicí po kresbě: zaměřené místo z jiné zastávky přepne na svou kartu.
+     Jen z klávesnice — kliknutí myší věc taky zaměří, ale karta kvůli němu odjíždět nemá */
   rez.addEventListener("focusin", (e) => {
     const cil = e.target as HTMLElement;
     let zKlavesnice = true;
     try {
       zKlavesnice = cil.matches(":focus-visible");
     } catch {
-      /* prohlížeč :focus-visible nezná — radši nerolovat */
+      /* prohlížeč :focus-visible nezná — radši nepřepínat */
       zKlavesnice = false;
     }
     if (!zKlavesnice) return;
     const s = cil.closest<HTMLElement>("[data-stanice]")?.dataset.stanice;
-    if (s && s !== aktivni) {
-      document.getElementById(`stanice-${s}`)?.scrollIntoView({ behavior: klid ? "auto" : "smooth", block: "center" });
-    }
+    if (s && s !== karty[aktivni]?.dataset.stanice) naStanici(s);
   });
 
   /* 1 pec · 2 stoly · 3 kruhy — ukáže je v kresbě */
@@ -306,4 +406,8 @@ export function prohlidka() {
         break;
     }
   });
+
+  /* Adresa s #stanice-… otevře rovnou tu zastávku */
+  const zAdresy = karty.findIndex((kt) => `#${kt.id}` === location.hash);
+  stanice(Math.max(0, zAdresy), true);
 }

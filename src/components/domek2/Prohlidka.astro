@@ -1,11 +1,14 @@
 ---
 /**
- * Prohlídka dílny v suterénu. Vlevo karty se zastávkami, vpravo dílna za
+ * Prohlídka dílny v suterénu. Vlevo karta zastávky, vpravo dílna za
  * velkými okny (okna jsou vyjmutá, zůstal bílý rám) a kamera v ní jezdí
- * od zastávky k zastávce — stejně jako prohlídka na Úvodu 2, jen místo
- * domečku s krovem je tu skutečná místnost v perspektivě z dvorku
- * (components/domek2/kresba/dilna.ts). Záběry kamery se počítají ze
+ * od zastávky k zastávce. Skutečná místnost v perspektivě z dvorku
+ * (components/domek2/kresba/dilna.ts), záběry kamery se počítají ze
  * stejných metrů jako kresba.
+ *
+ * Celé je to na jednu obrazovku jako Rok dílny na O nás: scroll s tím
+ * nehýbe, karty se posouvají do strany značkami dole, šipkami po stranách,
+ * šipkami na klávesnici nebo prstem po kartě.
  *
  * U každé zastávky je fotka toho místa: tohle je kresba, tohle doopravdy.
  * Do kresby se dá klikat — kruhy, hrouda, pec, kusy na regálu, dřez,
@@ -117,156 +120,167 @@ const kamiVKresbe: PostavaId[] = ["vazicka", "hlinka", "pecinka", "stripek", "ce
           </div>
         </div>
       </div>
-      <nav class="prohlidka-mapa" aria-label="Zastávky prohlídky">
-        {zastavky.map((m) => (
-          <a href={`#stanice-${m.id}`} data-mapa={m.id}><span lang="ja" aria-hidden="true">{m.znak}</span>{m.nazev}</a>
-        ))}
-      </nav>
     </div>
 
     <div class="prohlidka-karty">
-      {/* ——— Přehled ——— */}
-      <article class="stanice stanice-uvod papir" id="stanice-prehled" data-stanice="prehled" data-hodina="9.2" data-kamera={kamera("prehled")}>
-        <p class="stitek"><span lang="ja">工房見学</span> · prohlídka dílny</p>
-        <h2 id="prohlidka-nadpis" class="nadpis-2">{z.prehled.titulek}</h2>
-        <p class="stanice-perex">{oDilne.zacatek}</p>
-        <p>{z.prehled.text}</p>
-        <ul class="inventar" aria-label="Co v dílně je">
-          <li><a href="#stanice-pec" data-ukaz="pec"><b>1</b> pec</a></li>
-          <li><a href="#stanice-stoly" data-ukaz="stoly"><b>2</b> stoly</a></li>
-          <li><a href="#stanice-kruhy" data-ukaz="kruhy"><b>3</b> kruhy</a></li>
-        </ul>
-        <p class="stanice-pokyn">Projdi dílnu od oken dozadu. U každé zastávky je fotka — tohle je kresba, tohle doopravdy.</p>
-        <figure class="dm-polaroid">
-          <Image src={fotky[z.prehled.foto.soubor]} alt={z.prehled.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.prehled.foto.kde}`} />
-          <figcaption>{z.prehled.foto.popis}</figcaption>
-        </figure>
-      </article>
+      <div class="prohlidka-pas">
+        {/* ——— Přehled ——— */}
+        <article class="stanice stanice-uvod papir" id="stanice-prehled" data-stanice="prehled" data-hodina="9.2" data-kamera={kamera("prehled")}>
+          <p class="stitek"><span lang="ja">工房見学</span> · prohlídka dílny</p>
+          <h2 id="prohlidka-nadpis" class="nadpis-2">{z.prehled.titulek}</h2>
+          <p class="stanice-perex">{oDilne.zacatek}</p>
+          <p>{z.prehled.text}</p>
+          <ul class="inventar" aria-label="Co v dílně je">
+            <li><a href="#stanice-pec" data-ukaz="pec"><b>1</b> pec</a></li>
+            <li><a href="#stanice-stoly" data-ukaz="stoly"><b>2</b> stoly</a></li>
+            <li><a href="#stanice-kruhy" data-ukaz="kruhy"><b>3</b> kruhy</a></li>
+          </ul>
+          <p class="stanice-pokyn">Projdi dílnu od oken dozadu — šipkami nebo značkami dole. U každé zastávky je fotka: tohle je kresba, tohle doopravdy.</p>
+          <figure class="dm-polaroid">
+            <Image src={fotky[z.prehled.foto.soubor]} alt={z.prehled.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.prehled.foto.kde}`} />
+            <figcaption>{z.prehled.foto.popis}</figcaption>
+          </figure>
+        </article>
 
-      {/* ——— Kruhy ——— */}
-      <article class="stanice papir" id="stanice-kruhy" data-stanice="kruhy" data-hodina="9.9" data-kamera={kamera("kruhy")} aria-labelledby="kruhy-nadpis">
-        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.kruhy.znak}</span> {z.kruhy.nazev}</p>
-        <h3 class="stanice-nazev" id="kruhy-nadpis">{z.kruhy.titulek}</h3>
-        <p class="stanice-meta">{z.kruhy.meta}</p>
-        <p>{z.kruhy.text}</p>
-        {k0 && (
-          <p class="stanice-nejblizsi">Celý den u kruhu: <a href="/rezervace#rz-rad"><b>{k0.nazev}</b>, v sobotu</a>, vede {k0.lektor}.</p>
-        )}
-        <div class="stanice-akce">
-          <button type="button" class="tlacitko tlacitko-maly" data-akce="kruh" data-kruh="0">Roztočit kopací kruh</button>
-          <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-akce="kruh" data-kruh="2">A elektrický</button>
-        </div>
-        <figure class="dm-polaroid dm-polaroid-vpravo">
-          <Image src={fotky[z.kruhy.foto.soubor]} alt={z.kruhy.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.kruhy.foto.kde}`} />
-          <figcaption>{z.kruhy.foto.popis}</figcaption>
-        </figure>
-      </article>
+        {/* ——— Kruhy ——— */}
+        <article class="stanice papir" id="stanice-kruhy" data-stanice="kruhy" data-hodina="9.9" data-kamera={kamera("kruhy")} aria-labelledby="kruhy-nadpis">
+          <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.kruhy.znak}</span> {z.kruhy.nazev}</p>
+          <h3 class="stanice-nazev" id="kruhy-nadpis">{z.kruhy.titulek}</h3>
+          <p class="stanice-meta">{z.kruhy.meta}</p>
+          <p>{z.kruhy.text}</p>
+          {k0 && (
+            <p class="stanice-nejblizsi">Celý den u kruhu: <a href="/rezervace#rz-rad"><b>{k0.nazev}</b>, v sobotu</a>, vede {k0.lektor}.</p>
+          )}
+          <div class="stanice-akce">
+            <button type="button" class="tlacitko tlacitko-maly" data-akce="kruh" data-kruh="0">Roztočit kopací kruh</button>
+            <button type="button" class="tlacitko tlacitko-maly tlacitko-obrys" data-akce="kruh" data-kruh="2">A elektrický</button>
+          </div>
+          <figure class="dm-polaroid dm-polaroid-vpravo">
+            <Image src={fotky[z.kruhy.foto.soubor]} alt={z.kruhy.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.kruhy.foto.kde}`} />
+            <figcaption>{z.kruhy.foto.popis}</figcaption>
+          </figure>
+        </article>
 
-      {/* ——— Stoly ——— */}
-      <article class="stanice papir" id="stanice-stoly" data-stanice="stoly" data-hodina="10.7" data-kamera={kamera("stoly")} aria-labelledby="stoly-nadpis">
-        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.stoly.znak}</span> {z.stoly.nazev}</p>
-        <h3 class="stanice-nazev" id="stoly-nadpis">{z.stoly.titulek}</h3>
-        <p class="stanice-meta">{z.stoly.meta}</p>
-        <p>{z.stoly.text}</p>
-        <p class="stanice-nejblizsi">Hodina v dílně: <b>{kdy.cena}</b> {kdy.zaCo}, každé {kdy.dny} {kdy.hodiny}. Lektor je v ceně — a když ho nepotřebuješ, je to open studio.</p>
-        <div class="stanice-akce">
-          <button type="button" class="tlacitko tlacitko-maly" data-akce="hrouda">Plácnout do hroudy</button>
-          <a class="tlacitko tlacitko-maly tlacitko-obrys" href="/rezervace">Vybrat hodinu</a>
-        </div>
-        <figure class="dm-polaroid">
-          <Image src={fotky[z.stoly.foto.soubor]} alt={z.stoly.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.stoly.foto.kde}`} />
-          <figcaption>{z.stoly.foto.popis}</figcaption>
-        </figure>
-      </article>
+        {/* ——— Stoly ——— */}
+        <article class="stanice papir" id="stanice-stoly" data-stanice="stoly" data-hodina="10.7" data-kamera={kamera("stoly")} aria-labelledby="stoly-nadpis">
+          <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.stoly.znak}</span> {z.stoly.nazev}</p>
+          <h3 class="stanice-nazev" id="stoly-nadpis">{z.stoly.titulek}</h3>
+          <p class="stanice-meta">{z.stoly.meta}</p>
+          <p>{z.stoly.text}</p>
+          <p class="stanice-nejblizsi">Hodina v dílně: <b>{kdy.cena}</b> {kdy.zaCo}, každé {kdy.dny} {kdy.hodiny}. Lektor je v ceně — a když ho nepotřebuješ, je to open studio.</p>
+          <div class="stanice-akce">
+            <button type="button" class="tlacitko tlacitko-maly" data-akce="hrouda">Plácnout do hroudy</button>
+            <a class="tlacitko tlacitko-maly tlacitko-obrys" href="/rezervace">Vybrat hodinu</a>
+          </div>
+          <figure class="dm-polaroid">
+            <Image src={fotky[z.stoly.foto.soubor]} alt={z.stoly.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.stoly.foto.kde}`} />
+            <figcaption>{z.stoly.foto.popis}</figcaption>
+          </figure>
+        </article>
 
-      {/* ——— Pec ——— */}
-      <article class="stanice papir" id="stanice-pec" data-stanice="pec" data-hodina="11.5" data-kamera={kamera("pec")} aria-labelledby="pec-nadpis">
-        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.pec.znak}</span> {z.pec.nazev}</p>
-        <h3 class="stanice-nazev" id="pec-nadpis">{z.pec.titulek}</h3>
-        <p class="stanice-meta">{pecinka ? `Pecinka · ${pecinka.hlida}` : z.pec.meta}</p>
-        <p>{z.pec.text}</p>
-        <div class="pec-ovladani">
-          <p class="pec-stav" aria-live="polite">Pec je studená.</p>
-          <div class="pec-teplomer" aria-hidden="true"><span class="pec-sloupec"></span></div>
-          <button type="button" class="tlacitko tlacitko-maly pec-tlacitko" data-akce="pec">Zapálit pec</button>
-        </div>
-        <a class="stanice-odkaz" href="/dilna#vypal">Co se v peci děje, stupeň po stupni <span aria-hidden="true">→</span></a>
-        <figure class="dm-polaroid dm-polaroid-vpravo">
-          <Image src={fotky[z.pec.foto.soubor]} alt={z.pec.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.pec.foto.kde}`} />
-          <figcaption>{z.pec.foto.popis}</figcaption>
-        </figure>
-      </article>
+        {/* ——— Pec ——— */}
+        <article class="stanice papir" id="stanice-pec" data-stanice="pec" data-hodina="11.5" data-kamera={kamera("pec")} aria-labelledby="pec-nadpis">
+          <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.pec.znak}</span> {z.pec.nazev}</p>
+          <h3 class="stanice-nazev" id="pec-nadpis">{z.pec.titulek}</h3>
+          <p class="stanice-meta">{pecinka ? `Pecinka · ${pecinka.hlida}` : z.pec.meta}</p>
+          <p>{z.pec.text}</p>
+          <div class="pec-ovladani">
+            <p class="pec-stav" aria-live="polite">Pec je studená.</p>
+            <div class="pec-teplomer" aria-hidden="true"><span class="pec-sloupec"></span></div>
+            <button type="button" class="tlacitko tlacitko-maly pec-tlacitko" data-akce="pec">Zapálit pec</button>
+          </div>
+          <a class="stanice-odkaz" href="/dilna#vypal">Co se v peci děje, stupeň po stupni <span aria-hidden="true">→</span></a>
+          <figure class="dm-polaroid dm-polaroid-vpravo">
+            <Image src={fotky[z.pec.foto.soubor]} alt={z.pec.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.pec.foto.kde}`} />
+            <figcaption>{z.pec.foto.popis}</figcaption>
+          </figure>
+        </article>
 
-      {/* ——— Regál ——— */}
-      <article class="stanice papir" id="stanice-regal" data-stanice="regal" data-hodina="12.3" data-kamera={kamera("regal")} aria-labelledby="regal-nadpis">
-        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.regal.znak}</span> {z.regal.nazev}</p>
-        <h3 class="stanice-nazev" id="regal-nadpis">{z.regal.titulek}</h3>
-        <p class="stanice-meta">{z.regal.meta}</p>
-        <p>{z.regal.text}</p>
-        <ul class="kusy">
-          {kusy.map((k, i) => {
-            const g = glazura(k.glaze);
-            return (
-              <li class="kus-radek" data-kus-radek={i}>
-                <button type="button" class="kus-vzit" data-akce="kus" data-kus={i} aria-pressed="false">
-                  <span class="kus-barva" style={g ? `--g1:${g.svetlo};--g2:${g.stred};--g3:${g.stin}` : undefined} aria-hidden="true"></span>
-                  <span class="kus-nazev">{k.name}</span>
-                  <span class="kus-glazura">{k.glaze}</span>
-                  <span class="kus-cena">{k.price}</span>
-                </button>
-                <a class="kus-mail" href={mail(`Obchod: ${k.name}`, `Ahoj, mám zájem o ${k.name} (${k.glaze}, ${k.price}). Je ještě k mání?`)} aria-label={`Mám zájem: ${k.name}`}>Mám zájem</a>
-              </li>
-            );
-          })}
-        </ul>
-        <a class="stanice-odkaz" href="/obchod">Celý obchod <span aria-hidden="true">→</span></a>
-        <figure class="dm-polaroid">
-          <Image src={fotky[z.regal.foto.soubor]} alt={z.regal.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.regal.foto.kde}`} />
-          <figcaption>{z.regal.foto.popis}</figcaption>
-        </figure>
-      </article>
+        {/* ——— Regál ——— */}
+        <article class="stanice papir" id="stanice-regal" data-stanice="regal" data-hodina="12.3" data-kamera={kamera("regal")} aria-labelledby="regal-nadpis">
+          <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.regal.znak}</span> {z.regal.nazev}</p>
+          <h3 class="stanice-nazev" id="regal-nadpis">{z.regal.titulek}</h3>
+          <p class="stanice-meta">{z.regal.meta}</p>
+          <p>{z.regal.text}</p>
+          <ul class="kusy">
+            {kusy.map((k, i) => {
+              const g = glazura(k.glaze);
+              return (
+                <li class="kus-radek" data-kus-radek={i}>
+                  <button type="button" class="kus-vzit" data-akce="kus" data-kus={i} aria-pressed="false">
+                    <span class="kus-barva" style={g ? `--g1:${g.svetlo};--g2:${g.stred};--g3:${g.stin}` : undefined} aria-hidden="true"></span>
+                    <span class="kus-nazev">{k.name}</span>
+                    <span class="kus-glazura">{k.glaze}</span>
+                    <span class="kus-cena">{k.price}</span>
+                  </button>
+                  <a class="kus-mail" href={mail(`Obchod: ${k.name}`, `Ahoj, mám zájem o ${k.name} (${k.glaze}, ${k.price}). Je ještě k mání?`)} aria-label={`Mám zájem: ${k.name}`}>Mám zájem</a>
+                </li>
+              );
+            })}
+          </ul>
+          <a class="stanice-odkaz" href="/obchod">Celý obchod <span aria-hidden="true">→</span></a>
+          <figure class="dm-polaroid">
+            <Image src={fotky[z.regal.foto.soubor]} alt={z.regal.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.regal.foto.kde}`} />
+            <figcaption>{z.regal.foto.popis}</figcaption>
+          </figure>
+        </article>
 
-      {/* ——— Dřez ——— */}
-      <article class="stanice papir" id="stanice-voda" data-stanice="voda" data-hodina="13.1" data-kamera={kamera("voda")} aria-labelledby="voda-nadpis">
-        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.voda.znak}</span> {z.voda.nazev}</p>
-        <h3 class="stanice-nazev" id="voda-nadpis">{z.voda.titulek}</h3>
-        <p class="stanice-meta">{z.voda.meta}</p>
-        <p>{z.voda.text}</p>
-        <div class="stanice-akce">
-          <button type="button" class="tlacitko tlacitko-maly" data-akce="voda">Pustit vodu</button>
-        </div>
-        <figure class="dm-polaroid dm-polaroid-vpravo">
-          <Image src={fotky[z.voda.foto.soubor]} alt={z.voda.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.voda.foto.kde}`} />
-          <figcaption>{z.voda.foto.popis}</figcaption>
-        </figure>
-      </article>
+        {/* ——— Dřez ——— */}
+        <article class="stanice papir" id="stanice-voda" data-stanice="voda" data-hodina="13.1" data-kamera={kamera("voda")} aria-labelledby="voda-nadpis">
+          <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.voda.znak}</span> {z.voda.nazev}</p>
+          <h3 class="stanice-nazev" id="voda-nadpis">{z.voda.titulek}</h3>
+          <p class="stanice-meta">{z.voda.meta}</p>
+          <p>{z.voda.text}</p>
+          <div class="stanice-akce">
+            <button type="button" class="tlacitko tlacitko-maly" data-akce="voda">Pustit vodu</button>
+          </div>
+          <figure class="dm-polaroid dm-polaroid-vpravo">
+            <Image src={fotky[z.voda.foto.soubor]} alt={z.voda.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.voda.foto.kde}`} />
+            <figcaption>{z.voda.foto.popis}</figcaption>
+          </figure>
+        </article>
 
-      {/* ——— Kafe ——— */}
-      <article class="stanice papir" id="stanice-kafe" data-stanice="kafe" data-hodina="13.9" data-kamera={kamera("kafe")} aria-labelledby="kafe-nadpis">
-        <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.kafe.znak}</span> {z.kafe.nazev}</p>
-        <h3 class="stanice-nazev" id="kafe-nadpis">{z.kafe.titulek}</h3>
-        <p class="stanice-meta">{oDilne.kafe}</p>
-        <p>{z.kafe.text}</p>
-        <div class="stanice-chat">
-          {chatKafe.map((o) => o && (
-            <div class="chat-radek">
-              <p class="chat-q">{o.q}</p>
-              <div class="chat-a">
-                <span class="chat-a-kami" aria-hidden="true"><Postavicka id={o.kdo} size={52} varianta="kami" /></span>
-                <p><b>{jmeno(o.kdo)}</b>{o.a}</p>
+        {/* ——— Kafe ——— */}
+        <article class="stanice papir" id="stanice-kafe" data-stanice="kafe" data-hodina="13.9" data-kamera={kamera("kafe")} aria-labelledby="kafe-nadpis">
+          <p class="stanice-poradi"><span class="stanice-znak" lang="ja">{z.kafe.znak}</span> {z.kafe.nazev}</p>
+          <h3 class="stanice-nazev" id="kafe-nadpis">{z.kafe.titulek}</h3>
+          <p class="stanice-meta">{oDilne.kafe}</p>
+          <p>{z.kafe.text}</p>
+          <div class="stanice-chat">
+            {chatKafe.map((o) => o && (
+              <div class="chat-radek">
+                <p class="chat-q">{o.q}</p>
+                <div class="chat-a">
+                  <span class="chat-a-kami" aria-hidden="true"><Postavicka id={o.kdo} size={52} varianta="kami" /></span>
+                  <p><b>{jmeno(o.kdo)}</b>{o.a}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <div class="stanice-akce">
-          <button type="button" class="tlacitko tlacitko-maly" data-akce="kafe">Postavit na kafe</button>
-          <a class="tlacitko tlacitko-maly tlacitko-obrys" href="/kontakt#kudy">Kudy k nám</a>
-        </div>
-        <figure class="dm-polaroid">
-          <Image src={fotky[z.kafe.foto.soubor]} alt={z.kafe.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.kafe.foto.kde}`} />
-          <figcaption>{z.kafe.foto.popis}</figcaption>
-        </figure>
-      </article>
+            ))}
+          </div>
+          <div class="stanice-akce">
+            <button type="button" class="tlacitko tlacitko-maly" data-akce="kafe">Postavit na kafe</button>
+            <a class="tlacitko tlacitko-maly tlacitko-obrys" href="/kontakt#kudy">Kudy k nám</a>
+          </div>
+          <figure class="dm-polaroid">
+            <Image src={fotky[z.kafe.foto.soubor]} alt={z.kafe.foto.alt} width={760} widths={[360, 560, 760]} sizes="(min-width: 861px) 360px, 80vw" format="webp" style={`object-position:${z.kafe.foto.kde}`} />
+            <figcaption>{z.kafe.foto.popis}</figcaption>
+          </figure>
+        </article>
+      </div>
     </div>
+
+    <nav class="prohlidka-mapa" aria-label="Zastávky prohlídky">
+      {zastavky.map((m) => (
+        <button type="button" data-mapa={m.id} aria-controls={`stanice-${m.id}`}><span lang="ja" aria-hidden="true">{m.znak}</span>{m.nazev}</button>
+      ))}
+    </nav>
   </div>
+
+  {/* Šipky po stranách: o zastávku zpět a dál (scripts/domek2/prohlidka.ts) */}
+  <button type="button" class="prohlidka-sipka prohlidka-sipka-zpet" aria-label="Předchozí zastávka" disabled>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" /></svg>
+  </button>
+  <button type="button" class="prohlidka-sipka prohlidka-sipka-dal" aria-label="Další zastávka">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L16 12 L9 19" /></svg>
+  </button>
 </section>

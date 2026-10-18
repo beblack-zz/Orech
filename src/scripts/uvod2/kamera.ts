@@ -23,6 +23,14 @@ export const cil = (s: string | undefined): Cil | null => {
   return c.length === 4 && c.every(Number.isFinite) ? { x: c[0], y: c[1], w: c[2], h: c[3] } : null;
 };
 
+/** Mezi dvěma záběry: střed lineárně, velikost záběru v logaritmu — stejně jako kamera.mezi */
+export const smichej = (a: Cil, b: Cil, t: number): Cil => ({
+  x: mix(a.x, b.x, t),
+  y: mix(a.y, b.y, t),
+  w: Math.exp(mix(Math.log(a.w), Math.log(b.w), t)),
+  h: Math.exp(mix(Math.log(a.h), Math.log(b.h), t)),
+});
+
 export interface Okraje {
   nahore: number;
   dole: number;

@@ -329,8 +329,12 @@
 /* ——— Prohlídka: rám z oken dílny ——— */
 
 .dm-prohlidka .prohlidka-okno { clip-path: none; border-radius: 6px; }
-/* Rám má poměr kresby (1600 × 1000) — v rámu na výšku by kamera koukala za okraj */
-.dm-ram { align-self: center; width: calc(100% - 24px); margin: 12px; aspect-ratio: 1600 / 1000; }
+/* Rám má poměr kresby (1600 × 1000) — v rámu na výšku by kamera koukala za okraj.
+   Vejde se do buňky na šířku i na výšku (pod ním je ještě žlab). */
+.dm-ram { width: min(100cqw - 28px, (100cqh - 60px) * 1.6); margin: 12px 12px 42px; aspect-ratio: 1600 / 1000; }
+@media (max-width: 860px) {
+  .dm-ram { width: min(100cqw - 24px, 40svh * 1.6); margin: 12px 12px 34px; }
+}
 /* Bílý plastový rám velkých oken, uvnitř šedé těsnění */
 .dm-ram::before {
   content: "";
@@ -352,15 +356,16 @@
   background: repeating-linear-gradient(90deg, #3B3A37 0 7px, #66635E 7px 10px);
   box-shadow: 0 8px 16px -8px rgba(20, 14, 30, 0.5);
 }
-.dm-prohlidka .prohlidka-mapa { padding-top: 34px; }
-@media (min-width: 861px) {
-  .dm-prohlidka .prohlidka-mapa a { padding-right: 12px; }
-}
-
-/* Fotka u zastávky — tohle je doopravdy */
+/* Fotka u zastávky — tohle je doopravdy. Vyplní, co v kartě zbude místa;
+   když nezbude skoro nic, karta se uvnitř posune. */
 .dm-polaroid {
   position: relative;
-  margin: 18px 6px 4px;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 170px;
+  max-height: 380px;
+  margin: 22px 6px 4px;
   padding: 10px 10px 0;
   background: #FFFDF8;
   box-shadow: 0 18px 32px -18px rgba(28, 20, 44, 0.6), 0 0 0 1px rgba(43, 36, 32, 0.07);
@@ -381,7 +386,10 @@
   line-height: 1.2;
   color: var(--inkoust-2);
 }
-.dm-polaroid img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; display: block; filter: sepia(0.35) brightness(1.06) contrast(0.92); transition: filter 0.9s; }
+.dm-polaroid img { flex: 1 1 0; width: 100%; min-height: 0; height: auto; object-fit: cover; display: block; filter: sepia(0.35) brightness(1.06) contrast(0.92); transition: filter 0.9s; }
+@media (max-width: 860px) {
+  .dm-polaroid { min-height: 150px; max-height: 240px; }
+}
 .stanice.aktivni .dm-polaroid img { filter: none; }
 .dm-polaroid figcaption { padding: 8px 4px 11px; text-align: center; font-family: var(--f-ruka); font-size: 21px; line-height: 1.1; color: var(--inkoust-2); }
 
@@ -574,7 +582,10 @@
 
 /* ——— Večer ——— */
 
-.dm-vecer-scena { overflow: clip; }
+/* Pruh je aspoň tak vysoký jako dům: na širokém okně je dům široký jako okno
+   a vyšší než 80vh — střecha, lampa a amplion by se jinak nahoře uřízly.
+   Ořezává se jen do stran: záře lampy sahá nad rám kresby a smí přesahovat nahoru. */
+.dm-vecer-scena { overflow-x: clip; overflow-y: visible; height: max(80vh, 640px, calc(100vw * 1390 / 3100)); }
 .dm-vecer-dum {
   --w: max(100%, calc(max(80vh, 640px) * 3100 / 1390));
   position: absolute;
@@ -597,6 +608,7 @@
 .dm-vecer .noc-karta { margin-top: 0; }
 @media (max-width: 860px) {
   .dm-vecer-dum { --w: calc(100vw * 3100 / 1180); right: auto; left: calc(50% - var(--w) * 0.645); }
+  .dm-vecer-scena { height: max(70vh, 460px, calc(100vw * 1390 / 1180)); }
 }
 
 /* ——— Méně pohybu ——— */

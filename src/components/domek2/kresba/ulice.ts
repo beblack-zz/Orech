@@ -215,7 +215,8 @@ const PR = {
   /** Roura od žlabu domu: kde na šikmém žlabu začíná koleno a kudy jde dolů */
   roura: 141,
   lampicka: { x: 18, y: 584 },
-  dvere: { x0: -176, x1: -110, vrch: 612 },
+  /** Dveře zajíždějí za nároží zdi s lampičkou — vidět je jen pětina u levé zárubně */
+  dvere: { x0: -108, x1: -42, vrch: 612 },
 };
 /** Bod ve svislici x na rovnoběžce s hranou levé půlky štítu, d pod ní */
 const podDomem = (d: number, x: number) => podHranou(LEVY, HREBEN, d, x);
@@ -240,6 +241,8 @@ function pristavek(p: string) {
   const zed = (x: number) => podDomem(PR.zed, x);
   const { x0, x1, vrch } = PR.dvere;
   const dw = x1 - x0;
+  /* Zbytek dveří je za nárožím, kreslí se jen to, co z něj vykukuje */
+  const vidno = PR.narozi - x0;
   const { x: lx, y: ly } = PR.lampicka;
   return `
     <g class="u-pristavek">
@@ -269,16 +272,11 @@ function pristavek(p: string) {
       ${mnohouhelnik([[STIT_L.roh, PR.dole], zed(STIT_L.roh), zed(PR.narozi), [PR.narozi, PR.dole]], `fill="#C1CDAE"`)}
       ${mnohouhelnik([[PR.narozi, PR.dole], zed(PR.narozi), zed(PR.konec), [PR.konec, PR.dole]], `fill="#AEBC9C"`)}
       ${mnohouhelnik([[STIT_L.roh, PR.dole], zed(STIT_L.roh), zed(PR.konec), [PR.konec, PR.dole]], `fill="url(#${p}-omitka)"`)}
-      <!-- vchodové dveře: bílá zárubeň, modřínové palubky jako na brance, prosklený pruh a madlo -->
-      ${obdelnik(x0 - 6, vrch - 6, dw + 12, PR.dole - vrch + 6, `fill="${B.ram}"`)}
-      ${obdelnik(x1 + 3, vrch - 6, 3, PR.dole - vrch + 6, `fill="${B.ramStin}"`)}
-      ${obdelnik(x0, vrch, dw, PR.dole - vrch, `fill="#8F5B3D"`)}
-      <path d="${Array.from({ length: 5 }, (_, i) => `M${f(x0 + (dw * (i + 1)) / 6)} ${vrch}V${PR.dole}`).join("")}" stroke="#6E4330" stroke-width="1.2" opacity="0.7"/>
-      ${obdelnik(x0, vrch, dw, PR.dole - vrch, `fill="url(#${p}-planka)"`)}
-      ${obdelnik(x0 + dw * 0.18, vrch + 14, dw * 0.2, 150, `class="u-sklo" fill="${B.sklo}"`)}
-      <path d="M${f(x0 + dw * 0.18)} ${vrch + 70} L${f(x0 + dw * 0.38)} ${vrch + 30} L${f(x0 + dw * 0.38)} ${vrch + 52} L${f(x0 + dw * 0.18)} ${vrch + 96} Z" fill="${B.odlesk}" opacity="0.3"/>
-      ${obdelnik(x1 - 13, vrch + 60, 4, 72, `rx="2" fill="${B.nerez}"`)}
-      ${obdelnik(x1 - 13, vrch + 60, 1.5, 72, `fill="${B.nerezSvetly}"`)}
+      <!-- vchodové dveře, celé z modřínových palubek jako branka, skoro celé za nárožím: bílá zárubeň a kraj dveří -->
+      ${obdelnik(x0 - 6, vrch - 6, vidno + 6, PR.dole - vrch + 6, `fill="${B.ram}"`)}
+      ${obdelnik(x0, vrch, vidno, PR.dole - vrch, `fill="#8F5B3D"`)}
+      <path d="${Array.from({ length: 5 }, (_, i) => x0 + (dw * (i + 1)) / 6).filter((x) => x < PR.narozi).map((x) => `M${f(x)} ${vrch}V${PR.dole}`).join("")}" stroke="#6E4330" stroke-width="1.2" opacity="0.7"/>
+      ${obdelnik(x0, vrch, vidno, PR.dole - vrch, `fill="url(#${p}-planka)"`)}
       <!-- stín pod podbitím; v zádveří je pod střechou hlubší a padá i na dveře -->
       ${mnohouhelnik([zed(PR.konec), zed(STIT_L.roh), plus(zed(STIT_L.roh), [0, 36]), plus(zed(PR.konec), [0, 36])], `fill="#7E8E6E" opacity="0.26"`)}
       ${mnohouhelnik([zed(PR.konec), zed(PR.narozi), plus(zed(PR.narozi), [0, 70]), plus(zed(PR.konec), [0, 70])], `fill="#6F7F60" opacity="0.22"`)}
@@ -320,15 +318,12 @@ function roura() {
     ${[600, 712].map((y) => obdelnik(x - 6, y, 12, 5, `rx="1.5" fill="${B.pozinkTma}"`)).join("")}`;
 }
 
-/** Večer: rozsvícená lampička u vchodu a světlo za skleněným pruhem dveří */
+/** Večer: rozsvícená lampička u vchodu (dveře jsou celé dřevěné, za nimi nesvítí nic) */
 function pristavekSvetla(p: string) {
   const { x, y } = PR.lampicka;
-  const { x0, x1, vrch } = PR.dvere;
-  const dw = x1 - x0;
   return `<radialGradient id="${p}-lampicka-zar" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFE3A0" stop-opacity="0.75"/><stop offset="0.45" stop-color="#FFC56E" stop-opacity="0.25"/><stop offset="1" stop-color="#FFB25A" stop-opacity="0"/></radialGradient>
     ${elipsa(x, y + 6, 92, 120, `fill="url(#${p}-lampicka-zar)" style="mix-blend-mode:screen"`)}
-    ${obdelnik(x - 5.5, y - 6, 11, 12, `fill="#FFF3C8"`)}
-    ${obdelnik(x0 + dw * 0.18, vrch + 14, dw * 0.2, 150, `fill="#FFD48A" opacity="0.55"`)}`;
+    ${obdelnik(x - 5.5, y - 6, 11, 12, `fill="#FFF3C8"`)}`;
 }
 
 /** Okno s bílým plastovým rámem: dvě křídla, odlesk, parapet */

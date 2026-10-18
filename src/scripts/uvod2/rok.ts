@@ -13,19 +13,11 @@
  * i obloha skočí rovnou.
  */
 import { priMereni, omez, mix, hladce, klid, vyzadej } from "../parta2/stav";
-import { kamera, cil } from "./kamera";
+import { kamera, cil, smichej } from "./kamera";
 import type { Cil } from "./kamera";
 
 /** Jak dlouho kamera jede k novému měsíci, v milisekundách */
 const JIZDA = 1100;
-
-/** Mezi dvěma záběry: střed lineárně, velikost záběru v logaritmu — stejně jako kamera.mezi */
-const smichej = (a: Cil, b: Cil, t: number): Cil => ({
-  x: mix(a.x, b.x, t),
-  y: mix(a.y, b.y, t),
-  w: Math.exp(mix(Math.log(a.w), Math.log(b.w), t)),
-  h: Math.exp(mix(Math.log(a.h), Math.log(b.h), t)),
-});
 
 export function rok() {
   const sekce = document.querySelector<HTMLElement>("#rok");
