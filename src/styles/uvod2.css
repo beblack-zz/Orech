@@ -641,6 +641,29 @@
   .stanice { padding: 18px 18px 14px; }
   .stanice:nth-child(n) { transform: none; }
   .stanice-nazev { font-size: 34px; }
+  /* Karta se na telefonu posouvá uvnitř — dokud je pod okrajem další text, je tam
+     stín; když člověk dojede na konec, zakryje ho papír, který jede s textem */
+  .stanice {
+    background:
+      linear-gradient(rgba(247, 241, 227, 0), var(--papir) 70%) center bottom / 100% 40px no-repeat local,
+      radial-gradient(farthest-side at 50% 100%, rgba(43, 36, 32, 0.24), transparent) center bottom / 100% 12px no-repeat scroll,
+      var(--papir);
+  }
+}
+@media (max-width: 860px) and (max-height: 720px) and (orientation: portrait) {
+  .stanice-nazev { font-size: 28px; }
+  .stanice-perex { font-size: 16.5px; }
+}
+/* Telefon na šířku: karta vedle okna jako na počítači — pod sebou by se do nízké
+   obrazovky nevešla (z karty zbyl jen štítek) */
+@media (max-width: 860px) and (orientation: landscape) and (max-height: 520px) {
+  .prohlidka-mriz { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); grid-template-rows: minmax(0, 1fr) auto; gap: 8px 16px; }
+  .prohlidka-scena { grid-column: 2; grid-row: 1; container-type: size; }
+  .prohlidka-karty { grid-column: 1; grid-row: 1; }
+  .prohlidka-mapa { grid-row: 2; }
+  .stanice { padding: 14px 16px 12px; }
+  .stanice-nazev { font-size: 26px; }
+  .stanice-perex { font-size: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

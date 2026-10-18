@@ -57,7 +57,8 @@ interface Data {
   email: string;
 }
 
-const SIROKA = "(min-aspect-ratio: 6/5) and (min-width: 900px)";
+/* Široké rozvržení (panel vlevo, scéna vpravo) — i telefon na šířku; přesný doplněk úzkého v kontakt.css */
+const SIROKA = "(min-aspect-ratio: 6/5) and (min-width: 900px), (min-aspect-ratio: 6/5) and (max-height: 520px)";
 
 /** Pořadí otázek na provázku: nejdřív ty, na které se lidi ptají nejvíc */
 const PORADI = [0, 8, 7, 1, 2, 3, 4, 5, 6];

@@ -76,7 +76,7 @@
 /* ——— Bubliny konference: kratší a menší, ať se jich vejde víc ——— */
 .ko-bublina.ko-us-rec { padding: 5px 12px 7px; font-size: clamp(15px, 1.25vw, 19px); }
 .ko-bublina.ko-us-ospale { color: var(--inkoust-2); font-weight: 400; }
-@media (max-aspect-ratio: 1199/1000), (max-width: 899px) {
+@media (max-aspect-ratio: 1199/1000), (max-width: 899px) and (min-height: 521px) {
   .ko-bublina.ko-us-rec { max-width: min(210px, 58vw); padding: 4px 11px 6px; border-radius: 12px; font-size: 15px; line-height: 1.05; white-space: normal; text-align: center; }
 }
 

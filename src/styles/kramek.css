@@ -528,6 +528,21 @@
 [data-rozvrzeni="uzka"] .krm-ruka { font-size: 20px; margin-bottom: 12px; }
 [data-rozvrzeni="uzka"] .krm-popisek { left: 10px; right: 10px; bottom: 10px; width: auto; padding: 10px 14px 11px; font-size: 14px; }
 
+/* ——— Telefon na šířku: karta se vejde mezi hlavičku a spodní okraj ———
+   (jinak se štítek schová pod hlavičku a tlačítko pod okraj; úzké rozvržení
+   má vyšší specificitu, takže tohle platí jen pro kartu vlevo) */
+@media (orientation: landscape) and (max-height: 520px) {
+  /* scéna je vyšší než obrazovka — karta proto stojí pod hlavičkou, ne uprostřed scény */
+  .krm-karta { top: 76px; width: min(400px, 46vw); padding: 14px 18px; }
+  .krm-uvod { transform: rotate(-0.6deg); }
+  .bez-uvodu .krm-uvod { transform: translateY(-60px) rotate(-0.6deg); }
+  .krm-konec { transform: translateY(30px) rotate(0.5deg); }
+  .krm-konec.je { transform: rotate(0.5deg); }
+  .krm-nadpis { font-size: clamp(26px, 7.4svh, 34px); margin: 6px 0 8px; }
+  .krm-perex { font-size: 13.5px; line-height: 1.4; margin-bottom: 8px; }
+  .krm-ruka { font-size: 18px; margin-bottom: 10px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .krm-lampion,
   .krm-vitr,

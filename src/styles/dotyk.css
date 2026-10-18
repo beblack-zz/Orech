@@ -1,0 +1,138 @@
+/*
+ * ——— Telefon: čitelnost a dotyk ———
+ *
+ * Jen pro dotykové displeje (hover: none, pointer: coarse — stejný dotaz jako
+ * scripts/parta2/kvalita.ts). Načítá se z parta2.css, takže platí na každé
+ * stránce. Pravidla nezávisí na pořadí: nové pseudo-prvky s ničím nesoupeří,
+ * kotva přes :where() nepřebije žádnou jinou pozici a přepsané vlastnosti
+ * mají !important.
+ *
+ * Dotykové plochy: malé ovládací prvky dostanou neviditelný ::after, který
+ * jejich plochu zvětší k 44 px — vzhled se nemění. O kolik, říká --dotyk
+ * (hodnota pro inset). Plocha roste nejvýš o polovinu mezery k sousedovi, ať
+ * si sousední prvky nekradou dotyky; v hlavičce jsou tlačítka natěsno, rostou
+ * hlavně na výšku. Body uvnitř kreseb, které se s kresbou zmenšují (řez
+ * dílnou, okna a cenovky v krámku), nechávám — mají náhradu mimo kresbu.
+ * Odkazy uprostřed věty taky (pravidlo 44 px se na ně nevztahuje).
+ * Pole formuláře mají plochu pod sebou (z-index -1), ať jde dál ťuknout do
+ * textu na konkrétní místo.
+ *
+ * Drobný text: popisky pod 12 px mají na telefonu 12 px, husté štítky
+ * jízdenek 11 px; velikosti počítané z --u si škálování nechávají.
+ */
+@media (hover: none) and (pointer: coarse) {
+  /* — Dotykové plochy — */
+
+  /* kotva pro ::after tam, kde prvek pozici nemá */
+  :where(.hlava-znacka, .hlava-tema, .zvuk-tlacitko, .hlava-menu-tlacitko, .pata-nav a, .kopat, .tlacitko,
+    .uvod-dolu, .stanice-odkaz, .kus-mail, .prohlidka-mapa button, .d-odkaz, .rok-mesic, .foto-odkaz,
+    .ko-cislo, .ko-otazky-tl, .ko-dal a, .o2v-jmeno-odkaz, .o2v-do-satku, .o2t-do-satku, .o2t-cely,
+    .ft-male, .ft-kal-detail > summary, .ftn-zpet, .ft-zaskrt, .ft-cesta a, .p3-mala, .rz-clen-odkaz, .rz-darky-uv, .rz-dar-otocit) {
+    position: relative;
+  }
+  :where(.rz-listek-jmeno, .rz-darky-pole) { position: relative; z-index: 0; }
+
+  :is(
+    .hlava-znacka, .hlava-tema, .zvuk-tlacitko, .hlava-menu-tlacitko, .zaves, .pruvodce-zmensit, .pata-nav a, .kopat, .tlacitko,
+    .uvod-dolu, .stanice-odkaz, .kus-mail, .prohlidka-mapa button, .prohlidka-sipka, .ulice-dvere, .ulice-rozhlas, .ulice-kami,
+    .d-stitek, .d-odkaz, .d-kami-nad,
+    .pk-kami, .pocatek-dolu, .rok-ram .rez-kami, .rok-mesic, .ks-supinka, .foto-odkaz,
+    .ko-cislo, .ko-otazky-tl, .ko-dal a, .ko-mapa-prepinac,
+    .o2v-jmeno-odkaz, .o2v-do-satku, .o2t-do-satku, .o2t-cely,
+    .ft-male, .ft-fb, .ft-kal-detail > summary, .ftn-zpet, .ft-zaskrt, .ft-cesta a,
+    .lampion, .p3-mala,
+    .rz-clen-odkaz, .rz-dolu, .rz-darky-uv, .rz-dar-otocit, .rzd-pero, .rz-listek-jmeno, .rz-darky-pole
+  )::after {
+    content: "";
+    position: absolute;
+    inset: var(--dotyk, -8px);
+  }
+  :is(.rzd-pero, .rz-listek-jmeno, .rz-darky-pole)::after { z-index: -1; }
+
+  /* hlavička, průvodce, patička — na každé stránce */
+  .hlava-znacka { --dotyk: -2px 0; }
+  .hlava-tema { --dotyk: -3px -2px; }
+  .zvuk-tlacitko { --dotyk: -9px -2px; }
+  .hlava-menu-tlacitko { --dotyk: -2px; }
+  .zaves { --dotyk: -2px -4px -16px; }
+  .pruvodce-zmensit { --dotyk: -5px; }
+  .pata-nav { row-gap: 14px !important; }
+  .pata-nav a { --dotyk: -7px -6px; }
+  .kopat { --dotyk: -8px 0; }
+  .tlacitko { --dotyk: -3px -2px; }
+  .tlacitko-maly { --dotyk: -8px -2px; }
+
+  /* úvod a Parta */
+  .uvod-dolu { --dotyk: -10px 0; }
+  .stanice-odkaz { --dotyk: -8px 0; }
+  .kus-mail { --dotyk: -5px -4px; }
+  .prohlidka-mapa button { --dotyk: -6px 0; }
+  .prohlidka-sipka { --dotyk: -2px; }
+  .ulice-dvere { --dotyk: 0 -10px; }
+  .ulice-rozhlas { --dotyk: -11px -7px; }
+  .ulice-kami { --dotyk: -10px; }
+  .lampion { --dotyk: 0 -2px; }
+  .p3-mala { --dotyk: -3px; }
+
+  /* Dílna */
+  .d-stitek { --dotyk: -6px -2px; }
+  .d-odkaz { --dotyk: -10px 0; }
+  .d-kami-nad { --dotyk: -7px; }
+
+  /* O nás */
+  .pk-kami { --dotyk: -3px; }
+  .pocatek-dolu { --dotyk: -10px 0; }
+  .rok-ram .rez-kami { --dotyk: -12px; }
+  .rok-mesic { --dotyk: -6px -2px; }
+  .ks-supinka { --dotyk: -9px; }
+  .foto-odkaz { --dotyk: -7px 0; }
+
+  /* Kontakt */
+  .ko-cislo { --dotyk: -3px 0; }
+  .ko-otazky-tl { --dotyk: -10px -3px; }
+  .ko-dal a { --dotyk: -8px 0; }
+  .ko-mapa-prepinac { --dotyk: -6px; }
+
+  /* Obchod a Futatsu */
+  .o2v-jmeno-odkaz { --dotyk: -13px -4px; }
+  .o2v-do-satku { --dotyk: -8px; }
+  .o2t-do-satku { --dotyk: -3px; }
+  .o2t-cely { --dotyk: -3px 0; }
+  .ft-male { --dotyk: -7px; }
+  .ft-fb { --dotyk: -9px; }
+  .ft-kal-detail > summary { --dotyk: -10px 0; }
+  .ftn-zpet { --dotyk: -8px 0; }
+  .ft-zaskrt { --dotyk: -12px -4px; }
+  .ft-cesta a { --dotyk: -14px -4px; }
+  /* nativní posuvníky mají 16 px — vyšší plocha pro prst, jezdec a dráha zůstávají */
+  .ft-rozsah input, .ftn-stari-jezdec input { padding-block: 8px; }
+
+  /* Rezervace */
+  .rz-clen-odkaz { --dotyk: -5px -2px; }
+  .rz-dolu { --dotyk: -10px 0; }
+  .rz-darky-uv { --dotyk: -3px; }
+  .rz-dar-otocit { --dotyk: -9px; }
+  .rzd-pero, .rz-listek-jmeno, .rz-darky-pole { --dotyk: -6px; }
+
+  /* — Drobný text — */
+
+  :is(
+    .chat-a b,
+    .d-milnik-replika b, .d-cinnost-vysledek b, .d-tip b, .d-zaklad dt,
+    .ko-popisek, .ko-udaje dt, .ko-ema-hlava .stitek,
+    .o2t-origami-stitek, .o2-vzor-nazev, .o2-pole small,
+    .ft-tip b, .ft-rozsah > span, .ft-param dt, .ft-cesta,
+    .zast-fakta dt, .kdo-kus-kde,
+    .rz-pristi-hlava, .rz-kurz-pristi-hlava, .rz-den-pas, .rz-den:not(.kurz) .rz-den-sekki, .rz-pas-hlava, .rz-zvlastni-hlava,
+    .rz-rad-pata, .rz-rad-tarif p, .rz-listek-udaje dt, .rz-listek-jmeno-popis, .rz-l-den-popis, .rz-l-hodiny-popis, .rz-listek-druh-text, .rz-dar-titul small
+  ) {
+    font-size: 12px !important;
+  }
+  /* husté štítky jízdenek a řádu — verzálky s prostrkáním, 11 px se čte jako 12 */
+  :is(.rz-rad-fakta dt, .rz-rad-jizdne span, .rz-rad-tarif li span, .rz-pas-doba span, .rz-o-jizdne small, .rz-dar-fakta dt, .rz-dar-volba legend) {
+    font-size: 11px !important;
+  }
+  .o2t-fakta dt { font-size: max(12px, calc(11.5 * var(--u))) !important; }
+  .o2v-pop b { font-size: max(12px, calc(15 * var(--u))) !important; }
+  .o2v-cesta { font-size: max(12px, calc(14 * var(--u))) !important; }
+}

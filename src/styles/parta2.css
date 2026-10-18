@@ -11,6 +11,9 @@
  *         Yuji Syuku (štětec) na japonské znaky.
  */
 
+/* Telefon: větší dotykové plochy a čitelnější drobné popisky (jen na dotyku) */
+@import "./dotyk.css";
+
 :root {
   --papir: #F7F1E3;
   --papir-2: #EFE5D1;

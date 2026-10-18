@@ -180,6 +180,22 @@
   .ko-meishi { margin-bottom: 16px; padding-top: 16px; padding-bottom: 14px; }
   .ko-dal { margin-top: 12px; }
 }
+/* Telefon na šířku: široké rozvržení, jen hustší — panel pod hlavičkou vlevo,
+   hrnek a ústředna vpravo zůstanou vidět */
+@media (min-aspect-ratio: 6/5) and (max-height: 520px) {
+  .ko-panel { width: min(520px, 48vw); margin-left: 16px; padding: 74px 0 16px; }
+  .ko-panel::before { inset: 40px -60px -20px -60px; }
+  .ko-nadpis { font-size: clamp(26px, 8svh, 34px); margin: 4px 0 10px; }
+  .ko-meishi { margin: 4px 0 12px; padding-top: 12px; padding-bottom: 10px; }
+  .ko-meishi .ko-cislo { font-size: clamp(24px, 7svh, 30px); }
+  .ko-meishi .ko-udaje { gap: 6px 20px; margin-top: 8px; padding-top: 8px; }
+  .ko-meishi .ko-udaje dd { font-size: 15px; }
+  .ko-pozn { font-size: 14px; }
+  .ko-tlacitka .tlacitko { padding: 9px 15px; font-size: 14.5px; }
+  .ko-dal { margin-top: 8px; font-size: 14px; }
+  /* uvnitř u ústředny zůstane z karty jen číslo, jako na úzkém displeji */
+  .ko-scena[data-zastavka="uvnitr"] :is(.ko-meishi .ko-pozn, .ko-meishi .ko-udaje) { display: none; }
+}
 
 .ko-tlacitka { display: flex; flex-wrap: wrap; gap: 10px; }
 .ko-dal { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin-top: 16px; font-size: 15px; }
@@ -227,8 +243,10 @@
 .je-noc .ko-scena[data-zastavka="venku"] .ko-meishi :is(.ko-popisek, .ko-udaje dt) { color: var(--inkoust-3); }
 .je-noc .ko-scena[data-zastavka="venku"] .ko-meishi .ko-udaje dd a { border-color: rgba(43, 36, 32, 0.2); }
 
-/* ——— Úzké rozvržení: panel nahoře přes celou šířku, scéna pod ním ——— */
-@media (max-aspect-ratio: 1199/1000), (max-width: 899px) {
+/* ——— Úzké rozvržení: panel nahoře přes celou šířku, scéna pod ním ———
+   (telefon na šířku sem nepatří: panel by zabral celou nízkou obrazovku —
+   dostane široké rozvržení, viz výš; SIROKA ve scena.ts a uvnitr.ts je doplněk) */
+@media (max-aspect-ratio: 1199/1000), (max-width: 899px) and (min-height: 521px) {
   .ko-scena { min-height: max(100svh, 820px); }
   .ko-panel { width: auto; max-width: 660px; margin: 0; padding: 88px 20px 20px; }
   .ko-panel::before { inset: 60px -40px -20px -40px; }

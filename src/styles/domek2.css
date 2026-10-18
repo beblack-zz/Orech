@@ -127,6 +127,19 @@
   /* domek s pěšinou blíž ke středu výřezu a o kus menší (střed paty domku 800 × 434) */
   .dm-uvod .krajina-dum { transform-origin: 800px 434px; transform: translate(-62px, 6px) scale(0.84); }
 }
+/* Telefon na šířku: krajina jako na počítači — text vlevo, strom vpravo, všechno na
+   jedné nízké obrazovce (telefonní rozvržení pod sebou by strom i dům schovalo pod okraj) */
+@media (max-width: 860px) and (orientation: landscape) and (max-height: 520px) {
+  .dm-uvod { min-height: 0; --uvod-h: 100svh; }
+  .dm-uvod .uvod-kopce { height: 70%; }
+  .dm-uvod .dmu-orech { --vyska: calc(var(--uvod-h) * 1.12); left: calc(84% - var(--sirka) * 0.65); top: auto; bottom: 6%; }
+  .dm-uvod .krajina-dum { transform: none; }
+  .dm-uvod .uvod-text { right: auto; top: 78px; max-width: 54vw; }
+  .dm-uvod .uvod-nadpis { font-size: clamp(24px, 8svh, 32px); margin: 6px 0 8px; }
+  .dm-uvod .uvod-perex { font-size: 13.5px; }
+  .dm-uvod-akce { margin-top: 10px; }
+  .dm-uvod-kdy { margin-top: 6px; font-size: 13px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .dm-uvod .dmu-mlha,
   .dm-uvod .dmu-paprsky,
@@ -334,6 +347,10 @@
 .dm-ram { width: min(100cqw - 28px, (100cqh - 60px) * 1.6); margin: 12px 12px 42px; aspect-ratio: 1600 / 1000; }
 @media (max-width: 860px) {
   .dm-ram { width: min(100cqw - 24px, 40svh * 1.6); margin: 12px 12px 34px; }
+}
+/* Telefon na šířku: okno stojí vedle karty (uvod2.css) a vejde se do buňky na výšku */
+@media (max-width: 860px) and (orientation: landscape) and (max-height: 520px) {
+  .dm-ram { width: min(100cqw - 24px, (100cqh - 50px) * 1.6); }
 }
 /* Bílý plastový rám velkých oken, uvnitř šedé těsnění */
 .dm-ram::before {

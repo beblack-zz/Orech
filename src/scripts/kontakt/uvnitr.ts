@@ -63,7 +63,8 @@ import type { PostavaId } from "../../data/parta";
 import * as zvuk from "../parta2/zvuk";
 import { naObrazovce } from "../parta2/mimo";
 
-const SIROKA = "(min-aspect-ratio: 6/5) and (min-width: 900px)";
+/* Široké rozvržení — i telefon na šířku; musí sedět se scena.ts a kontakt.css */
+const SIROKA = "(min-aspect-ratio: 6/5) and (min-width: 900px), (min-aspect-ratio: 6/5) and (max-height: 520px)";
 /** Po kterých klávesách Kachlík skáče (indexy v řadách 11 + 11 + 10 + 9) */
 const SKOKY = [13, 15, 17, 26, 28, 19, 21, 30, 24, 36, 38, 18];
 /** Kolik článků má šňůra kolíku */
