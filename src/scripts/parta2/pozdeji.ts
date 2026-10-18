@@ -33,6 +33,31 @@ export function odloz(svg: string): string {
   return `${m[1]}</svg><template data-pozdeji="dovnitr"><svg xmlns="http://www.w3.org/2000/svg">${m[2]}</svg></template>`;
 }
 
+/**
+ * Kresba, která už jednou byla vidět, se mimo obrazovku nevykresluje
+ * (content-visibility: auto) — prohlížeč pro ni nepočítá styly, filtry ani
+ * animace. Zapne se až po prvním zobrazení a s naměřenou velikostí: dřív by
+ * se obal smrskl a stránka poskočila, a šablona v něm by se nevložila
+ * (observer uvnitř nevykresleného obalu nic nevidí). Jen pro obaly, které
+ * stojí na místě — pod kamerou by kresba při posunu na okamžik chyběla.
+ */
+export function nekreslitMimo(selektor: string) {
+  if (typeof IntersectionObserver === "undefined" || !CSS.supports?.("content-visibility", "auto")) return;
+  const io = new IntersectionObserver((zaznamy) => {
+    for (const z of zaznamy) {
+      if (!z.isIntersecting) continue;
+      const el = z.target as HTMLElement;
+      io.unobserve(el);
+      const sirka = el.offsetWidth;
+      const vyska = el.offsetHeight;
+      if (!sirka || !vyska) continue;
+      el.style.setProperty("contain-intrinsic-size", `auto ${sirka}px auto ${vyska}px`);
+      el.style.setProperty("content-visibility", "auto");
+    }
+  });
+  document.querySelectorAll(selektor).forEach((el) => io.observe(el));
+}
+
 /** Vloží obsah jedné šablony; vrací vložené prvky */
 function vloz(t: HTMLTemplateElement): Element[] {
   if (!t.isConnected) return [];

@@ -11,7 +11,9 @@
 /* Jedna obrazovka — měsíce se přepínají kliknutím, ne scrollem */
 .rok { position: relative; z-index: 2; }
 .rok-kotva { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; }
-.rok-scena { position: relative; height: 100vh; height: 100svh; overflow: clip; }
+/* Mimo obrazovku se scéna nevykresluje (content-visibility) — výšku má pevnou
+   a přesahy ořízlé, takže se tím nic neposune ani neusekne */
+.rok-scena { position: relative; height: 100vh; height: 100svh; overflow: clip; content-visibility: auto; }
 .rok-ram { position: absolute; inset: 0; overflow: hidden; }
 .rok-svet { position: absolute; left: 0; top: 0; width: 100%; transform-origin: 0 0; }
 .rok-svet.jede { will-change: transform; }

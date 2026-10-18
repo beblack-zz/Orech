@@ -115,7 +115,10 @@ const [RANO_A, RANO_B, RANO_C] = paleta(rezervace.od - 0.4).barvy;
 const kresbaKurzu = (K: KurzVlak) => {
   const okna = oknaSalonu(K.mist);
   const zObsazeno = new Set([0, 1, 4].filter((i) => i < okna.length - 1));
-  const vlakK = zvlastniVlak({ mista: okna.map((_, i) => (zObsazeno.has(i) ? { kdo: "stin" } : null)), emblem: K.emblem, cedule: K.nazev });
+  /* Vlak a jeho odraz na hladině — každý zvlášť, ať mají vlastní ořezy (id) */
+  const kresbaVlaku = () => zvlastniVlak({ mista: okna.map((_, i) => (zObsazeno.has(i) ? { kdo: "stin" } : null)), emblem: K.emblem, cedule: K.nazev });
+  const vlakK = kresbaVlaku();
+  const odrazK = kresbaVlaku();
   const nahore = -(VYSKA_ZVLASTNIHO + 14);
   return (
     `<defs><linearGradient id="rz-obraz-nebe-${K.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${RANO_A}"/><stop offset="0.55" stop-color="${RANO_B}"/><stop offset="1" stop-color="${RANO_C}"/></linearGradient>` +
@@ -123,7 +126,7 @@ const kresbaKurzu = (K: KurzVlak) => {
     `<rect x="${KX}" y="${nahore}" width="${KW}" height="${-nahore}" fill="url(#rz-obraz-nebe-${K.id})"/>` +
     `<circle cx="${KX + KW * 0.2}" cy="${f1(nahore * 0.62)}" r="34" class="rz-rad-k-slunce"/><circle cx="${KX + KW * 0.2}" cy="${f1(nahore * 0.62)}" r="62" class="rz-rad-k-slunce" opacity="0.35"/>` +
     `<rect x="${KX}" y="0" width="${KW}" height="${MORE}" fill="url(#rz-obraz-more-${K.id})"/>` +
-    `<g transform="translate(${ZX} 0)"><g transform="scale(1 -0.5)" opacity="0.24">${vlakK}</g>${vlakK}</g>` +
+    `<g transform="translate(${ZX} 0)"><g transform="scale(1 -0.5)" opacity="0.24">${odrazK}</g>${vlakK}</g>` +
     `<path d="M${KX + 80} ${f1(MORE * 0.42)} h120 M${KX + 420} ${f1(MORE * 0.7)} h90 M${KX + 760} ${f1(MORE * 0.5)} h140" class="rz-rad-k-vlnka"/>`
   );
 };

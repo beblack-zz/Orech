@@ -476,6 +476,8 @@
   position: relative;
   aspect-ratio: 1200 / 1600;
   overflow: hidden;
+  /* mimo obrazovku se srovnání nevykresluje — rozměr dává poměr stran, přesahy jsou ořízlé */
+  content-visibility: auto;
   border-radius: 18px;
   background: #E9E1D2;
   box-shadow: 0 30px 60px -28px rgba(10, 14, 6, 0.7), 0 0 0 6px #FFFDF8;

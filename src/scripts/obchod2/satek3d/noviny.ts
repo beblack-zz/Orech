@@ -498,7 +498,7 @@ function nactiFoto(url: string | undefined): Promise<HTMLImageElement | null> {
 }
 
 const RUKA = '"Caveat", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive';
-/** Caveat ze stránky (pisma.css), když ho stránka má; jinak zůstane náhradní písmo */
+/** Caveat ze stránky (Hlava.astro), když ho stránka má; jinak zůstane náhradní písmo */
 function pripravPismo(): Promise<unknown> {
   if (typeof document === "undefined" || !document.fonts) return Promise.resolve();
   return Promise.race([Promise.all([document.fonts.load("600 120px Caveat", "0123456789"), document.fonts.load("400 26px Caveat")]).catch(() => null), new Promise((r) => window.setTimeout(r, 1500))]);

@@ -36,14 +36,14 @@ const K = await patickaKresby();
 <footer class="pata">
   <div class="pata-hlina">
     <div class="pata-pozadi" aria-hidden="true">
-      <div class="pata-puda"><img src={K.puda} alt="" decoding="async" fetchpriority="low" /></div>
-      <div class="pata-koreny"><img src={K.koreny} alt="" decoding="async" fetchpriority="low" /></div>
+      <div class="pata-puda"><img src={K.puda} alt="" loading="lazy" decoding="async" fetchpriority="low" /></div>
+      <div class="pata-koreny"><img src={K.koreny} alt="" loading="lazy" decoding="async" fetchpriority="low" /></div>
     </div>
 
     <div class="pata-obsah">
       <div class="pata-info">
         <div>
-          <p class="pata-znacka"><img src={K.enso} width="54" height="54" alt="JIRO saku" decoding="async" /> <img src={K.znacka.src} width={K.znacka.width} height={K.znacka.height} alt="JIRO saku" decoding="async" /></p>
+          <p class="pata-znacka"><img src={K.enso} width="54" height="54" alt="JIRO saku" loading="lazy" decoding="async" /> <img src={K.znacka.src} width={K.znacka.width} height={K.znacka.height} alt="JIRO saku" loading="lazy" decoding="async" /></p>
           <p class="pata-podtitul">Keramická dílna v Ořechu.</p>
         </div>
         <div>
@@ -77,10 +77,10 @@ const K = await patickaKresby();
         <li class:list={["vrstva", { "vrstva-svetla": v.svetla }]} aria-hidden="true" inert>
           <div class="vrstva-obal">
             <div class="vrstva-plocha">
-              <div class="vrstva-pozadi"><img src={K.vrstva(v.id)} alt="" decoding="async" fetchpriority="low" /></div>
+              <div class="vrstva-pozadi"><img src={K.vrstva(v.id)} alt="" loading="lazy" decoding="async" fetchpriority="low" /></div>
               <div class="vrstva-nalez">
                 <div class="vrstva-nalez-obal">
-                  <img src={K.nalez(v.id)} width="240" height="160" alt="" decoding="async" fetchpriority="low" />
+                  <img src={K.nalez(v.id)} width="240" height="160" alt="" loading="lazy" decoding="async" fetchpriority="low" />
                   {v.id === SCHOVANA.vrstva && (
                     <button
                       type="button"

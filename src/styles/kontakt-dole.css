@@ -56,6 +56,8 @@
   position: relative;
   aspect-ratio: 660 / 1010;
   overflow: hidden;
+  /* mimo obrazovku se mapa nevykresluje — rozměr dává poměr stran, přesahy jsou ořízlé */
+  content-visibility: auto;
   border-radius: 8px;
   background: #F3E8CF;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 18px 30px -18px rgba(40, 24, 10, 0.65), 0 2px 4px rgba(40, 24, 10, 0.25);

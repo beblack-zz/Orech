@@ -29,6 +29,11 @@ export function initPaticka() {
   akce.hidden = false;
   let odkryto = 0;
 
+  /* Kresby patičky se načítají líně, zavřené vrstvy by se tak stáhly až po
+     odkrytí — vrstva, která přijde na řadu, se proto stáhne napřed */
+  const nachystej = (i: number) => li[i]?.querySelectorAll("img").forEach((img) => (img.loading = "eager"));
+  nachystej(0);
+
   pata.querySelectorAll<HTMLElement>("[data-skryty]").forEach(schovej);
 
   const drobky = (barva: string) => {
@@ -63,6 +68,7 @@ export function initPaticka() {
     const el = li[odkryto];
     const v = vrstvy[odkryto];
     odkryto++;
+    nachystej(odkryto);
     el.classList.add("odkryta");
     el.removeAttribute("inert");
     el.removeAttribute("aria-hidden");

@@ -10,7 +10,7 @@ import { initNebe } from "../parta2/nebe";
 import { initKami } from "../parta2/kami";
 import { hlavicka } from "../parta2/hlavicka";
 import { vypal } from "./vypal";
-import { pozdeji } from "../parta2/pozdeji";
+import { pozdeji, nekreslitMimo } from "../parta2/pozdeji";
 
 /* Celé se to spustí při každé návštěvě stránky, i po přechodu bez načtení (prechody.ts) */
 stranka("dilna", () => {
@@ -18,7 +18,9 @@ stranka("dilna", () => {
   initKami();
   initNebe();
   vypal();
-  /* Kresby kapitol až cestou k nim — regál v úvodu je vidět hned */
+  /* Kresby kapitol až cestou k nim — regál v úvodu je vidět hned — a co už
+     bylo vidět, se mimo obrazovku znovu nevykresluje */
   pozdeji();
+  nekreslitMimo(".d-kresba");
   spust();
 });

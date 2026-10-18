@@ -84,7 +84,7 @@ function cestujici(mista: Misto[], seminko: number) {
  *
  * Kreslí se celý tady (ne přes <defs>), protože počet oken záleží na kurzu.
  * Z VlakKresby.astro bere jen přechody, stín, postavičku a záři světla.
- * Kola jsou z půlky pod hladinou — nad y = 0 je ořízne #vl-nad-vodou.
+ * Kola jsou z půlky pod hladinou — nad y = 0 je ořízne #vl-nad-vodou-… (každý vlak svůj).
  */
 export const TENDR = 150;
 export const LOKO = 336;
@@ -100,10 +100,10 @@ export const oknaSalonu = (n: number) => {
   return Array.from({ length: n }, (_, i) => ({ x: f(62 + i * roztec + 5), w: f(roztec - 10) }));
 };
 
-function salon(mista: Misto[], cedule: string) {
+function salon(mista: Misto[], cedule: string, k: number) {
   const n = mista.length;
   const okna = oknaSalonu(n);
-  const orez = `vl-salon-orez-${n}`;
+  const orez = `vl-salon-orez-${k}`;
   const DVERE_S = [14, 472];
   let lide = "";
   mista.forEach((m, i) => {
@@ -149,10 +149,10 @@ function salon(mista: Misto[], cedule: string) {
 </g>`;
 }
 
-function tendr() {
+function tendr(k: number) {
   const kola = [30, 75, 120].map((x) => `<circle cx="${x}" cy="-12" r="15" fill="#1C1826" stroke="#C4432B" stroke-width="2.6"/><circle cx="${x}" cy="-12" r="4" fill="#C4432B"/>`).join("");
   return `<g>
-  <g clip-path="url(#vl-nad-vodou)">${kola}</g>
+  <g clip-path="url(#vl-nad-vodou-${k})">${kola}</g>
   <path d="M8 -92 Q18 -110 38 -105 Q52 -119 74 -110 Q92 -121 110 -108 Q130 -113 142 -92 Z" fill="#B5673F"/>
   <path d="M24 -101 Q32 -108 42 -103 M62 -109 Q72 -115 84 -109 M104 -106 Q114 -110 124 -104" fill="none" stroke="#D99468" stroke-width="2.4" stroke-linecap="round"/>
   <path d="M0 -24 V-86 Q0 -94 8 -94 H142 Q150 -94 150 -86 V-24 Z" fill="url(#vl-kotel)"/>
@@ -164,7 +164,7 @@ function tendr() {
 </g>`;
 }
 
-function lokomotiva(emblem: string) {
+function lokomotiva(emblem: string, k: number) {
   const hnaci = [112, 180, 248];
   const paprsky = (cx: number) => Array.from({ length: 8 }, (_, k) => {
     const a = (k * Math.PI) / 4;
@@ -183,7 +183,7 @@ function lokomotiva(emblem: string) {
   ].map(([x, y, r, o], i) => `<circle cx="${x}" cy="${y}" r="${r}" opacity="${o}" style="--i:${i}"/>`).join("");
   return `<g>
   <g class="vl-para" fill="#FFFDF6">${oblacky}</g>
-  <g clip-path="url(#vl-nad-vodou)">${kola}</g>
+  <g clip-path="url(#vl-nad-vodou-${k})">${kola}</g>
   <path d="M300 -40 H322 L336 -5 V0 H296 Z" fill="#C4432B"/>
   <path d="M306 -34 L314 -2 M314 -36 L324 -2" stroke="#8E2E1E" stroke-width="2"/>
   <rect x="262" y="-41" width="42" height="21" rx="6" fill="#262231" stroke="#E0B04A" stroke-width="1.2"/>
@@ -230,14 +230,19 @@ export interface Zvlastni {
   trida?: string;
 }
 
+/* Každý zvláštní vlak má vlastní ořezy: na stránce jich jede víc (v řádu i v dárcích)
+   a se stejnými id by si je tiše půjčovaly od prvního */
+let poradiVlaku = 0;
+
 /** Zvláštní vlak jako SVG <g> — jede doprava, lokomotiva je vpředu */
 export function zvlastniVlak({ mista, emblem = "", cedule = "", trida = "" }: Zvlastni) {
+  const k = ++poradiVlaku;
   return `<g class="vl-vlak vl-zvlastni ${trida}">
-  <clipPath id="vl-nad-vodou"><rect x="-200" y="-600" width="${DELKA_ZVLASTNIHO + 400}" height="600"/></clipPath>
+  <clipPath id="vl-nad-vodou-${k}"><rect x="-200" y="-600" width="${DELKA_ZVLASTNIHO + 400}" height="600"/></clipPath>
   <rect x="${VUZ - 2}" y="-58" width="18" height="8" fill="#2A2430"/>
-  ${salon(mista, cedule)}
-  <g transform="translate(${X_TENDR} 0)">${tendr()}</g>
-  <g transform="translate(${X_LOKO} 0)">${lokomotiva(emblem)}</g>
+  ${salon(mista, cedule, k)}
+  <g transform="translate(${X_TENDR} 0)">${tendr(k)}</g>
+  <g transform="translate(${X_LOKO} 0)">${lokomotiva(emblem, k)}</g>
   <path d="M-30 0 H${DELKA_ZVLASTNIHO + 8}" class="vl-pena"/>
 </g>`;
 }

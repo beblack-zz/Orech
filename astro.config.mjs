@@ -3,6 +3,7 @@ import { defineConfig, envField } from 'astro/config';
 
 import netlify from '@astrojs/netlify';
 import tailwindcss from '@tailwindcss/vite';
+import hoverJenMys from './scripts/hover-jen-mys.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -28,6 +29,8 @@ export default defineConfig({
     },
   },
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    // :hover jen pro myš — na dotyku by se efekty po klepnutí „přilepily“ (scripts/hover-jen-mys.mjs)
+    css: { postcss: { plugins: [hoverJenMys()] } }
   }
 });

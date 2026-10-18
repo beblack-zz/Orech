@@ -208,18 +208,6 @@ body.p2 {
 }
 @keyframes svetluska-blik { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
 
-/* Zrno papíru přes celou stránku — ve dne násobí, v noci se jen prolne */
-.zrno {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  pointer-events: none;
-  opacity: 0.18;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='z'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23z)'/%3E%3C/svg%3E");
-}
-.je-noc .zrno { mix-blend-mode: soft-light; opacity: 0.35; }
-
 /* ——— Hlavička ——— */
 
 .hlava {
@@ -785,6 +773,7 @@ body.p2 {
   top: 50%;
   width: min(400px, calc(100vw - 32px));
   max-height: calc(100vh - 24px);
+  max-height: calc(100svh - 24px);
   overflow: auto;
   padding: 12px 14px 14px;
   border-radius: 18px;
@@ -913,6 +902,12 @@ body.p2 {
   background: color-mix(in srgb, #2A3160 94%, transparent);
   color: var(--noc-krem);
   box-shadow: 0 12px 32px -14px rgba(5, 8, 25, 0.7), inset 0 0 0 1px rgba(241, 232, 214, 0.09);
+}
+/* Na dotyku bez rozmazání: telefon by pod bublinou rozmazával kresby při každém
+   snímku scrollu, a prosvítá jich stejně jen 6–10 %. */
+@media (hover: none) {
+  .hlava { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--papir); }
+  .hlava.je-noc { background: #2A3160; }
 }
 .hlava.je-noc .znacka-stetec { --zs-1: #e0603c; --zs-2: #e08aa0; --zs-3: #b49ad0; --zs-4: #9a92d8; }
 .hlava.je-noc .hlava-nav a { color: rgba(241, 232, 214, 0.8); }
@@ -1151,6 +1146,7 @@ body.p2 {
 .zast {
   position: relative;
   min-height: 100vh;
+  min-height: 100svh;
   padding: 10vh 20px;
   display: flex;
   align-items: center;
@@ -1371,6 +1367,7 @@ body.p2 {
 .zast-scroll {
   display: block;
   height: calc(var(--delka) * 100vh);
+  height: calc(var(--delka) * 100svh);
   min-height: 0;
   padding: 0 20px;
 }
