@@ -27,7 +27,7 @@
  * místo, které se dá koupit) a pod ním to hlavní: tři volby, které na sebe
  * nenavazují, nebo týdny, na které permanentka platí.
  */
-import { rezervace, kurzy, permanentka, odjezdy, hhmm, jizdne, rozpetiJizdneho, cenaPermanentky, jizdPermanentky, detskaSlovy } from "../../data/rezervace";
+import { rezervace, kurzy, permanentka, odjezdyDne, spojeDne, spojeSlovy, hhmm, jizdne, rozpetiJizdneho, cenaPermanentky, jizdPermanentky, detskaSlovy } from "../../data/rezervace";
 import { cinnosti, vCene } from "../../data/dilna";
 import { sklonuj } from "../../data/pocty";
 import { vlak, zvlastniVlak, oknaSalonu, VUZ, MEZERA, SEDADLA, VYSKA, VYSKA_ZVLASTNIHO } from "./vlak";
@@ -65,8 +65,9 @@ const xVozu = (i: number) => i * (VUZ + MEZERA);
 /** Kde je v i-tém voze sedadlo — každý druhý vůz je otočený */
 const xSedadla = (i: number, s: number) => (i % 2 ? xVozu(i) + VUZ - SEDADLA[s] : xVozu(i) + SEDADLA[s]);
 
-const naPermanentku = new Set(permanentka.spoje.map((s) => s.h));
-const hodinove = odjezdy.filter((h) => !naPermanentku.has(h));
+/* Obrázky kreslí první den v týdnu */
+const naPermanentku = new Set(spojeDne(rezervace.dny[0]).map((s) => s.h));
+const hodinove = odjezdyDne(rezervace.dny[0]).filter((h) => !naPermanentku.has(h));
 const volby = cinnosti.map((c) => c.nazev.toLowerCase());
 
 /* Odjezd (hodina a půl): dva vozy, dva odjezdy, pod každým tečka za každé místo. Na prvním sedíte vy dva
@@ -135,7 +136,7 @@ const kresbaKurzu = (K: KurzVlak) => {
 const KAZDY = ["každou neděli", "každé pondělí", "každé úterý", "každou středu", "každý čtvrtek", "každý pátek", "každou sobotu"];
 const mesice = sklonuj(permanentka.mesicu, "měsíc", "měsíce", "měsíců");
 const pasSedadla = [2, 3, 4, 1, 5, 0].slice(0, permanentka.mist).sort((a, b) => a - b);
-const pVozy = permanentka.spoje.slice(0, 2).map((s, i) => ({ ...s, obsazeno: Math.min(Math.max(0, permanentka.mist - 1), i + 1) }));
+const pVozy = spojeDne(rezervace.dny[0]).slice(0, 2).map((s, i) => ({ ...s, obsazeno: Math.min(Math.max(0, permanentka.mist - 1), i + 1) }));
 const TYDNU = Math.round((permanentka.mesicu * 52) / 12);
 const Y_TYDNY = POD + 46;
 const tydny = (() => {
@@ -253,7 +254,7 @@ const listyKurzu: Druh[] = kurzy.map((k) => {
     fakta: [
       { co: "lektor", html: `<b>celý den u toho</b> — vede ${k.lektor}` },
       { co: "s kým", html: `se skupinou: kurz má ${sklonuj(k.mist, "místo", "místa", "míst")} a každý si kupuje jen to své` },
-      { co: "kdy", html: `${V_DEN[rezervace.denKurzu]}, celý den ${cas(rezervace.od)}–${cas(rezervace.do)}; běžné hodiny ten den nejsou` },
+      { co: "kdy", html: `${V_DEN[rezervace.denKurzu]}, celý den ${cas(Math.min(...k.program.map((z) => z.h)))}–${cas(Math.max(...k.program.map((z) => z.h)) + rezervace.blok)}; běžné hodiny ten den nejsou` },
       { co: "pro koho", html: k.proKoho },
     ],
     cena: kc(k.cena),
@@ -274,7 +275,7 @@ const pas: Druh = {
   heslo: `Tvoje hodina v dílně každý týden, na ${mesice}.`,
   fakta: [
     { co: "co děláš", html: `<b>totéž co na běžné hodině</b> — tvoříš po svém, jen pravidelně` },
-    { co: "kdy", html: `první nebo poslední hodina dne (${spolu(permanentka.spoje.map((s) => cas(s.h)), "nebo")}), jeden den v týdnu — třeba ${KAZDY[rezervace.dny[0]]} v ${cas(permanentka.spoje[0].h)}` },
+    { co: "kdy", html: `první nebo poslední hodina dne (${spojeSlovy()}), jeden den v týdnu — třeba ${KAZDY[rezervace.dny[0]]} v ${cas(spojeDne(rezervace.dny[0])[0].h)}` },
     { co: "platí", html: `${mesice} od první hodiny` },
     { co: "s kým", html: `máš jedno místo; hodina má ${sklonuj(permanentka.mist, "místo", "místa", "míst")}, dílnu tak sdílíš nejvýš ${spolusedici}` },
   ],

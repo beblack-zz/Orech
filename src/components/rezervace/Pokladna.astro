@@ -32,7 +32,7 @@
  * nahoře na první obrazovce (Nadrazi.astro). Pod volbou „kolik vás
  * pojede“ je štítek dětské jízdenky — sleva se počítá až na místě.
  */
-import { rezervace, permanentka, kurzy, hhmm, jizdne, cenaZaCloveka, cenaPermanentky, jizdPermanentky } from "../../data/rezervace";
+import { rezervace, permanentka, kurzy, hhmm, jizdne, cenaZaCloveka, cenaPermanentky, jizdPermanentky, spojeDne } from "../../data/rezervace";
 
 /** Postavičky do volby „kolik vás pojede“ — každá další je o kousek menší */
 const lide = Array.from({ length: rezervace.maxOsob }, (_, i) => i + 1);
@@ -91,8 +91,8 @@ const cenyKurzu = cenyKurzuCisla.map((c) => c.toLocaleString("cs-CZ")).filter((_
       <small>na {permanentka.mesicu} měsíce a na jeden den v týdnu — na ten, který máš vybraný. Pokaždé stejná hodina, první nebo poslední toho dne; na každé jsou {permanentka.mist} místa.</small>
     </h3>
     <div class="rz-pasy" role="group" aria-label="Permanentka — na který spoj">
-      {permanentka.spoje.map((s) => (
-        <button type="button" class="rz-pas-volba" data-pas={s.h} aria-pressed="false" disabled>
+      {spojeDne(rezervace.dny[0]).map((s, i) => (
+        <button type="button" class="rz-pas-volba" data-pas={s.h} data-spoj={i} aria-pressed="false" disabled>
           <span class="rz-pas-hlava">{s.nazev} hodina</span>
           <b class="rz-pas-cas">{hhmm(s.h)}–{hhmm(s.h + rezervace.blok)}</b>
           <span class="rz-pas-mista" aria-hidden="true">

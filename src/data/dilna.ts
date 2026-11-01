@@ -1,5 +1,5 @@
 import type { PostavaId } from "./parta";
-import { rezervace, cenaZaCloveka, rozpetiJizdneho, tarifSlovy, detskaSlovy } from "./rezervace";
+import { rezervace, otevrenoSlovy, cenaZaCloveka, rozpetiJizdneho, tarifSlovy, detskaSlovy } from "./rezervace";
 
 /**
  * Dílna — /dilna. Informační stránka: jak to v dílně chodí (hodina,
@@ -32,7 +32,7 @@ const dny = rezervace.dny.map((d) => DNY[d]);
 export const kdy = {
   /** „úterý a pátek“ */
   dny: dny.length > 1 ? `${dny.slice(0, -1).join(", ")} a ${dny[dny.length - 1]}` : dny[0],
-  hodiny: `${rezervace.od}–${rezervace.do}`,
+  hodiny: otevrenoSlovy,
   /** Jízdné je skupinové (rezervace.ts): „400–500 Kč“ */
   cena: `${kc(rozpetiJizdneho.od)}–${kc(rozpetiJizdneho.do)} Kč`,
   /** Kolik platí, kdo přijde sám, a kolik každý ve čtyřech */
@@ -41,7 +41,7 @@ export const kdy = {
   zaCo: "za člověka a hodinu",
   /** „1 člověk 500 Kč, 2 lidi 450, 3 lidi 425 a 4 lidi 400 Kč za každého“ — podle toho, kolik lidí v dílně nakonec je */
   tarif: tarifSlovy(),
-  /** „dětská jízdenka do 10 let je o 100 Kč levnější“ */
+  /** „dětská jízdenka do 8 let je o 200 Kč levnější“ */
   deti: detskaSlovy,
   /** Kolik míst je v dílně na jednu hodinu */
   mist: rezervace.mist,
@@ -155,7 +155,7 @@ export const navsteva: KrokNavstevy[] = [
   {
     kdo: "ty",
     nazev: "Zamluvíš si hodinu",
-    text: `Každé ${kdy.dny}, ${kdy.hodiny} hodin. Na hodinu jsou v dílně ${kdy.mist} místa — přijdeš ${kdy.skupina}.`,
+    text: `Každé ${kdy.dny}, ${kdy.hodiny}. Na hodinu jsou v dílně ${kdy.mist} místa — přijdeš ${kdy.skupina}.`,
     stav: "hrouda",
     odkaz: { href: "/rezervace", text: "Vybrat hodinu" },
   },

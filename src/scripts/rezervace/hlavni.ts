@@ -46,7 +46,7 @@ import { initNebe } from "../parta2/nebe";
 import { hlavicka } from "../parta2/hlavicka";
 import { Klapka, cesta } from "../parta2/klapka";
 import * as zvuk from "../parta2/zvuk";
-import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu, cenaZaCloveka, rozpisOdjezdu, cenaPermanentky } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu, cenaZaCloveka, rozpisOdjezdu, cenaPermanentky, nazevSpoje, spojeDne } from "../../data/rezervace";
 import { sekkiDne } from "../../data/koyomi";
 import { sklonuj, zPoctu, volnaMista, jenMist, zbyvaMist } from "../../data/pocty";
 import { volneHodiny, volnoVKurzu, platnostPermanentky } from "./simulace";
@@ -76,7 +76,7 @@ const dvoj = (x: number) => String(x).padStart(2, "0");
 const datumKratce = (d: Date) => `${d.getDate()}. ${d.getMonth() + 1}.`;
 const datumDlouze = (d: Date) => `${d.getDate()}. ${MESICE_2[d.getMonth()]}`;
 const iso = (d: Date) => `${d.getFullYear()}-${dvoj(d.getMonth() + 1)}-${dvoj(d.getDate())}`;
-const spojPermanentky = (h: number) => P.spoje.find((s) => s.h === h);
+const spojPermanentky = (h: number) => ({ nazev: nazevSpoje(h) });
 const spojeSlovy = (hodiny: number[]) => hodiny.map((h) => `${spojPermanentky(h)?.nazev ?? ""} ${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ");
 
 function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
@@ -316,6 +316,13 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   const kresliPermanentky = () => {
     const d = dny[den];
     pasVolby.forEach((b) => {
+      /* Ranní a večerní spoj je každý den jindy — tlačítko dostane hodinu vybraného dne */
+      const spoj = d && spojeDne(d.datum.getDay())[Number(b.dataset.spoj)];
+      if (spoj && !pasy.size) {
+        b.dataset.pas = String(spoj.h);
+        const cas = b.querySelector<HTMLElement>(".rz-pas-cas");
+        if (cas) cas.textContent = `${hhmm(spoj.h)}–${hhmm(spoj.h + R.blok)}`;
+      }
       const h = Number(b.dataset.pas);
       const mam = pasy.has(h);
       const obsazeno = pasDne(d).get(h) ?? 0;
@@ -331,8 +338,8 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       const stav = b.querySelector<HTMLElement>(".rz-pas-volno");
       const text = mam ? "na jízdence" : volna === 0 ? "rozebráno" : volna < osob ? jenMist(volna) : `${volnaMista(volna)} ${zPoctu(P.mist)}`;
       if (stav) stav.textContent = text;
-      const spoj = spojPermanentky(h);
-      b.setAttribute("aria-label", `Permanentka ${d && R.dny.includes(d.datum.getDay()) ? `${NA_DNY[d.datum.getDay()]} ` : ""}na ${spoj?.nazev ?? ""} hodinu ${hhmm(h)} až ${hhmm(h + R.blok)}, ${text}`);
+      const nazev = spojPermanentky(h);
+      b.setAttribute("aria-label", `Permanentka ${d && R.dny.includes(d.datum.getDay()) ? `${NA_DNY[d.datum.getDay()]} ` : ""}na ${nazev.nazev} hodinu ${hhmm(h)} až ${hhmm(h + R.blok)}, ${text}`);
     });
     /* Na který den v týdnu permanentka je, říká vybraný den — jiný se vybere o krok výš */
     const denPasu = !!d && R.dny.includes(d.datum.getDay());

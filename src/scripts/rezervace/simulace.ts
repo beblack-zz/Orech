@@ -27,7 +27,7 @@
  * funkce odsud bere i on. (Archivní /rezervace-ema má vlastní simulaci,
  * ema-simulace.ts.)
  */
-import { rezervace as R, kurzy, permanentka as P, odjezdy } from "../../data/rezervace";
+import { rezervace as R, kurzy, permanentka as P, odjezdyDne, spojeDne, jeSpojDne } from "../../data/rezervace";
 import type { KurzVlak } from "../../data/rezervace";
 
 export interface Hodina {
@@ -82,7 +82,8 @@ export function kurzDne(d: Date): KurzVlak | null {
   return t % 3 === 2 ? ukazkove[Math.floor(t / 3) % ukazkove.length] : null;
 }
 
-export const jeSpojPermanentky = (h: number) => P.spoje.some((s) => s.h === h);
+/** Je odjezd v `h` ten den (Date.getDay()) spojem permanentky? */
+export const jeSpojPermanentky = (denVTydnu: number, h: number) => jeSpojDne(denVTydnu, h);
 
 export function simuluj(dnes: Date, ted = new Date()): Den[] {
   const dny: Den[] = [];
@@ -95,13 +96,13 @@ export function simuluj(dnes: Date, ted = new Date()): Den[] {
     // Jak moc je den rozebraný: 0 = klid, nad 0,92 je obsazený celý
     const naval = nahoda(`${klic}-den`);
     const hodiny: Hodina[] = [];
-    for (const h of odjezdy) {
+    for (const h of odjezdyDne(d.getDay())) {
       /* Odjezd je plný, nebo na něm už pár lidí sedí — častěji ve dnech, které jsou víc rozebrané */
       const plna = naval > 0.92 || nahoda(`${klic}-${h}`) < 0.14 + naval * 0.42;
       const nekdo = nahoda(`${klic}-${h}-mista`);
       const obsazeno = plna ? R.mist : nekdo < 0.45 - naval * 0.3 ? 0 : Math.min(R.mist - 1, 1 + Math.floor(nahoda(`${klic}-${h}-kolik`) * (R.mist - 1)));
       const zacatek = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(h), (h % 1) * 60);
-      hodiny.push({ h, volno: R.mist - obsazeno, probehlo: zacatek <= ted, pas: jeSpojPermanentky(h) });
+      hodiny.push({ h, volno: R.mist - obsazeno, probehlo: zacatek <= ted, pas: jeSpojPermanentky(d.getDay(), h) });
     }
     const den: Den = { datum: d, klic, hodiny };
     if (kurz) {
@@ -128,7 +129,7 @@ export const volnoVKurzu = (k: KurzDne) => (k.probehlo ? 0 : k.kurz.mist - k.obs
  */
 export function obsazenoPermanentek(dnes: Date, denVTydnu: number): Map<number, number> {
   const ctvrt = `${dnes.getFullYear()}-${Math.floor(dnes.getMonth() / 3)}`;
-  return new Map(P.spoje.map((s) => [s.h, Math.min(P.mist, Math.floor(nahoda(`teikiken-${ctvrt}-${denVTydnu}-${s.h}`) * (P.mist + 0.3)))]));
+  return new Map(spojeDne(denVTydnu).map((s) => [s.h, Math.min(P.mist, Math.floor(nahoda(`teikiken-${ctvrt}-${denVTydnu}-${s.h}`) * (P.mist + 0.3)))]));
 }
 
 export interface Jizda {

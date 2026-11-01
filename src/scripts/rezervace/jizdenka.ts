@@ -25,7 +25,7 @@
  */
 import { vlak, delka, zvlastniVlak, DELKA_ZVLASTNIHO } from "../../components/rezervace/vlak";
 import type { Misto } from "../../components/rezervace/vlak";
-import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu, rozpisOdjezdu, rozpetiJizdneho, cenaPermanentky } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu, rozpisOdjezdu, rozpetiJizdneho, cenaPermanentky, nazevSpoje } from "../../data/rezervace";
 import { sklonuj, zPoctu } from "../../data/pocty";
 import { paleta } from "../parta2/paleta";
 import { klid, omez, mix, mixBarva, hladce } from "../parta2/stav";
@@ -343,7 +343,7 @@ export function initJizdenka() {
         const pocetJizd = pl.jizdy.filter((j) => !j.vyluka).length;
         const celkem = u.pas.spoje.length * u.osob * cenaPermanentky(pocetJizd);
         lDen.textContent = `od ${datum(pl.od)} do ${datum(pl.do)}`;
-        lHodiny.textContent = `${u.pas.spoje.map((h) => `${P.spoje.find((s) => s.h === h)?.nazev ?? ""} ${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ")}${d ? ` · ${KAZDY[d.datum.getDay()]}` : ""}`;
+        lHodiny.textContent = `${u.pas.spoje.map((h) => `${nazevSpoje(h)} ${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ")}${d ? ` · ${KAZDY[d.datum.getDay()]}` : ""}`;
         lLide.textContent = lidi(u.osob);
         lCena.textContent = `${kc(celkem)} · ${u.pas.spoje.length > 1 ? `${u.pas.spoje.length} spoje × ` : ""}${sklonuj(pocetJizd, "jízda", "jízdy", "jízd")} po ${kc(P.cenaJizdy)}${u.osob > 1 ? " za každého" : ""}`;
         cislo.textContent = `${ddmm}·P${u.pas.spoje.join("+")}·${u.osob}`;

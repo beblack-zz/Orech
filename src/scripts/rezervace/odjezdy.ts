@@ -25,7 +25,7 @@ import { klid } from "../parta2/stav";
 import { naObrazovce } from "../parta2/mimo";
 import * as zvuk from "../parta2/zvuk";
 import { sekkiDne } from "../../data/koyomi";
-import { rezervace as R, permanentka as P, hhmm, cenaZaCloveka } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm, cenaZaCloveka, nazevSpoje } from "../../data/rezervace";
 import { sklonuj, zPoctu, volnaMista, jenMist, zbyvaMist } from "../../data/pocty";
 import { zvlastniVlak } from "../../components/rezervace/vlak";
 import type { Misto } from "../../components/rezervace/vlak";
@@ -238,7 +238,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
     r.li.className = `rz-o pas ${s}${mam ? " vybrana" : ""}`;
     r.btn.disabled = s !== "volno" && !mam;
     r.btn.setAttribute("aria-pressed", String(mam));
-    const spoj = P.spoje.find((x) => x.h === r.h);
+    const spoj = { nazev: nazevSpoje(r.h) };
     const kolik = jenMist(volna);
     const popis = mam
       ? `bereš si permanentku ${naDny} na ${P.mesicu} měsíce${v.osob > 1 ? ` pro ${v.osob} lidi` : ""}`
@@ -251,6 +251,8 @@ export function initOdjezdy(n: TabuleNastaveni) {
   const radekKurzu = (r: Radek, k: KurzDne, v: Vyber, zaklapat: boolean, poradi: number) => {
     if (r.jizdne) r.jizdne.textContent = "";
     const z = k.kurz.program.find((x) => x.h === r.h);
+    /* Řádky mimo trať vlaku se schovají */
+    r.li.hidden = r.h < Math.min(...k.kurz.program.map((x) => x.h)) || r.h > Math.max(...k.kurz.program.map((x) => x.h));
     r.li.className = `rz-o kurz${k.probehlo ? " pryc" : ""}${v.kurz ? " vybrana" : ""}${z ? "" : " bez-zastavky"}`;
     r.btn.disabled = true;
     r.btn.setAttribute("aria-pressed", "false");
@@ -262,6 +264,8 @@ export function initOdjezdy(n: TabuleNastaveni) {
 
   const radek = (r: Radek, d: Den | undefined, v: Vyber, zaklapat: boolean, poradi: number) => {
     const h = d?.hodiny.find((x) => x.h === r.h);
+    /* Každý den má svůj rozvrh — řádek, který ten den nejede, se schová */
+    r.li.hidden = !!d && !h;
     if (!d || !h) {
       if (r.jizdne) r.jizdne.textContent = "";
       r.li.className = "rz-o pryc";

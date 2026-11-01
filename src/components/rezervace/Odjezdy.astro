@@ -18,7 +18,7 @@
  *                vlaku s místy a nástupem a z řádků se stane jeho
  *                trať — co odjezd, to zastávka programu se svým pořadím
  *
- * Řádky s časy jsou tady, protože odjezdy jsou pořád stejné; obsazenost,
+ * Řádky s časy jsou tady pro všechny dny dohromady; které ten den jedou, obsazenost,
  * den, kurz i permanentky dopisuje skript (scripts/rezervace/odjezdy.ts)
  * a při změně dne tabule překlapne. Okénko s oblohou má barvy z palety
  * oblohy pro půlku té hodiny a slunce tam, kde v tu dobu stojí.
@@ -38,8 +38,10 @@ const slunce = (h: number) => {
   const t = Math.min(1, Math.max(0, ts));
   return { x: 10 + 80 * t, y: 88 - Math.sin(Math.PI * t) * 66, videt: ts > 0 && ts < 1 };
 };
-/* Řádek na každý odjezd; v den kurzu jsou tytéž řádky zastávkami zvláštního vlaku — jede ve stejné časy */
-const radky = odjezdy.map((h) => ({
+/* Řádek na každý čas, kdy některý den něco jede — odjezd, nebo zastávka zvláštního vlaku. Které řádky
+   ten den jedou, ví skript (každý den má svůj rozvrh), ostatní schová */
+const casy = [...new Set([...odjezdy, ...kurzy.flatMap((k) => k.program.map((z) => z.h))])].sort((a, b) => a - b);
+const radky = casy.map((h) => ({
   h,
   cas: `${dvoj(Math.floor(h))}${dvoj(Math.round((h % 1) * 60))}`,
   od: hhmm(h),

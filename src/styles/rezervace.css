@@ -727,6 +727,7 @@
 
 .rz-tabule-radky { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .rz-o { position: relative; border-radius: 10px; transition: background 0.2s; }
+.rz-o[hidden] { display: none; }
 .rz-o-volba {
   width: 100%;
   display: grid !important;

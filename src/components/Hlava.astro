@@ -19,7 +19,7 @@
 import yuji from "../data/yuji.json";
 import { latinka, prvniPismo, sOtiskem } from "../lib/pisma";
 import { kontakt } from "../data/uvod2";
-import { rezervace, hhmm, jizdne } from "../data/rezervace";
+import { rezervace, hhmm, jizdne, konecDne } from "../data/rezervace";
 
 interface Props {
   titulek: string;
@@ -76,7 +76,7 @@ const dilna = {
     addressCountry: "CZ",
   },
   openingHoursSpecification: [
-    { "@type": "OpeningHoursSpecification", dayOfWeek: rezervace.dny.map((d) => DNY_EN[d]), opens: dvoj(rezervace.od), closes: dvoj(rezervace.do) },
+    ...rezervace.dny.map((d) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: DNY_EN[d], opens: dvoj(rezervace.od), closes: dvoj(konecDne(d)) })),
   ],
 };
 ---

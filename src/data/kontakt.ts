@@ -5,7 +5,7 @@
  * v data/rezervace.ts, ať všude stojí totéž.
  */
 import type { PostavaId } from "./parta";
-import { rezervace } from "./rezervace";
+import { rezervace, konecDne, hhmm } from "./rezervace";
 import { kdy } from "./dilna";
 import { kontakt } from "./uvod2";
 
@@ -21,14 +21,14 @@ export function sluzba(_d: Date): PostavaId {
 
 const hodina = (d: Date) => d.getHours() + d.getMinutes() / 60;
 
-export const otevrenoTed = (d: Date) => rezervace.dny.includes(d.getDay()) && hodina(d) >= rezervace.od && hodina(d) < rezervace.do;
+export const otevrenoTed = (d: Date) => rezervace.dny.includes(d.getDay()) && hodina(d) >= rezervace.od && hodina(d) < konecDne(d.getDay());
 
 /** Den (podle Date.getDay), kdy je otevřeno dnes nebo příště */
 export function pristiDen(d: Date): number {
   for (let i = 0; i < 8; i++) {
     const den = (d.getDay() + i) % 7;
     if (!rezervace.dny.includes(den)) continue;
-    if (i === 0 && hodina(d) >= rezervace.do) continue;
+    if (i === 0 && hodina(d) >= konecDne(den)) continue;
     return den;
   }
   return rezervace.dny[0];
@@ -67,9 +67,9 @@ export function ustrednaSlovy(d: Date): { vzhuru: boolean; text: string; kdy: st
   return { vzhuru: false, text: "", kdy: "" };
 }
 
-/** „teď otevřeno, do 18:00“ / „otevíráme dnes v 9:00“ / „otevíráme v pátek v 9:00“ */
+/** „teď otevřeno, do 19:30“ / „otevíráme dnes v 9:00“ / „otevíráme v pátek v 9:00“ */
 export function stavSlovy(d: Date): { otevreno: boolean; text: string } {
-  if (otevrenoTed(d)) return { otevreno: true, text: `teď otevřeno, do ${rezervace.do}:00` };
+  if (otevrenoTed(d)) return { otevreno: true, text: `teď otevřeno, do ${hhmm(konecDne(d.getDay()))}` };
   const den = pristiDen(d);
   const dnes = den === d.getDay() && hodina(d) < rezervace.od;
   const zitra = den === (d.getDay() + 1) % 7;

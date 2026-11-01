@@ -29,7 +29,7 @@
  */
 import Flap from "../uvod2/Flap.astro";
 import Kachlik from "../characters/schovka/Kachlik.astro";
-import { rezervace, permanentka, cenaZaCloveka } from "../../data/rezervace";
+import { rezervace, permanentka, cenaZaCloveka, otevrenoSlovy } from "../../data/rezervace";
 import { kontakt } from "../../data/uvod2";
 
 const kc = (n: number) => n.toLocaleString("cs-CZ");
@@ -103,7 +103,7 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
     </div>
     <p class="rz-perex">
       Čas v dílně se tu kupuje jako jízdenka na vlak: vybereš den a hodinu v dílně (90 min) — jsou na ni {rezervace.mist} místa.
-      Každé úterý a pátek od {rezervace.od} do {rezervace.do} hodin. Jízdné je skupinové a platí se
+      Každé úterý a pátek {otevrenoSlovy}. Jízdné je skupinové a platí se
       na místě: když jsi v dílně sám, {kc(cenaZaCloveka(1))}&nbsp;Kč, když je plno, {kc(cenaZaCloveka(rezervace.mist))}&nbsp;Kč za každého.
     </p>
 
@@ -119,7 +119,7 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
       <span class="sr-only rz-pristi-popis"></span>
     </button>
 
-    <p class="rz-dnes" aria-live="polite">Otevřeno je každé úterý a pátek, {rezervace.od}–{rezervace.do} hodin.</p>
+    <p class="rz-dnes" aria-live="polite">Otevřeno je každé úterý a pátek, {otevrenoSlovy}.</p>
     <p class="rz-jinak">
       {V_DEN_KURZU} jezdí <b>zvláštní vlak</b> — kurz na celý den, kde se místa plní po jednom.
       A kdo jezdí pravidelně, vezme si <b>permanentku</b> na {permanentka.mesicu} měsíce: jeden den v týdnu, první nebo poslední hodina dne.

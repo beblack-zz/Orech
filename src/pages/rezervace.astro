@@ -19,7 +19,7 @@
  *               jízdenku, zabalí se a objednávka odejde mailem
  *   v noci      vlak se vrací, jízdenky člena, odkaz k registraci a kontakt
  *
- * Pravidla jsou z data/rezervace.ts: úterý a pátek od 9 do 18, odjezdy
+ * Pravidla jsou z data/rezervace.ts: úterý a pátek, každý den svůj rozvrh, odjezdy
  * po hodině a půl, cena za člověka a odjezd. Odjezd je buď volný, nebo obsazený
  * a zamlouvá se celá — sám nebo skupina do čtyř lidí.
  *
@@ -70,7 +70,7 @@ import Jizdenka from "../components/rezervace/Jizdenka.astro";
 import Darky from "../components/rezervace/Darky.astro";
 import Noc from "../components/rezervace/Noc.astro";
 
-import { rezervace, rozpetiJizdneho } from "../data/rezervace";
+import { rezervace, rozpetiJizdneho, otevrenoSlovy } from "../data/rezervace";
 import { kontakt } from "../data/uvod2";
 
 const cena = `${rozpetiJizdneho.od}–${rozpetiJizdneho.do}`;
@@ -80,7 +80,7 @@ const cena = `${rozpetiJizdneho.od}–${rozpetiJizdneho.do}`;
 <!doctype html>
 <html lang="cs">
   <head>
-    <Hlava titulek="Rezervace · JIRO saku" popis={`Rezervuj si čas v keramické dílně v Ořechu. Každé úterý a pátek od ${rezervace.od} do ${rezervace.do} hodin, hodina v dílně trvá 90 minut, ${cena} Kč za člověka podle velikosti skupiny. Jízdenku jde i darovat.`} barva="#6F8FC8" />
+    <Hlava titulek="Rezervace · JIRO saku" popis={`Rezervuj si čas v keramické dílně v Ořechu. Každé úterý a pátek ${otevrenoSlovy}, hodina v dílně trvá 90 minut, ${cena} Kč za člověka podle velikosti skupiny. Jízdenku jde i darovat.`} barva="#6F8FC8" />
     <ClientRouter />
   </head>
   <body class="p2 rz" data-stranka="rezervace">

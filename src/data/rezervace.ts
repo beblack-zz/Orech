@@ -3,8 +3,8 @@ import type { PostavaId } from "./parta";
 /**
  * Rezervace času v dílně — /rezervace.
  *
- * Termíny jsou každé úterý a pátek od 9 do 18, na měsíc dopředu. Den je
- * rozdělený na odjezdy po hodině a půl (`blok`): 9:00, 10:30, 12:00…
+ * Termíny jsou každé úterý a pátek, na měsíc dopředu. Den je rozdělený
+ * na odjezdy po hodině a půl (`blok`), každý den podle svého rozvrhu (`rozvrh`).
  * Každý odjezd má pár míst (`mist`) a plní se po skupinách: kdo přijde
  * sám, zabere jedno místo a na zbytek si můžou koupit jízdenku další —
  * celý odjezd si sám pro sebe nezamluví nikdo. (Do 16. 10. 2026 se odjezd
@@ -27,9 +27,19 @@ import type { PostavaId } from "./parta";
 export const rezervace = {
   /** Dny v týdnu podle Date.getDay(): 2 = úterý, 5 = pátek */
   dny: [2, 5],
-  /** Od kdy do kdy je otevřeno — poslední odjezd je 16:30–18:00 */
+  /**
+   * Začátky odjezdů v jednotlivé dny jako hodiny s půlkou (10.5 je 10:30).
+   * Mezi některými je pauza a každý den má jiný rozvrh. Od 1. 11. 2026;
+   * předtím jezdily oba dny po sobě 9:00–18:00.
+   */
+  rozvrh: {
+    2: [9, 10.5, 12, 14, 16, 18],
+    5: [9, 10.5, 15, 17],
+  } as Record<number, number[]>,
+  /** Kdy začíná první odjezd — i den kurzu */
   od: 9,
-  do: 18,
+  /** Kdy končí nejpozdější odjezd ze všech dní; konec konkrétního dne je `konecDne` */
+  do: 19.5,
   /** Jak dlouho trvá jeden odjezd, v hodinách. Stejně dlouhé jsou i úseky mezi zastávkami zvláštního vlaku (kurzu). */
   blok: 1.5,
   /** Kolik lidí se vejde na jeden odjezd — tolik je v dílně míst naráz */
@@ -50,8 +60,12 @@ export const rezervace = {
   registraceMinut: 60,
 };
 
-/** Začátky odjezdů během dne jako hodiny s půlkou: 9, 10.5, 12… */
-export const odjezdy = Array.from({ length: Math.round((rezervace.do - rezervace.od) / rezervace.blok) }, (_, i) => rezervace.od + i * rezervace.blok);
+/** Začátky odjezdů v daný den v týdnu — prázdné, když se ten den nejezdí */
+export const odjezdyDne = (denVTydnu: number) => rezervace.rozvrh[denVTydnu] ?? [];
+/** Všechny časy, kdy některý den něco odjíždí, po řadě — řádky tabule */
+export const odjezdy = [...new Set(rezervace.dny.flatMap(odjezdyDne))].sort((a, b) => a - b);
+/** Kdy končí poslední odjezd dne */
+export const konecDne = (denVTydnu: number) => Math.max(rezervace.od, ...odjezdyDne(denVTydnu)) + rezervace.blok;
 /** Hodina s půlkou jako čas: 10.5 → „10:30“ */
 export const hhmm = (h: number) => `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, "0")}`;
 
@@ -62,8 +76,11 @@ const VE_DNI = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvr
 export const dnySlovy = rezervace.dny.map((d) => DEN[d]).join(" a ");
 /** „v úterý a v pátek“ */
 export const veDnySlovy = rezervace.dny.map((d) => VE_DNI[d]).join(" a ");
-/** „9:00–18:00“ */
-export const otevrenoSlovy = `${hhmm(rezervace.od)}–${hhmm(rezervace.do)}`;
+/** „9:00–19:30 (v pátek do 18:30)“ — od prvního odjezdu do konce toho nejpozdějšího, kratší dny zvlášť */
+export const otevrenoSlovy = `${hhmm(rezervace.od)}–${hhmm(rezervace.do)}${rezervace.dny
+  .filter((d) => konecDne(d) !== rezervace.do)
+  .map((d) => ` (${VE_DNI[d]} do ${hhmm(konecDne(d))})`)
+  .join("")}`;
 
 /* ——— Jízdné: skupinové ———
  *
@@ -80,8 +97,8 @@ export const otevrenoSlovy = `${hhmm(rezervace.od)}–${hhmm(rezervace.do)}`;
  * opravdu je (`pravidloPrichodu`). Když ze čtyř zamluvených dorazí tři,
  * platí každý jako ve třech. Rozhodnuto 16. 10. 2026.
  *
- * Dítě do deseti let se počítá jako každý (zabere místo a počítá se do
- * obsazení), jen má dětskou jízdenku o stovku levnější. Na webu se děti
+ * Dítě do osmi let (do 1. 11. 2026 do deseti) se počítá jako každý (zabere místo a počítá se do
+ * obsazení), jen má dětskou jízdenku o dvě stovky levnější (do 1. 11. 2026 o stovku). Na webu se děti
  * neklikají — platí se na místě, tak se tam i spočítají; web to jen říká
  * (`detskaSlovy`). Sleva platí jen na odjezdy, ne na kurz a permanentku.
  * Rozhodnuto 16. 10. 2026.
@@ -90,9 +107,9 @@ export const jizdne = {
   /** Cena za člověka a odjezd podle toho, kolik lidí na něm v dílně sedí: [1, 2, 3, 4] */
   skupina: [500, 450, 425, 400],
   /** O kolik je levnější dítě, za každý odjezd */
-  slevaDite: 100,
+  slevaDite: 200,
   /** Do kolika let je dítě dítětem */
-  vekDite: 10,
+  vekDite: 8,
 };
 /** Cena za člověka na odjezdu, kde sedí `lidi` lidí */
 export const cenaZaCloveka = (lidi: number) => jizdne.skupina[Math.min(Math.max(1, Math.round(lidi)), jizdne.skupina.length) - 1];
@@ -105,7 +122,7 @@ export function rozpisOdjezdu(osob: number, ostatni = 0) {
 }
 /** Kdo nepřijde, nepočítá se — věta na web i do mailu */
 export const pravidloPrichodu = "Počítá se, kolik vás v dílně opravdu je — kdo nepřijde, nepočítá se.";
-/** „dětská jízdenka do 10 let je o 100 Kč levnější“ */
+/** „dětská jízdenka do 8 let je o 200 Kč levnější“ */
 export const detskaSlovy = `dětská jízdenka do ${jizdne.vekDite} let je o ${jizdne.slevaDite.toLocaleString("cs-CZ")} Kč levnější`;
 /** Jízdné po řadě slovy: „1 člověk 500 Kč, 2 lidi 450, 3 lidi 425 a 4 lidi 400 Kč za každého“ */
 export const tarifSlovy = () =>
@@ -228,15 +245,32 @@ export const kurzy: KurzVlak[] = [
  * výluka, se neplatí. Rozhodnuto 16. 10. 2026.
  */
 export const permanentka = {
-  spoje: [
-    { h: 9, nazev: "ranní" },
-    { h: 16.5, nazev: "večerní" },
-  ],
   /** Kolik permanentek se prodá na jeden spoj jednoho dne v týdnu — tolik, kolik má dílna míst (rozhodnuto 17. 10. 2026) */
   mist: 4,
   mesicu: 3,
   /** Cena za člověka a jednu jízdu (hodinu a půl) — permanentka stojí tolikrát, kolik má jízd */
   cenaJizdy: 400,
+};
+/**
+ * Spoje permanentky v daný den v týdnu: první (ranní) a poslední (večerní)
+ * odjezd dne. Každý den má jiný rozvrh, takže večerní je v úterý jindy než v pátek.
+ */
+export const spojeDne = (denVTydnu: number) => {
+  const o = odjezdyDne(denVTydnu);
+  return o.length ? [{ h: o[0], nazev: "ranní" }, { h: o[o.length - 1], nazev: "večerní" }] : [];
+};
+/** Je odjezd v `h` ten den spojem permanentky? */
+export const jeSpojDne = (denVTydnu: number, h: number) => spojeDne(denVTydnu).some((s) => s.h === h);
+/** Jméno spoje (ranní / večerní) podle hodiny — kterýkoli den */
+export const nazevSpoje = (h: number) => rezervace.dny.flatMap(spojeDne).find((s) => s.h === h)?.nazev ?? "";
+/** Spoje slovy, např. „ranní 9:00, večerní v úterý 18:00 a v pátek 17:00“ */
+export const spojeSlovy = () => {
+  const ranni = [...new Set(rezervace.dny.map((d) => spojeDne(d)[0]?.h))];
+  const vecerni = rezervace.dny.map((d) => ({ d, h: spojeDne(d)[1]?.h }));
+  const r = ranni.length === 1 ? `ranní ${hhmm(ranni[0])}` : `ranní ${ranni.map(hhmm).join(" nebo ")}`;
+  const stejne = new Set(vecerni.map((v) => v.h)).size === 1;
+  const v = stejne ? `večerní ${hhmm(vecerni[0].h)}` : `večerní ${vecerni.map((x) => `${VE_DNI[x.d]} ${hhmm(x.h)}`).join(" a ")}`;
+  return `${r}, ${v}`;
 };
 /** Kolik jízd permanentka obvykle má — tři měsíce jednoho dne v týdnu jsou 13 týdnů. Pro dárek a ceníky; na jízdence se počítá skutečný počet. */
 export const jizdPermanentky = Math.round((permanentka.mesicu * 52) / 12);

@@ -59,7 +59,7 @@ export const openStudio: {
   cenik: [
     { nazev: "Hodina v dílně", cena: kdy.cena, popis: "Za člověka — čím víc lidí v dílně, tím míň. Lektor je v ceně, a když ho nepotřebuješ, je to open studio." },
   ],
-  platnost: `${kdy.dny}, ${kdy.hodiny} hodin`,
+  platnost: `${kdy.dny}, ${kdy.hodiny}`,
   pravidla: [
     `Na hodinu jsou v dílně ${kdy.mist} místa — přijdeš ${kdy.skupina}`,
     "Na kruh bez lektora jen se základy (kurz u nás nebo odjinud)",

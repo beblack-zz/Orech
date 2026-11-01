@@ -1,6 +1,6 @@
 import type { PostavaId } from "./parta";
 import { kdy } from "./dilna";
-import { rezervace } from "./rezervace";
+import { rezervace, otevrenoSlovy } from "./rezervace";
 import { kontakt } from "./uvod2";
 
 /**
@@ -19,7 +19,7 @@ import { kontakt } from "./uvod2";
 /** Hlášení obecního rozhlasu z lampy před domem — skládá se z otevírací doby */
 export const hlaseni = {
   uvod: "Vážení spoluobčané, dovolujeme si vás upozornit:",
-  text: `keramická dílna v ${kontakt.ulice} má otevřeno každé ${kdy.dny} od ${rezervace.od} do ${rezervace.do} hodin. Hodina v dílně stojí ${kdy.cena} za člověka, lektor je v ceně a kafe je samozřejmost.`,
+  text: `keramická dílna v ${kontakt.ulice} má otevřeno každé ${kdy.dny} ${otevrenoSlovy}. Hodina v dílně stojí ${kdy.cena} za člověka, lektor je v ceně a kafe je samozřejmost.`,
   zaver: "Děkujeme za pozornost.",
 };
 

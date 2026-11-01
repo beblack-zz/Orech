@@ -11,7 +11,7 @@
  * simulace.ts a rezervovat nemůže nikdo. Zbytek stránky rozdíl nepozná:
  * dostane dny ve stejném tvaru.
  */
-import { rezervace as R, kurzy, permanentka as P, odjezdy } from "../../data/rezervace";
+import { rezervace as R, kurzy, permanentka as P, odjezdyDne, spojeDne } from "../../data/rezervace";
 import { simuluj, obsazenoPermanentek, kurzDne, klicDne, jeSpojPermanentky } from "./simulace";
 import type { Den, Hodina } from "./simulace";
 import type { Volno, Moje, Zadost, Odpoved } from "../../lib/rezervace/typy";
@@ -62,11 +62,11 @@ export function zVolna(v: Volno, dnes: Date, ted = new Date()): Kalendar {
     /* Kurz, který web nezná (překlep v tabulce), se neukáže */
     const kurz = vypsany && kurzy.find((k) => k.id === vypsany.kurz);
     if (!kurz && (!R.dny.includes(d.getDay()) || zavreno.has(klic))) continue;
-    const hodiny: Hodina[] = odjezdy.map((h) => ({
+    const hodiny: Hodina[] = odjezdyDne(d.getDay()).map((h) => ({
       h,
       volno: zavreno.has(`${klic}-${h}`) ? 0 : Math.max(0, R.mist - (obsazeno.get(`${klic}-${h}`) ?? 0)),
       probehlo: new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(h), (h % 1) * 60) <= ted,
-      pas: jeSpojPermanentky(h),
+      pas: jeSpojPermanentky(d.getDay(), h),
     }));
     const den: Den = { datum: d, klic, hodiny };
     if (kurz && vypsany) {
@@ -89,7 +89,7 @@ export function zVolna(v: Volno, dnes: Date, ted = new Date()): Kalendar {
       if (!d) return new Map();
       if (!pasy.has(d.klic)) {
         const dt = d.datum.getDay();
-        pasy.set(d.klic, new Map(P.spoje.map((s) => [s.h, Math.min(P.mist, v.permanentky.filter((p) => p.dt === dt && p.h === s.h && p.do >= d.klic).reduce((a, p) => a + p.osob, 0))])));
+        pasy.set(d.klic, new Map(spojeDne(dt).map((s) => [s.h, Math.min(P.mist, v.permanentky.filter((p) => p.dt === dt && p.h === s.h && p.do >= d.klic).reduce((a, p) => a + p.osob, 0))])));
       }
       return pasy.get(d.klic)!;
     },

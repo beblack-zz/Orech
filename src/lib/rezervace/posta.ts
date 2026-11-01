@@ -6,7 +6,7 @@
  *
  * ZNĚNÍ MAILŮ JE NÁVRH a čeká na potvrzení.
  */
-import { rezervace as R, permanentka as P, kurzy, hhmm, tarifSlovy, detskaSlovy, pravidloPrichodu, cenaPermanentky, dnySlovy, otevrenoSlovy } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, kurzy, hhmm, tarifSlovy, detskaSlovy, pravidloPrichodu, cenaPermanentky, dnySlovy, otevrenoSlovy, nazevSpoje } from "../../data/rezervace";
 import { kontakt } from "../../data/uvod2";
 import { mailVitej, mailPrihlaseni, mailRegistrace } from "./vzhled-mailu";
 import { denVTydnu, konecPermanentky } from "./pravidla";
@@ -142,7 +142,7 @@ function sepis(z: Zadost, kurz: string | null, vyluk = 0): { nazev: string; radk
   if (z.druh === "permanentka") {
     /* Jízda je každý týden od prvního dne do posledního, kromě výluk */
     const jizd = Math.floor((Date.parse(konecPermanentky(z.den)) - Date.parse(z.den)) / 604_800_000) + 1 - vyluk;
-    const spoje = z.hodiny.map((h) => `${P.spoje.find((s) => s.h === h)?.nazev ?? ""} ${hhmm(h)}–${hhmm(h + R.blok)}`.trim()).join(" a ");
+    const spoje = z.hodiny.map((h) => `${nazevSpoje(h)} ${hhmm(h)}–${hhmm(h + R.blok)}`.trim()).join(" a ");
     return {
       nazev: `permanentka ${KAZDY[denVTydnu(z.den)]}, ${spoje}`,
       radky: [

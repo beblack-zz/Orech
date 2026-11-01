@@ -4,7 +4,7 @@
  * stránce — prohlížeči se ale nevěří, tak se tu všechno ověří znovu.
  * Jestli je volno, tady neřešíme; to ví jen databáze.
  */
-import { rezervace as R, permanentka as P, odjezdy } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, odjezdyDne, spojeDne } from "../../data/rezervace";
 import type { Druh, Zadost } from "./typy";
 
 const dvoj = (n: number) => String(n).padStart(2, "0");
@@ -76,9 +76,9 @@ export function over(telo: unknown, nyni: Ted): Zadost | null {
   if (!R.dny.includes(denVTydnu(den))) return null;
   if (!Array.isArray(t.hodiny) || !t.hodiny.length || new Set(t.hodiny).size !== t.hodiny.length) return null;
   const hodiny = t.hodiny as unknown[];
-  const spoje = P.spoje.map((s) => s.h);
+  const spoje = spojeDne(denVTydnu(den)).map((s) => s.h);
   /* První a poslední spoj dne patří permanentkám, zbytek hodinovým jízdenkám */
-  const povolene = druh === "permanentka" ? spoje : odjezdy.filter((h) => !spoje.includes(h));
+  const povolene = druh === "permanentka" ? spoje : odjezdyDne(denVTydnu(den)).filter((h) => !spoje.includes(h));
   for (const h of hodiny) {
     if (typeof h !== "number" || !povolene.includes(h)) return null;
     if (zaDni === 0 && h <= nyni.h) return null;
