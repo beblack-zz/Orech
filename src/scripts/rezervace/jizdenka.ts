@@ -360,8 +360,10 @@ export function initJizdenka() {
         const ostatni = (h: number) => R.mist - (d?.hodiny.find((x) => x.h === h)?.volno ?? R.mist);
         const ted = hodiny.reduce((a, h) => a + cenaOdjezdu(u.osob, ostatni(h)), 0);
         const plno = hodiny.length * cenaOdjezdu(u.osob, R.mist - u.osob);
+        const sami = hodiny.length * cenaOdjezdu(u.osob, 0);
+        /* Do placení na místě se cena hne oběma směry: kdo přisedne, sníží ji, kdo se odhlásí, zvýší */
         lCena.textContent = hodiny.length
-          ? `${ted > plno ? "nejvýš " : ""}${kc(ted)} · ${hodiny.length === 1 ? rozpisOdjezdu(u.osob, ostatni(hodiny[0])) : odjezdu(hodiny.length)}; platí se na místě${ted > plno ? `, s každým, kdo přisedne, míň` : ""}`
+          ? `${plno < sami ? "teď " : ""}${kc(ted)} · ${hodiny.length === 1 ? rozpisOdjezdu(u.osob, ostatni(hodiny[0])) : odjezdu(hodiny.length)}; platí se na místě${plno < sami ? ` podle toho, kolik vás bude — ${kc(plno)} až ${kc(sami)}` : ""}`
           : `${rozpetiJizdneho.od}–${rozpetiJizdneho.do} Kč za člověka podle toho, kolik vás v dílně bude`;
         cislo.textContent = d && hodiny.length ? `${ddmm}·${hhmm(hodiny[0]).replace(":", "").padStart(4, "0")}·${u.osob}` : "—";
       }

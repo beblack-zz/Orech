@@ -971,6 +971,9 @@ export function pruvodce() {
 
   /* ═══ Čárka ═══ */
   let schovana = false;
+  /* Načítá se až chvíli po stránce — šátek mezitím ukázal svoje plovoucí tlačítko; hned po startu
+     mu řekne, že je tady (a jestli je v čárce), ať ho schová (od 8. 11. 2026) */
+  window.setTimeout(() => ohlasSchovani(schovana || vCarce), 0);
   let enso = 0;
   const protoc = () => {
     if (!schovana || document.hidden) return;

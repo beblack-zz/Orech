@@ -91,7 +91,8 @@ export const otevrenoSlovy = `${hhmm(rezervace.od)}–${hhmm(rezervace.do)}${rez
  * dva 450 za každého, tři 425, čtyři 400. Platí se na místě, takže kdo si
  * odjezd zamluví sám za 500 a přidají se k němu další tři, zaplatí všichni
  * čtyři po 400. Při rezervaci se tak dá říct jen to, kolik by to stálo
- * teď (`ostatni` = kolik lidí už na odjezdu sedí) — cena pak už jen klesá.
+ * teď (`ostatni` = kolik lidí už na odjezdu sedí) — do placení se může hnout
+ * oběma směry: kdo přisedne, cenu sníží, kdo se odhlásí nebo nepřijde, zvýší.
  *
  * Kdo nepřijde, nepočítá se: platí se podle toho, kolik lidí v dílně
  * opravdu je (`pravidloPrichodu`). Když ze čtyř zamluvených dorazí tři,

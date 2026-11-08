@@ -185,7 +185,15 @@ export function initSatek(): Satek {
 
   /* ——— Plovoucí tlačítko: jen když Vázička uzlík nenese (je schovaná do čárky, nebo tu není) ——— */
   let pruvodceSchovana = false;
-  const vazickaNese = () => !!document.querySelector(".pruvodce") && !pruvodceSchovana && !document.querySelector(".pruvodce.schovana");
+  /* Vázička se načítá až chvíli po stránce — prvních pár vteřin se počítá s tím, že přiletí,
+     ať tlačítko při načtení neproblikne (8. 11. 2026); kdyby nepřiletěla, ukáže se potom */
+  const startPlovouci = performance.now();
+  const CEKANI = 5000;
+  window.setTimeout(() => obnovPlovouci(), CEKANI + 50);
+  const vazickaNese = () =>
+    document.querySelector(".pruvodce")
+      ? !pruvodceSchovana && !document.querySelector(".pruvodce.schovana")
+      : performance.now() - startPlovouci < CEKANI;
   const obnovPlovouci = () => {
     if (!plovouci) return;
     plovouci.hidden = vSatku.size === 0 || satekVidet || vazickaNese();

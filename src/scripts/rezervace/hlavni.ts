@@ -20,7 +20,8 @@
  *   odjezdy      po hodině a půl, každý s pár místy; kolik vás pojede (1–4),
  *                rozhoduje, kam se vejdete. Jízdné je skupinové podle toho,
  *                kolik lidí na odjezdu nakonec sedí, a platí se na místě —
- *                jízdenka proto ukazuje cenu „teď“, která už jen klesá
+ *                jízdenka proto ukazuje cenu „teď“, která se do té doby může
+ *                hnout oběma směry (přisednou další / někdo se odhlásí)
  *                (dětské jízdenky se spočítají až tam)
  *   kurz         zvláštní vlak na celý den s pár místy — tady se počítá,
  *                jestli se vaše skupina ještě vejde
@@ -104,10 +105,9 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   const kurzZaskrt = kurzEl?.closest<HTMLElement>(".rz-pas-kurz") ?? null;
   const displej = document.querySelector<HTMLElement>(".rz-displej");
   const displejSouhrn = displej?.querySelector<HTMLElement>(".rz-displej-souhrn");
-  /* Telefon: lišta dole ukazuje den, hodinu a permanentku a dá se v ní permanentka zaškrtnout */
+  /* Telefon: lišta dole ukazuje den a hodinu; s permanentkou je červená, u zvláštního vlaku modrá */
   const displejDen = displej?.querySelector<HTMLElement>('[data-displej="den"] b');
   const displejHodina = displej?.querySelector<HTMLElement>('[data-displej="hodina"] b');
-  const displejPas = displej?.querySelector<HTMLInputElement>('input[name="displej-permanentka"]');
   const displejTlacitko = displej?.querySelector<HTMLAnchorElement>(".rz-displej-tlacitko");
   const mqTelefon = matchMedia("(max-width: 760px)");
   /** Pokladna a tabule jsou na obrazovce — na telefonu je lišta vidět jen tehdy */
@@ -592,19 +592,25 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     }
     if (!vybrane.size) return null;
     const hodiny = [...vybrane].sort((a, b) => a - b);
-    /* Jízdné podle toho, kolik lidí na odjezdu už sedí; platí se na místě a s každým dalším klesá */
+    /* Jízdné podle toho, kolik lidí na odjezdu už sedí. Platí se na místě a do té doby se může hnout
+       oběma směry: kdo přisedne, cenu sníží, kdo se odhlásí nebo nepřijde, zvýší (8. 11. 2026 —
+       dřív tu stálo „nejvýš“, jako by jen klesala) */
     const ostatni = (h: number) => R.mist - (d.hodiny.find((x) => x.h === h)?.volno ?? R.mist);
     const celkem = hodiny.reduce((a, h) => a + cenaOdjezdu(osob, ostatni(h)), 0);
     const nejmin = hodiny.length * cenaOdjezdu(osob, R.mist - osob);
-    const klesne = celkem > nejmin;
+    const nejvic = hodiny.length * cenaOdjezdu(osob, 0);
+    const meni = nejmin < nejvic;
     const ted = hodiny.length === 1
       ? `${rozpisOdjezdu(osob, ostatni(hodiny[0]))}${ostatni(hodiny[0]) ? ` (s vámi už ${ostatni(hodiny[0]) === 1 ? "sedí 1 další" : `sedí ${ostatni(hodiny[0])} další`})` : ""}`
       : `${odjezdu(hodiny.length)} podle toho, kdo už na nich sedí`;
     return {
       celkem,
-      klesne,
-      vypocet: `${ted}. Platí se na místě podle toho, kolik vás v dílně opravdu bude${klesne ? ` — když přisednou další, bude to míň, při plné dílně ${kc(nejmin)}` : ""}.`,
-      kratce: `${zkratka} · ${useky(hodiny)} · ${lidi(osob)} · ${klesne ? "nejvýš " : ""}${kc(celkem)}`,
+      meni,
+      vypocet: `${ted}. Platí se na místě podle toho, kolik vás v dílně opravdu bude${[
+        celkem > nejmin ? `když přisednou další, bude to míň (při plné dílně ${kc(nejmin)})` : "",
+        celkem < nejvic ? `když se někdo odhlásí, víc (${osob === 1 ? "kdybys tam byl sám" : "kdybyste tam byli sami"}, ${kc(nejvic)})` : "",
+      ].filter(Boolean).map((v, i) => (i ? `, ${v}` : ` — ${v}`)).join("")}.`,
+      kratce: `${zkratka} · ${useky(hodiny)} · ${lidi(osob)} · ${meni ? "teď " : ""}${kc(celkem)}`,
     };
   };
 
@@ -612,7 +618,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     const d = dny[den];
     const s = sepis();
     cenaEl.textContent = kc(s?.celkem ?? 0);
-    if (cenaStitek) cenaStitek.textContent = s && "klesne" in s && s.klesne ? "Teď nejvýš" : "Celkem";
+    if (cenaStitek) cenaStitek.textContent = s && "meni" in s && s.meni ? "Celkem teď" : "Celkem";
     if (vypocetEl) {
       vypocetEl.textContent = s?.vypocet ?? (d?.kurz ? `${kc(d.kurz.kurz.cena)} za člověka a celý den` : `Od ${kc(cenaZaCloveka(1))} za člověka, když jsi v dílně sám, po ${kc(cenaZaCloveka(R.mist))}, když je plno — platí se na místě.`);
     }
@@ -630,14 +636,12 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       const hodiny = [...vybrane].sort((a, b) => a - b);
       if (displejDen) displejDen.textContent = d ? `${ZKR[d.datum.getDay()]} ${datumKratce(d.datum)}` : "vyber";
       if (displejHodina) displejHodina.textContent = d?.kurz ? (kurzVybran ? "celý den" : "nastup") : hodiny.length ? (hodiny.length === 1 ? hhmm(hodiny[0]) : `${odjezdu(hodiny.length)}`) : "vyber";
-      if (displejPas) {
-        displejPas.checked = naPas;
-        displejPas.disabled = !d || !!d.kurz || !R.dny.includes(d.datum.getDay());
-      }
+      displej.classList.toggle("je-pas", pasPlati());
+      displej.classList.toggle("je-kurz", !!d?.kurz);
       if (displejTlacitko) {
         /* Dokud není co dát na jízdenku, tlačítko vede k tabuli */
         displejTlacitko.href = s ? "#rz-jizdenka" : "#rz-odjezdy";
-        displejTlacitko.innerHTML = s ? `Pokračovat <span aria-hidden="true">→</span>` : d?.kurz ? "K vlaku" : "Vybrat hodinu";
+        displejTlacitko.textContent = s ? "Pokračovat" : d?.kurz ? "K vlaku" : "Vybrat hodinu";
       }
     }
     /* Host se zaregistruje nebo přihlásí kdykoli; člen označí, až má něco na jízdence */
@@ -874,7 +878,6 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     }).observe(hala);
   }
   mqTelefon.addEventListener("change", () => souhrn());
-  displejPas?.addEventListener("change", () => prepniPas(displejPas.checked));
 
   /* Displej se schová, když je jízdenka na obrazovce — a u dárkových jízdenek, kde by zakrýval přepážku */
   const zakryva = [document.getElementById("rz-jizdenka"), document.getElementById("rz-darky")].filter((el): el is HTMLElement => !!el);

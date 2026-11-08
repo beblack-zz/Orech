@@ -116,6 +116,11 @@ export function scena() {
   if (!sekce) return;
   const scenaEl = sekce.querySelector<HTMLElement>(".krm-scena")!;
   const svet = sekce.querySelector<HTMLElement>(".krm-svet")!;
+  /* Krámek se ukáže celý najednou, až jsou obrázky ve světě stažené a rozbalené (kramek.css, .obrazky);
+     kdyby to trvalo, nejpozději po 4 s */
+  const ukazSvet = () => scenaEl.classList.add("obrazky");
+  void Promise.all([...svet.querySelectorAll<HTMLImageElement>("img")].map((i) => (i.decode ? i.decode().catch(() => undefined) : undefined))).then(ukazSvet);
+  window.setTimeout(ukazSvet, 4000);
   const kotva = sekce.querySelector<HTMLElement>(".krm-kotva");
   const uvod = sekce.querySelector<HTMLElement>(".krm-uvod");
   const konec = sekce.querySelector<HTMLElement>(".krm-konec");

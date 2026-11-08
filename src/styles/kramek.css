@@ -30,6 +30,10 @@
 .krm-svet.jede { will-change: transform; }
 /* Dokud kamera nenastaví první záběr, svět by stál levým horním rohem v okně */
 .krm-svet:not([style*="transform"]) { opacity: 0; }
+/* …a dokud nejsou stažené a rozbalené obrázky kresby — pak se ukáže celý najednou,
+   ne po kouscích (zboží a světla byla hotová dřív než obrázky; scena.ts → .obrazky) */
+.krm-scena:not(.obrazky) .krm-svet { opacity: 0; }
+.krm-svet { transition: opacity 0.35s ease; }
 
 /* Země pod světem a do stran — na úzké obrazovce je pod silnicí ještě kus místa */
 .krm-svet::before {

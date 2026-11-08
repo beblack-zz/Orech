@@ -1800,6 +1800,12 @@
 }
 .rz-displej-tlacitko:hover { background: #FFC97E; }
 @keyframes rz-displej { from { transform: translate(-50%, 140%); } }
+/* S permanentkou je lišta červená jako průkazka, u zvláštního vlaku noční modrá se zlatem (od 8. 11. 2026) */
+.rz-displej { transition: background 0.3s, box-shadow 0.3s; }
+.rz-displej.je-pas { background: #7E271D; box-shadow: 0 0 0 3px #A8362A, 0 18px 40px -14px rgba(0, 0, 0, 0.6); }
+.rz-displej.je-pas .rz-displej-tlacitko { background: #FFF1DE; color: #661D14 !important; }
+.rz-displej.je-kurz { background: #1C2050; box-shadow: 0 0 0 3px #C99A2E, 0 18px 40px -14px rgba(0, 0, 0, 0.6); }
+.rz-displej.je-kurz .rz-displej-tlacitko { background: var(--zvl-zlato, #E0B04A); color: #1C2050 !important; }
 /* Volby v liště jsou jen na telefonu (níž) */
 .rz-displej-volby { display: none; }
 /* Časy dne nad permanentkou jsou jen na telefonu (níž) */
@@ -1831,24 +1837,6 @@
     font-variant-numeric: tabular-nums;
     text-shadow: 0 0 10px rgba(255, 180, 90, 0.4);
   }
-  .rz-displej-pas {
-    flex: 0 0 auto;
-    display: grid;
-    justify-items: center;
-    align-content: center;
-    gap: 3px;
-    padding: 4px 6px;
-    border-radius: 10px;
-    background: rgba(243, 235, 220, 0.07);
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgba(243, 235, 220, 0.75);
-    cursor: pointer;
-  }
-  .rz-displej-pas input { width: 20px; height: 20px; margin: 0; accent-color: var(--rumelka); }
-  .rz-displej-pas:has(input:disabled) { opacity: 0.4; }
-  .rz-displej-pas span { max-width: 9ch; text-align: center; line-height: 1.05; }
   .rz-displej-tlacitko { padding: 12px 12px; font-size: 14.5px; white-space: nowrap; }
   .rz-displej:not(.je-vybrano) .rz-displej-tlacitko { background: rgba(243, 235, 220, 0.14); color: #F3EBDC !important; }
   /* Jízdenka na telefonu (od 8. 11. 2026) jen s údaji: bez nadpisu se značkou OŘ 04 (zůstává pro čtečku),
