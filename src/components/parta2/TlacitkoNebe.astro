@@ -1,0 +1,136 @@
+---
+/**
+ * Tlačítko v barvách bubliny hlavičky i s jejím nebem (HlavickaNebe.astro):
+ * dole se kupí obláčky, „noc“ je modrá s hvězdičkami, „den“ papírová
+ * s ptáčky. Nemění se s režimem stránky — noc a den stojí vedle sebe.
+ * Na úvodu (domek2/Uvod.astro) a nahoře na Rezervaci (rezervace/Nadrazi.astro).
+ * Pás 260 × 52, pevná náhoda — pokaždé stejné nebe.
+ */
+interface Props {
+  href: string;
+  nebe: "den" | "noc";
+}
+const { href, nebe } = Astro.props;
+
+const SIRKA = 260;
+const VYSKA = 52;
+let semeno = nebe === "noc" ? 23 : 41;
+const nahoda = () => ((semeno = (semeno * 16807) % 2147483647) / 2147483647);
+const f = (n: number) => n.toFixed(1);
+
+/** Obláček = hrouda kruhů, zespodu useknutá okrajem tlačítka */
+const oblak = (x: number, sirka: number, vyska: number) => {
+  const kusu = Math.max(2, Math.round(sirka / 11));
+  return Array.from({ length: kusu }, (_, i) => {
+    const t = i / (kusu - 1);
+    const r = vyska * (0.45 + 0.55 * Math.sin(Math.PI * t)) * (0.75 + 0.35 * nahoda());
+    return { cx: x + sirka * t + (nahoda() - 0.5) * 6, cy: VYSKA + 2 - r * 0.35, r };
+  });
+};
+const zadni = [-10, 90, 190].flatMap((x) => oblak(x + nahoda() * 30, 80 + nahoda() * 40, 16 + nahoda() * 5));
+const predni = [40, 140, 225].flatMap((x) => oblak(x + nahoda() * 25, 50 + nahoda() * 30, 10 + nahoda() * 4));
+
+const hvezdy = Array.from({ length: 16 }, (_, i) => ({
+  x: 8 + nahoda() * (SIRKA - 16),
+  y: 4 + nahoda() * 20,
+  r: 0.6 + nahoda() * 0.7,
+  o: 0.45 + nahoda() * 0.5,
+  mrka: i % 3 === 0,
+  zpozdeni: nahoda() * 4,
+}));
+/* Ptáci po dvou a po třech, nad mraky u krajů */
+const ptaci: [number, number, number][] = [[30, 12, 0.9], [44, 16, 0.75], [205, 10, 1], [221, 14, 0.8], [213, 19, 0.7]];
+
+/* Barvy mraků z HlavickaNebe.astro */
+const barva = nebe === "noc" ? { z: "#3B4482", p: "#47508F" } : { z: "#E8DFCC", p: "#FFFCF4" };
+---
+<a class:list={["tlacitko", "tn", `tn-${nebe}`]} href={href}>
+  <svg class="tn-nebe" viewBox={`0 0 ${SIRKA} ${VYSKA}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+    {nebe === "noc" ? (
+      <g fill="#FFF8EA">
+        {hvezdy.map((h) => (
+          <circle
+            cx={f(h.x)}
+            cy={f(h.y)}
+            r={h.r.toFixed(2)}
+            opacity={h.o.toFixed(2)}
+            class={h.mrka ? "tn-mrka" : undefined}
+            style={h.mrka ? `animation-delay: ${h.zpozdeni.toFixed(2)}s` : undefined}
+          />
+        ))}
+      </g>
+    ) : (
+      <g fill="none" stroke="#8A7C70" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+        {ptaci.map(([x, y, m], i) => (
+          <g transform={`translate(${x} ${y}) scale(${m})`}>
+            <path class="tn-ptak" d="M-4 0 Q-2 -2.2 0 0 Q2 -2.2 4 0" style={`animation-delay: ${(i * 0.37).toFixed(2)}s`} />
+          </g>
+        ))}
+      </g>
+    )}
+    <g fill={barva.z} opacity="0.9">{zadni.map((k) => <circle cx={f(k.cx)} cy={f(k.cy)} r={f(k.r)} />)}</g>
+    <g fill={barva.p} opacity="0.85">{predni.map((k) => <circle cx={f(k.cx)} cy={f(k.cy)} r={f(k.r)} />)}</g>
+  </svg>
+  <span class="tn-text"><slot /></span>
+</a>
+
+<style>
+  /* a.tlacitko.tn… přebije .tlacitko:hover i .tlacitko-obrys z parta2.css */
+  a.tlacitko.tn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-color: transparent;
+  }
+  a.tlacitko.tn-noc,
+  a.tlacitko.tn-noc:hover {
+    background: #2A3160;
+    color: #F1E8D6 !important;
+    box-shadow: 0 12px 32px -14px rgba(5, 8, 25, 0.7), inset 0 0 0 1px rgba(241, 232, 214, 0.09);
+  }
+  a.tlacitko.tn-noc:hover {
+    background: #222851;
+  }
+  a.tlacitko.tn-den,
+  a.tlacitko.tn-den:hover {
+    background: color-mix(in srgb, var(--papir) 90%, transparent);
+    color: var(--inkoust) !important;
+    box-shadow: 0 10px 30px -14px rgba(28, 20, 44, 0.45), inset 0 0 0 1px rgba(43, 36, 32, 0.12);
+  }
+  a.tlacitko.tn-den:hover {
+    background: var(--papir);
+  }
+  .tn-text {
+    position: relative;
+  }
+  .tn-nebe {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .tn-mrka {
+    animation: tn-mrk 3.4s ease-in-out infinite;
+  }
+  @keyframes tn-mrk {
+    50% {
+      opacity: 0.12;
+    }
+  }
+  .tn-ptak {
+    animation: tn-mava 1.6s ease-in-out infinite;
+  }
+  @keyframes tn-mava {
+    50% {
+      d: path("M-4 -1.2 Q-2 0.6 0 0 Q2 0.6 4 -1.2");
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tn-mrka,
+    .tn-ptak {
+      animation: none;
+    }
+  }
+</style>

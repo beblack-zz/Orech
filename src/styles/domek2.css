@@ -14,9 +14,7 @@
 .dm-uvod-akce { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; text-shadow: none; }
 /* Kdy a za kolik — pod tlačítky, aby bylo vidět bez kliknutí */
 .dm-uvod-kdy { margin: 12px 0 0; font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
-/* Na obloze nad krajinou je obrysové tlačítko světlé */
-.dm-uvod .tlacitko-obrys { border-color: rgba(255, 251, 242, 0.85); color: #FFFBF2 !important; }
-.dm-uvod .tlacitko-obrys:hover { background: #FFFBF2; color: var(--inkoust) !important; }
+/* Tlačítka mají barvy a nebe hlavičky sama (parta2/TlacitkoNebe.astro) */
 
 /*
  * Pořadí vrstev krajiny úvodu. Mezery jsou po Vázičce, která se mezi ně

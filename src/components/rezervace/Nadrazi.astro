@@ -15,6 +15,7 @@
  * Druhé tlačítko vede k dárkovým jízdenkám za soumraku (Darky.astro).
  * Kachlík ze hry na hledání kami se odsud přestěhoval na odjezdovou tabuli (Odjezdy.astro).
  */
+import TlacitkoNebe from "../parta2/TlacitkoNebe.astro";
 import { rezervace, permanentka, cenaZaCloveka, otevrenoSlovy } from "../../data/rezervace";
 
 const kc = (n: number) => n.toLocaleString("cs-CZ");
@@ -39,8 +40,8 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
       A kdo jezdí pravidelně, vezme si <b>permanentku</b> na {permanentka.mesicu} měsíce: jeden den v týdnu, pokaždé stejná hodina — kterákoli, kde je místo.
     </p>
     <div class="rz-cta">
-      <a class="tlacitko" href="#rz-pokladna">Vybrat hodinu</a>
-      <a class="tlacitko tlacitko-obrys" href="#rz-darky">Darovat jízdenku</a>
+      <TlacitkoNebe href="#rz-pokladna" nebe="noc">Vybrat hodinu</TlacitkoNebe>
+      <TlacitkoNebe href="#rz-darky" nebe="den">Darovat jízdenku</TlacitkoNebe>
     </div>
   </div>
 

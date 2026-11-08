@@ -13,6 +13,7 @@
  * vrstev pro schovávání jsou v domek2.css.
  */
 import UvodKrajina from "./UvodKrajina.astro";
+import TlacitkoNebe from "../parta2/TlacitkoNebe.astro";
 import { kontakt, sezonaMesice } from "../../data/uvod2";
 import { parta } from "../../data/parta";
 import { jizdne, dnySlovy as kdy, otevrenoSlovy } from "../../data/rezervace";
@@ -41,8 +42,8 @@ const stupne = pecinka?.bio.match(/(\d[\d\s]*\d)\s*stup/)?.[1]?.replace(/\s/g, "
       Malá dílna v Ořechu — pojď dál.
     </p>
     <div class="dm-uvod-akce">
-      <a class="tlacitko" href="/rezervace#rz-pokladna">Rezervovat hodinu</a>
-      <a class="tlacitko tlacitko-obrys" href="/rezervace#rz-darky">Darovat jízdenku</a>
+      <TlacitkoNebe href="/rezervace#rz-pokladna" nebe="noc">Rezervovat hodinu</TlacitkoNebe>
+      <TlacitkoNebe href="/rezervace#rz-darky" nebe="den">Darovat jízdenku</TlacitkoNebe>
     </div>
     <p class="dm-uvod-kdy">{kdy} {otevrenoSlovy} · od {odKc}&nbsp;Kč</p>
     <a class="uvod-dolu" href="#ulice">
