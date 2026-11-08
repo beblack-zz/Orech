@@ -86,6 +86,8 @@ const cenyKurzu = cenyKurzuCisla.map((c) => c.toLocaleString("cs-CZ")).filter((_
   <div class="rz-krok">
     <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>02</span> Den <small>úterky a pátky na měsíc dopředu — jiný vybereš v kalendáři</small></h3>
     <div class="rz-dny" role="group" aria-label="Den, na který se rezervuje"></div>
+    {/* Telefon (od 8. 11. 2026): časy vybraného dne rovnou tady, ať se nemusí k tabuli — kreslí skript, vybírá totéž co tabule */}
+    <div class="rz-casy" role="group" aria-label="Hodina vybraného dne"></div>
     {/* Permanentka: vybrané hodiny se budou každý týden opakovat. Den v týdnu, platnost a cenu dopisuje skript. */}
     <label class="rz-pas">
       <input type="checkbox" name="permanentka" />

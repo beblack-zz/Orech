@@ -300,6 +300,8 @@ const viditelny = (el: Element | null): el is HTMLElement => {
 export function pruvodce() {
   if (document.querySelector(".pruvodce")) return;
   const stranka = document.body.dataset.stranka ?? "";
+  /* Na telefonu na Rezervaci nelétá (od 8. 11. 2026) — dole je lišta s výběrem a Vázička by ji zakrývala */
+  if (stranka === "rezervace" && telefon()) return;
   const klidne = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
   /* Co o hostovi ví — jen z toho, co v domě sám udělal (pruvodce-host.ts) */

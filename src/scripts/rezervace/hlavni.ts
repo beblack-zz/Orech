@@ -95,6 +95,7 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   const hotovoEl = koren.querySelector<HTMLElement>(".rz-hotovo");
   const mojeEl = koren.querySelector<HTMLElement>(".rz-moje");
   const pasEl = koren.querySelector<HTMLInputElement>('input[name="permanentka"]');
+  const casyEl = koren.querySelector<HTMLElement>(".rz-casy");
   const pasPozn = koren.querySelector<HTMLElement>(".rz-pas-stav");
   const pasDen = koren.querySelector<HTMLElement>(".rz-pas-den");
   const zvlastniEl = koren.querySelector<HTMLElement>(".rz-zvlastni-vlaky");
@@ -103,6 +104,14 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
   const kurzZaskrt = kurzEl?.closest<HTMLElement>(".rz-pas-kurz") ?? null;
   const displej = document.querySelector<HTMLElement>(".rz-displej");
   const displejSouhrn = displej?.querySelector<HTMLElement>(".rz-displej-souhrn");
+  /* Telefon: lišta dole ukazuje den, hodinu a permanentku a dá se v ní permanentka zaškrtnout */
+  const displejDen = displej?.querySelector<HTMLElement>('[data-displej="den"] b');
+  const displejHodina = displej?.querySelector<HTMLElement>('[data-displej="hodina"] b');
+  const displejPas = displej?.querySelector<HTMLInputElement>('input[name="displej-permanentka"]');
+  const displejTlacitko = displej?.querySelector<HTMLAnchorElement>(".rz-displej-tlacitko");
+  const mqTelefon = matchMedia("(max-width: 760px)");
+  /** Pokladna a tabule jsou na obrazovce — na telefonu je lišta vidět jen tehdy */
+  let vHale = false;
 
   /* Kalendář se po zamluvení a zrušení načítá znovu — pole dnů zůstává, jen se přepíše */
   let kal = prvni;
@@ -308,8 +317,32 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
     dnyEl.append(kal);
   };
 
+  /** Telefon: časy vybraného dne nad permanentkou — vybírají totéž co řádky tabule (rezervace.css, .rz-casy) */
+  const kresliCasy = () => {
+    if (!casyEl) return;
+    const d = dny[den];
+    casyEl.textContent = "";
+    casyEl.hidden = !d || !!d.kurz;
+    if (!d || d.kurz) return;
+    for (const h of d.hodiny) {
+      const mam = vybrane.has(h.h);
+      const st = stavHodiny(h, osob);
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = `rz-cas ${st}${mam ? " vybrana" : ""}`;
+      b.disabled = st !== "volno" && !mam;
+      b.setAttribute("aria-pressed", String(mam));
+      const pozn = mam ? "vybráno" : st === "pryc" ? "odjel" : st === "plno" ? "plno" : sklonuj(h.volno, "místo", "místa", "míst");
+      b.innerHTML = `<b>${hhmm(h.h)}</b><small>${pozn}</small>`;
+      b.setAttribute("aria-label", `${hhmm(h.h)} až ${hhmm(h.h + R.blok)}: ${pozn}`);
+      b.addEventListener("click", () => prepniHodinu(h.h));
+      casyEl.append(b);
+    }
+  };
+
   /** Zaškrtávátko permanentky: na který den v týdnu by byla, odkdy dokdy a kolik by stála */
   const kresliPermanentky = () => {
+    kresliCasy();
     const d = dny[den];
     /* Na který den v týdnu permanentka je, říká vybraný den — jiný se vybere v kalendáři */
     const denPasu = !!d && R.dny.includes(d.datum.getDay()) && !d.kurz;
@@ -589,8 +622,23 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
         : "Zamlouvat si můžou ti, kdo jsou u nás zaregistrovaní — stačí jméno a e-mail, heslo nepotřebuješ.";
     }
     if (displej && displejSouhrn) {
-      displej.hidden = !s || jizdenkaVidet;
+      const telefon = mqTelefon.matches;
+      /* Na počítači se ukáže, až je něco vybrané; na telefonu po celou dobu výběru (s tím, co vybrat) */
+      displej.hidden = jizdenkaVidet || (telefon ? !vHale : !s);
+      displej.classList.toggle("je-vybrano", !!s);
       displejSouhrn.textContent = s?.kratce ?? "";
+      const hodiny = [...vybrane].sort((a, b) => a - b);
+      if (displejDen) displejDen.textContent = d ? `${ZKR[d.datum.getDay()]} ${datumKratce(d.datum)}` : "vyber";
+      if (displejHodina) displejHodina.textContent = d?.kurz ? (kurzVybran ? "celý den" : "nastup") : hodiny.length ? (hodiny.length === 1 ? hhmm(hodiny[0]) : `${odjezdu(hodiny.length)}`) : "vyber";
+      if (displejPas) {
+        displejPas.checked = naPas;
+        displejPas.disabled = !d || !!d.kurz || !R.dny.includes(d.datum.getDay());
+      }
+      if (displejTlacitko) {
+        /* Dokud není co dát na jízdenku, tlačítko vede k tabuli */
+        displejTlacitko.href = s ? "#rz-jizdenka" : "#rz-odjezdy";
+        displejTlacitko.innerHTML = s ? `Pokračovat <span aria-hidden="true">→</span>` : d?.kurz ? "K vlaku" : "Vybrat hodinu";
+      }
     }
     /* Host se zaregistruje nebo přihlásí kdykoli; člen označí, až má něco na jízdence */
     if (!clen()) {
@@ -771,7 +819,8 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       if (chybi) chybi.textContent = !d ? "Nejdřív vyber den." : d.kurz ? "Nejdřív nastup na tabuli do zvláštního vlaku." : "Nejdřív vyber aspoň jednu hodinu na tabuli.";
       return;
     }
-    if (!jmenoEl.value.trim()) {
+    /* Políčko se jménem je na telefonu schované — tam se nevyžaduje (člen ho má vyplněné ze svého účtu) */
+    if (!jmenoEl.value.trim() && jmenoEl.offsetParent !== null) {
       if (chybi) chybi.textContent = "Napiš na jízdenku jméno, ať víme, koho čekat.";
       const pole = jmenoEl.closest(".rz-listek-jmeno");
       pole?.classList.remove("chybi");
@@ -815,6 +864,17 @@ function init(koren: HTMLElement, dnes: Date, prvni: Kalendar) {
       poZmene();
     }),
   );
+
+  /* Telefon: lišta je vidět, dokud je pokladna s tabulí na obrazovce */
+  const hala = document.getElementById("rz-pokladna");
+  if (hala && displej) {
+    new IntersectionObserver((z) => {
+      vHale = z.some((e) => e.isIntersecting);
+      souhrn();
+    }).observe(hala);
+  }
+  mqTelefon.addEventListener("change", () => souhrn());
+  displejPas?.addEventListener("change", () => prepniPas(displejPas.checked));
 
   /* Displej se schová, když je jízdenka na obrazovce — a u dárkových jízdenek, kde by zakrýval přepážku */
   const zakryva = [document.getElementById("rz-jizdenka"), document.getElementById("rz-darky")].filter((el): el is HTMLElement => !!el);
