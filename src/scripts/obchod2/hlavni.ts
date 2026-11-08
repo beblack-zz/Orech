@@ -51,7 +51,7 @@ stranka("obchod-2", () => {
       .catch((e) => console.warn("[obchod] hrnek do ruky se nepodařilo stáhnout", e));
   });
   initPodpis();
-  /* Střípek schovaný v hodinách krámku — hra na hledání kami */
-  document.querySelectorAll<HTMLElement>(".o2k-hodiny [data-skryty]").forEach(schovej);
+  /* Střípek schovaný za lištou automatu krámku — hra na hledání kami */
+  document.querySelectorAll<HTMLElement>(".o2k-stripek[data-skryty]").forEach(schovej);
   spust();
 });

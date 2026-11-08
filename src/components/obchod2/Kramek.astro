@@ -94,8 +94,11 @@ const veVylohach = zDilny.slice(0, mistaDilny.length).map((kus, k) => ({
   zastavka: k < ZBOZI.vylohaL.length ? "vylohaL" : "vylohaP",
 }));
 
-/* Hodiny se Střípkem: místo na zadní stěně za dveřmi nechává kresba volné */
+/* Hodiny: místo na zadní stěně za dveřmi nechává kresba volné */
 const hod = PRIZEMI.hodiny;
+/* Střípek vykukuje zpoza horní lišty automatu se sodami: střed nad skříní, spodek kresby kousek za lištou (překrývá ji přední vrstva) */
+const stripekW = 56;
+const stripek = { x: Math.round(automat.x + automat.w / 2 - stripekW / 2), spodek: H - (automat.y + 4) };
 /* Cedulka stojí na levém kraji pultu */
 const cedulka = { x: PRIZEMI.pult.x + 8, y: PRIZEMI.pult.y - 84, w: 74 };
 /* Neon na čele pultu vede dolů do obchodu (vitríny pod krámkem) */
@@ -132,13 +135,15 @@ const sezona = sezonaMesice(new Date().getMonth() + 1);
         <h2 class="sr-only" id="krm-dilna">Z dílny — ve výlohách</h2>
         {veVylohach.map((k) => <Kus {...k} />)}
 
-        {/* Hodiny na zadní stěně. V ciferníku mezi šestkou a sedmičkou vykukuje bílý Střípek — hra na hledání kami (schovej v parta2/sber.ts) */}
+                {/* Hodiny na zadní stěně */}
         <div class="o2k-hodiny krm-hodiny" style={`left:${hod.x}px;top:${hod.y}px;width:${hod.w}px`}>
           <Kram co="hodiny" />
-          <button type="button" class="skryty o2k-stripek" data-skryty="stripek" aria-label="Někdo se tu schovává" style="left:35.4%;top:74.3%;width:12.7%">
-            <StripekSchovka barva="pruhledna" poza="vykukuje" size={20} />
-          </button>
         </div>
+
+        {/* Za horní lištou automatu vykukuje bílý Střípek — hra na hledání kami (schovej v parta2/sber.ts) */}
+        <button type="button" class="skryty o2k-stripek" data-skryty="stripek" aria-label="Někdo se tu schovává" style={`left:${stripek.x}px;bottom:${stripek.spodek}px;width:${stripekW}px`}>
+          <StripekSchovka barva="pruhledna" poza="vykukuje" size={stripekW} />
+        </button>
 
         <Kami id="cedulka" class="krm-cedulka" style={`left:${cedulka.x}px;top:${cedulka.y}px;width:${cedulka.w}px`} />
         <a class="krm-vchod" href="#tvorba" style={`left:${vchod.x}px;top:${vchod.y}px`}>

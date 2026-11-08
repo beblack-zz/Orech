@@ -39,6 +39,8 @@ export interface Vuz {
   mista?: Misto[];
   /** Kresba navíc v souřadnicích vozu, oříznutá na skla oken (Šamotka schovaná na pozadí Rezervace) */
   navic?: string;
+  /** Kresba navíc na střeše vozu (v souřadnicích vozu, bez ořezu na okna) */
+  strecha?: string;
 }
 
 export const delka = (pocet: number) => pocet * VUZ + Math.max(0, pocet - 1) * MEZERA;
@@ -263,7 +265,7 @@ export function vlak(vozy: Vuz[], { smer = 1, trida = "" }: { smer?: 1 | -1; tri
     const tr = otoceny ? `translate(${x + VUZ} 0) scale(-1 1)` : `translate(${x} 0)`;
     const sberac = !otoceny && (i === 0 || i % 4 === 0) ? `<use href="#vl-pantograf"/>` : "";
     const navic = v.navic ? `<g clip-path="url(#vl-okna-orez)">${v.navic}</g>` : "";
-    telo += `<g transform="${tr}"><use href="#vl-vuz"/>${sberac}${cestujici(v.mista ?? [], i * 3)}${navic}</g>`;
+    telo += `<g transform="${tr}"><use href="#vl-vuz"/>${sberac}${cestujici(v.mista ?? [], i * 3)}${navic}${v.strecha ?? ""}</g>`;
     if (v.cislo) {
       const cx = otoceny ? x + VUZ - 487 : x + 487;
       /* čas odjezdu (10:30) se na cedulku z kresby vozu nevejde — dostane širší */

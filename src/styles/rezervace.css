@@ -231,7 +231,7 @@
 .rz-vypravka { transform-box: fill-box; transform-origin: 50% 100%; transform: rotate(115deg); transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1); }
 .vypravuje .rz-vypravka { transform: rotate(-12deg); }
 .rz-trat-vlak { transform: translateX(calc(var(--vl-x, 280) * 1px)); }
-/* Černá Šamotka v okně prvního vozu (More.astro, more.ts): moře kliky nebere, ona ano — na celé sklo okna.
+/* Černá Šamotka na střeše prvního vozu (More.astro, more.ts): moře kliky nebere, ona ano — na celou kresbu.
    Nádraží a noc, pod kterými vlak stojí, pouštějí kliky skrz prázdná místa; jejich obsah je bere dál. */
 .rz-trat-svet .rz-samotka { pointer-events: auto; cursor: pointer; }
 .rz-trat-svet .rz-samotka-zasah { pointer-events: all; }

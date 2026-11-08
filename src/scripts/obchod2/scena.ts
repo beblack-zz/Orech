@@ -334,9 +334,16 @@ export function scena() {
     nastavCestu();
   };
 
+  /* Telefon: lišta prohlížeče při tahu nahoru na kraji stránky pořád mění velikost okna a každé
+     takové měření by kameru, karty i světla postavilo znovu (scéna se rozhazovala a blikala).
+     Když se nezměnilo nic, z čeho se kamera počítá, nedělá se nic. */
+  let podpis = "";
   priMereni(() => {
     vw = scenaEl.clientWidth || window.innerWidth;
     vh = scenaEl.clientHeight || window.innerHeight;
+    const novyPodpis = `${vw}|${vh}|${uvod?.offsetTop ?? 0}|${uvod?.offsetHeight ?? 0}|${konec?.offsetLeft ?? 0}|${konec?.offsetWidth ?? 0}`;
+    if (naTelefonu && novyPodpis === podpis && ted.k) return;
+    podpis = novyPodpis;
     const nove: Rozvrzeni = vw < 760 || vw / vh < 0.95 ? "uzka" : "siroka";
     const zmena = nove !== rozvrzeni;
     if (zmena) {

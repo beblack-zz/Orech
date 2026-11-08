@@ -715,4 +715,6 @@
   .krm-kocka-ocas:not(.mrska) { animation: none; }
   .krm-uvod .krm-akce { display: none; }
   .krm-uvod .krm-ruka { margin-bottom: 0; }
+  /* Tah nahoru, když už není kam scrollovat, stránku neodpružuje (scéna se při tom rozhazovala) */
+  html:has(.krm) { overscroll-behavior-y: none; }
 }

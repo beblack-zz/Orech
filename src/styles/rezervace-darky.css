@@ -48,7 +48,7 @@
    a otočená se přetočí na rub (--otoceni). Stín má každá strana sama — filtr na otáčedle by 3D zploštil. */
 .rz-dar-predmet { position: relative; padding: 8px 2px 20px; perspective: 1500px; }
 /* Vázička za horní hranou Zvláštního vlaku: stojí za jízdenkou, vidět je jen hlava nad hranou */
-.skryty.rzd-vazicka { z-index: 0; top: auto; bottom: calc(100% - 10px); right: 16%; width: 46px; transform-origin: 50% 100%; }
+.skryty.rzd-vazicka { z-index: 0; top: auto; bottom: calc(100% - 3px); right: 16%; width: 92px; transform-origin: 50% 100%; }
 .rz-dar-kurz .rzd-otacec { z-index: 1; }
 .rzd-otacec {
   --zdvih: 0px;
