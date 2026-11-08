@@ -13,8 +13,8 @@ import type { PostavaId } from "./parta";
  * skupinové: čím víc lidí na odjezdu nakonec sedí, tím míň platí každý
  * (`jizdne`, `cenaOdjezdu`). Platí se na místě.
  *
- * Místa se počítají i u dvou dalších věcí: u kurzu, který zabere celý den
- * (`kurzy`), a u permanentky na první a poslední spoj dne (`permanentka`).
+ * Místa se počítají i u kurzu, který zabere celý den (`kurzy`). Permanentka
+ * (`permanentka`) si bere místo na obyčejném odjezdu, každý týden na tři měsíce.
  * Obojí je níž.
  *
  * Co je zamluvené, je v Supabase (supabase/schema.sql) a stránka si to bere
@@ -50,8 +50,8 @@ export const rezervace = {
   dniDopredu: 31,
   /** Den, kdy jezdí zvláštní vlaky (kurzy): 6 = sobota. Hodinové spoje ten den nejedou. */
   denKurzu: 6,
-  /** Kolik zvláštních vlaků bývá nejvýš vypsaných naráz — tolik karet má jejich přepážka v pokladně */
-  kurzuNaraz: 2,
+  /** Kolik zvláštních vlaků ukazuje přepážka v pokladně — nejbližší (do 8. 11. 2026 dva) */
+  kurzuNaraz: 1,
   /** Kolik hodin před začátkem jde jízdenka ještě zrušit přes web. ODHAD — čeká na potvrzení. */
   zrusitHodinPredem: 24,
   /** Jak dlouho platí odkaz a kód z přihlašovacího mailu, v minutách */
@@ -232,49 +232,31 @@ export const kurzy: KurzVlak[] = [
 
 /* ——— Permanentka ———
  *
- * První a poslední spoj dne nejsou na hodinovou jízdenku: patří lidem
- * s permanentkou. Ta platí tři měsíce na jeden den v týdnu (každé úterý,
- * nebo každý pátek — člověk si vybere) a na jeden spoj, ranní, nebo
- * večerní. Kdo chce oba dny nebo oba spoje, bere si permanentek víc.
- * Míst je na každém dni a spoji pár a plní se po jednom jako kurz.
- * (Výluku by měla jen v den, kdy by kurz vyjel v úterý nebo v pátek.)
+ * Permanentka je obyčejný odjezd, který se opakuje: tři měsíce každý týden
+ * ve stejný den a ve stejnou hodinu. Den i hodinu si člověk vybere sám —
+ * kteroukoli, kde je volno (do 8. 11. 2026 byla jen na první a poslední
+ * spoj dne, které jí patřily). Na stránce se vybere den a hodiny jako
+ * obvykle a zaškrtne se „permanentka“; každá vybraná hodina je jedna
+ * permanentka. Kdo chce dva dny v týdnu, bere si dvě.
  *
- * Platí se za jízdy: 400 Kč za člověka a každý týden, kdy spoj jede —
- * jako hodina a půl ve čtyřech, i když jedeš sám. Tři měsíce jednoho dne
- * v týdnu jsou 13 jízd (12 až 14 podle dne, kdy se začíná); týden, kdy je
- * výluka, se neplatí. Rozhodnuto 16. 10. 2026.
+ * Místa sdílí s hodinovými jízdenkami: držitel permanentky sedí na odjezdu
+ * na jednom z jeho `rezervace.mist` míst, každý týden, kdy platí. Koupit
+ * se dá jen tehdy, když je místo volné ve všech jejích týdnech. (Výluku má
+ * v den, kdy by kurz vyjel v úterý nebo v pátek — ten týden se nejede.)
+ *
+ * Platí se za jízdy: 400 Kč za člověka a každý týden — jako hodina a půl
+ * ve čtyřech, i když jedeš sám. Tři měsíce jednoho dne v týdnu jsou 13 jízd
+ * (12 až 14 podle dne, kdy se začíná); týden, kdy je výluka, se neplatí.
+ * Rozhodnuto 16. 10. 2026.
  */
 export const permanentka = {
-  /** Kolik permanentek se prodá na jeden spoj jednoho dne v týdnu — tolik, kolik má dílna míst (rozhodnuto 17. 10. 2026) */
-  mist: 4,
   mesicu: 3,
   /** Cena za člověka a jednu jízdu (hodinu a půl) — permanentka stojí tolikrát, kolik má jízd */
   cenaJizdy: 400,
 };
-/**
- * Spoje permanentky v daný den v týdnu: první (ranní) a poslední (večerní)
- * odjezd dne. Každý den má jiný rozvrh, takže večerní je v úterý jindy než v pátek.
- */
-export const spojeDne = (denVTydnu: number) => {
-  const o = odjezdyDne(denVTydnu);
-  return o.length ? [{ h: o[0], nazev: "ranní" }, { h: o[o.length - 1], nazev: "večerní" }] : [];
-};
-/** Je odjezd v `h` ten den spojem permanentky? */
-export const jeSpojDne = (denVTydnu: number, h: number) => spojeDne(denVTydnu).some((s) => s.h === h);
-/** Jméno spoje (ranní / večerní) podle hodiny — kterýkoli den */
-export const nazevSpoje = (h: number) => rezervace.dny.flatMap(spojeDne).find((s) => s.h === h)?.nazev ?? "";
-/** Spoje slovy, např. „ranní 9:00, večerní v úterý 18:00 a v pátek 17:00“ */
-export const spojeSlovy = () => {
-  const ranni = [...new Set(rezervace.dny.map((d) => spojeDne(d)[0]?.h))];
-  const vecerni = rezervace.dny.map((d) => ({ d, h: spojeDne(d)[1]?.h }));
-  const r = ranni.length === 1 ? `ranní ${hhmm(ranni[0])}` : `ranní ${ranni.map(hhmm).join(" nebo ")}`;
-  const stejne = new Set(vecerni.map((v) => v.h)).size === 1;
-  const v = stejne ? `večerní ${hhmm(vecerni[0].h)}` : `večerní ${vecerni.map((x) => `${VE_DNI[x.d]} ${hhmm(x.h)}`).join(" a ")}`;
-  return `${r}, ${v}`;
-};
 /** Kolik jízd permanentka obvykle má — tři měsíce jednoho dne v týdnu jsou 13 týdnů. Pro dárek a ceníky; na jízdence se počítá skutečný počet. */
 export const jizdPermanentky = Math.round((permanentka.mesicu * 52) / 12);
-/** Cena permanentky za člověka a jeden spoj, když má `jizd` jízd */
+/** Cena permanentky za člověka a jednu hodinu v týdnu, když má `jizd` jízd */
 export const cenaPermanentky = (jizd = jizdPermanentky) => jizd * permanentka.cenaJizdy;
 
 /* ——— Dárkové jízdenky ———
@@ -285,7 +267,7 @@ export const cenaPermanentky = (jizd = jizdPermanentky) => jizd * permanentka.ce
  * obdarovaný koupil sám (hodiny za plné jízdné jednoho člověka — kolik
  * lidí s ním bude sedět, dopředu nevíme —, permanentka
  * za obvyklých 13 jízd). Dárková jízdenka je vždycky pro jednoho a nic
- * nezamlouvá: den, odjezd, spoj i termín kurzu si obdarovaný vybere, až
+ * nezamlouvá: den, odjezd i termín kurzu si obdarovaný vybere, až
  * ji bude uplatňovat.
  *
  * Platnost 12 měsíců a „vytiskneme ho na papír, nebo pošleme v PDF“ jsou

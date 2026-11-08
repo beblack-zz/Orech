@@ -10,7 +10,7 @@
  * co je za perforací na ústřižku:
  *
  *   hodiny  zelená   dva kupony po hodině a půl, dopolední vlak
- *   pas     červená  políčko na každý týden a ranní a večerní spoj
+ *   pas     červená  políčko na každý týden a hodiny od rána do večera
  *                    (stejná červená jako permanentka v pokladně a v řádu)
  *   kurz    modrá    znak a program dne, parní vlak se salonem za soumraku
  *
@@ -562,7 +562,7 @@ export interface Udaj {
 export type Ustrizek =
   /** Kupony po odjezdech — průvodčí pokaždé cvakne jeden */
   | { druh: "kupony"; kuponu: number; delka: string }
-  /** Políčko na každý týden a spoje, na které platí */
+  /** Políčko na každý týden a rozpětí hodin, kdy platí (první a poslední) */
   | { druh: "tydny"; tydnu: number; spoje: { h: number; nazev: string; cas: string }[] }
   /** Znak kurzu a program dne jako trať se zastávkami */
   | { druh: "program"; emblem: string; kurz: string; zastavek: number; od: string; do: string };
@@ -614,8 +614,8 @@ function ustrizek(o: Lic, id: string, ink: string) {
       .map((s, i) => {
         let kus = "";
         if (i) {
-          kus = txt(x + 2, y0 + 69, "nebo", "rzd-t-nebo", `fill="${ink}"`);
-          x += 30;
+          kus = txt(x + 2, y0 + 69, "až", "rzd-t-nebo", `fill="${ink}"`);
+          x += 22;
         }
         kus += nebeSpoje(`${id}-spoj-${i}`, x, y0 + 58, 28, 15, s.h, ink) + txt(x + 34, y0 + 69, `${s.nazev} ${s.cas}`, "rzd-t-spoj", `fill="${ink}"`);
         x += 34 + (s.nazev.length + s.cas.length + 1) * 6.3 + 6;

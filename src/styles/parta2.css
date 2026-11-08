@@ -728,7 +728,7 @@ body.p2 {
    u nich (poloha ze skriptu se odečítá od spodku, pruvodce.ts odSpodu) — když lišta
    prohlížeče při scrollu sjede nebo vyjede, posunou se všechny spolu, nebo vůbec */
 @media (hover: none) and (pointer: coarse) {
-  .pruvodce, .p2 .pruvodce-satek { top: auto; bottom: 0; }
+  .pruvodce { top: auto; bottom: 0; }
   /* Doma sedí až u pravého okraje (OKRAJ v pruvodce.ts o 16 px blíž) — tlačítka jdou s ní */
   .p2 .pruvodce-tlacitko { right: -4px; }
   .p2 .pruvodce-zmensit { right: calc(var(--b, 100px) * 0.52 - 16px); }
@@ -747,6 +747,12 @@ body.p2 {
   -webkit-tap-highlight-color: transparent;
 }
 .p2 .pruvodce-satek:focus-visible { outline: 2px solid var(--rumelka); outline-offset: 2px; border-radius: 50%; }
+/* Telefon: uzlík visí od spodku jako rámeček s Vázičkou (pruvodce.ts odSpodu). Musí stát až za
+   základním pravidlem — dřív bylo v bloku nahoře, top: 0 tady ho přebilo a pečeť s počtem
+   kusů ulétla do pravého horního rohu (opraveno 8. 11. 2026) */
+@media (hover: none) and (pointer: coarse) {
+  .p2 .pruvodce-satek { top: auto; bottom: 0; }
+}
 .pruvodce-satek-pocet {
   position: absolute;
   left: 0;

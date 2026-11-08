@@ -15,7 +15,8 @@
  *             přiletěly, svitek 一期一会, paraván a kulaté okno.
  *
  * Kresba se kreslí dvakrát (široká: 4 kusy na polici, úzká: 2) a CSS
- * ukáže jednu. Kusy, cedulky, štít a lístky jsou HTML jen jednou —
+ * ukáže jednu. Od 8. 11. 2026 jsou statické části stěn soubory v <image>
+ * (pages/kresby/_obchod.ts) a ve stránce zůstává jen text a co se houpe. Kusy, cedulky, štít a lístky jsou HTML jen jednou —
  * každý prvek nese polohu pro obě rozvržení v proměnných --l1…--h2
  * (procenta jádra), velikosti písma jdou z jednotky kresby --u.
  *
@@ -30,6 +31,7 @@ import { vzdalenost } from "../../data/obchod2";
 import { glazury } from "../../data/kurzy2";
 import { pocetKusu } from "../../data/pocty";
 import { stena } from "./kresba/uvnitr";
+import { obchod } from "../../pages/kresby/_obchod";
 import type { Obdelnik } from "./kresba/zaklad";
 
 interface Props {
@@ -41,6 +43,8 @@ const kusy = japonsko ? zJaponska : zDilny;
 const id = japonsko ? "japonsko" : "tvorba";
 
 const S = { siroka: stena(odkud, "siroka", kusy.length), uzka: stena(odkud, "uzka", kusy.length) };
+/* Kresba stěn ve stránce: statické úseky jsou soubory v <image>, zůstal text a co se houpe (pages/kresby/_obchod.ts) */
+const K = obchod().steny[odkud];
 const g1 = S.siroka.g;
 const g2 = S.uzka.g;
 const pr = (v: number, z: number) => `${((v / z) * 100).toFixed(3)}%`;
@@ -48,8 +52,6 @@ const pr = (v: number, z: number) => `${((v / z) * 100).toFixed(3)}%`;
 const poloha = (a: Obdelnik, b: Obdelnik) =>
   `--l1:${pr(a.x, g1.W)};--t1:${pr(a.y, g1.H)};--w1:${pr(a.w, g1.W)};--h1:${pr(a.h, g1.H)};` +
   `--l2:${pr(b.x, g2.W)};--t2:${pr(b.y, g2.H)};--w2:${pr(b.w, g2.W)};--h2:${pr(b.h, g2.H)}`;
-/** SVG přes celou šířku: jádro W, kresba i s kusy za kraji */
-const kresba = (g: typeof g1) => `left:${pr(-g.ext, g.W)};width:${pr(g.W + 2 * g.ext, g.W)}`;
 
 const karty = kusy.map((kus, i) => {
   const glazura = kus.glazura?.toLowerCase();
@@ -74,8 +76,8 @@ const velikosti = "(min-width: 1000px) 190px, 34vw";
 ---
 <section class:list={["o2v", `o2v-${odkud}`]} id={id} aria-labelledby={`${id}-nadpis`}>
   <div class="o2v-jadro" style={`--a1:${g1.W} / ${g1.H};--a2:${g2.W} / ${g2.H}`}>
-    <svg class="o2v-kresba o2v-siroka" viewBox={S.siroka.viewBox} style={kresba(g1)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.siroka.zadni} />
-    <svg class="o2v-kresba o2v-uzka" viewBox={S.uzka.viewBox} style={kresba(g2)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.uzka.zadni} />
+    <Fragment set:html={K.siroka.zadni} />
+    <Fragment set:html={K.uzka.zadni} />
 
     {/* Kusy za sklem */}
     {karty.map(({ kus, seme, foto, zevnitr, kusPoloha }) => (
@@ -97,8 +99,8 @@ const velikosti = "(min-width: 1000px) 190px, 34vw";
       </div>
     ))}
 
-    <svg class="o2v-kresba o2v-siroka" viewBox={S.siroka.viewBox} style={kresba(g1)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.siroka.predni} />
-    <svg class="o2v-kresba o2v-uzka" viewBox={S.uzka.viewBox} style={kresba(g2)} preserveAspectRatio="xMidYMin meet" aria-hidden="true" set:html={S.uzka.predni} />
+    <Fragment set:html={K.siroka.predni} />
+    <Fragment set:html={K.uzka.predni} />
 
     {/* Štít nad vitrínou */}
     <header class="o2v-misto o2v-stit" style={poloha(g1.stit, g2.stit)}>

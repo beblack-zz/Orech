@@ -20,9 +20,14 @@
  *   zavíráme   uklidí se noren a spadne roleta, vlevo karta s kontaktem
  *
  * Kresba je ve vrstvách (components/obchod2/kresba, složené v scena.ts):
- * zadní, vnitřky, ZBOŽÍ (HTML), přední a světla. Noční kopii vrstev
- * udělá skript z denní (kresba/noc.ts) a prolíná ji přes denní. Svět má 3200 × 2000 px a všechno v něm stojí
- * v jeho pixelech; kameru, hodinu a světla řídí scripts/obchod2/scena.ts.
+ * zadní, vnitřky, ZBOŽÍ (HTML), přední a světla. Od 8. 11. 2026 je krámek
+ * jen v noci a kresba se nekreslí v prohlížeči: zadní kresba s vnitřky
+ * a přední kresba jsou hotové noční obrázky (public/kramek/, pro každé
+ * roční období, vyrábí je scripts/kramek-noc.mjs z kresba/nocni.ts) —
+ * jeden pod zbožím, druhý nad ním. Živé SVG zůstaly jen lampiony (kývají
+ * se, po ťuknutí se rozhoupou) a vrstva světel. Svět má 3200 × 2000 px
+ * a všechno v něm stojí v jeho pixelech; kameru a světla řídí
+ * scripts/obchod2/scena.ts.
  *
  * Za dveřmi na zadní stěně visí hodiny — v ciferníku mezi šestkou
  * a sedmičkou vykukuje bílý Střípek (hra na hledání kami, parta2/sber.ts).
@@ -31,7 +36,12 @@ import Kus from "./Kus.astro";
 import Kram from "./Kram.astro";
 import Kami from "../parta2/Kami.astro";
 import StripekSchovka from "../characters/schovka/Stripek.astro";
-import { scena, ZASTAVKY } from "./kresba/scena";
+import { ZASTAVKY } from "./kresba/scena";
+import { nocniKramek, VRSTVY } from "./kresba/nocni";
+import type { VrstvaObrazku } from "./kresba/nocni";
+import type { Sezona } from "../../data/uvod2";
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
 import { SVET, ZBOZI, PRIZEMI, MISTA, OKNO } from "./kresba/zaklad";
 import type { Obdelnik } from "./kresba/zaklad";
 import * as dumKresba from "./kresba/dum";
@@ -43,8 +53,23 @@ import { obchodTexty } from "../../data/obchod2";
 import { kontakt, mapa, sezonaMesice } from "../../data/uvod2";
 import { pocetKusu } from "../../data/pocty";
 
-const S = scena();
+const N = nocniKramek();
 const { w: W, h: H } = SVET;
+
+/* Noční obrázky krámku: adresa nese otisk všech souborů, ať se smí cachovat napořád */
+const SLOZKA = "public/kramek";
+let verze = "";
+try {
+  const soubory = readdirSync(SLOZKA).sort();
+  const h = createHash("sha1");
+  for (const f of soubory) h.update(f).update(readFileSync(`${SLOZKA}/${f}`));
+  verze = h.digest("hex").slice(0, 10);
+  const ulozeny = JSON.parse(readFileSync(`${SLOZKA}/otisk.json`, "utf8")).otisk;
+  if (ulozeny !== N.otisk) console.warn(`[kramek] kresba krámku se změnila a obrázky ne (${ulozeny} ≠ ${N.otisk}) — spusť node scripts/kramek-noc.mjs`);
+} catch {
+  console.warn("[kramek] chybí noční obrázky v public/kramek — spusť node scripts/kramek-noc.mjs");
+}
+const obraz = (sezona: Sezona, v: VrstvaObrazku, typ: "avif" | "webp") => `/kramek/noc-${sezona}-${v}.${typ}${verze ? `?v=${verze}` : ""}`;
 const box = (r: Obdelnik) => `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px`;
 
 /* Místa, která kreslíři vyvážejí (když část ještě nic nevyváží, hotspot se vynechá) */
@@ -82,7 +107,7 @@ const zastavky = JSON.stringify(ZASTAVKY);
 const sezona = sezonaMesice(new Date().getMonth() + 1);
 ---
 <section class="krm" id="kramek" data-hodina="14" data-zastavky={zastavky} aria-labelledby="krm-nadpis">
-  <div class="krm-scena je-den" data-sezona={sezona}>
+  <div class="krm-scena je-noc" data-sezona={sezona} style="--tma:1">
     {/* Karta s nadpisem — ve dne vlevo od domu, na telefonu dole */}
     <div class="krm-karta krm-uvod papir">
       <p class="stitek"><span lang="ja">うつわ屋</span> · Ořech · {pocetKusu(zJaponska.length + zDilny.length)}</p>
@@ -95,11 +120,11 @@ const sezona = sezonaMesice(new Date().getMonth() + 1);
     </div>
 
     <div class="krm-svet" style={`width:${W}px;height:${H}px`}>
-      {/* Noční kopie (krm-noc) jsou prázdné — skript je naplní přebarvenou denní kresbou (kresba/noc.ts) */}
-      <svg class="krm-vrstva krm-den" data-vrstva="zadni" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={S.zadniDen} />
-      <svg class="krm-vrstva krm-noc" data-noc="zadni" viewBox={`0 0 ${W} ${H}`} aria-hidden="true"></svg>
-      <svg class="krm-vrstva krm-den" data-vrstva="uvnitr" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={S.uvnitrDen} />
-      <svg class="krm-vrstva krm-noc" data-noc="uvnitr" viewBox={`0 0 ${W} ${H}`} aria-hidden="true"></svg>
+      {/* Zadní kresba s vnitřky v noci — hotový obrázek (sezónu přepne skript podle dneška, obchod2/hlavni.ts) */}
+      <picture class="krm-vrstva krm-obraz" data-obraz={VRSTVY[0]}>
+        <source type="image/avif" srcset={obraz(sezona, "vzadu", "avif")} />
+        <img src={obraz(sezona, "vzadu", "webp")} width={W} height={H} alt="" decoding="async" fetchpriority="high" />
+      </picture>
 
       <div class="krm-zbozi">
         <h2 class="sr-only" id="krm-japonsko">Z Japonska — v okně patra</h2>
@@ -122,9 +147,13 @@ const sezona = sezonaMesice(new Date().getMonth() + 1);
         </a>
       </div>
 
-      <svg class="krm-vrstva krm-den" data-vrstva="predni" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={S.predniDen} />
-      <svg class="krm-vrstva krm-noc" data-noc="predni" viewBox={`0 0 ${W} ${H}`} aria-hidden="true"></svg>
-      <svg class="krm-vrstva krm-svetla" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={S.svetla} />
+      {/* Přední kresba v noci bez lampionů — obrázek nad zbožím; lampiony a světla zůstávají živé */}
+      <picture class="krm-vrstva krm-obraz" data-obraz={VRSTVY[1]}>
+        <source type="image/avif" srcset={obraz(sezona, "vpredu", "avif")} />
+        <img src={obraz(sezona, "vpredu", "webp")} width={W} height={H} alt="" decoding="async" />
+      </picture>
+      <svg class="krm-vrstva krm-noc krm-lampiony" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={N.lampiony} />
+      <svg class="krm-vrstva krm-svetla" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" set:html={N.svetla} />
 
       <div class="krm-nad">
         {/* Tabule na stojanu: jak se tu nakupuje, křídou */}

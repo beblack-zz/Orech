@@ -160,7 +160,7 @@ export function najdi(s: HTMLElement | SVGElement) {
 
 /**
  * Skrýš mimo Partu 2: Hlínka za trilobitem v patičce (paticka.ts), na Rezervaci
- * Šamotka v okně vlaku a Kachlík v tabuli příštího odjezdu (rezervace/hlavni.ts).
+ * Šamotka v okně vlaku a Kachlík v hodinách odjezdové tabule (rezervace/hlavni.ts).
  * Ukáže, jestli už je nalezený, a klik ho najde. Dál ho nepustí — ani
  * k dokumentu (Parta 2 by ho počítala podruhé), ani k tlačítku, ve kterém sedí.
  */

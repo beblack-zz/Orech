@@ -27,7 +27,7 @@
  * Vybraný vzor se ukáže na látce i na účtence a odejde s objednávkou.
  */
 import { getImage } from "astro:assets";
-import Zabaleno from "./Zabaleno.astro";
+import ZabalenoKresba from "./ZabalenoKresba.astro";
 import Kram from "./Kram.astro";
 import { kramek } from "../../data/kramek";
 import { obchodTexty } from "../../data/obchod2";
@@ -203,7 +203,7 @@ const roh = {
           <image href={nahledy.get(k.id)} x="4" y="4" width="72" height="72" preserveAspectRatio="xMidYMid slice" clip-path={`url(#o2-ikona-orez-${i})`} />
         </svg>
       ) : (
-        <svg data-ikona={k.id} viewBox="0 0 200 200"><Zabaleno tvar={k.tvar ?? "bowl"} seme={i + 1} slama={false} predpona="o2i-zab" /></svg>
+        <svg data-ikona={k.id} viewBox="0 0 200 200"><ZabalenoKresba tvar={k.tvar ?? "bowl"} seme={i + 1} slama={false} predpona="o2i-zab" /></svg>
       ),
     )}
   </template>

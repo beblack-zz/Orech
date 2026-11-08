@@ -11,8 +11,8 @@
  * simulace.ts a rezervovat nemůže nikdo. Zbytek stránky rozdíl nepozná:
  * dostane dny ve stejném tvaru.
  */
-import { rezervace as R, kurzy, permanentka as P, odjezdyDne, spojeDne } from "../../data/rezervace";
-import { simuluj, obsazenoPermanentek, kurzDne, klicDne, jeSpojPermanentky } from "./simulace";
+import { rezervace as R, kurzy, odjezdyDne } from "../../data/rezervace";
+import { simuluj, ukazkovePermanentky, kurzDne, klicDne, naPermanentku, volnoTydne } from "./simulace";
 import type { Den, Hodina } from "./simulace";
 import type { Volno, Moje, Zadost, Odpoved } from "../../lib/rezervace/typy";
 
@@ -20,8 +20,8 @@ export interface Kalendar {
   /** false = ukázka: obsazenost je vymyšlená a rezervovat nejde */
   zive: boolean;
   dny: Den[];
-  /** Kolik permanentek je na který spoj prodaných, když by se začalo jezdit tímhle dnem */
-  pas(d: Den | undefined): Map<number, number>;
+  /** Kolik míst je volných na odjezdu dne `datum` v hodinu `h` — i za měsícem, kam sahá permanentka */
+  volnoTydne(datum: Date, h: number): number;
   /** Jede ten den kurz? Permanentka má ten den výluku. */
   jeKurz(d: Date): boolean;
   /** Člen, který přišel přes svůj odkaz — smí rezervovat rovnou */
@@ -30,18 +30,14 @@ export interface Kalendar {
 }
 
 export function ukazka(dnes: Date): Kalendar {
-  const podleDne = new Map<number, Map<number, number>>();
+  const pasy = ukazkovePermanentky(dnes);
+  const dny = simuluj(dnes, pasy);
+  const jeKurz = (d: Date) => !!kurzDne(d);
   return {
     zive: false,
-    dny: simuluj(dnes),
-    /* Úterky mají svoje místa a pátky svoje */
-    pas(d) {
-      if (!d) return new Map();
-      const dt = d.datum.getDay();
-      if (!podleDne.has(dt)) podleDne.set(dt, obsazenoPermanentek(dnes, dt));
-      return podleDne.get(dt)!;
-    },
-    jeKurz: (d) => !!kurzDne(d),
+    dny,
+    volnoTydne: (datum, h) => volnoTydne(dny, pasy, datum, h),
+    jeKurz,
     clen: null,
     moje: [],
   };
@@ -64,9 +60,9 @@ export function zVolna(v: Volno, dnes: Date, ted = new Date()): Kalendar {
     if (!kurz && (!R.dny.includes(d.getDay()) || zavreno.has(klic))) continue;
     const hodiny: Hodina[] = odjezdyDne(d.getDay()).map((h) => ({
       h,
-      volno: zavreno.has(`${klic}-${h}`) ? 0 : Math.max(0, R.mist - (obsazeno.get(`${klic}-${h}`) ?? 0)),
+      /* Na místech odjezdu sedí jízdenky toho dne i permanentky, které ten den platí */
+      volno: zavreno.has(`${klic}-${h}`) ? 0 : Math.max(0, R.mist - (obsazeno.get(`${klic}-${h}`) ?? 0) - naPermanentku(v.permanentky, klic, d.getDay(), h)),
       probehlo: new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(h), (h % 1) * 60) <= ted,
-      pas: jeSpojPermanentky(d.getDay(), h),
     }));
     const den: Den = { datum: d, klic, hodiny };
     if (kurz && vypsany) {
@@ -80,20 +76,12 @@ export function zVolna(v: Volno, dnes: Date, ted = new Date()): Kalendar {
     }
     dny.push(den);
   }
-  const pasy = new Map<string, Map<number, number>>();
+  const jeKurz = (d: Date) => kurzDny.has(klicDne(d));
   return {
     zive: true,
     dny,
-    /* Kryjí se ty permanentky na stejný den v týdnu, které ten den ještě platí */
-    pas(d) {
-      if (!d) return new Map();
-      if (!pasy.has(d.klic)) {
-        const dt = d.datum.getDay();
-        pasy.set(d.klic, new Map(spojeDne(dt).map((s) => [s.h, Math.min(P.mist, v.permanentky.filter((p) => p.dt === dt && p.h === s.h && p.do >= d.klic).reduce((a, p) => a + p.osob, 0))])));
-      }
-      return pasy.get(d.klic)!;
-    },
-    jeKurz: (d) => kurzDny.has(klicDne(d)),
+    volnoTydne: (datum, h) => volnoTydne(dny, v.permanentky, datum, h),
+    jeKurz,
     clen: v.clen,
     moje: v.moje,
   };

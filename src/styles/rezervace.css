@@ -456,6 +456,8 @@
 /* Kdo se dívá — pod nadpisem první obrazovky. Host: výrazná rumělková cedulka s telefonem; člen: klidná zelená */
 .rz-clen { margin: 0 0 16px; padding: 13px 16px 14px; border-radius: 14px; background: #FBE9DD; box-shadow: inset 0 0 0 2px var(--rumelka); font-size: 15px; line-height: 1.45; color: var(--inkoust-2); }
 .rz-clen p { margin: 0; }
+/* Na jízdence pod tlačítkem (od 8. 11. 2026; předtím pod nadpisem na první obrazovce) */
+.rz-nastup-pole .rz-clen { margin: 18px 0 0; }
 .rz-clen p + p { margin-top: 4px; }
 .rz-clen[data-co="clen"] { background: #EEF1E4; box-shadow: inset 0 0 0 1.5px #3E6E68; }
 .rz-clen-titul { display: flex; align-items: center; gap: 8px; font-family: var(--f-display); font-size: 17.5px; font-weight: 600; color: var(--rumelka); }
@@ -653,6 +655,28 @@
 .rz-den.malo .rz-den-volno { color: #9A6A10; }
 .rz-den:disabled { cursor: not-allowed; opacity: 0.55; filter: saturate(0.35); }
 .rz-den.plno .rz-den-volno { color: var(--rumelka); }
+
+/* Den: jízdenka vybraného (při příchodu nejbližšího) dne a vedle kalendář
+   po týdnech, kde se ťukne na jiný den (hlavni.ts, kresliKalendar). Pro všechny
+   šířky od 8. 11. 2026; předtím jen na telefonu a na počítači byly pod sebou jízdenky všech dní. */
+.rz-dny.ma-kalendar { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 16px; align-items: start; overflow: visible; margin: 0; padding: 6px 0 4px; scroll-snap-type: none; }
+.rz-dny.ma-kalendar .rz-den { grid-column: 1 !important; grid-row: 1; }
+.rz-dny.ma-kalendar .rz-den:not([aria-pressed="true"]) { display: none !important; }
+.rz-kal { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px 3px; text-align: center; }
+.rz-kal .rz-kal-mesic { grid-column: 1 / -1; margin: 0 0 3px; font-family: var(--f-ruka); font-size: 22px; line-height: 1; color: var(--inkoust-2); text-align: left; }
+.rz-kal .rz-kal-mesic::first-letter { text-transform: uppercase; }
+.rz-kal .rz-kal-hlava { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--inkoust-3); }
+.rz-kal .rz-kal-den { display: grid; place-items: center; height: 32px; padding: 0; border-radius: 8px; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--inkoust-3); }
+.rz-kal .rz-kal-den.prazdny { opacity: 0.45; }
+.rz-kal .rz-kal-den.prvni { font-size: 10px; }
+.rz-kal button.rz-kal-den { background: #E3E9F5; color: var(--inkoust); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.08); transition: transform 0.15s; }
+.rz-kal button.rz-kal-den:not(:disabled):hover { transform: translateY(-2px); }
+.rz-kal button.rz-kal-den.den-5 { background: #F5E7C2; }
+.rz-kal button.rz-kal-den.kurz { background: #262B5E; color: #FFF3DF; }
+.rz-kal button.rz-kal-den.malo { box-shadow: inset 0 -3px 0 #E0A040; }
+.rz-kal button.rz-kal-den:is(.plno, .pryc), .rz-kal button.rz-kal-den:disabled { opacity: 0.45; text-decoration: line-through; }
+.rz-kal button.rz-kal-den[aria-pressed="true"] { background: var(--inkoust); color: var(--papir); box-shadow: none; }
+.rz-kal button.rz-kal-den:focus-visible { outline: 2px solid var(--rumelka); outline-offset: 2px; }
 
 /* ——— Odjezdová tabule ——— */
 
@@ -1007,7 +1031,7 @@
 .rz-tabule.je-kurz .jen-kurz { display: inline; }
 
 /* Druhá cedulka v úvodu: příští zvláštní vlak */
-.rz-jinak { margin: 0 0 12px; max-width: 48ch; font-size: 14.5px; line-height: 1.5; color: var(--inkoust-2); }
+.rz-jinak { margin: 0 0 16px; font-size: 14.5px; line-height: 1.5; color: var(--inkoust-2); }
 .rz-jinak b { font-weight: 600; color: var(--inkoust); }
 .rz .rz-kurz-pristi {
   display: grid;
@@ -1050,49 +1074,59 @@
 .rz-den.kurz.malo .rz-den-volno { color: var(--jantar-2); }
 .rz-den.kurz.plno .rz-den-volno { color: #FF9A84; }
 
-/* Přepážka s permanentkami: dvě průkazky, ranní a večerní spoj */
-.rz-krok.rz-pas { margin-top: 24px; padding-top: 20px; border-top: 1px dashed rgba(43, 36, 32, 0.22); }
-.rz-pas-znak {
-  padding: 2px 7px 3px;
-  border-radius: 5px;
-  background: var(--prukaz);
-  color: #FFF8EE;
-  font-family: var(--f-display);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-/* Na který den v týdnu permanentka je — podle vybraného dne */
-.rz-pas-den { color: var(--rumelka); }
-.rz-pasy { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.rz .rz-pas-volba {
+/* Permanentka: zaškrtávátko pod dnem — červená průkazka s razítkem doby platnosti */
+.rz-pas {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "hlava doba"
-    "cas doba"
-    "mista mista"
-    "volno volno";
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 1px 8px;
-  padding: 9px 12px 10px;
+  gap: 2px 12px;
+  margin-top: 16px;
+  padding: 11px 14px 12px;
   border-radius: 9px;
-  text-align: left;
   color: var(--inkoust);
+  cursor: pointer;
   background:
     repeating-linear-gradient(0deg, rgba(196, 67, 43, 0.08) 0 1px, transparent 1px 6px),
     #F8E4DC;
   box-shadow: 0 1px 0 rgba(43, 36, 32, 0.12), 0 8px 16px -12px rgba(28, 20, 44, 0.55), inset 0 0 0 1.5px rgba(168, 54, 42, 0.35);
-  transition: transform 0.25s cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 0.25s;
+  transition: box-shadow 0.25s, transform 0.25s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
-.rz-pas-hlava { grid-area: hlava; font-size: 11.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--prukaz); }
-.rz-pas-cas { grid-area: cas; font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 21px; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rz-pas input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit; }
+.rz-pas-ctverec {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--prukaz);
+  border-radius: 6px;
+  background: #FFF8EE;
+  transition: background 0.15s, border-color 0.15s;
+}
+.rz-pas-ctverec::after {
+  content: "";
+  width: 11px;
+  height: 6px;
+  margin-top: -3px;
+  border: solid #FFF8EE;
+  border-width: 0 0 2.5px 2.5px;
+  transform: rotate(-45deg) scale(0);
+  transition: transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.rz-pas input:checked + .rz-pas-ctverec { background: var(--rumelka); border-color: var(--rumelka); }
+.rz-pas input:checked + .rz-pas-ctverec::after { transform: rotate(-45deg) scale(1); }
+.rz-pas input:focus-visible + .rz-pas-ctverec { outline: 2px solid var(--rumelka); outline-offset: 3px; }
+.rz-pas:has(input:checked) { box-shadow: 0 0 0 2.5px var(--inkoust), 0 16px 26px -14px rgba(28, 20, 44, 0.6); transform: rotate(-0.4deg); }
+.rz-pas:has(input:disabled) { cursor: not-allowed; opacity: 0.55; filter: saturate(0.35); }
+.rz-pas-text { display: grid; gap: 2px; }
+.rz-pas-text b { font-family: var(--f-display); font-variation-settings: "SOFT" 100, "opsz" 72; font-weight: 600; font-size: 18px; line-height: 1.15; }
+.rz-pas-text small { font-size: 13px; line-height: 1.4; color: var(--inkoust-3); }
+/* Na který den v týdnu permanentka je — podle vybraného dne */
+.rz-pas-den { color: var(--rumelka); }
+.rz-pas-stav { font-size: 13px; line-height: 1.4; color: var(--inkoust-2); }
+.rz-pas-stav:empty { display: none; }
 /* Kulaté razítko s dobou platnosti: 3 měs. */
 .rz-pas-doba {
-  grid-area: doba;
   display: grid;
   justify-items: center;
   align-content: center;
@@ -1106,18 +1140,6 @@
 }
 .rz-pas-doba b { font-family: var(--f-display); font-size: 17px; font-weight: 700; }
 .rz-pas-doba span { font-size: 9.5px; letter-spacing: 0.02em; }
-.rz-pas-mista { grid-area: mista; display: flex; gap: 5px; margin-top: 7px; padding-top: 8px; border-top: 1px dashed rgba(43, 36, 32, 0.22); }
-.rz-pas-volno { grid-area: volno; margin-top: 2px; font-size: 12.5px; color: var(--inkoust-2); }
-/* Sedačky jsou tady na světlém papíře, ne na tabuli */
-.rz-pas-volba .rz-sedacka { stroke: var(--prukaz); transform: none; filter: none; }
-.rz-pas-volba .rz-sedacka.obs { fill: #CDB3AD; stroke: #CDB3AD; }
-.rz-pas-volba .rz-sedacka.moje { fill: var(--rumelka); stroke: var(--rumelka); }
-.rz .rz-pas-volba:not(:disabled):hover { transform: translateY(-3px) rotate(-0.6deg); }
-.rz .rz-pas-volba[aria-pressed="true"] { transform: translateY(-4px) rotate(-1deg); box-shadow: 0 0 0 2.5px var(--inkoust), 0 16px 26px -14px rgba(28, 20, 44, 0.6); }
-.rz .rz-pas-volba[aria-pressed="true"] .rz-pas-volno { color: var(--inkoust); font-weight: 600; }
-.rz .rz-pas-volba:disabled { cursor: not-allowed; opacity: 0.55; filter: saturate(0.35); }
-.rz-pas-pozn { margin: 10px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--inkoust-3); }
-.rz-pas-stav { display: block; color: var(--inkoust-2); }
 
 /* Přepážka zvláštních vlaků: nejvýš dvě tmavé karty se zlatou linkou, jako salon vlaku */
 .rz-krok.rz-zvlastni { margin-top: 24px; padding-top: 20px; border-top: 1px dashed rgba(43, 36, 32, 0.22); }
@@ -1133,7 +1155,23 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
-.rz-zvlastni-vlaky { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rz-zvlastni-vlaky { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 16px; align-items: center; }
+/* Vedle karty: co se na kurzu dělá */
+.rz-zvlastni-text { display: grid; gap: 6px; }
+.rz-zvlastni-text p { margin: 0; }
+.rz-zvlastni-popis { font-size: 14px; line-height: 1.45; color: var(--inkoust-2); }
+.rz-zvlastni-udaje { font-size: 12.5px; line-height: 1.4; color: var(--inkoust-3); }
+/* Zaškrtávátko „Nastoupit do vlaku“: stejné jako permanentka, jen v barvách salonu */
+.rz-pas.rz-pas-kurz {
+  grid-template-columns: auto minmax(0, 1fr);
+  background:
+    repeating-linear-gradient(0deg, rgba(38, 43, 94, 0.07) 0 1px, transparent 1px 6px),
+    #E6E6F0;
+  box-shadow: 0 1px 0 rgba(43, 36, 32, 0.12), 0 8px 16px -12px rgba(28, 20, 44, 0.55), inset 0 0 0 1.5px rgba(38, 43, 94, 0.35);
+}
+.rz-pas-kurz .rz-pas-ctverec { border-color: #262B5E; }
+.rz-pas-kurz input:checked + .rz-pas-ctverec { background: #262B5E; border-color: #262B5E; }
+.rz-pas-kurz[hidden] { display: none; }
 /* když je vypsaný jen jeden, má přepážku celou */
 .rz-zvlastni-volba:only-child { grid-column: 1 / -1; }
 .rz .rz-zvlastni-volba {
@@ -1439,6 +1477,9 @@
   color: var(--inkoust-3);
   background: linear-gradient(to top right, transparent calc(50% - 0.8px), rgba(43, 36, 32, 0.45) calc(50% - 0.8px), rgba(43, 36, 32, 0.45) calc(50% + 0.8px), transparent calc(50% + 0.8px));
 }
+
+/* Týden, kdy je plná jen některá z vybraných hodin — jede se, jen kratší */
+.rz-lj-den.plno-cast { border-style: dashed; }
 
 /* ——— Cedule pod tabulí ———
  *
@@ -1921,7 +1962,7 @@
   .rz-dolu svg,
   .rz-displej,
   .rz-listek-jmeno.chybi { animation: none !important; }
-  .rz-den, .rz-osoba-karta, .rz-pristi, .rz-den-dirka, .rz-vypravka, .rz-pas-volba, .rz-zvlastni-volba, .rz-kurz-pristi, .rz-zvl-volba { transition: none; }
+  .rz-den, .rz-osoba-karta, .rz-pristi, .rz-den-dirka, .rz-vypravka, .rz-pas, .rz-pas-ctverec, .rz-pas-ctverec::after, .rz-kal-den, .rz-zvlastni-volba, .rz-kurz-pristi, .rz-zvl-volba { transition: none; }
   .rz-zvl-led-druh { animation: none; }
   .rz-rad-druh { animation: none; }
   .rz-listek.oznacena .rz-listek-dirka { animation: none; opacity: 1; }
@@ -1929,31 +1970,9 @@
   .rz-listek.oznacena .rz-listek-razitko { animation: none; opacity: 0.88; transform: rotate(-9deg); }
 }
 
-/* ——— Telefon: jeden den a vedle kalendář ———
-   Místo pásu všech dní zůstane jízdenka vybraného (při příchodu nejbližšího)
-   dne a vedle kalendář po týdnech (hlavni.ts, kresliKalendar). */
+/* ——— Telefon: první obrazovka ——— */
 @media (max-width: 760px) {
-  .rz-dny.ma-kalendar { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 12px; align-items: start; overflow: visible; margin: 0; padding: 6px 0 4px; scroll-snap-type: none; }
-  .rz-dny.ma-kalendar .rz-den { grid-column: 1 !important; grid-row: 1; }
-  .rz-dny.ma-kalendar .rz-den:not([aria-pressed="true"]) { display: none !important; }
-  .rz-kal { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px 2px; text-align: center; }
-  .rz-kal .rz-kal-mesic { grid-column: 1 / -1; margin: 0 0 2px; font-family: var(--f-ruka); font-size: 20px; line-height: 1; color: var(--inkoust-2); text-align: left; }
-  .rz-kal .rz-kal-mesic::first-letter { text-transform: uppercase; }
-  .rz-kal .rz-kal-hlava { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--inkoust-3); }
-  .rz-kal .rz-kal-den { display: grid; place-items: center; height: 30px; padding: 0; border-radius: 8px; font-size: 13.5px; font-variant-numeric: tabular-nums; color: var(--inkoust-3); }
-  .rz-kal .rz-kal-den.prazdny { opacity: 0.45; }
-  .rz-kal .rz-kal-den.prvni { font-size: 10px; }
-  .rz-kal button.rz-kal-den { background: #E3E9F5; color: var(--inkoust); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(43, 36, 32, 0.08); }
-  .rz-kal button.rz-kal-den.den-5 { background: #F5E7C2; }
-  .rz-kal button.rz-kal-den.kurz { background: #262B5E; color: #FFF3DF; }
-  .rz-kal button.rz-kal-den.malo { box-shadow: inset 0 -3px 0 #E0A040; }
-  .rz-kal button.rz-kal-den:is(.plno, .pryc), .rz-kal button.rz-kal-den:disabled { opacity: 0.45; text-decoration: line-through; }
-  .rz-kal button.rz-kal-den[aria-pressed="true"] { background: var(--inkoust); color: var(--papir); box-shadow: none; }
-
   /* Nádraží: první obrazovka patří vláčku — karta začne až pod ním a vykoukne jen
-     nadpisem; registrace jde v kartě až za text a tlačítka (na počítači stojí karta vedle vláčku) */
+     nadpisem (na počítači stojí karta vedle vláčku) */
   .rz-nadrazi { padding-top: 80svh; }
-  .rz-nadrazi-karta { display: flex; flex-direction: column; }
-  .rz-nadrazi-karta .rz-clen { order: 1; margin: 18px 0 0; }
-  .rz-nadrazi-karta .rz-pokyn { order: 2; }
 }

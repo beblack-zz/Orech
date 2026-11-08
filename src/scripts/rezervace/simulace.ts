@@ -7,8 +7,8 @@
  *                cizí lidi (v kódu se mu pořád říká hodina)
  *   kurz         zvláštní vlak na celý den, jezdí v sobotu; má pár míst
  *                a ta se plní po jednom
- *   permanentka  první nebo poslední spoj jednoho dne v týdnu na tři
- *                měsíce, taky s místy
+ *   permanentka  odjezd, který se tři měsíce opakuje každý týden ve stejný
+ *                den a hodinu; sedí na místech odjezdu jako ostatní
  *
  * Počítá se z data a hodiny pevnou „náhodou“, takže se při každém
  * načtení ukáže stejná obsazenost. Některé dny jsou rozebrané víc než
@@ -27,18 +27,20 @@
  * funkce odsud bere i on. (Archivní /rezervace-ema má vlastní simulaci,
  * ema-simulace.ts.)
  */
-import { rezervace as R, kurzy, permanentka as P, odjezdyDne, spojeDne, jeSpojDne } from "../../data/rezervace";
+import { rezervace as R, kurzy, permanentka as P, odjezdyDne } from "../../data/rezervace";
 import type { KurzVlak } from "../../data/rezervace";
+import type { Volno } from "../../lib/rezervace/typy";
+
+/** Prodaná permanentka: den v týdnu, hodina, kolik lidí a od–do jako RRRR-MM-DD */
+export type Pas = Volno["permanentky"][number];
 
 export interface Hodina {
   /** Začátek odjezdu — hodina dne i s půlkou: 10.5 je 10:30 */
   h: number;
-  /** Kolik míst je na ní ještě volných (z `rezervace.mist`); zavřený odjezd má 0 */
+  /** Kolik míst je na ní ještě volných (z `rezervace.mist`) — po jízdenkách i permanentkách; zavřený odjezd má 0 */
   volno: number;
   /** Dnes už začala */
   probehlo: boolean;
-  /** Spoj vyhrazený permanentkám — na hodinovou jízdenku se nedá */
-  pas: boolean;
 }
 export interface KurzDne {
   kurz: KurzVlak;
@@ -82,10 +84,29 @@ export function kurzDne(d: Date): KurzVlak | null {
   return t % 3 === 2 ? ukazkove[Math.floor(t / 3) % ukazkove.length] : null;
 }
 
-/** Je odjezd v `h` ten den (Date.getDay()) spojem permanentky? */
-export const jeSpojPermanentky = (denVTydnu: number, h: number) => jeSpojDne(denVTydnu, h);
+/** Kolik lidí s permanentkou sedí na odjezdu dne `klic` (RRRR-MM-DD) v `h` — týdny, které má permanentka vynechané (bylo plno), se nepočítají */
+export const naPermanentku = (pasy: readonly Pas[], klic: string, denVTydnu: number, h: number) =>
+  pasy.reduce((a, p) => (p.dt === denVTydnu && p.h === h && p.od <= klic && p.do >= klic && !p.vynechat.includes(klic) ? a + p.osob : a), 0);
 
-export function simuluj(dnes: Date, ted = new Date()): Den[] {
+/**
+ * Ukázkové prodané permanentky: na některých odjezdech sedí jeden nebo dva
+ * stálí lidé. Platí přes celé čtvrtletí kolem dneška, ať jsou vidět ve
+ * všech týdnech, na které se dá permanentka koupit.
+ */
+export function ukazkovePermanentky(dnes: Date): Pas[] {
+  const ctvrt = `${dnes.getFullYear()}-${Math.floor(dnes.getMonth() / 3)}`;
+  const od = klicDne(new Date(dnes.getFullYear(), dnes.getMonth() - 1, 1));
+  const doDne = klicDne(new Date(dnes.getFullYear(), dnes.getMonth() + P.mesicu + 2, 0));
+  return R.dny.flatMap((dt) =>
+    odjezdyDne(dt).flatMap((h) => {
+      const n = nahoda(`teikiken-${ctvrt}-${dt}-${h}`);
+      const osob = n < 0.5 ? 0 : n < 0.85 ? 1 : 2;
+      return osob ? [{ dt, h, osob, od, do: doDne, vynechat: [] }] : [];
+    }),
+  );
+}
+
+export function simuluj(dnes: Date, pasy: readonly Pas[] = [], ted = new Date()): Den[] {
   const dny: Den[] = [];
   for (let i = 0; i <= R.dniDopredu; i++) {
     const d = new Date(dnes.getFullYear(), dnes.getMonth(), dnes.getDate() + i);
@@ -102,7 +123,9 @@ export function simuluj(dnes: Date, ted = new Date()): Den[] {
       const nekdo = nahoda(`${klic}-${h}-mista`);
       const obsazeno = plna ? R.mist : nekdo < 0.45 - naval * 0.3 ? 0 : Math.min(R.mist - 1, 1 + Math.floor(nahoda(`${klic}-${h}-kolik`) * (R.mist - 1)));
       const zacatek = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(h), (h % 1) * 60);
-      hodiny.push({ h, volno: R.mist - obsazeno, probehlo: zacatek <= ted, pas: jeSpojPermanentky(d.getDay(), h) });
+      /* Stálí lidé s permanentkou sedí navíc — kolik se jich vejde */
+      const stali = naPermanentku(pasy, klic, d.getDay(), h);
+      hodiny.push({ h, volno: Math.max(0, R.mist - obsazeno - stali), probehlo: zacatek <= ted });
     }
     const den: Den = { datum: d, klic, hodiny };
     if (kurz) {
@@ -117,37 +140,54 @@ export function simuluj(dnes: Date, ted = new Date()): Den[] {
 }
 
 /** Hodiny, které se ten den dají koupit na hodinovou jízdenku — a kam se vejde `osob` lidí */
-export const volneHodiny = (d: Den, osob = 1) => (d.kurz ? [] : d.hodiny.filter((h) => !h.probehlo && h.volno >= osob && !h.pas));
+export const volneHodiny = (d: Den, osob = 1) => (d.kurz ? [] : d.hodiny.filter((h) => !h.probehlo && h.volno >= osob));
 
 /** Kolik míst zbývá ve zvláštním vlaku — 0, když už vyjel */
 export const volnoVKurzu = (k: KurzDne) => (k.probehlo ? 0 : k.kurz.mist - k.obsazeno);
-
-/**
- * Kolik permanentek je na který spoj už prodaných. Permanentka je na jeden
- * den v týdnu, takže úterky mají svoje místa a pátky svoje. Drží se celé
- * čtvrtletí, permanentka je na tři měsíce.
- */
-export function obsazenoPermanentek(dnes: Date, denVTydnu: number): Map<number, number> {
-  const ctvrt = `${dnes.getFullYear()}-${Math.floor(dnes.getMonth() / 3)}`;
-  return new Map(spojeDne(denVTydnu).map((s) => [s.h, Math.min(P.mist, Math.floor(nahoda(`teikiken-${ctvrt}-${denVTydnu}-${s.h}`) * (P.mist + 0.3)))]));
-}
 
 export interface Jizda {
   datum: Date;
   /** Ten den jede kurz — permanentka neplatí */
   vyluka: boolean;
+  /** Hodiny permanentky, na kterých ten týden není místo (nebo je zavřeno) — vynechají se a neplatí */
+  plno: number[];
 }
 
 /**
  * Na které dny permanentka platí, když se začne jezdit od daného dne:
  * každý týden ve stejný den, po celou dobu platnosti. Kdy jede kurz, říká
- * `jeKurz` — bez něj ukázka.
+ * `jeKurz` — bez něj ukázka. S `volno` se u každého týdne zjistí, na které
+ * z `hodiny` se `osob` lidí nevejde: ty týdny se vynechají a neplatí
+ * (rozhodnuto 8. 11. 2026).
  */
-export function platnostPermanentky(od: Date, jeKurz = (d: Date) => !!kurzDne(d)): { od: Date; do: Date; jizdy: Jizda[] } {
+export function platnostPermanentky(
+  od: Date,
+  jeKurz = (d: Date) => !!kurzDne(d),
+  volno?: (datum: Date, h: number) => number,
+  hodiny: readonly number[] = [],
+  osob = 1,
+): { od: Date; do: Date; jizdy: Jizda[] } {
   const konec = new Date(od.getFullYear(), od.getMonth() + P.mesicu, od.getDate() - 1);
   const jizdy: Jizda[] = [];
   for (let d = new Date(od.getFullYear(), od.getMonth(), od.getDate()); d <= konec; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7)) {
-    jizdy.push({ datum: d, vyluka: jeKurz(d) });
+    const vyluka = jeKurz(d);
+    jizdy.push({ datum: d, vyluka, plno: vyluka || !volno ? [] : hodiny.filter((h) => volno(d, h) < osob) });
   }
   return { od, do: konec, jizdy };
+}
+
+/** Kolik jízd má permanentka na hodinu `h` — týdny bez výluky, kdy na ní je místo */
+export const jizdNaHodinu = (jizdy: readonly Jizda[], h: number) => jizdy.filter((j) => !j.vyluka && !j.plno.includes(h)).length;
+
+/**
+ * Kolik míst je volných na odjezdu dne `datum` v hodinu `h`. Dny na tabuli
+ * berou volno odtamtud (jízdenky i permanentky; zavřený den nebo odjezd = 0);
+ * dál než měsíc dopředu se hodinové jízdenky koupit nedají, tak tam sedí
+ * jen permanentky.
+ */
+export function volnoTydne(dny: readonly Den[], pasy: readonly Pas[], datum: Date, h: number): number {
+  const klic = klicDne(datum);
+  const posledni = dny[dny.length - 1]?.klic ?? "";
+  if (klic <= posledni) return dny.find((x) => x.klic === klic)?.hodiny.find((x) => x.h === h)?.volno ?? 0;
+  return Math.max(0, R.mist - naPermanentku(pasy, klic, datum.getDay(), h));
 }

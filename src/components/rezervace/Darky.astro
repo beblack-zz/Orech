@@ -10,7 +10,7 @@
  * a ústřižkem —
  *
  *   tři hodiny     zelená   dva kupony po hodině a půl
- *   permanentka    červená  políčko na každý týden, ranní a večerní spoj
+ *   permanentka    červená  políčko na každý týden; hodina kterákoli od rána do večera
  *   zvláštní vlak  modrá    znak a program kurzu; kurz se vybírá pod ní
  *
  * Jméno, vzkaz a podpis se píšou rovnou na jízdenku: jsou to pole nad
@@ -26,7 +26,7 @@
  * z dilna.ts, platnost dárku ze staré stránky Kurzy (darky v rezervace.ts).
  * Na jízdenkách cena není — dárek ukazuje, co obdarovaný dostane.
  */
-import { rezervace, permanentka, kurzy, hhmm, cenaOdjezdu, cenaPermanentky, darky, odjezduDarku, odjezdy, spojeDne, spojeSlovy, otevrenoSlovy } from "../../data/rezervace";
+import { rezervace, permanentka, kurzy, hhmm, cenaOdjezdu, cenaPermanentky, darky, odjezduDarku, odjezdy, odjezdyDne, otevrenoSlovy } from "../../data/rezervace";
 import { cinnosti } from "../../data/dilna";
 import { kontakt } from "../../data/uvod2";
 import { sklonuj } from "../../data/pocty";
@@ -59,8 +59,12 @@ const mistKurzu = Math.max(...kurzy.map((k) => k.mist));
 /** Na kterýkoli kurz stojí jízdenka jako ten nejdražší, ať pokryje každý (stejně počítá skript) */
 const cenaKurzu = Math.max(...kurzy.map((k) => k.cena));
 const lektori = [...new Set(kurzy.map((k) => k.lektor))];
-/* Na obrázku jízdenky jsou spoje prvního dne v týdnu */
-const spoje = spojeDne(rezervace.dny[0]).map((s) => ({ h: s.h + rezervace.blok / 2, nazev: s.nazev, cas: hhmm(s.h) }));
+/* Na obrázku jízdenky je první a poslední hodina prvního dne v týdnu — permanentka jde na kteroukoli mezi nimi */
+const hodinyDne = odjezdyDne(rezervace.dny[0]);
+const spoje = [
+  { h: hodinyDne[0], nazev: "ráno" },
+  { h: hodinyDne[hodinyDne.length - 1], nazev: "večer" },
+].map((s) => ({ h: s.h + rezervace.blok / 2, nazev: s.nazev, cas: hhmm(s.h) }));
 const kontaktem = `${kontakt.email} · ${kontakt.telefon}`;
 
 /**
@@ -131,9 +135,9 @@ const nabidky: Nabidka[] = [
       { co: "co dělá", html: `<b>totéž co na hodině</b> — tvoří po svém, jen pravidelně` },
       {
         co: "kdy",
-        html: `jeden den v týdnu (${spolu(rezervace.dny.map((d) => DNY[d]), "nebo")}), pokaždé stejná hodina — ${spojeSlovy()}; platí ${mesice} od první hodiny`,
+        html: `jeden den v týdnu (${spolu(rezervace.dny.map((d) => DNY[d]), "nebo")}), pokaždé stejná hodina — kterákoli, kde je místo; platí ${mesice} od první hodiny`,
       },
-      { co: "s kým", html: `má své místo; na hodině jsou ${sklonuj(permanentka.mist, "místo", "místa", "míst")} a den i hodinu si vybere tam, kde je volno` },
+      { co: "s kým", html: `má své místo; na hodině jsou ${sklonuj(rezervace.mist, "místo", "místa", "míst")} a den i hodinu si vybere tam, kde je volno` },
     ],
     cena: kc(cenaPermanentky()),
     lic: lic({
@@ -144,7 +148,7 @@ const nabidky: Nabidka[] = [
       vlak: { obsah: vlakPas(), delka: DELKA_PASU, okraj: VYHLED - DELKA_PASU, posun: -40 },
       nominal: { cislo: String(permanentka.mesicu), jednotka: "MĚS." },
       obeStrany: true,
-      radek: "JEDEN DEN V TÝDNU · STEJNÝ SPOJ",
+      radek: "JEDEN DEN V TÝDNU · STEJNÁ HODINA",
       udaje: [
         { co: "TÝDNŮ", hodnota: String(tydnu) },
         { co: "CESTUJÍCÍ", hodnota: "1" },
@@ -159,10 +163,10 @@ const nabidky: Nabidka[] = [
       kroky: ["Den a hodinu si vyber v rezervaci — tam, kde je volno.", "Do poznámky napiš číslo průkazky.", `Uplatni do ${platnost}; pak platí ${mesice}.`],
       panel: {
         druh: "spoje",
-        titul: `SPOJE · ${velke(spolu(rezervace.dny.map((d) => DNY[d]), "nebo"))}`,
+        titul: `HODINY · ${velke(spolu(rezervace.dny.map((d) => DNY[d]), "nebo"))}`,
         spoje,
         tydnu,
-        pozn: `${tydnu} týdnů od první hodiny, každý týden jedna`,
+        pozn: `kterákoli hodina mezi nimi · ${tydnu} týdnů, každý týden jedna`,
       },
       pata: [`Platí ${platnost} od vystavení.`, kontaktem],
     }),

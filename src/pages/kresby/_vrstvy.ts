@@ -183,6 +183,16 @@ function definiceK(text: string, ids: Map<string, Uzel>, jenZnat?: Set<string>, 
   return pridane.join("");
 }
 
+/**
+ * Definice, které `text` potřebuje a najde je v kresbě `zdroj` (úsek SVG bez kořene) —
+ * i kreslené prvky, na které se odkazuje přes <use>. Výsledek patří do <defs>.
+ */
+export function definiceZe(text: string, zdroj: string): string {
+  const ids = new Map<string, Uzel>();
+  indexuj(rozloz(`<svg>${zdroj}</svg>`), ids);
+  return definiceK(text, ids);
+}
+
 /** Id v souboru na krátká (a, b, … z, aa, ab …) — soubor je samostatný, nic jiného na ně neodkazuje */
 function kratkaId(text: string): string {
   const mapa = new Map<string, string>();

@@ -2,10 +2,9 @@
  * Krámek — složení celé scény z částí (okoli, dum, prizemi, cedule).
  *
  * Každá část vrací vrstvy (zaklad.ts → Vrstvy); tady se vrstvy spojí
- * v pevném pořadí. Noční kopii (venku do noční modři, uvnitř do teplého
- * světla lampy — noc.ts) si stránka udělá z denní kresby až v prohlížeči,
- * aby HTML nemuselo nést kresbu dvakrát; prolíná ji přes denní podle
- * hodiny (--tma). Vrstva svetla se nekopíruje.
+ * v pevném pořadí. Noční podobu (venku do noční modři, uvnitř do teplého
+ * světla lampy — noc.ts) dělá nocni.ts a z ní se vyrábějí noční obrázky
+ * krámku (od 8. 11. 2026 je krámek jen v noci). Vrstva svetla zůstává živá.
  */
 import { okoli } from "./okoli";
 import { dum } from "./dum";

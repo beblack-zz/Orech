@@ -29,7 +29,17 @@ stranka("obchod-2", () => {
   scena();
   initNebe();
   /* Strom za domem má období podle dneška — do statické stránky se zapsalo při buildu */
-  document.querySelectorAll<HTMLElement>(".krm-scena").forEach((el) => (el.dataset.sezona = sezonaMesice(new Date().getMonth() + 1)));
+  document.querySelectorAll<HTMLElement>(".krm-scena").forEach((el) => {
+    const ted = sezonaMesice(new Date().getMonth() + 1);
+    const pri = el.dataset.sezona;
+    el.dataset.sezona = ted;
+    /* Noční obrázky krámku jsou pro každé období zvlášť — kdyby build proběhl v jiném, vymění se */
+    if (pri && pri !== ted)
+      el.querySelectorAll<HTMLSourceElement | HTMLImageElement>(".krm-obraz source, .krm-obraz img").forEach((o) => {
+        const atr = o instanceof HTMLSourceElement ? "srcset" : "src";
+        o.setAttribute(atr, (o.getAttribute(atr) ?? "").replace(`/noc-${pri}-`, `/noc-${ted}-`));
+      });
+  });
   const satek = initSatek();
   kramek(satek);
   /* Zadní místnost: Futatsu v tokonomě jde vzít do ruky — kresba hrnku a otáčení se stáhnou,

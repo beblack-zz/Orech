@@ -12,6 +12,8 @@ export interface Moje {
   den: string;
   /** Jen permanentka: poslední den platnosti */
   do: string | null;
+  /** Jen permanentka: týdny, které vynechává, protože bylo plno */
+  vynechat?: string[];
   /** Kurz je na celý den a čas nemá */
   h: number | null;
   osob: number;
@@ -26,8 +28,12 @@ export interface Volno {
   /** h null = zavřený celý den */
   zavreno: { den: string; h: number | null }[];
   kurzy: { den: string; kurz: string; mist: number; obsazeno: number }[];
-  /** dt = den v týdnu podle Date.getDay() */
-  permanentky: { dt: number; h: number; osob: number; do: string }[];
+  /**
+   * Prodané permanentky, které ještě platí: dt = den v týdnu podle Date.getDay(), h = hodina,
+   * od–do = platnost. Každý týden v té době sedí na odjezdu v tu hodinu — v `obsazeno` nejsou —
+   * kromě `vynechat`: týdny (RRRR-MM-DD), kdy při koupi bylo plno, ty se nejedou a neplatí.
+   */
+  permanentky: { dt: number; h: number; osob: number; od: string; do: string; vynechat: string[] }[];
   /** Kdo přišel přes svůj odkaz — jinak null a stránka je jen ke čtení */
   clen: { jmeno: string } | null;
   moje: Moje[];
@@ -37,7 +43,7 @@ export interface Volno {
 export interface Zadost {
   druh: Druh;
   den: string;
-  /** Začátky odjezdů nebo spojů permanentky; u kurzu prázdné */
+  /** Začátky odjezdů — u permanentky ty, které se budou každý týden opakovat; u kurzu prázdné */
   hodiny: number[];
   osob: number;
   poznamka?: string;
@@ -48,7 +54,7 @@ export interface Zadost {
  *   neznamy     odkaz chybí nebo už neplatí
  *   spatne      žádost nesedí s pravidly (den, hodina, počet lidí)
  *   obsazeno    (starší hláška) odjezd je mezitím celý pryč
- *   plno        na odjezdu, v kurzu nebo na permanentce už není dost míst
+ *   plno        na odjezdu nebo v kurzu už není dost míst — u permanentky v jejím prvním týdnu (další plné se vynechají)
  *   zavreno     ten den nebo odjezd je zavřený
  *   vyluka      ten den jede kurz
  *   nejede      kurz ten den vypsaný není

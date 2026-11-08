@@ -114,7 +114,7 @@ export const kamiInfo: Record<PostavaId, KamiInfo> = {
       "Kroutit se při sušení je pod mou úroveň.",
       "Vodováha je můj nejlepší kamarád. Má bublinku. To jediné jí vyčítám.",
     ],
-    skrys: "Vykukuje nad cedulkou s příští volnou hodinou.",
+    skrys: "Vykukuje nad hodinami odjezdové tabule.",
     narocnost: 2,
   },
   cedulka: {

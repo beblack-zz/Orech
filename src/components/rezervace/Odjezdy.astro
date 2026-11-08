@@ -8,13 +8,13 @@
  * čtyř lidí), proto je kupé buď celé volné, nebo celé zabrané; u tvé
  * hodiny se rozsvítí tolik sedaček, kolik vás jede.
  *
- * Dvě věci jsou na tabuli jinak, protože se u nich počítají místa:
+ * Dvě věci jsou na tabuli jinak:
  *
- *   permanentka  první a poslední spoj dne (data/rezervace.ts) má místo
- *                kupé pár míst pro držitele permanentky na tři měsíce;
- *                klik na řádek je koupě permanentky, ne hodiny — na ten
- *                den v týdnu, který je na tabuli
- *   kurz         v den kurzu (sobota) běžné spoje nejedou: nad řádky vyjede cedule zvláštního
+ *   permanentka  když je v pokladně zaškrtnutá, vybraná hodina se bude
+ *                tři měsíce opakovat: řádek je volný, jen když je místo ve
+ *                všech týdnech, a místo jízdného ukazuje cenu za týden.
+ *                Držitelé permanentek sedí v kupé jako ostatní
+ *   kurz        v den kurzu (sobota) běžné spoje nejedou: nad řádky vyjede cedule zvláštního
  *                vlaku s místy a nástupem a z řádků se stane jeho
  *                trať — co odjezd, to zastávka programu se svým pořadím
  *
@@ -22,14 +22,19 @@
  * den, kurz i permanentky dopisuje skript (scripts/rezervace/odjezdy.ts)
  * a při změně dne tabule překlapne. Okénko s oblohou má barvy z palety
  * oblohy pro půlku té hodiny a slunce tam, kde v tu dobu stojí.
+ *
+ * Nad poslední číslicí hodin vpravo nahoře vykukuje černý Kachlík — hra
+ * na hledání kami (schovej v scripts/parta2/sber.ts); do 8. 11. 2026
+ * seděl na cedulce příští volné hodiny na Nádraží.
  */
 import Flap from "../uvod2/Flap.astro";
+import Kachlik from "../characters/schovka/Kachlik.astro";
 import { paleta } from "../../scripts/parta2/paleta";
-import { rezervace, kurzy, permanentka, odjezdy, hhmm } from "../../data/rezervace";
+import { rezervace, kurzy, odjezdy, hhmm } from "../../data/rezervace";
 import { DELKA_ZVLASTNIHO, VYSKA_ZVLASTNIHO } from "./vlak";
 
 const dvoj = (n: number) => String(n).padStart(2, "0");
-const sedacky = Array.from({ length: Math.max(rezervace.mist, permanentka.mist) }, (_, i) => i);
+const sedacky = Array.from({ length: rezervace.mist }, (_, i) => i);
 const mistaKurzu = Array.from({ length: Math.max(1, ...kurzy.map((k) => k.mist)) }, (_, i) => i);
 
 /** Kde stojí slunce v danou hodinu — stejný vzorec jako obloha (nebe.ts) */
@@ -65,7 +70,7 @@ const radky = casy.map((h) => ({
       </p>
       <p class="rz-tabule-hodiny" aria-hidden="true">
         <span>teď</span>
-        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>:</i><Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" />
+        <Flap druh="cislice" text="-" /><Flap druh="cislice" text="-" /><i>:</i><Flap druh="cislice" text="-" /><span class="rz-kachlik-misto"><Flap druh="cislice" text="-" /><span class="rz-kachlik" data-skryty="kachlik"><Kachlik barva="cerna" poza="vykukuje" size={32} /></span></span>
       </p>
     </div>
     <p class="rz-tabule-sekki" aria-live="polite">Nejdřív vyber den.</p>
@@ -145,7 +150,6 @@ const radky = casy.map((h) => ({
         <li><svg class="rz-sedacka" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> volné</li>
         <li><svg class="rz-sedacka obs" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> obsazené</li>
         <li><svg class="rz-sedacka moje" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> vy</li>
-        <li class="jen-hodiny"><svg class="rz-sedacka pas" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg> místo na permanentku</li>
       </ul>
       <p class="rz-tabule-rada">
         Klikni na volnou hodinu — klidně na víc. Každá trvá 90 minut a má {rezervace.mist} místa. Vedle je jízdné za člověka, kdybyste nastoupili teď — čím víc lidí v dílně opravdu bude, tím míň platí každý; platí se na místě.

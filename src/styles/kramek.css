@@ -45,6 +45,8 @@
 }
 
 .krm-vrstva { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none; }
+/* Noční obrázky krámku (Kramek.astro) — kresba jako jeden obrázek pod zbožím a jeden nad ním */
+.krm-obraz img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
 .krm-noc { opacity: var(--tma); }
 .je-den .krm-noc,
 .je-noc .krm-den { visibility: hidden; }

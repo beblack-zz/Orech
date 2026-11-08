@@ -15,8 +15,8 @@
  *         stínů ostatních přihlášených sedí tvoje skupina, a obloha nad
  *         ním pomalu projde celý den kurzu od rána do večera. Pod údaji
  *         je mapa trasy — program kurzu jako zastávky na lince.
- *   pas   permanentka na jeden den v týdnu: vůz na každý spoj (ranní,
- *         večerní), v něm ostatní držitelé jako stíny. Pod údaji jsou
+ *   pas   permanentka na jeden den v týdnu: vůz na každou hodinu, která se
+ *         bude opakovat, v něm jako stíny ti, kdo na ní první den už sedí. Pod údaji jsou
  *         všechny jízdy, na které platí — každý týden jedna; dny kurzů
  *         jsou přeškrtnuté (výluka).
  *
@@ -25,12 +25,13 @@
  */
 import { vlak, delka, zvlastniVlak, DELKA_ZVLASTNIHO } from "../../components/rezervace/vlak";
 import type { Misto } from "../../components/rezervace/vlak";
-import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu, rozpisOdjezdu, rozpetiJizdneho, cenaPermanentky, nazevSpoje } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm, cenaOdjezdu, rozpisOdjezdu, rozpetiJizdneho, cenaPermanentky } from "../../data/rezervace";
 import { sklonuj, zPoctu } from "../../data/pocty";
 import { paleta } from "../parta2/paleta";
 import { klid, omez, mix, mixBarva, hladce } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
 import { BARVY_LIDI, KAZDY, mistaKurzu } from "./odjezdy";
+import { jizdNaHodinu } from "./simulace";
 import type { Den, KurzDne, Jizda } from "./simulace";
 
 const DNY = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
@@ -82,7 +83,7 @@ export interface UdajeJizdenky {
   osob: number;
   /** Nastupuje se do zvláštního vlaku toho dne */
   kurz?: KurzDne;
-  /** Permanentka: na které spoje, odkdy dokdy a kolik jich je už prodaných */
+  /** Permanentka: které hodiny se opakují, odkdy dokdy a kolik lidí na nich první den už sedí */
   pas?: { spoje: number[]; platnost: { od: Date; do: Date; jizdy: Jizda[] }; obsazeno: ReadonlyMap<number, number> };
   /** Zamlouvá člen se svým odkazem — jízdenka platí hned; ostatní si ji zamluvit nemůžou */
   hned?: boolean;
@@ -271,9 +272,12 @@ export function initJizdenka() {
     jizdy.hidden = !pas;
     jizdyMesice.textContent = "";
     if (!pas) return;
-    const plati = pas.platnost.jizdy.filter((j) => !j.vyluka).length;
-    const vyluk = pas.platnost.jizdy.length - plati;
-    jizdyPopis.textContent = `${sklonuj(plati, "jízda", "jízdy", "jízd")} na jeden spoj${vyluk ? ` · ${sklonuj(vyluk, "výluka", "výluky", "výluk")}, když jede kurz` : ""}`;
+    /* Týden je přeškrtnutý, když je výluka, nebo když jsou všechny vybrané hodiny plné (vynechá se a neplatí) */
+    const nejede = (j: Jizda) => j.vyluka || (j.plno.length > 0 && j.plno.length >= pas.spoje.length);
+    const plati = pas.platnost.jizdy.filter((j) => !nejede(j)).length;
+    const vyluk = pas.platnost.jizdy.filter((j) => j.vyluka).length;
+    const plnych = pas.platnost.jizdy.filter((j) => !j.vyluka && j.plno.length).length;
+    jizdyPopis.textContent = `${pas.spoje.length > 1 ? `${sklonuj(plati, "týden", "týdny", "týdnů")}, ${pas.spoje.length} hodiny týdně` : `${sklonuj(plati, "jízda", "jízdy", "jízd")} na jednu hodinu`}${vyluk ? ` · ${sklonuj(vyluk, "výluka", "výluky", "výluk")}, když jede kurz` : ""}${plnych ? ` · ${sklonuj(plnych, "plný týden", "plné týdny", "plných týdnů")} se vynechá` : ""}`;
     let mesic = -1;
     let radek: HTMLElement | null = null;
     for (const j of pas.platnost.jizdy) {
@@ -283,8 +287,8 @@ export function initJizdenka() {
         radek.append(prvek("b", "", MESICE[mesic]));
         jizdyMesice.append(radek);
       }
-      const den = prvek("span", `rz-lj-den den-${j.datum.getDay()}${j.vyluka ? " vyluka" : ""}`, `${j.datum.getDate()}`);
-      den.title = `${DNY[j.datum.getDay()]} ${j.datum.getDate()}. ${MESICE_2[mesic]}${j.vyluka ? " — výluka, jede kurz" : ""}`;
+      const den = prvek("span", `rz-lj-den den-${j.datum.getDay()}${j.vyluka ? " vyluka" : nejede(j) ? " vyluka plno" : j.plno.length ? " plno-cast" : ""}`, `${j.datum.getDate()}`);
+      den.title = `${DNY[j.datum.getDay()]} ${j.datum.getDate()}. ${MESICE_2[mesic]}${j.vyluka ? " — výluka, jede kurz" : j.plno.length ? ` — plno v ${j.plno.map(hhmm).join(" a ")}, vynechá se` : ""}`;
       radek?.append(den);
     }
   };
@@ -312,11 +316,11 @@ export function initJizdenka() {
           druh === "kurz" && c
             ? `Zvláštní vlak „${c.vlak}“ (${c.cteni} — ${c.vyznam}) · lektor ${c.lektor}`
             : druh === "pas"
-              ? `${d ? KAZDY[d.datum.getDay()].replace(/^k/, "K") : "Jeden den v týdnu"} po ${P.mesicu} měsíce, pokaždé stejným spojem.`
+              ? `${d ? KAZDY[d.datum.getDay()].replace(/^k/, "K") : "Jeden den v týdnu"} po ${P.mesicu} měsíce, pokaždé ve stejnou hodinu.`
               : "";
       }
       if (denPopis) denPopis.textContent = druh === "pas" ? "Platí" : "Den";
-      if (hodinyPopis) hodinyPopis.textContent = druh === "pas" ? "Spoj" : "Odjezd";
+      if (hodinyPopis) hodinyPopis.textContent = druh === "pas" ? "Hodina" : "Odjezd";
       if (platnost) {
         /* Zamluvit si ji může jen člen — ostatním jízdenka jen ukáže, co by měli */
         platnost.textContent = !u.hned
@@ -324,7 +328,7 @@ export function initJizdenka() {
           : druh === "kurz"
             ? "Platí na uvedený kurz."
             : druh === "pas"
-              ? "Platí na uvedený spoj po celou dobu platnosti."
+              ? "Platí na uvedenou hodinu po celou dobu platnosti."
               : "Platí pro uvedený den a odjezd.";
       }
 
@@ -340,12 +344,13 @@ export function initJizdenka() {
         cislo.textContent = `${ddmm}·Z·${u.osob}`;
       } else if (druh === "pas" && u.pas) {
         const pl = u.pas.platnost;
-        const pocetJizd = pl.jizdy.filter((j) => !j.vyluka).length;
-        const celkem = u.pas.spoje.length * u.osob * cenaPermanentky(pocetJizd);
+        /* Jízdy každé hodiny: týdny bez výluky, kdy je na ní místo */
+        const pocetJizd = u.pas.spoje.reduce((a, h) => a + jizdNaHodinu(pl.jizdy, h), 0);
+        const celkem = u.osob * cenaPermanentky(pocetJizd);
         lDen.textContent = `od ${datum(pl.od)} do ${datum(pl.do)}`;
-        lHodiny.textContent = `${u.pas.spoje.map((h) => `${nazevSpoje(h)} ${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ")}${d ? ` · ${KAZDY[d.datum.getDay()]}` : ""}`;
+        lHodiny.textContent = `${u.pas.spoje.map((h) => `${hhmm(h)}–${hhmm(h + R.blok)}`).join(" a ")}${d ? ` · ${KAZDY[d.datum.getDay()]}` : ""}`;
         lLide.textContent = lidi(u.osob);
-        lCena.textContent = `${kc(celkem)} · ${u.pas.spoje.length > 1 ? `${u.pas.spoje.length} spoje × ` : ""}${sklonuj(pocetJizd, "jízda", "jízdy", "jízd")} po ${kc(P.cenaJizdy)}${u.osob > 1 ? " za každého" : ""}`;
+        lCena.textContent = `${kc(celkem)} · ${sklonuj(pocetJizd, "jízda", "jízdy", "jízd")}${u.pas.spoje.length > 1 ? " na všech hodinách" : ""} po ${kc(P.cenaJizdy)}${u.osob > 1 ? " za každého" : ""}`;
         cislo.textContent = `${ddmm}·P${u.pas.spoje.join("+")}·${u.osob}`;
       } else {
         lDen.textContent = dlouhyDen;
@@ -375,7 +380,7 @@ export function initJizdenka() {
       } else if (druh === "pas" && u.pas) {
         zastavDen();
         vyrez(delka(n));
-        /* Na spoji sedí i ostatní držitelé permanentky — jako stíny na krajích vozu */
+        /* Kdo na hodině první den už sedí (jízdenky i jiné permanentky) — jako stíny na krajích vozu */
         const vozy = u.pas.spoje.map((h) => {
           const mista: Misto[] = Array(6).fill(null);
           [2, 3, 1, 4].slice(0, u.osob).forEach((m, k) => (mista[m] = { kdo: "ty", barva: BARVY_LIDI[k] }));

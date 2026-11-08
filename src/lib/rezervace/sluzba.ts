@@ -17,11 +17,11 @@
  * a odpověď. Dá se tak zkoušet bez serveru.
  */
 import { createHash, randomBytes, randomInt } from "node:crypto";
-import { rezervace as R, permanentka as P } from "../../data/rezervace";
+import { rezervace as R } from "../../data/rezervace";
 import { rpc, ChybaDb } from "./db";
 import type { Pripojeni } from "./db";
 import { posli, vitej, prihlaseni, registrace, potvrzeni, zruseni } from "./posta";
-import type { Posta } from "./posta";
+import type { Posta, Vynechano } from "./posta";
 import { over, ted, jeUuid, naCas, zCasu, konecPermanentky } from "./pravidla";
 import type { Chyba, Druh, Odpoved, Volno } from "./typy";
 
@@ -66,9 +66,9 @@ interface VolnoDb {
   obsazeno: { den: string; cas: string; osob: number }[];
   zavreno: { den: string; cas: string | null }[];
   kurzy: Volno["kurzy"];
-  permanentky: { dt: number; cas: string; osob: number; do: string }[];
+  permanentky: { dt: number; cas: string; osob: number; od: string; do: string; vynechat: string[] | null }[];
   clen: Volno["clen"];
-  moje: { id: number; druh: Druh; den: string; do: string | null; cas: string | null; osob: number }[];
+  moje: { id: number; druh: Druh; den: string; do: string | null; cas: string | null; osob: number; vynechat?: string[] | null }[];
 }
 
 /** Co je zamluvené ode dneška dál; s platným tokenem i kdo se ptá a jeho jízdenky */
@@ -83,9 +83,9 @@ export async function volno(n: Nastaveni | null, token: string | undefined, nyni
         obsazeno: v.obsazeno.map((o) => ({ den: o.den, h: zCasu(o.cas), osob: o.osob })),
         zavreno: v.zavreno.map((z) => ({ den: z.den, h: z.cas === null ? null : zCasu(z.cas) })),
         kurzy: v.kurzy,
-        permanentky: v.permanentky.map((p) => ({ dt: p.dt, h: zCasu(p.cas), osob: p.osob, do: p.do })),
+        permanentky: v.permanentky.map((p) => ({ dt: p.dt, h: zCasu(p.cas), osob: p.osob, od: p.od, do: p.do, vynechat: p.vynechat ?? [] })),
         clen: v.clen,
-        moje: v.moje.map((m) => ({ id: m.id, druh: m.druh, den: m.den, do: m.do, h: m.cas === null ? null : zCasu(m.cas), osob: m.osob })),
+        moje: v.moje.map((m) => ({ id: m.id, druh: m.druh, den: m.den, do: m.do, h: m.cas === null ? null : zCasu(m.cas), osob: m.osob, vynechat: m.vynechat ?? [] })),
       },
     };
   } catch (e) {
@@ -185,8 +185,9 @@ export async function rezervuj(n: Nastaveni | null, token: string | undefined, t
   if (!jeUuid(token)) return ne("neznamy");
   const z = over(telo, nyni);
   if (!z) return ne("spatne");
-  /* vyluk = kolik týdnů permanentky má výluku (jede kurz) — ty se neplatí */
-  let r: { jmeno: string; email: string; kurz: string | null; vyluk: number | null };
+  /* Permanentka: jizd = kolik jízd mají všechny hodiny dohromady (bez výluk a plných týdnů — ty se neplatí),
+     vynechano = které týdny se kvůli plné hodině vynechaly */
+  let r: { jmeno: string; email: string; kurz: string | null; jizd: number | null; vynechano: Vynechano | null };
   try {
     r = await rpc(n.db, "rezervuj", {
       p_token: token,
@@ -195,15 +196,15 @@ export async function rezervuj(n: Nastaveni | null, token: string | undefined, t
       p_hodiny: z.hodiny.map(naCas),
       p_osob: z.osob,
       p_den_do: z.druh === "permanentka" ? konecPermanentky(z.den) : null,
-      /* Kolik míst má odjezd nebo spoj permanentky — kurz má svá v tabulce kurzů */
-      p_mist: z.druh === "permanentka" ? P.mist : z.druh === "odjezd" ? R.mist : null,
+      /* Kolik míst má odjezd — permanentka sedí na stejných; kurz má svá v tabulce kurzů */
+      p_mist: z.druh === "kurz" ? null : R.mist,
       p_poznamka: z.poznamka ?? null,
     });
   } catch (e) {
     return zDb(e);
   }
   /* Zamluveno je, i kdyby mail neodešel — ten je jen potvrzení */
-  if (n.posta) await posli(n.posta, potvrzeni(r, z, r.kurz, web, r.vyluk ?? 0));
+  if (n.posta) await posli(n.posta, potvrzeni(r, z, r.kurz, web, r.jizd ?? 0, r.vynechano ?? []));
   return ANO;
 }
 

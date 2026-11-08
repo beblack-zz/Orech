@@ -127,6 +127,20 @@
   /* domek s pěšinou blíž ke středu výřezu a o kus menší (střed paty domku 800 × 434) */
   .dm-uvod .krajina-dum { transform-origin: 800px 434px; transform: translate(-62px, 6px) scale(0.84); }
 }
+/* Telefon na výšku (od 8. 11. 2026): celý ořech přes šířku obrazovky, ne useknutý u pravého
+   okraje, a pod jeho korunou menší domek vlevo od kmene. Zem stromu (93 % jeho výšky) sedí
+   v louce. Na šířku platí blok níž. */
+@media (max-width: 860px) and (orientation: portrait) {
+  .dm-uvod .dmu-orech {
+    --sirka: calc(100vw * 1.04);
+    --vyska: calc(var(--sirka) * 1400 / 1800);
+    left: -2vw;
+    top: auto;
+    bottom: calc(var(--uvod-h) * 0.08 - var(--vyska) * 0.07);
+  }
+  .dm-uvod .krajina-dum { transform: translate(-128px, 10px) scale(0.6); }
+}
+
 /* Telefon na šířku: krajina jako na počítači — text vlevo, strom vpravo, všechno na
    jedné nízké obrazovce (telefonní rozvržení pod sebou by strom i dům schovalo pod okraj) */
 @media (max-width: 860px) and (orientation: landscape) and (max-height: 520px) {
@@ -373,6 +387,50 @@
   background: repeating-linear-gradient(90deg, #3B3A37 0 7px, #66635E 7px 10px);
   box-shadow: 0 8px 16px -8px rgba(20, 14, 30, 0.5);
 }
+/* Telefon na výšku (od 8. 11. 2026): prohlídka se listuje tahem prstu přes obrázek i kartu
+   (prohlidka.ts). Bez bublin se zastávkami — z nich zbyly drobné tečky, které ukazují, kde
+   jsi (a dá se na ně ťuknout) —, bez šipek a bez žlabu pod oknem; písmo v kartách je menší. */
+@media (max-width: 860px) and (orientation: portrait) {
+  .dm-prohlidka .prohlidka-ram::after { display: none; }
+  .dm-ram { margin-bottom: 16px; }
+  .dm-prohlidka .prohlidka-scena { touch-action: pan-y; }
+  .dm-prohlidka.prohlidka .prohlidka-sipka { display: none; }
+  .dm-prohlidka .prohlidka-mapa { gap: 0; padding: 0; }
+  .dm-prohlidka .prohlidka-mapa button {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    font-size: 0 !important;
+    color: transparent !important;
+  }
+  .dm-prohlidka .prohlidka-mapa button::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
+    border-radius: 50%;
+    background: rgba(43, 36, 32, 0.25);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .dm-prohlidka .prohlidka-mapa button.je::before { background: var(--inkoust); transform: scale(1.3); }
+  .dm-prohlidka .stanice { padding: 16px 16px 12px; font-size: 14.5px; line-height: 1.5; }
+  .dm-prohlidka .stanice p { margin-bottom: 9px; }
+  .dm-prohlidka .stanice-uvod .nadpis-2 { font-size: 27px; margin-bottom: 10px; }
+  .dm-prohlidka .stanice-nazev { font-size: 26px; }
+  .dm-prohlidka .stanice-perex { font-size: 15.5px; }
+  .dm-prohlidka .stanice-meta { font-size: 19px; }
+  .dm-prohlidka .stanice-pokyn { font-size: 18px; }
+  .dm-prohlidka .stanice-znak { font-size: 24px; }
+  .dm-prohlidka .stanice-nejblizsi { font-size: 13.5px; padding: 8px 12px; }
+  .dm-prohlidka .inventar { gap: 6px; margin: 10px 0; }
+}
+
 /* Fotka u zastávky — tohle je doopravdy. Vyplní, co v kartě zbude místa;
    když nezbude skoro nic, karta se uvnitř posune. */
 .dm-polaroid {
@@ -625,7 +683,17 @@
 .dm-vecer .noc-karta { margin-top: 0; }
 @media (max-width: 860px) {
   .dm-vecer-dum { --w: calc(100vw * 3100 / 1180); right: auto; left: calc(50% - var(--w) * 0.645); }
+  /* Průvod na telefonu (od 8. 11. 2026): ne všech sedm těsně za sebou, ale s rozestupem
+     40 % šířky — na obrazovce jsou vidět asi tři, ostatní jdou mimo ni a dojdou. Dráha je
+     7 × 40vw dlouhá a trvá tak dlouho, aby šli stejně rychle jako dřív (118vw za 60 s). */
+  .dm-vecer .pruvod-clen { animation-name: dmv-pruvod-tel; animation-duration: 142s; animation-delay: calc(var(--i) * -142s / 7); }
   .dm-vecer-scena { height: max(70vh, 460px, calc(100vw * 1390 / 1180)); }
+}
+
+@keyframes dmv-pruvod-tel { from { transform: translateX(-14vw); } to { transform: translateX(266vw); } }
+/* s omezeným pohybem stojí — na telefonu taky po třech přes šířku, ostatní za okrajem */
+@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+  .dm-vecer .pruvod-clen { left: calc(6vw + var(--i) * 32vw); }
 }
 
 /* ——— Méně pohybu ——— */

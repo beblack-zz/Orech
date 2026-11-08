@@ -250,7 +250,7 @@ export const kamiPostup: { nic: Replika; cast: Replika; vse: Replika } = {
  */
 export const skryse: [PostavaId, string][] = [
   ["hlinka", "Hlínka spí dole v patičce, mezi vrstvami. Za trilobitem."],
-  ["kachlik", "Kachlík se dělá číslicí v tabuli příštího odjezdu. Na Rezervaci."],
+  ["kachlik", "Kachlík se dělá číslicí v hodinách odjezdové tabule. Na Rezervaci."],
   ["samotka", "Šamotka jede vlakem na Rezervaci. V prvním voze, u okna."],
   ["vazicka", "A já? Vykukuju za Zvláštním vlakem u dárkových jízdenek. Nikomu to neříkej."],
   ["stripek", "Střípek se schoval do hodin v krámku. Mezi šestku a sedmičku."],

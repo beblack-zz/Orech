@@ -5,12 +5,13 @@
  * nastupuješ ty. Odjezd (hodina a půl) má pár míst a plní se po skupinách:
  * sedačky v řádku ukazují, kolik jich je pryč a kam si sedáte vy.
  *
- * Řádek může být i něco jiného než hodina:
+ * Se zaškrtnutou permanentkou (v pokladně) se vybraná hodina bude tři
+ * měsíce opakovat — místo jízdného ukazuje cenu za týden a říká, kolik
+ * týdnů je plných (ty se vynechají a neplatí).
  *
- *   spoj permanentky  první a poslední odjezd dne má místa pro držitele
- *                     permanentky; klik na něj přidá permanentku na ten
- *                     den v týdnu, který je zrovna na tabuli
- *   zastávka kurzu    v den kurzu jsou řádky tratí zvláštního vlaku (jede
+ * V den kurzu je řádek něco jiného než hodina:
+ *
+ *   zastávka kurzu   v den kurzu jsou řádky tratí zvláštního vlaku (jede
  *                     ve stejné časy jako odjezdy) —
  *                     u tečky pořadí, na klapce jméno zastávky a vedle,
  *                     co se na ní děje;
@@ -25,7 +26,7 @@ import { klid } from "../parta2/stav";
 import { naObrazovce } from "../parta2/mimo";
 import * as zvuk from "../parta2/zvuk";
 import { sekkiDne } from "../../data/koyomi";
-import { rezervace as R, permanentka as P, hhmm, cenaZaCloveka, nazevSpoje } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, hhmm, cenaZaCloveka } from "../../data/rezervace";
 import { sklonuj, zPoctu, volnaMista, jenMist, zbyvaMist } from "../../data/pocty";
 import { zvlastniVlak } from "../../components/rezervace/vlak";
 import type { Misto } from "../../components/rezervace/vlak";
@@ -38,14 +39,14 @@ export type StavHodiny = "volno" | "malo" | "plno" | "pryc";
 /** Co má člověk zrovna na jízdence — tabule podle toho svítí */
 export interface Vyber {
   osob: number;
-  /** Hodinové odjezdy */
+  /** Vybrané odjezdy */
   hodiny: ReadonlySet<number>;
-  /** Spoje, na které si bere permanentku */
-  pasy: ReadonlySet<number>;
+  /** Zaškrtnutá permanentka: vybrané odjezdy se budou každý týden opakovat */
+  pas: boolean;
   /** Nastupuje do zvláštního vlaku */
   kurz: boolean;
-  /** Kolik permanentek je na který spoj už prodaných — pro den v týdnu, který je na tabuli */
-  pasObsazeno: ReadonlyMap<number, number>;
+  /** Kolik týdnů permanentky v hodinu `h` je pro vás plných — ty se vynechají a neplatí */
+  plnychTydnu: (h: number) => number;
 }
 
 const DNY = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
@@ -59,9 +60,6 @@ const dvoj = (n: number) => String(n).padStart(2, "0");
 const kc = (n: number) => `${n.toLocaleString("cs-CZ")} Kč`;
 
 export const stavHodiny = (h: Hodina, osob = 1): StavHodiny => (h.probehlo ? "pryc" : h.volno <= 0 ? "plno" : h.volno < osob ? "malo" : "volno");
-
-/** Kolik míst zbývá na spoji permanentky */
-export const volnoNaSpoji = (v: Pick<Vyber, "pasObsazeno">, h: number) => P.mist - (v.pasObsazeno.get(h) ?? 0);
 
 /**
  * Kdo sedí ve zvláštním vlaku: ostatní přihlášení jako stíny, rozsazení po
@@ -88,10 +86,11 @@ const poznamka = (s: StavHodiny, mam: boolean, volno: number) => (mam ? "nastupu
 /** Buben poznámek: slova, která můžou proletět, než se klapka ustálí */
 const BUBEN = ["volno", "obsazeno", "odjel", "nastupuješ", "včas", "Ořech", "permanentka"];
 
-const radaHodiny = (denVTydnu?: number) =>
+const radaHodiny = (denVTydnu: number | undefined, pas: boolean) =>
   `Klikni na volnou hodinu — klidně na víc. Každá trvá 90 minut a má ${sklonuj(R.mist, "místo", "místa", "míst")}. ` +
-  "Vedle je jízdné za člověka, kdybyste nastoupili teď — čím víc lidí v dílně opravdu bude, tím míň platí každý; platí se na místě. " +
-  `První a poslední spoj dne jsou na permanentku: ${denVTydnu === undefined ? "jeden den v týdnu" : KAZDY[denVTydnu]} po ${P.mesicu} měsíce, ${P.mist} místa na spoji. ` +
+  (pas
+    ? `Máš zaškrtnutou permanentku: vybrané hodiny budeš mít ${denVTydnu === undefined ? "každý týden" : KAZDY[denVTydnu]} po ${P.mesicu} měsíce, ${P.cenaJizdy} Kč za člověka a týden. Týdny, kdy je hodina plná, se vynechají a neplatí. `
+    : "Vedle je jízdné za člověka, kdybyste nastoupili teď — čím víc lidí v dílně opravdu bude, tím míň platí každý; platí se na místě. ") +
   "Obloha nad mořem ukáže, jaké v tu dobu bude v dílně světlo.";
 const RADA_KURZ =
   "Dnes jede jen zvláštní vlak — celý den, od první zastávky po poslední. Nastupuje se po jednom, dokud jsou místa. " +
@@ -111,7 +110,7 @@ interface Radek {
 }
 
 export interface TabuleNastaveni {
-  /** Klik na řádek: přidat nebo ubrat hodinu (nebo permanentku, je-li to její spoj) */
+  /** Klik na řádek: přidat nebo ubrat hodinu */
   prepni: (h: number) => void;
   /** Klik na ceduli zvláštního vlaku: nastoupit nebo vystoupit */
   kurz: () => void;
@@ -208,7 +207,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
     sedacky.forEach((el, i) => el.setAttribute("class", `rz-sedacka${i < tridy.length ? (tridy[i] ? ` ${tridy[i]}` : "") : " skryta"}`));
 
   /** Hodina: sedačky v kupé — kolik je pryč, kolik volných a kam si sedáte vy */
-  const radekHodiny = (r: Radek, h: Hodina, v: Vyber, zaklapat: boolean, poradi: number) => {
+  const radekHodiny = (r: Radek, d: Den, h: Hodina, v: Vyber, zaklapat: boolean, poradi: number) => {
     const mam = v.hodiny.has(r.h);
     const s = stavHodiny(h, v.osob);
     const obsazeno = R.mist - h.volno;
@@ -216,35 +215,18 @@ export function initOdjezdy(n: TabuleNastaveni) {
     r.li.className = `rz-o ${s}${mam ? " vybrana" : ""}`;
     r.btn.disabled = s !== "volno" && !mam;
     r.btn.setAttribute("aria-pressed", String(mam));
-    /* Jízdné se řídí tím, kolik lidí na odjezdu nakonec sedí: tolik by to stálo s vámi teď, víc lidí = míň */
-    const zaCloveka = s === "volno" || mam ? cenaZaCloveka(obsazeno + v.osob) : null;
-    if (r.jizdne) r.jizdne.innerHTML = zaCloveka === null ? "" : `${zaCloveka}&nbsp;Kč<small>za osobu</small>`;
+    /* Jízdné se řídí tím, kolik lidí na odjezdu nakonec sedí: tolik by to stálo s vámi teď, víc lidí = míň.
+       Permanentka má pevnou cenu za týden. */
+    const zaCloveka = s === "volno" || mam ? (v.pas ? P.cenaJizdy : cenaZaCloveka(obsazeno + v.osob)) : null;
+    if (r.jizdne) r.jizdne.innerHTML = zaCloveka === null ? "" : `${zaCloveka}&nbsp;Kč<small>${v.pas ? "za týden" : "za osobu"}</small>`;
+    /* Permanentka: týdny, kdy na hodině není místo, se vynechají a neplatí */
+    const plnych = v.pas && (s === "volno" || mam) ? v.plnychTydnu(r.h) : 0;
+    const vynecha = plnych ? `, ${plnych === 1 ? "1 týden je plný" : `${plnych} ${plnych < 5 ? "týdny jsou plné" : "týdnů je plných"}`} — vynechá se a neplatí` : "";
     const popis = mam
-      ? `nastupuješ, ${v.osob === 1 ? "jedeš sám" : `jedete ${v.osob}`}${obsazeno ? ` a ${obsazeno === 1 ? "jeden další už sedí" : `${obsazeno} další už sedí`}` : ""}`
+      ? `${v.pas ? `permanentka ${NA_DNY[d.datum.getDay()]} na ${P.mesicu} měsíce, ` : "nastupuješ, "}${v.osob === 1 ? "jedeš sám" : `jedete ${v.osob}`}${obsazeno ? ` a ${obsazeno === 1 ? "jeden další už sedí" : `${obsazeno} další už sedí`}` : ""}`
       : s === "pryc" ? "už odjel" : s === "plno" ? "obsazeno" : s === "malo" ? `${zbyvaMist(h.volno)}, tolik vás nepojede` : volnaMista(h.volno) + " " + zPoctu(R.mist);
-    r.popis.textContent = `${hhmm(h.h)} až ${hhmm(h.h + R.blok)}, ${popis}${zaCloveka === null ? "" : `, jízdné teď ${zaCloveka} Kč za člověka`}`;
-    klapni(r.stav, poznamka(s, mam, h.volno), zaklapat, poradi * 70 + 40);
-  };
-
-  /** Spoj permanentky: pár míst na tři měsíce a na ten den v týdnu, který je na tabuli; plní se po jednom */
-  const radekPermanentky = (r: Radek, d: Den, h: Hodina, v: Vyber, zaklapat: boolean, poradi: number) => {
-    if (r.jizdne) r.jizdne.textContent = "";
-    const naDny = NA_DNY[d.datum.getDay()];
-    const mam = v.pasy.has(r.h);
-    const obsazeno = v.pasObsazeno.get(r.h) ?? 0;
-    const volna = P.mist - obsazeno;
-    const s = h.probehlo ? "pryc" : volna <= 0 ? "plno" : volna < v.osob && !mam ? "malo" : "volno";
-    posad(r.sedacky, Array.from({ length: P.mist }, (_, i) => (s === "pryc" ? "pryc" : i < obsazeno ? "obs" : mam && i < obsazeno + v.osob ? "moje" : "pas")));
-    r.li.className = `rz-o pas ${s}${mam ? " vybrana" : ""}`;
-    r.btn.disabled = s !== "volno" && !mam;
-    r.btn.setAttribute("aria-pressed", String(mam));
-    const spoj = { nazev: nazevSpoje(r.h) };
-    const kolik = jenMist(volna);
-    const popis = mam
-      ? `bereš si permanentku ${naDny} na ${P.mesicu} měsíce${v.osob > 1 ? ` pro ${v.osob} lidi` : ""}`
-      : s === "pryc" ? "dnes už odjel" : s === "plno" ? "permanentky jsou rozebrané" : s === "malo" ? `${zbyvaMist(volna)}, tolik vás nepojede` : `${volnaMista(volna)} ${zPoctu(P.mist)}`;
-    r.popis.textContent = `${hhmm(h.h)} až ${hhmm(h.h + R.blok)}, ${spoj?.nazev ?? ""} spoj na permanentku ${naDny}: ${popis}`;
-    klapni(r.stav, mam ? "předplaceno" : s === "pryc" ? "odjel" : s === "plno" ? "rozebráno" : s === "malo" ? kolik : "permanentka", zaklapat, poradi * 70 + 40);
+    r.popis.textContent = `${hhmm(h.h)} až ${hhmm(h.h + R.blok)}, ${popis}${zaCloveka === null ? "" : v.pas ? `, ${zaCloveka} Kč za člověka a týden` : `, jízdné teď ${zaCloveka} Kč za člověka`}${vynecha}`;
+    klapni(r.stav, mam && v.pas ? "permanentka" : poznamka(s, mam, h.volno), zaklapat, poradi * 70 + 40);
   };
 
   /** Zastávka zvláštního vlaku: na klapce jméno, vedle co se tam děje */
@@ -275,8 +257,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
       posad(r.sedacky, Array(R.mist).fill("pryc"));
       return;
     }
-    if (h.pas) radekPermanentky(r, d, h, v, zaklapat, poradi);
-    else radekHodiny(r, h, v, zaklapat, poradi);
+    radekHodiny(r, d, h, v, zaklapat, poradi);
   };
 
   /** Cedule zvláštního vlaku: jméno, místa a nástup */
@@ -334,7 +315,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
       posledniDen = d?.klic ?? null;
       koren.classList.toggle("bez-dne", !d);
       koren.classList.toggle("je-kurz", !!d?.kurz);
-      if (rada) rada.textContent = d?.kurz ? RADA_KURZ : radaHodiny(d?.datum.getDay());
+      if (rada) rada.textContent = d?.kurz ? RADA_KURZ : radaHodiny(d?.datum.getDay(), v.pas);
       seznam?.setAttribute("aria-label", d?.kurz ? "Trať zvláštního vlaku — zastávky programu po hodině a půl" : "Odjezdy vybraného dne — vyber jeden nebo víc");
 
       if (d) {
@@ -362,7 +343,7 @@ export function initOdjezdy(n: TabuleNastaveni) {
         zvuk.klapky(18);
       }
     },
-    /** Jeden řádek po přidání nebo ubrání odjezdu nebo permanentky */
+    /** Jeden řádek po přidání nebo ubrání odjezdu */
     radek(d: Den, h: number, v: Vyber) {
       const r = radky.find((x) => x.h === h);
       if (!r) return;

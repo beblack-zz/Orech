@@ -12,7 +12,10 @@ export default defineConfig({
   site: 'https://orechovahlina.cz',
   // Web je statický; na serveru běží jen rezervace a objednávky (src/pages/api
   // a /k/[token]), které mají `prerender = false`. Jiný hosting = jiný adaptér, nic dalšího.
-  adapter: netlify(),
+  // Obrázky se zmenšují už při buildu do /_astro/ (imageCDN: false), ne za běhu přes
+  // /.netlify/images — ta adresa existuje jen na Netlify a na Vercelu (orech-seven.vercel.app)
+  // vracela 404, takže se fotky nenačítaly (8. 11. 2026).
+  adapter: netlify({ imageCDN: false }),
   // Klíče k rezervacím — jen na serveru, do prohlížeče se nedostanou. Všechny
   // jsou nepovinné: dokud chybí Supabase, /rezervace ukazuje ukázkovou
   // obsazenost a jízdenka odchází mailem jako dřív. Vzor je v .env.example.

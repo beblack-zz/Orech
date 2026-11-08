@@ -24,7 +24,6 @@
 import { priMereni, omez, hladce, mix, klid, vyzadej } from "../parta2/stav";
 import * as zvuk from "../parta2/zvuk";
 import { telefon } from "../parta2/kvalita";
-import { nocni, teple, prebarvi } from "../../components/obchod2/kresba/noc";
 
 interface Ram {
   x: number;
@@ -136,69 +135,12 @@ export function scena() {
   }));
   const zastavky = JSON.parse(sekce.dataset.zastavky ?? "{}") as Record<Rozvrzeni, { id: string; ram: Ram }[]>;
 
-  /* Noční kopie vrstev: HTML nese jen denní kresbu, noční se z ní přebarví až tady —
-     po načtení, až bude chvíle, nebo hned, jakmile se jede do večera */
-  let nocHotova = false;
-  const udelejNoc = () => {
-    if (nocHotova) return;
-    nocHotova = true;
-    sekce.querySelectorAll<SVGSVGElement>("svg[data-noc]").forEach((noc) => {
-      const kde = noc.dataset.noc;
-      const den = sekce.querySelector<SVGSVGElement>(`svg[data-vrstva="${kde}"]`);
-      if (den) noc.innerHTML = kde === "uvnitr" ? prebarvi(den.innerHTML, teple, "ku") : prebarvi(den.innerHTML, nocni, "kn");
-    });
-  };
-  /* Den stranou (jen noc): celé denní vrstvy (zdroj noční kresby) se odloží jako kopie
-     do <template class="krm-den-stranou">, kde se nekreslí, neanimují ani nepočítají
-     styly — nic se nemaže. V DOM z nich zůstane jen to, na co odkazuje zbytek krámku
-     (vrstva světel bere z denní kresby tvary, přechody a ořezy `#kd-…`), přesunuté
-     do <defs> téže denní vrstvy, ať mají pořád stejné okolí jako dřív. */
-  const odlozDen = () => {
-    const dny = [...sekce.querySelectorAll<SVGSVGElement>("svg.krm-den")];
-    if (!dny.length) return;
-    const stranou = document.createElement("template");
-    stranou.className = "krm-den-stranou";
-    dny.forEach((den) => stranou.content.append(den.cloneNode(true)));
-    sekce.append(stranou);
-    /* co z denní kresby potřebuje zbytek krámku — i odkazy uvnitř toho, co potřebuje */
-    const ODKAZ = /#(kd-[\w-]+)/g;
-    const hledej = (el: Element, kam: Set<string>) => {
-      for (const e of [el, ...el.querySelectorAll("*")])
-        for (const a of e.attributes) for (const m of a.value.matchAll(ODKAZ)) kam.add(m[1]);
-    };
-    const potreba = new Set<string>();
-    for (const e of sekce.querySelectorAll("*")) {
-      if (e.closest("svg.krm-den")) continue;
-      for (const a of e.attributes) for (const m of a.value.matchAll(ODKAZ)) potreba.add(m[1]);
-    }
-    const prvky = new Map<string, Element>();
-    const fronta = [...potreba];
-    while (fronta.length) {
-      const id = fronta.pop()!;
-      if (prvky.has(id)) continue;
-      const el = dny.map((d) => d.querySelector(`[id="${id}"]`)).find(Boolean);
-      if (!el) continue;
-      prvky.set(id, el);
-      const dalsi = new Set<string>();
-      hledej(el, dalsi);
-      dalsi.forEach((x) => !prvky.has(x) && fronta.push(x));
-    }
-    /* vnořené potřebné prvky jdou s rodičem, přesouvají se jen nejvyšší */
-    const nejvyssi = [...prvky.values()].filter((el) => ![...prvky.values()].some((o) => o !== el && o.contains(el)));
-    for (const den of dny) {
-      const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-      defs.setAttribute("class", "krm-den-potreba");
-      for (const el of nejvyssi) if (den.contains(el)) defs.append(el);
-      den.replaceChildren(defs);
-    }
-  };
-  /* Jen noc: kresba musí být noční hned, jinak by krámek na začátku probleskl ve dne */
+  /* Kresba krámku jsou od 8. 11. 2026 hotové noční obrázky (Kramek.astro, kresba/nocni.ts) —
+     noční kopii už se v prohlížeči nepřebarvuje a denní vrstvy nejsou. Čas se neukazuje. */
   if (JEN_NOC !== null) {
-    udelejNoc();
-    odlozDen();
     const casEl = sekce.querySelector<HTMLElement>(".krm-cas");
     if (casEl) casEl.style.display = "none";
-  } else window.setTimeout(udelejNoc, 2500);
+  }
 
   let rozvrzeni: Rozvrzeni | "" = "";
   let cestaTed = CESTA.siroka;
@@ -361,7 +303,6 @@ export function scena() {
     const j = Math.round(omez(i, 0, cestaTed.length - 1));
     if (!ted.k || (j === kde && !pohyb)) return;
     const c = cestaTed[j];
-    if (c.h > 17) udelejNoc();
     if (!pohyb) odkud = cil().id;
     kde = j;
     cesta?.classList.remove("zve");

@@ -24,7 +24,11 @@
 --   prihlaseni  Jednorázové odkazy a kódy. Jen otisky (sha256), samotný
 --               odkaz ani kód tu není; platí pár minut a jednou.
 --   rezervace   Co je zamluvené: odjezd má místa (na webu 4) a jedna
---               rezervace je jedna skupina. Zrušit = vyplnit sloupec zruseno (now()).
+--               rezervace je jedna skupina. Permanentka je odjezd, který se
+--               od `den` do `den_do` opakuje každý týden ve stejnou hodinu, a sedí
+--               na stejných místech jako hodinové jízdenky (od 8. 11. 2026;
+--               předtím měla vlastní první a poslední spoj dne).
+--               Zrušit = vyplnit sloupec zruseno (now()).
 --               Rezervaci po telefonu jde zapsat ručně novým řádkem.
 --   kurzy       Vypsané termíny kurzů: den, který kurz (kruh, glazury — jak
 --               se jmenují na webu) a kolik míst; web umí nakreslit nejvýš
@@ -83,7 +87,7 @@ create table if not exists rezervace (
   den date not null,
   /* Jen permanentka: poslední den platnosti */
   den_do date,
-  /* Začátek odjezdu nebo spoje; kurz je na celý den, tak čas nemá */
+  /* Začátek odjezdu; kurz je na celý den, tak čas nemá */
   cas time,
   osob smallint not null check (osob between 1 and 4),
   poznamka text,
@@ -103,6 +107,8 @@ create table if not exists rezervace (
    a plní se po skupinách — hlídá to rezervuj(). */
 drop index if exists rezervace_odjezd;
 create index if not exists rezervace_den on rezervace (den);
+/* Permanentka: týdny, kdy při koupi na hodině nebylo místo (nebo bylo zavřeno) — nejedou se a neplatí (od 8. 11. 2026) */
+alter table rezervace add column if not exists vynechat date[] not null default '{}';
 
 /* Žádosti o přihlášení: odkaz a kód z jednoho mailu, jen jejich otisky */
 create table if not exists prihlaseni (
@@ -148,6 +154,7 @@ create or replace view kdo_prijde with (security_invoker = true) as
    cross join lateral generate_series(r.den::timestamp, r.den_do::timestamp, interval '7 days') t
    where r.zruseno is null and r.druh = 'permanentka' and t::date >= current_date
      and not exists (select 1 from kurzy k where k.den = t::date)
+     and not (t::date = any (r.vynechat))
    order by 1, 2 nulls first;
 
 /* Trvalé osobní odkazy skončily 17. 10. 2026 — přihlašuje se jednorázovým odkazem */
@@ -179,8 +186,9 @@ begin
       select jsonb_agg(jsonb_build_object('den', k.den, 'kurz', k.kurz, 'mist', k.mist, 'obsazeno', coalesce((
                select sum(r.osob) from rezervace r where r.druh = 'kurz' and r.den = k.den and r.zruseno is null), 0)))
         from kurzy k where k.den >= p_od), '[]'::jsonb),
+    /* Permanentky v `obsazeno` nejsou — web si je do odjezdů jejich týdnů přičte sám */
     'permanentky', coalesce((
-      select jsonb_agg(jsonb_build_object('dt', extract(dow from den)::int, 'cas', to_char(cas, 'HH24:MI'), 'osob', osob, 'do', den_do))
+      select jsonb_agg(jsonb_build_object('dt', extract(dow from den)::int, 'cas', to_char(cas, 'HH24:MI'), 'osob', osob, 'od', den, 'do', den_do, 'vynechat', to_jsonb(vynechat)))
         from rezervace where druh = 'permanentka' and zruseno is null and den_do >= p_od), '[]'::jsonb),
     'clen', null,
     'moje', '[]'::jsonb
@@ -193,7 +201,7 @@ begin
   return v || jsonb_build_object(
     'clen', jsonb_build_object('jmeno', v_clen.jmeno),
     'moje', coalesce((
-      select jsonb_agg(jsonb_build_object('id', id, 'druh', druh, 'den', den, 'do', den_do, 'cas', to_char(cas, 'HH24:MI'), 'osob', osob)
+      select jsonb_agg(jsonb_build_object('id', id, 'druh', druh, 'den', den, 'do', den_do, 'cas', to_char(cas, 'HH24:MI'), 'osob', osob, 'vynechat', to_jsonb(vynechat))
                        order by den, cas nulls first)
         from rezervace where clen_id = v_clen.id and zruseno is null and coalesce(den_do, den) >= p_od), '[]'::jsonb)
   );
@@ -304,9 +312,26 @@ begin
 end $$;
 
 /**
+ * Kolik míst je na odjezdu p_den v p_cas pryč: hodinové jízdenky toho dne
+ * a permanentky na ten den v týdnu a hodinu, které ten den platí a nemají ho vynechaný.
+ */
+create or replace function obsazeno_odjezdu(p_den date, p_cas time)
+returns int language sql stable as $$
+  select coalesce(sum(osob), 0)::int from rezervace
+   where zruseno is null and cas = p_cas
+     and (
+       (druh = 'odjezd' and den = p_den)
+       or (druh = 'permanentka' and p_den between den and den_do and extract(dow from den) = extract(dow from p_den)
+           and not (p_den = any (vynechat)))
+     )
+$$;
+
+/**
  * Zamluví místa na odjezdech, v kurzu nebo na permanentce. Kontrola i zápis
  * jsou pod jedním zámkem, takže poslední místo dostane jen jeden. Kolik
- * míst má odjezd a spoj permanentky, posílá web (p_mist).
+ * míst má odjezd, posílá web (p_mist); permanentka sedí na stejných místech.
+ * Její první týden musí mít místo; další týdny, kdy místo není (nebo je
+ * zavřeno), se zapíšou do `vynechat` — nejedou se a neplatí. Dny kurzu jsou výluka.
  *
  * Dny v týdnu, hodiny a jak daleko dopředu hlídá web; tady se hlídá to,
  * co ví jen databáze: jestli je člen, jestli je otevřeno a jestli je volno.
@@ -329,6 +354,10 @@ declare
   v_jizdenka uuid := gen_random_uuid();
   v_cas time;
   v_obsazeno int;
+  v_tyden date;
+  v_vynechat date[];
+  v_jizd int := 0;
+  v_vynechano jsonb := '[]'::jsonb;
 begin
   select * into v_clen from clenove where token = p_token and aktivni;
   if not found then raise exception 'neznamy'; end if;
@@ -354,20 +383,27 @@ begin
     foreach v_cas in array p_hodiny::time[] loop
       if exists (select 1 from zavreno where den = p_den and cas = v_cas) then raise exception 'zavreno'; end if;
       if p_druh = 'odjezd' then
-        select coalesce(sum(osob), 0) into v_obsazeno from rezervace
-         where druh = 'odjezd' and den = p_den and cas = v_cas and zruseno is null;
-        if v_obsazeno + p_osob > p_mist then raise exception 'plno'; end if;
+        if obsazeno_odjezdu(p_den, v_cas) + p_osob > p_mist then raise exception 'plno'; end if;
         insert into rezervace (clen_id, druh, den, cas, osob, poznamka, jizdenka)
           values (v_clen.id, 'odjezd', p_den, v_cas, p_osob, p_poznamka, v_jizdenka);
       else
-        /* Permanentky na stejný den v týdnu a spoj, které se s touhle kryjí */
-        select coalesce(sum(osob), 0) into v_obsazeno from rezervace
-         where druh = 'permanentka' and zruseno is null and cas = v_cas
-           and extract(dow from den) = extract(dow from p_den)
-           and den <= p_den_do and den_do >= p_den;
-        if v_obsazeno + p_osob > p_mist then raise exception 'plno'; end if;
-        insert into rezervace (clen_id, druh, den, den_do, cas, osob, poznamka, jizdenka)
-          values (v_clen.id, 'permanentka', p_den, p_den_do, v_cas, p_osob, p_poznamka, v_jizdenka);
+        /* První týden musí mít místo; další plné nebo zavřené se vynechají. Dny kurzu jsou výluka. */
+        if obsazeno_odjezdu(p_den, v_cas) + p_osob > p_mist then raise exception 'plno'; end if;
+        v_vynechat := '{}';
+        for v_tyden in select t::date from generate_series(p_den::timestamp, p_den_do::timestamp, interval '7 days') t loop
+          continue when exists (select 1 from kurzy where den = v_tyden);
+          if exists (select 1 from zavreno where den = v_tyden and (cas is null or cas = v_cas))
+             or obsazeno_odjezdu(v_tyden, v_cas) + p_osob > p_mist then
+            v_vynechat := v_vynechat || v_tyden;
+          else
+            v_jizd := v_jizd + 1;
+          end if;
+        end loop;
+        insert into rezervace (clen_id, druh, den, den_do, cas, osob, poznamka, jizdenka, vynechat)
+          values (v_clen.id, 'permanentka', p_den, p_den_do, v_cas, p_osob, p_poznamka, v_jizdenka, v_vynechat);
+        if cardinality(v_vynechat) > 0 then
+          v_vynechano := v_vynechano || jsonb_build_object('cas', to_char(v_cas, 'HH24:MI'), 'dny', to_jsonb(v_vynechat));
+        end if;
       end if;
     end loop;
 
@@ -378,7 +414,10 @@ begin
   return jsonb_build_object('jizdenka', v_jizdenka, 'jmeno', v_clen.jmeno, 'email', v_clen.email, 'kurz', v_kurz.kurz,
     /* Týdny permanentky, kdy jede kurz — výluka, ty se neplatí */
     'vyluk', case when p_druh = 'permanentka' then (
-      select count(*) from kurzy k where k.den between p_den and p_den_do and extract(dow from k.den) = extract(dow from p_den)) end);
+      select count(*) from kurzy k where k.den between p_den and p_den_do and extract(dow from k.den) = extract(dow from p_den)) end,
+    /* Kolik jízd mají všechny hodiny permanentky dohromady (platí se za ně) a které týdny se vynechaly */
+    'jizd', case when p_druh = 'permanentka' then v_jizd end,
+    'vynechano', case when p_druh = 'permanentka' then v_vynechano end);
 end $$;
 
 /**
@@ -422,11 +461,13 @@ $$;
 revoke execute on function volno(date, uuid), rezervuj(uuid, text, date, text[], int, date, int, text),
   zrus(uuid, bigint, int), pozvanka(bigint), pozvanka_hotovo(bigint),
   prihlas_zadost(text, text, text, int), prihlas_odkaz(text), prihlas_kod(text, text),
-  prihlaseni_zapis(bigint, text, text, int), registrace(text, text, text, text, int) from public, anon, authenticated;
+  prihlaseni_zapis(bigint, text, text, int), registrace(text, text, text, text, int),
+  obsazeno_odjezdu(date, time) from public, anon, authenticated;
 grant execute on function volno(date, uuid), rezervuj(uuid, text, date, text[], int, date, int, text),
   zrus(uuid, bigint, int), pozvanka(bigint), pozvanka_hotovo(bigint),
   prihlas_zadost(text, text, text, int), prihlas_odkaz(text), prihlas_kod(text, text),
-  prihlaseni_zapis(bigint, text, text, int), registrace(text, text, text, text, int) to service_role;
+  prihlaseni_zapis(bigint, text, text, int), registrace(text, text, text, text, int),
+  obsazeno_odjezdu(date, time) to service_role;
 
 /* ——— Uvítání: nový člen → web pošle uvítací mail ———
  *

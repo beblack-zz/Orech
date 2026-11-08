@@ -8,6 +8,9 @@
  * v souboru napevno. Co se animuje podle stránky (ensō a tah v hlavičce,
  * zvonkohra, značka v hlavičce, která se v noci přebarví), zůstává vložené.
  *
+ * Patří sem i balíky v novinách z Obchodu (obchod-balik-<tvar>-<seme>):
+ * každý kus bez fotky má svůj, ukazuje ho Zabaleno.astro přes <img>.
+ *
  * Ke stejným souborům patří i velké kresby stránek: Dílna (_dilna.ts) a svět
  * v kapce na O nás (_onas.ts) — celé statické kresby v <img>, z kreseb, ve
  * kterých se něco hýbe, jen statické vrstvy v <image> (_vrstvy.ts).
@@ -21,8 +24,11 @@ import { koreny, puda, vrstva, nalez } from "../../components/parta2/podzemi";
 import { vrstvy, type VrstvaId } from "../../data/paticka";
 import Enso from "../../components/navrhy-loga/Enso.astro";
 import ZnackaStetec from "../../components/znacka/ZnackaStetec.astro";
+import ZabalenoKresba from "../../components/obchod2/ZabalenoKresba.astro";
+import { kramek } from "../../data/kramek";
 import { dilna } from "./_dilna";
 import { onas } from "./_onas";
+import { obchod } from "./_obchod";
 
 /** Barva písma patičky (.pata v styles/parta2.css) — JIRO ve značce ji jinak bere z currentColor */
 const PATA_PISMO = "#EFE5D3";
@@ -58,8 +64,15 @@ async function vyrob() {
   const c = await experimental_AstroContainer.create();
   k.set("paticka-enso", zKomponenty(await c.renderToString(Enso, { props: { size: 54, soumrak: true, tema: "tmave" } }), "enso", "pe", ENSO_STYL));
   k.set("paticka-znacka", zKomponenty(await c.renderToString(ZnackaStetec, { props: { vyska: 26, tema: "tmave", napevno: PATA_PISMO } }), "znacka", "pz"));
-  /* Kresby stránek — jména mají předponu stránky (dilna-, onas-) */
-  for (const sada of [dilna().soubory, onas().soubory]) {
+  /* Balíky v novinách: seme je pořadí kusu v krámku (stejně jako všude na Obchodu) */
+  for (const [jmeno, p] of baliky()) {
+    let svg = await c.renderToString(ZabalenoKresba, { props: { ...p, slama: false, predpona: "b" } });
+    svg = svg.slice(svg.indexOf("<svg"), svg.lastIndexOf("</svg>") + 6).replace(/ data-astro-cid-[a-z0-9]+(="[^"]*")?/g, "");
+    svg = svg.replace(/^<svg class="[^"]*"/, `<svg ${XMLNS} width="200" height="200"`);
+    k.set(jmeno, svg);
+  }
+  /* Kresby stránek — jména mají předponu stránky (dilna-, onas-, obchod-) */
+  for (const sada of [dilna().soubory, onas().soubory, obchod().soubory]) {
     for (const [jmeno, obsah] of sada) {
       if (k.has(jmeno)) throw new Error(`[kresby] soubor ${jmeno} je dvakrát`);
       k.set(jmeno, obsah);
@@ -71,6 +84,18 @@ async function vyrob() {
 let hotovo: Promise<Map<string, string>> | undefined;
 /** Všechny soubory: jméno (bez .svg) → obsah. Počítá se jednou za build. */
 export const kresby = () => (hotovo ??= vyrob());
+
+type Tvar = NonNullable<(typeof kramek)[number]["tvar"]>;
+const jmenoBaliku = (tvar: string, seme: number) => `obchod-balik-${tvar}-${seme}`;
+/** Balíky, které Obchod ukazuje: jméno souboru → tvar a seme */
+const baliky = () => new Map(kramek.map((kus, i) => [jmenoBaliku(kus.tvar ?? "bowl", i + 1), { tvar: (kus.tvar ?? "bowl") as Tvar, seme: i + 1 }]));
+
+/** Adresa obrázku balíku pro Zabaleno.astro — undefined, když takový balík mezi soubory není */
+export async function adresaBaliku(tvar: string, seme: number) {
+  const jmeno = jmenoBaliku(tvar, seme);
+  const obsah = (await kresby()).get(jmeno);
+  return obsah ? adresa(jmeno, obsah) : undefined;
+}
 
 const otisk = (s: string) => createHash("sha1").update(s).digest("hex").slice(0, 10);
 const adresa = (jmeno: string, obsah: string) => `/kresby/${jmeno}.svg?v=${otisk(obsah)}`;

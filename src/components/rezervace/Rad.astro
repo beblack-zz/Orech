@@ -5,7 +5,7 @@
  *
  *   hodina a půl   vybraný je běžný den (úterý, pátek). Papírová cedule
  *                  stanice se zelenou hlavičkou: dva vozy a co se dá dělat.
- *   permanentka    na jízdence je spoj permanentky. Červená průkazka
+ *   permanentka    v pokladně je zaškrtnutá permanentka. Červená průkazka
  *                  s jemným podtiskem a kulatým razítkem platnosti.
  *   zvláštní vlak  vybraný je kurz. Noční modrá se zlatem jako salon vlaku:
  *                  nahoře obraz vlaku na moři za svítání, pod ním přímo ten
@@ -27,7 +27,7 @@
  * místo, které se dá koupit) a pod ním to hlavní: tři volby, které na sebe
  * nenavazují, nebo týdny, na které permanentka platí.
  */
-import { rezervace, kurzy, permanentka, odjezdyDne, spojeDne, spojeSlovy, hhmm, jizdne, rozpetiJizdneho, cenaPermanentky, jizdPermanentky, detskaSlovy } from "../../data/rezervace";
+import { rezervace, kurzy, permanentka, odjezdyDne, hhmm, jizdne, rozpetiJizdneho, cenaPermanentky, jizdPermanentky, detskaSlovy } from "../../data/rezervace";
 import { cinnosti, vCene } from "../../data/dilna";
 import { sklonuj } from "../../data/pocty";
 import { vlak, zvlastniVlak, oknaSalonu, VUZ, MEZERA, SEDADLA, VYSKA, VYSKA_ZVLASTNIHO } from "./vlak";
@@ -66,8 +66,7 @@ const xVozu = (i: number) => i * (VUZ + MEZERA);
 const xSedadla = (i: number, s: number) => (i % 2 ? xVozu(i) + VUZ - SEDADLA[s] : xVozu(i) + SEDADLA[s]);
 
 /* Obrázky kreslí první den v týdnu */
-const naPermanentku = new Set(spojeDne(rezervace.dny[0]).map((s) => s.h));
-const hodinove = odjezdyDne(rezervace.dny[0]).filter((h) => !naPermanentku.has(h));
+const hodinove = odjezdyDne(rezervace.dny[0]);
 const volby = cinnosti.map((c) => c.nazev.toLowerCase());
 
 /* Odjezd (hodina a půl): dva vozy, dva odjezdy, pod každým tečka za každé místo. Na prvním sedíte vy dva
@@ -132,11 +131,13 @@ const kresbaKurzu = (K: KurzVlak) => {
   );
 };
 
-/* Permanentka: ranní a večerní spoj, pod okny s místy tři tečky; pod tím týdny, na které platí */
+/* Permanentka: tatáž hodina dva týdny po sobě — pod okny tečky za místa, kolem sedí pokaždé někdo jiný;
+   pod tím týdny, na které platí */
 const KAZDY = ["každou neděli", "každé pondělí", "každé úterý", "každou středu", "každý čtvrtek", "každý pátek", "každou sobotu"];
 const mesice = sklonuj(permanentka.mesicu, "měsíc", "měsíce", "měsíců");
-const pasSedadla = [2, 3, 4, 1, 5, 0].slice(0, permanentka.mist).sort((a, b) => a - b);
-const pVozy = spojeDne(rezervace.dny[0]).slice(0, 2).map((s, i) => ({ ...s, obsazeno: Math.min(Math.max(0, permanentka.mist - 1), i + 1) }));
+const pasSedadla = [2, 3, 4, 1, 5, 0].slice(0, rezervace.mist).sort((a, b) => a - b);
+const hodinaPasu = hodinove[1] ?? hodinove[0] ?? rezervace.od;
+const pVozy = ["1. týden", "2. týden"].map((nazev, i) => ({ h: hodinaPasu, nazev, obsazeno: Math.min(Math.max(0, rezervace.mist - 1), i + 1) }));
 const TYDNU = Math.round((permanentka.mesicu * 52) / 12);
 const Y_TYDNY = POD + 46;
 const tydny = (() => {
@@ -181,7 +182,7 @@ const spolu = (a: string[], spojka = "a") => (a.length > 1 ? `${a.slice(0, -1).j
 
 const kdyJede = spolu(rezervace.dny.map((d) => V_DEN[d]));
 const skupina = V_POCTU[rezervace.maxOsob] ?? `v ${rezervace.maxOsob}`;
-const spolusedici = S_DALSIMI[permanentka.mist - 1] ?? `s ${permanentka.mist - 1} dalšími`;
+const spolusedici = S_DALSIMI[rezervace.mist - 1] ?? `s ${rezervace.mist - 1} dalšími`;
 
 interface Druh {
   id: "hodina" | "kurz" | "pas";
@@ -275,9 +276,9 @@ const pas: Druh = {
   heslo: `Tvoje hodina v dílně každý týden, na ${mesice}.`,
   fakta: [
     { co: "co děláš", html: `<b>totéž co na běžné hodině</b> — tvoříš po svém, jen pravidelně` },
-    { co: "kdy", html: `první nebo poslední hodina dne (${spojeSlovy()}), jeden den v týdnu — třeba ${KAZDY[rezervace.dny[0]]} v ${cas(spojeDne(rezervace.dny[0])[0].h)}` },
+    { co: "kdy", html: `kterákoli hodina, kde je místo, každý týden stejná — třeba ${KAZDY[rezervace.dny[0]]} v ${cas(hodinaPasu)}` },
     { co: "platí", html: `${mesice} od první hodiny` },
-    { co: "s kým", html: `máš jedno místo; hodina má ${sklonuj(permanentka.mist, "místo", "místa", "míst")}, dílnu tak sdílíš nejvýš ${spolusedici}` },
+    { co: "s kým", html: `máš jedno místo; hodina má ${sklonuj(rezervace.mist, "místo", "místa", "míst")}, dílnu tak sdílíš nejvýš ${spolusedici}` },
   ],
   cena: kc(cenaPermanentky()),
   zaCo: `za člověka na ${mesice} — ${jizdPermanentky} týdnů po ${kc(permanentka.cenaJizdy)} Kč, týdny, kdy hodina odpadne, se neplatí`,

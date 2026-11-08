@@ -1,0 +1,60 @@
+---
+/**
+ * Pracovní stránka pro obrázky krámku — /kresby/kramek?vrstva=vzadu&sezona=podzim.
+ *
+ * Ukáže jednu noční vrstvu krámku (kresba/nocni.ts) v plné velikosti
+ * světa, 3200 × 2000 px, na průhledném pozadí, s písmy a styly Obchodu.
+ * Skript `node scripts/kramek-noc.mjs` z ní headless Edgem udělá
+ * obrázky do public/kramek/. Na webu se nikam neodkazuje.
+ *
+ * Japonské znaky bere ze souboru Obchodu (Hlava → pismo="obchod"). Kdyby
+ * se podmnožiny písma Yuji Syuku dělaly znovu bez kresby krámku ve
+ * stránce Obchodu, nápisy v obrázcích by přišly o znaky.
+ */
+import Hlava from "../../components/Hlava.astro";
+import "../../styles/postavicky.css";
+import "../../styles/parta2.css";
+import "../../styles/obchod2.css";
+import "../../styles/kramek.css";
+import { nocniKramek } from "../../components/obchod2/kresba/nocni";
+import { SVET } from "../../components/obchod2/kresba/zaklad";
+
+const N = nocniKramek();
+const { w: W, h: H } = SVET;
+---
+<!doctype html>
+<html lang="cs">
+  <head>
+    <Hlava titulek="Krámek — obrázky" popis="Pracovní stránka pro obrázky krámku." noindex pismo="obchod" />
+    <style is:global>
+      html, body { margin: 0; padding: 0; background: transparent !important; overflow: hidden; }
+      body::before, body::after, astro-dev-toolbar { display: none !important; }
+      .kx { position: relative; width: 3200px; height: 2000px; }
+      .kx .krm-svet { position: absolute; inset: 0; transform: none !important; opacity: 1 !important; }
+      .kx .krm-svet::before { display: none; }
+      .kx [data-obraz] { display: none; }
+      .kx[data-vrstva="vzadu"] [data-obraz="vzadu"],
+      .kx[data-vrstva="vpredu"] [data-obraz="vpredu"] { display: block; }
+      /* v obrázku stojí všechno v klidu */
+      .kx *, .kx *::before, .kx *::after { animation: none !important; transition: none !important; }
+    </style>
+  </head>
+  <body class="p2 o2" data-stranka="kresby-kramek">
+    <div class="kx krm-scena je-noc" data-otisk={N.otisk} data-vrstva="vzadu" data-sezona="podzim" style="--tma:1;--zavreno:0;--noren:0">
+      <div class="krm-svet" style={`width:${W}px;height:${H}px`}>
+        <svg class="krm-vrstva krm-noc" data-obraz="vzadu" viewBox={`0 0 ${W} ${H}`} set:html={N.vzadu} />
+        <svg class="krm-vrstva krm-noc" data-obraz="vpredu" viewBox={`0 0 ${W} ${H}`} set:html={N.vpredu} />
+      </div>
+    </div>
+    <script is:inline>
+      (function () {
+        var q = new URLSearchParams(location.search);
+        var kx = document.querySelector(".kx");
+        if (q.get("vrstva")) kx.dataset.vrstva = q.get("vrstva");
+        if (q.get("sezona")) kx.dataset.sezona = q.get("sezona");
+        /* skript ví, že je hotovo, až jsou načtená písma */
+        document.fonts.ready.then(function () { document.title = "hotovo"; });
+      })();
+    </script>
+  </body>
+</html>

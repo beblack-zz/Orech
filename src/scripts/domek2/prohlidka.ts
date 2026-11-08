@@ -167,21 +167,34 @@ export function prohlidka() {
   };
   document.addEventListener("keydown", naKlavesy);
 
-  /* Prstem po kartě do strany: dost daleko a víc do strany než nahoru */
+  /* Prstem do strany po kartě i po obrázku dílny (od 8. 11. 2026 hlavní ovládání na telefonu):
+     dost daleko a víc do strany než nahoru. Tah, který začal na věci v kresbě, ji nespustí. */
   const kartyEl = sekce.querySelector<HTMLElement>(".prohlidka-karty")!;
+  const scenaEl = sekce.querySelector<HTMLElement>(".prohlidka-scena");
   let tah: { x: number; y: number; id: number } | null = null;
-  kartyEl.addEventListener("pointerdown", (e) => {
-    if (e.pointerType !== "mouse") tah = { x: e.clientX, y: e.clientY, id: e.pointerId };
-  });
-  kartyEl.addEventListener("pointerup", (e) => {
-    if (!tah || tah.id !== e.pointerId) return;
-    const dx = e.clientX - tah.x;
-    const dy = e.clientY - tah.y;
-    tah = null;
-    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
-    stanice(aktivni + (dx < 0 ? 1 : -1));
-  });
-  kartyEl.addEventListener("pointercancel", () => (tah = null));
+  let poTahu = 0;
+  for (const el of [kartyEl, scenaEl]) {
+    if (!el) continue;
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse") tah = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    });
+    el.addEventListener("pointerup", (e) => {
+      if (!tah || tah.id !== e.pointerId) return;
+      const dx = e.clientX - tah.x;
+      const dy = e.clientY - tah.y;
+      tah = null;
+      if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+      poTahu = performance.now();
+      stanice(omez(aktivni + (dx < 0 ? 1 : -1), 0, n - 1));
+    });
+    el.addEventListener("pointercancel", () => (tah = null));
+    el.addEventListener("click", (e) => {
+      if (performance.now() - poTahu < 400) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  }
 
   priMereni(() => {
     k.zmer();

@@ -6,22 +6,26 @@
  * ukazuje až tabule u každého odjezdu. Děti se tu neklikají: dětská
  * jízdenka se spočítá na místě, kde se i platí.
  *
- * Dny kreslí skript (scripts/rezervace/hlavni.ts), protože záleží na
- * dnešku — každý den je lepenková jízdenka jako ze staré pokladny
- * (japonsky kōken): úterky modré, pátky zlaté, s ochranným podtiskem.
- * Vybraný den průvodčí cvakne — do jízdenky se vystřihne ořech.
+ * Den kreslí skript (scripts/rezervace/hlavni.ts), protože záleží na
+ * dnešku: vybraný den je lepenková jízdenka jako ze staré pokladny
+ * (japonsky kōken) — úterky modré, pátky zlaté, s ochranným podtiskem;
+ * průvodčí ji cvakne a vystřihne do ní ořech. Vedle je kalendář po
+ * týdnech, kde se ťukne na jiný den (od 8. 11. 2026; předtím byly pod
+ * sebou jízdenky všech dní).
  *
- * Pod dny je přepážka s permanentkami (teikiken — v Japonsku se
- * kupují přesně takhle, na měsíc, tři nebo šest): ranní a večerní spoj,
- * na každém pár míst. Permanentka je na jeden den v týdnu, a to na ten,
- * který je vybraný o krok výš — vybrané úterý znamená každé úterý; skript
- * to dopisuje do nadpisu. Tatáž místa jsou vidět na tabuli v prvním
- * a posledním řádku; kde se klikne, je jedno.
+ * Pod dnem se dá zaškrtnout permanentka (teikiken — v Japonsku se
+ * kupují přesně takhle, na měsíc, tři nebo šest): hodiny, které se pak
+ * vyberou na tabuli, se budou tři měsíce každý týden opakovat — vybrané
+ * úterý znamená každé úterý; skript to dopisuje do nadpisu. Hodina může
+ * být kterákoli, kde je ten den místo; týdny, kdy je plná, se vynechají
+ * a neplatí (do 8. 11. 2026 jen první a poslední hodina dne a měla
+ * vlastní přepážku).
  *
- * Třetí je přepážka zvláštních vlaků: kurzy na celý den, které jezdí
- * v sobotu. Vypsané bývají nejvýš dva, každý má tmavou kartu se zlatou
- * linkou, jménem, dnem a sedadly. Karta vybere jeho den — tabule vedle
- * ukáže trať a nastupuje se na ní. Mezi dny v kroku 02 soboty nejsou;
+ * Třetí je přepážka zvláštního vlaku: nejbližší kurz na celý den, který
+ * jezdí v sobotu — tmavá karta se zlatou linkou, jménem, dnem a sedadly,
+ * vedle ní co se na kurzu dělá a pod tím zaškrtávátko „Nastoupit“. Karta
+ * vybere jeho den (tabule ukáže trať), zaškrtnutí rovnou nastoupí
+ * (do 8. 11. 2026 tu byly dva vlaky a nastupovalo se jen na tabuli). Mezi dny v kroku 02 soboty nejsou;
  * tmavou jízdenku tam má jen kurz, který by vyjel v úterý nebo v pátek
  * (výluka).
  *
@@ -32,12 +36,11 @@
  * nahoře na první obrazovce (Nadrazi.astro). Pod volbou „kolik vás
  * pojede“ je štítek dětské jízdenky — sleva se počítá až na místě.
  */
-import { rezervace, permanentka, kurzy, hhmm, jizdne, cenaZaCloveka, cenaPermanentky, jizdPermanentky, spojeDne } from "../../data/rezervace";
+import { rezervace, permanentka, kurzy, jizdne, cenaZaCloveka } from "../../data/rezervace";
 
 /** Postavičky do volby „kolik vás pojede“ — každá další je o kousek menší */
 const lide = Array.from({ length: rezervace.maxOsob }, (_, i) => i + 1);
 const barvy = ["#9C7860", "#D79A94", "#93B39B", "#E8B440"];
-const mistaPermanentky = Array.from({ length: permanentka.mist }, (_, i) => i);
 const kc = (n: number) => n.toLocaleString("cs-CZ");
 const DNY = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
 const V_DEN = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvrtek", "v pátek", "v sobotu"];
@@ -81,44 +84,36 @@ const cenyKurzu = cenyKurzuCisla.map((c) => c.toLocaleString("cs-CZ")).filter((_
   </div>
 
   <div class="rz-krok">
-    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>02</span> Den <small>úterky a pátky na měsíc dopředu</small></h3>
-    <div class="rz-dny" role="group" aria-label="Dny, na které se dá rezervovat"></div>
-  </div>
-
-  <div class="rz-krok rz-pas">
-    <h3 class="rz-otazka">
-      <span class="rz-pas-znak" aria-hidden="true">{permanentka.mesicu} měsíce</span> Permanentka <span class="rz-pas-den" aria-live="polite"></span>
-      <small>na {permanentka.mesicu} měsíce a na jeden den v týdnu — na ten, který máš vybraný. Pokaždé stejná hodina, první nebo poslední toho dne; na každé jsou {permanentka.mist} místa.</small>
-    </h3>
-    <div class="rz-pasy" role="group" aria-label="Permanentka — na který spoj">
-      {spojeDne(rezervace.dny[0]).map((s, i) => (
-        <button type="button" class="rz-pas-volba" data-pas={s.h} data-spoj={i} aria-pressed="false" disabled>
-          <span class="rz-pas-hlava">{s.nazev} hodina</span>
-          <b class="rz-pas-cas">{hhmm(s.h)}–{hhmm(s.h + rezervace.blok)}</b>
-          <span class="rz-pas-mista" aria-hidden="true">
-            {mistaPermanentky.map(() => <svg class="rz-sedacka pas" viewBox="0 0 16 18"><use href="#rz-sedacka" /></svg>)}
-          </span>
-          <span class="rz-pas-volno"></span>
-          <span class="rz-pas-doba" aria-hidden="true"><b>{permanentka.mesicu}</b><span>měs.</span></span>
-        </button>
-      ))}
-    </div>
-    <p class="rz-pas-pozn">
-      {kc(permanentka.cenaJizdy)}&nbsp;Kč za každý týden — za {permanentka.mesicu} měsíce obvykle {jizdPermanentky} týdnů, tedy {kc(cenaPermanentky())}&nbsp;Kč za člověka a jednu hodinu v týdnu.
-      <span class="rz-pas-stav" aria-live="polite"></span>
-    </p>
+    <h3 class="rz-otazka"><span class="rz-stanice" aria-hidden="true"><small>OŘ</small>02</span> Den <small>úterky a pátky na měsíc dopředu — jiný vybereš v kalendáři</small></h3>
+    <div class="rz-dny" role="group" aria-label="Den, na který se rezervuje"></div>
+    {/* Permanentka: vybrané hodiny se budou každý týden opakovat. Den v týdnu, platnost a cenu dopisuje skript. */}
+    <label class="rz-pas">
+      <input type="checkbox" name="permanentka" />
+      <span class="rz-pas-ctverec" aria-hidden="true"></span>
+      <span class="rz-pas-text">
+        <b>Permanentka <span class="rz-pas-den"></span></b>
+        <small>vybrané hodiny budeš mít každý týden {permanentka.mesicu} měsíce — kteroukoli hodinu, kde je místo, za {kc(permanentka.cenaJizdy)}&nbsp;Kč za člověka a týden</small>
+        <span class="rz-pas-stav" aria-live="polite"></span>
+      </span>
+      <span class="rz-pas-doba" aria-hidden="true"><b>{permanentka.mesicu}</b><span>měs.</span></span>
+    </label>
   </div>
 
   <div class="rz-krok rz-zvlastni">
     <h3 class="rz-otazka">
       <span class="rz-zvlastni-znak" aria-hidden="true">{DNY[rezervace.denKurzu]}</span> Zvláštní vlak
-      <small>kurz na celý den s lektorem a programem — jezdí {V_DEN[rezervace.denKurzu]} a místa se v něm plní po jednom. Vyber vlak a tabule ukáže jeho trať; nastupuje se tam.</small>
+      <small>kurz na celý den s lektorem a programem — jezdí {V_DEN[rezervace.denKurzu]}, místa se plní po jednom</small>
     </h3>
-    {/* Karty vlaků kreslí skript — který kurz jede kdy, záleží na dnešku */}
-    <div class="rz-zvlastni-vlaky" role="group" aria-label="Zvláštní vlaky — kurzy na celý den"></div>
-    <p class="rz-zvlastni-pozn">
-      {cenyKurzu}&nbsp;Kč za člověka a celý den.
-      <span class="rz-zvlastni-stav" aria-live="polite"></span>
-    </p>
+    {/* Kartu nejbližšího vlaku a text vedle kreslí skript — který kurz jede kdy, záleží na dnešku */}
+    <div class="rz-zvlastni-vlaky" role="group" aria-label="Zvláštní vlak — kurz na celý den"></div>
+    <label class="rz-pas rz-pas-kurz" hidden>
+      <input type="checkbox" name="kurz" />
+      <span class="rz-pas-ctverec" aria-hidden="true"></span>
+      <span class="rz-pas-text">
+        <b>Nastoupit do vlaku</b>
+        <small class="rz-zvlastni-cena">{cenyKurzu}&nbsp;Kč za člověka a celý den</small>
+        <span class="rz-zvlastni-stav" aria-live="polite"></span>
+      </span>
+    </label>
   </div>
 </div>
