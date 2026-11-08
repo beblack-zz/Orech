@@ -60,7 +60,7 @@ const misto = (x: number, y: number, w: number) => `left:${px(x - w / 2)}%;top:$
 
   <div class="zk-stavba">
     <Fragment set:html={stavbaSvg()} />
-    <Noren href="#deska" barvy="logo" class="zk-noren" style={noren} />
+    <Noren href="#deska" class="zk-noren" style={noren} />
     {/* Provaz s lístkem 二 — spadne, až je kami dost */}
     <svg class="zk-provaz" viewBox="0 0 400 120" aria-hidden="true" style={provaz}>
       <path d="M-6 26 C110 78 290 78 406 26" stroke="#8A6A48" stroke-width="11" fill="none" stroke-linecap="round" />

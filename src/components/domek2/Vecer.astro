@@ -35,7 +35,7 @@ const pruvod: PostavaId[] = ["vazicka", "kapka", "pecinka", "hlinka", "stripek",
     <div class="pruvod" role="group" aria-label="Večerní průvod s lucerničkami — klikni na kohokoli">
       {pruvod.map((id, i) => (
         <div class="pruvod-clen" style={`--i:${i}`}>
-          <Lucernicka />
+          <Lucernicka vzor={i % 2 === 0 ? "plamen" : "ornament"} />
           <Kami id={id} class="pruvod-kami" />
         </div>
       ))}
