@@ -1142,7 +1142,30 @@
 .rz-pas-doba span { font-size: 9.5px; letter-spacing: 0.02em; }
 
 /* Přepážka zvláštních vlaků: nejvýš dvě tmavé karty se zlatou linkou, jako salon vlaku */
-.rz-krok.rz-zvlastni { margin-top: 24px; padding-top: 20px; border-top: 1px dashed rgba(43, 36, 32, 0.22); }
+/* Celá přepážka je v barvách salonu zvláštního vlaku: noční modrá, zlatá linka a krémové písmo */
+.rz-krok.rz-zvlastni {
+  margin-top: 24px;
+  padding: 18px 16px 18px;
+  border-radius: 14px;
+  color: #FFF7E6;
+  background:
+    repeating-linear-gradient(115deg, rgba(224, 176, 74, 0.08) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(65deg, rgba(224, 176, 74, 0.05) 0 1px, transparent 1px 5px),
+    linear-gradient(var(--zvl), var(--zvl-2));
+  box-shadow: inset 0 0 0 1.5px rgba(224, 176, 74, 0.6), 0 14px 26px -18px rgba(8, 10, 30, 0.8);
+}
+.rz-zvlastni .rz-otazka { color: #FFF7E6; }
+.rz-zvlastni .rz-otazka small { color: rgba(255, 247, 230, 0.72); }
+.rz-zvlastni .rz-zvlastni-znak { background: var(--zvl-zlato); color: var(--zvl-2); }
+.rz-zvlastni .rz-zvlastni-popis { color: rgba(255, 247, 230, 0.92); }
+.rz-zvlastni .rz-zvlastni-udaje { color: rgba(255, 247, 230, 0.64); }
+/* Karta nejbližšího vlaku je o stupínek světlejší než panel, ať se od něj odlepí */
+.rz .rz-zvlastni .rz-zvlastni-volba {
+  background:
+    repeating-linear-gradient(115deg, rgba(224, 176, 74, 0.1) 0 1px, transparent 1px 5px),
+    linear-gradient(#343A78, #262B5C);
+  box-shadow: 0 8px 16px -10px rgba(4, 6, 24, 0.8), inset 0 0 0 1.5px rgba(224, 176, 74, 0.75);
+}
 .rz-zvlastni-znak {
   padding: 2px 7px 3px;
   border-radius: 5px;
@@ -1169,6 +1192,14 @@
     #E6E6F0;
   box-shadow: 0 1px 0 rgba(43, 36, 32, 0.12), 0 8px 16px -12px rgba(28, 20, 44, 0.55), inset 0 0 0 1.5px rgba(38, 43, 94, 0.35);
 }
+/* Zaškrtávátko na modrém panelu: zlatokrémový lístek se zlatým lemem */
+.rz-zvlastni .rz-pas.rz-pas-kurz {
+  background:
+    repeating-linear-gradient(0deg, rgba(224, 176, 74, 0.14) 0 1px, transparent 1px 6px),
+    #F6E8C3;
+  box-shadow: 0 8px 16px -10px rgba(4, 6, 24, 0.8), inset 0 0 0 1.5px rgba(224, 176, 74, 0.9);
+}
+.rz-zvlastni .rz-pas.rz-pas-kurz:has(input:checked) { box-shadow: 0 0 0 2.5px var(--zvl-zlato), 0 16px 26px -14px rgba(4, 6, 24, 0.8); }
 .rz-pas-kurz .rz-pas-ctverec { border-color: #262B5E; }
 .rz-pas-kurz input:checked + .rz-pas-ctverec { background: #262B5E; border-color: #262B5E; }
 .rz-pas-kurz[hidden] { display: none; }
