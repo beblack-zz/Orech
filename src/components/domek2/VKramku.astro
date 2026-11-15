@@ -1,0 +1,57 @@
+---
+/**
+ * Krámek na úvodu (od 15. 11. místo prohlídky) jako rozbitý talíř:
+ * velký mělký talíř praskl na čtyři střepy a ty se kousek rozletěly.
+ * Na největším je text, na ostatních výřez nočního krámku z /obchod,
+ * Futatsu a miska Hagi z Japonska (kresba/strepy.ts). Na textovém
+ * střepu leží HTML natočené stejně jako střep; u produktů visí cenovky.
+ * Střepy s obrázky jsou odkazy a po najetí se nadzvednou.
+ *
+ * Krámek je fotka živé scény z /obchod i s lampiony a zbožím
+ * (src/images/kramek-uvod.webp, vyrábí ji scripts/kramek-uvod-foto.mjs —
+ * po změně krámku pustit znovu). Fotky jdou přes getImage (webp, menší).
+ * Na telefonu je text nad talířem, ne na něm.
+ */
+import { getImage } from "astro:assets";
+import kramekFoto from "../../images/kramek-uvod.webp";
+import { produkty } from "../../data/obchod";
+import { zdaleka } from "../../data/zdaleka";
+import { strepy, rozvrzeni, STREPY } from "./kresba/strepy";
+import type { Sezona } from "../../data/uvod2";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+const futatsu = produkty.find((p) => p.podpis)!;
+const hagi = zdaleka.find((k) => k.name === "Hagi")!;
+const fotoFutatsu = await getImage({ src: futatsu.fotky![0].src, width: 640, format: "webp" });
+const fotoHagi = await getImage({ src: hagi.src, width: 760, format: "webp" });
+const fotoKramek = await getImage({ src: kramekFoto, width: 1500, format: "webp", quality: 80 });
+
+const kresba = strepy("uk", { kramek: fotoKramek.src, futatsu: fotoFutatsu.src, hagi: fotoHagi.src });
+const r = rozvrzeni();
+const t = r.text;
+---
+<section class="uo uo-kramek" id="kramek" data-hodina="19.4" data-sezona={sezona} aria-labelledby="uo-kramek-nadpis">
+  <div class="uk-talir">
+    <div class="uk-text" style={`--l:${t.left}%;--t:${t.top}%;--w:${t.width}%;--h:${t.height}%;--r:${t.r}deg;--o:${t.ox}% ${t.oy}%`}>
+      <p class="stitek"><span lang="ja">うつわ屋</span> · krámek</p>
+      <h2 id="uo-kramek-nadpis" class="uk-nadpis">Ne všechno přežije pec. <em>Co ano, je v krámku.</em></h2>
+      <p class="uk-perex">Misky, hrnky a vázy z naší dílny a vedle nich pár kusů z japonských pecí — Hagi, Shigaraki, Banko.</p>
+      <a class="tlacitko uk-tlacitko" href="/obchod">Do krámku</a>
+    </div>
+
+    <div class="uk-plocha">
+      <svg class="uk-kresba" viewBox={`0 0 ${STREPY.w} ${STREPY.h}`} role="group" aria-label="Rozbitý talíř: na střepech noční krámek, hrnek Futatsu a miska Hagi" set:html={kresba} />
+
+      <a class="uk-cenovka" href={futatsu.podpis} style={`left:${r.futatsu.left}%;top:${r.futatsu.top}%;--r:${r.futatsu.r - 3}deg`}>
+      <span lang="ja">二つ</span><b>{futatsu.name}</b><i>{futatsu.price}</i>
+      </a>
+      <a class="uk-cenovka uk-cenovka-hagi" href="/obchod" style={`left:${r.hagi.left}%;top:${r.hagi.top}%;--r:${r.hagi.r + 4}deg`}>
+      <span lang="ja">萩</span><b>{hagi.name}</b><i>{hagi.price}</i>
+      </a>
+    </div>
+  </div>
+</section>

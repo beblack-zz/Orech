@@ -1,0 +1,323 @@
+/*
+ * ——— Úvod: tři ochutnávky místo prohlídky (od 15. 11.) ———
+ * Fotky dílny na provázku, výřez nočního krámku s Futatsu a KAMI parta
+ * na prkně (components/domek2/Fotky, VKramku, Parta). Každá je nejvýš
+ * na jednu obrazovku, nadpis na papíru, ať je čitelný při každé hodině
+ * oblohy. Předpona uo-.
+ */
+.uo {
+  position: relative;
+  z-index: 2;
+  padding: clamp(64px, 12vh, 140px) clamp(16px, 4vw, 56px);
+}
+.uo .papir { box-shadow: 0 18px 40px -22px rgba(43, 36, 32, 0.45); }
+.uo-hlava {
+  width: min(640px, 100%);
+  margin: 0 auto;
+  text-align: center;
+  padding: clamp(22px, 3vw, 38px) clamp(22px, 3.4vw, 44px);
+}
+.uo-nadpis {
+  margin: 12px 0 14px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: clamp(32px, min(3.6vw, 6.4vh), 60px);
+  line-height: 1;
+  color: var(--inkoust);
+}
+.uo-nadpis em { display: block; color: #A9321D; font-weight: 300; }
+.uo-perex { margin: 0 auto; max-width: 46ch; font-size: clamp(15.5px, 1.15vw, 18px); line-height: 1.55; color: var(--inkoust-2); }
+.uo-perex b { color: var(--rumelka); font-weight: 600; }
+.uo-akce { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: clamp(22px, 4vh, 40px); }
+
+/* ——— Fotky na provázku ——— */
+.uo-provazek { position: relative; width: min(1320px, 100%); margin: clamp(26px, 5vh, 54px) auto 0; }
+.uo-provazek-car { position: absolute; left: 0; top: 0; width: 100%; height: 60px; overflow: visible; }
+.uo-provazek-car path { fill: none; stroke: #8A6A4A; stroke-width: 2.4; vector-effect: non-scaling-stroke; }
+.uo-fotky-rada {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(10px, 1.6vw, 26px);
+  margin: 0;
+  padding: 0 clamp(6px, 2vw, 30px);
+  list-style: none;
+}
+/* Kolíček sedí na provázku — prostřední fotky visí níž, jak se provázek prověsí */
+.uo-foto {
+  --pokles: calc((2 - (var(--i) - 2) * (var(--i) - 2) / 2) * 13px);
+  position: relative;
+  padding-top: calc(var(--pokles) + 14px);
+  transform-origin: 50% 0;
+}
+.uo-foto figure {
+  margin: 0;
+  padding: 9px 9px 0;
+  background: #FFFDF8;
+  border-radius: 3px;
+  box-shadow: 0 14px 26px -14px rgba(43, 36, 32, 0.55), 0 2px 4px rgba(43, 36, 32, 0.12);
+  transform: rotate(var(--r));
+  transform-origin: 50% 0;
+  animation: uo-houpani 6.5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -1.3s);
+  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.uo-foto:hover figure { animation: none; transform: rotate(0deg) scale(1.04); }
+.uo-foto img { display: block; width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; border-radius: 1px; }
+.uo-foto figcaption { padding: 7px 2px 9px; font-family: var(--f-ruka); font-size: clamp(16px, 1.25vw, 20px); line-height: 1.1; text-align: center; color: var(--inkoust); }
+.uo-kolicek {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: calc(var(--pokles) - 4px);
+  width: 12px;
+  height: 30px;
+  margin-left: -6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #D9B98C 0 45%, #B8925E 45% 55%, #D9B98C 55%);
+  box-shadow: 0 2px 3px rgba(43, 36, 32, 0.3);
+}
+@keyframes uo-houpani {
+  0%, 100% { transform: rotate(var(--r)); }
+  50% { transform: rotate(calc(var(--r) * -0.4)); }
+}
+
+/* ——— Krámek: rozbitý talíř ———
+ * Plocha má poměr kresby (1400 × 800) a je kontejner, takže text na
+ * střepu i cenovky rostou s ní (cqw). Na široké ploše leží text na
+ * textovém střepu natočený jako on (--l/--t/--w/--h/--r/--o
+ * z kresba/strepy.ts); na úzké je nad talířem a střep nese jen znak 器. */
+.uk-talir { position: relative; width: min(1400px, 100%); margin: 0 auto; container: talir / inline-size; }
+.uk-plocha { position: relative; aspect-ratio: 1400 / 800; }
+.uk-kresba { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* Střep může být odsunutý a pootočený (--dx/--dy/--r kolem těžiště; kusy obrázků mají 0, textový střep je natočený);
+   obrázky jsou rozbité maskou, viz .uk-prvek níž */
+.uk-kus {
+  transform-box: view-box;
+  transform: translate(var(--dx), var(--dy)) rotate(var(--r));
+  transition: transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+.uk-kresba a { outline: none; cursor: pointer; }
+/* Rozbitý obrázek je jedna skupina s maskou (praskliny vyříznuté); po najetí se nadzvedne celý */
+.uk-prvek { transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.uk-kresba a:hover .uk-prvek, .uk-kresba a:focus-visible .uk-prvek { transform: translateY(-8px); }
+.uk-kresba a:focus-visible .uk-prvek { filter: drop-shadow(0 0 6px rgba(255, 226, 166, 0.9)); }
+.uk-drobek { animation: uk-drobek 7s ease-in-out infinite; animation-delay: calc(var(--i) * -1.7s); }
+@keyframes uk-drobek { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+
+.uk-text { position: relative; z-index: 2; margin: 0 0 18px; color: #FFF6E6; }
+.uk-text .stitek { display: inline-block; padding: 5px 12px 4px; border-radius: 999px; background: rgba(255, 246, 230, 0.14); color: #FFD9B0; }
+.uk-nadpis {
+  margin: 12px 0 12px;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  font-weight: 400;
+  font-size: clamp(30px, 8vw, 44px);
+  line-height: 1;
+  text-shadow: 0 2px 16px rgba(30, 18, 50, 0.5);
+}
+.uk-nadpis em { display: block; color: #FFB27A; font-weight: 300; }
+.uk-perex { margin: 0 0 18px; max-width: 42ch; font-size: 16px; line-height: 1.5; text-shadow: 0 1px 10px rgba(30, 18, 50, 0.6); }
+.uk-tlacitko { align-self: flex-start; }
+
+@container talir (min-width: 980px) {
+  .uk-text {
+    position: absolute;
+    left: var(--l);
+    top: var(--t);
+    width: var(--w);
+    height: var(--h);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: var(--inkoust);
+    transform: rotate(var(--r));
+    transform-origin: var(--o);
+  }
+  .uk-text .stitek { align-self: flex-start; padding: 0; background: none; color: var(--rumelka); }
+  .uk-nadpis { font-size: clamp(30px, 3.4cqw, 52px); text-shadow: none; }
+  .uk-nadpis em { color: #A9321D; }
+  .uk-perex { font-size: clamp(14px, 1.22cqw, 18px); color: var(--inkoust-2); text-shadow: none; }
+  .uk-znak { display: none; }
+}
+
+/* Cenovky u produktů: papírek s provázkem, natočený se střepem */
+.uk-cenovka {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  padding: 0.35em 0.8em 0.4em;
+  border-radius: 6px;
+  background: #FFFDF8;
+  font-family: var(--f-ruka);
+  font-size: clamp(14px, 1.45cqw, 21px);
+  line-height: 1;
+  color: var(--inkoust);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 10px 20px -10px rgba(30, 18, 50, 0.6);
+  transform: translate(-50%, -50%) rotate(var(--r));
+  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.uk-cenovka::before {
+  content: "";
+  position: absolute;
+  left: 0.55em;
+  top: 50%;
+  width: 0.36em;
+  height: 0.36em;
+  margin-top: -0.18em;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px #B08A4A;
+}
+.uk-cenovka { padding-left: 1.3em; }
+.uk-cenovka span { font-family: var(--f-kanji); font-size: 0.8em; color: var(--rumelka); }
+.uk-cenovka b { font-weight: 600; }
+.uk-cenovka i { font-style: normal; color: var(--inkoust-2); }
+.uk-cenovka:hover, .uk-cenovka:focus-visible { transform: translate(-50%, calc(-50% - 6px)) rotate(var(--r)); }
+
+/* ——— Parta: Pecinka proti Bublince, mezi nimi miska ———
+ * Text leží rovnou na soumraku (světlý se stínem), za každou postavou
+ * její světlo: teplé vlevo, studené vpravo, potkají se nad miskou. */
+.uo-parta { padding-bottom: clamp(56px, 10vh, 110px); overflow: clip; }
+.uo-parta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 34% 52% at 18% 58%, rgba(255, 140, 60, 0.30), transparent 70%),
+    radial-gradient(ellipse 34% 52% at 82% 58%, rgba(80, 210, 225, 0.26), transparent 70%);
+  pointer-events: none;
+}
+.uo-souboj {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 400px) 1fr;
+  align-items: end;
+  gap: clamp(8px, 2vw, 32px);
+  width: min(1440px, 100%);
+  margin: 0 auto;
+}
+.uo-strana { margin: 0; display: flex; flex-direction: column; align-items: center; }
+.uo-kresba { width: min(100%, clamp(250px, 30vw, 480px)); }
+.uo-strana-pecinka .uo-kresba { filter: drop-shadow(0 0 34px rgba(255, 120, 40, 0.35)); }
+/* Bublinčin noční lak by na soumraku zapadl — studený lem kolem */
+.uo-strana-bublinka .uo-kresba { filter: drop-shadow(0 0 30px rgba(110, 230, 240, 0.4)); }
+.uo-jmenovka {
+  margin-top: 6px;
+  font-family: var(--f-ruka);
+  font-size: clamp(18px, 1.4vw, 22px);
+  line-height: 1.1;
+  text-align: center;
+  color: rgba(255, 246, 230, 0.82);
+  text-shadow: 0 1px 10px rgba(30, 18, 50, 0.7);
+}
+.uo-jmenovka b {
+  display: block;
+  font-family: var(--f-display);
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 96;
+  font-weight: 500;
+  font-size: clamp(26px, 2.2vw, 36px);
+  color: #FFF6E6;
+}
+.uo-jmenovka span { margin-right: 6px; font-family: var(--f-kanji); font-size: 0.8em; }
+.uo-strana-pecinka .uo-jmenovka span { color: #FFB45A; }
+.uo-strana-bublinka .uo-jmenovka span { color: #8FE6EE; }
+
+.uo-stred { align-self: stretch; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: clamp(8px, 4vh, 48px); }
+.uo-parta .stitek { padding: 5px 12px 4px; border-radius: 999px; background: rgba(255, 246, 230, 0.12); color: #FFD9B0; }
+.uo-parta .uo-nadpis { color: #FFF6E6; text-shadow: 0 2px 18px rgba(30, 18, 50, 0.55); }
+.uo-parta .uo-nadpis em { color: #FFB27A; }
+.uo-parta .uo-perex { color: rgba(255, 246, 230, 0.88); text-shadow: 0 1px 10px rgba(30, 18, 50, 0.6); }
+
+/* Miska na plotně */
+.uo-miska { width: min(300px, 100%); margin-top: auto; padding-top: 18px; }
+.uo-miska svg { display: block; width: 100%; height: auto; overflow: visible; }
+.uo-miska.je-hotova { cursor: pointer; }
+.uo-miska-stav {
+  min-height: 2.6em;
+  margin: 6px 0 0;
+  font-family: var(--f-ruka);
+  font-size: clamp(18px, 1.35vw, 21px);
+  line-height: 1.2;
+  color: #FFF1DC;
+  text-shadow: 0 1px 10px rgba(30, 18, 50, 0.7);
+}
+.uom-vypalena, .uom-vnitrek { opacity: 0; transition: opacity 1.2s ease; }
+[data-pal="1"] .uom-vypalena, [data-pal="1"] .uom-vnitrek { opacity: 0.34; }
+[data-pal="2"] .uom-vypalena, [data-pal="2"] .uom-vnitrek { opacity: 0.68; }
+[data-pal="3"] .uom-vypalena, [data-pal="3"] .uom-vnitrek { opacity: 1; }
+.uom-jezirko, .uom-okraj { opacity: 0 !important; transition: opacity 1.2s ease 0.4s; }
+[data-pal="3"] .uom-jezirko { opacity: 0.8 !important; }
+[data-pal="3"] .uom-okraj { opacity: 0.7 !important; }
+.uom-zar, .uom-chlad, .uom-jiskry { opacity: 0; }
+.hori .uom-zar { animation: uo-zablesk 1.3s ease-out; }
+.fouka .uom-chlad { animation: uo-zablesk 1.1s ease-out; }
+@keyframes uo-zablesk { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
+.uom-bublina { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+.bubli .uom-bublina { animation: uo-bublina-ven 0.95s cubic-bezier(0.3, 0.6, 0.5, 1); }
+@keyframes uo-bublina-ven {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.2); }
+  20% { opacity: 1; }
+  80% { opacity: 1; transform: translate(-2px, -34px) scale(1.15); }
+  90% { opacity: 1; transform: translate(-2px, -38px) scale(1.6); }
+  100% { opacity: 0; transform: translate(-2px, -40px) scale(2.2); }
+}
+.bubli svg { animation: uo-trhnuti 0.35s ease-in-out 0.82s; }
+@keyframes uo-trhnuti { 0%, 100% { transform: none; } 25% { transform: translateX(-3px) rotate(-1deg); } 75% { transform: translateX(3px) rotate(1deg); } }
+.uom-praskl, .uom-zlato { stroke-dasharray: 70; stroke-dashoffset: 70; transition: stroke-dashoffset 0.5s ease-in; }
+[data-praskla="1"] .uom-praskl { stroke-dashoffset: 0; }
+.uom-zlato { opacity: 0; transition: stroke-dashoffset 1.1s ease, opacity 0.3s ease; }
+[data-zlato="1"] .uom-zlato { opacity: 1; stroke-dashoffset: 0; }
+.cinkla .uom-jiskry { animation: uo-cink 1.6s ease-out; }
+@keyframes uo-cink { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Pozvánka: za tlačítkem vykukuje dalších sedm */
+.uo-pozvanka { display: flex; flex-direction: column; align-items: center; margin-top: clamp(28px, 5vh, 56px); text-align: center; }
+.uo-vykukuji { display: flex; justify-content: center; gap: 2px; height: 34px; margin: 0 0 -2px; padding: 0; overflow: hidden; list-style: none; }
+.uo-vykukuji li {
+  width: 46px;
+  transform: translateY(42%);
+  transition: transform 0.4s cubic-bezier(0.3, 1.5, 0.5, 1);
+  transition-delay: calc(var(--i) * 40ms);
+}
+.uo-vykukuji svg { display: block; width: 100%; height: auto; }
+.uo-pozvanka:hover .uo-vykukuji li, .uo-pozvanka:focus-within .uo-vykukuji li { transform: translateY(14%); }
+.uo-pozvanka-tlacitko { position: relative; z-index: 1; background: #FFF6E6 !important; border-color: #FFF6E6 !important; color: var(--inkoust) !important; }
+.uo-pozvanka-text { margin: 12px 0 0; font-family: var(--f-ruka); font-size: 19px; color: rgba(255, 246, 230, 0.8); text-shadow: 0 1px 10px rgba(30, 18, 50, 0.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  .uo-foto figure, .uk-drobek { animation: none; }
+  .uk-kus { transition: none; }
+  .uo-vykukuji li { transition: none; }
+}
+
+/* ——— Telefon ——— */
+@media (max-width: 860px) {
+  .uo { padding: 72px 16px; }
+  .uo-hlava { text-align: left; }
+  .uo-perex { margin: 0; }
+  .uo-akce { justify-content: flex-start; }
+
+  .uo-provazek-car { display: none; }
+  .uo-fotky-rada { grid-template-columns: repeat(2, 1fr); gap: 18px 14px; padding: 0; }
+  .uo-foto { padding-top: 14px; }
+  .uo-foto:nth-child(5) { grid-column: 1 / -1; width: 56%; justify-self: center; }
+  .uo-kolicek { top: 0; }
+  .uo-foto figure { animation: none; }
+
+
+  .uo-souboj { grid-template-columns: 1fr 1fr; gap: 0 6px; align-items: start; }
+  .uo-stred { display: contents; }
+  .uo-parta .stitek, .uo-parta .uo-nadpis, .uo-parta .uo-perex { grid-column: 1 / -1; text-align: left; justify-self: start; }
+  .uo-strana { order: 1; margin-top: 18px; }
+  .uo-kresba { width: 100%; }
+  .uo-jmenovka { font-size: 15px; }
+  .uo-jmenovka span { display: block; margin: 0; }
+  .uo-miska { order: 2; grid-column: 1 / -1; justify-self: center; width: min(260px, 80%); margin-top: 8px; text-align: center; }
+  .uo-pozvanka { align-items: center; }
+}

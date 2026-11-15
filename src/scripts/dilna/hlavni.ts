@@ -10,6 +10,8 @@ import { initNebe } from "../parta2/nebe";
 import { initKami } from "../parta2/kami";
 import { hlavicka } from "../parta2/hlavicka";
 import { vypal } from "./vypal";
+import { prohlidka } from "../domek2/prohlidka";
+import { sezonaMesice } from "../../data/uvod2";
 import { pozdeji, nekreslitMimo } from "../parta2/pozdeji";
 
 /* Celé se to spustí při každé návštěvě stránky, i po přechodu bez načtení (prechody.ts) */
@@ -18,6 +20,10 @@ stranka("dilna", () => {
   initKami();
   initNebe();
   vypal();
+  /* Prohlídka dílny: roční období podle dneška, stránka je statická */
+  const p = document.querySelector<HTMLElement>("#prohlidka");
+  if (p) p.dataset.sezona = sezonaMesice(new Date().getMonth() + 1);
+  prohlidka();
   /* Kresby kapitol až cestou k nim — regál v úvodu je vidět hned — a co už
      bylo vidět, se mimo obrazovku znovu nevykresluje */
   pozdeji();

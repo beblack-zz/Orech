@@ -1,0 +1,59 @@
+---
+/**
+ * Fotky dílny na úvodu (od 15. 11. místo prohlídky, ta je na /dilna).
+ * Po ulici se sejde dolů a uvnitř už žádná kresba — jen fotky, jak to
+ * v dílně doopravdy vypadá. Visí na provázku na kolíčcích jako polaroidy
+ * z Prohlídky; provázek je SVG křivka, fotky se pomalu houpou.
+ * Na telefonu provázek zmizí a fotky jsou ve dvou sloupcích.
+ */
+import { Image } from "astro:assets";
+import foto6679 from "../../../images/Dilna/6679.jpg";
+import foto6677 from "../../../images/Dilna/6677.jpg";
+import foto6675 from "../../../images/Dilna/6675.jpg";
+import foto6669 from "../../../images/Dilna/6669.jpg";
+import fotoDilna from "../../../fotoorech/fotodilna.jpg";
+import type { Sezona } from "../../data/uvod2";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+/** Zleva doprava po provázku; `kde` je výřez fotky, `r` náklon */
+const fotky = [
+  { src: foto6669, alt: "Mladá převislá sakura na tyčce, za ní okna dílny pod balkonem a truhlíky s vřesem", popis: "Okna dílny od sakury", kde: "40% 60%", r: -4 },
+  { src: foto6679, alt: "Dílna zevnitř směrem k oknům: oválný stůl s modrými židlemi, za okny dlažba rampy", popis: "Od zadní stěny k oknům", kde: "50% 62%", r: 3 },
+  { src: fotoDilna, alt: "Kopací kruh s dřevěným setrvačníkem, za ním nerezová pec", popis: "Kopací kruh a pec", kde: "30% 70%", r: -2 },
+  { src: foto6677, alt: "Stěna s černými lištami a prkny z překližky, vpředu stůl s točnou a modré židle", popis: "Prkna, kde zrovna schne", kde: "45% 50%", r: 4 },
+  { src: foto6675, alt: "Linka s kávovarem, ve skříňce nad ní lahvičky glazur a vpravo knihovnička", popis: "Kafe a glazury", kde: "50% 50%", r: -3 },
+];
+---
+<section class="uo uo-fotky" id="fotky" data-hodina="10.6" data-sezona={sezona} aria-labelledby="uo-fotky-nadpis">
+  <div class="uo-hlava papir">
+    <p class="stitek"><span lang="ja">工房</span> · dílna doopravdy</p>
+    <h2 id="uo-fotky-nadpis" class="uo-nadpis">Dole za okny <em>to vypadá takhle.</em></h2>
+    <p class="uo-perex">Tři kruhy, dva stoly, jedna pec, kafe a spousta prken, na kterých něco schne. Žádná kresba — tohle jsou fotky.</p>
+  </div>
+
+  <div class="uo-provazek">
+    <svg class="uo-provazek-car" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M-10 8 Q500 70 1010 8" />
+    </svg>
+    <ul class="uo-fotky-rada">
+      {fotky.map((f, i) => (
+        <li class="uo-foto" style={`--r:${f.r}deg;--i:${i}`}>
+          <span class="uo-kolicek" aria-hidden="true"></span>
+          <figure>
+            <Image src={f.src} alt={f.alt} width={520} widths={[260, 400, 520]} sizes="(min-width: 861px) 18vw, 44vw" format="webp" loading="lazy" style={`object-position:${f.kde}`} />
+            <figcaption>{f.popis}</figcaption>
+          </figure>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <div class="uo-akce">
+    <a class="tlacitko" href="/dilna#prohlidka">Projít si dílnu</a>
+    <a class="tlacitko tlacitko-obrys" href="/rezervace">Vybrat hodinu</a>
+  </div>
+</section>

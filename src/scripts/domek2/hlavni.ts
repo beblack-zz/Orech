@@ -10,14 +10,14 @@ import { initKami } from "../parta2/kami";
 import { hlavicka } from "../parta2/hlavicka";
 import { sezonaMesice } from "../../data/uvod2";
 import { ulice } from "./ulice";
-import { prohlidka } from "./prohlidka";
 import { uvodZivot } from "./uvod-zivot";
+import { souboj } from "./souboj";
 import { pozdeji } from "../parta2/pozdeji";
 
 /** Roční období podle dneška — stránka je statická a období v ní je z buildu */
 function initSezona() {
   const s = sezonaMesice(new Date().getMonth() + 1);
-  document.querySelectorAll<HTMLElement>("#uvod, #ulice, #prohlidka, #kontakt").forEach((el) => (el.dataset.sezona = s));
+  document.querySelectorAll<HTMLElement>("#uvod, #ulice, #fotky, #kramek, #kami-parta, #kontakt").forEach((el) => (el.dataset.sezona = s));
 }
 
 /* Celé se to spustí při každé návštěvě stránky, i po přechodu bez načtení (prechody.ts) */
@@ -28,8 +28,8 @@ stranka("domek-2", () => {
   initNebe();
   uvodZivot();
   ulice();
-  prohlidka();
-  /* Velké kresby níž na stránce (prohlídka dílny) až cestou k nim */
+  souboj();
+  /* Velké kresby níž na stránce až cestou k nim */
   pozdeji();
   spust();
 });

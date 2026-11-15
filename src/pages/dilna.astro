@@ -7,6 +7,7 @@
  * k ránu, kdy se pec otevře a dílna se zase otvírá.
  *
  *   9:00       úvod — regál s hrnkem ve všech stavech
+ *   9–14       prohlídka dílny skrz okna, u každé zastávky fotka (do 15. 11. na úvodu webu)
  *   dopoledne  část první, jak to tu chodí: hodina a lektor, cesta kusu
  *              od rezervace po vyzvednutí, cena a pravidla
  *   odpoledne  část druhá, jak se dělá keramika: hlína, tvar, sušení,
@@ -27,11 +28,17 @@ import "../styles/postavicky.css";
 import "../styles/parta2.css";
 import "../styles/dilna-zaklad.css";
 import "../styles/dilna.css";
+/* Prohlídka dílny (přesunutá z úvodu 15. 11.) má styly po úvodu */
+import "../styles/dilna-rez.css";
+import "../styles/dilna-suteren.css";
+import "../styles/uvod2.css";
+import "../styles/domek2.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
 import Uvod from "../components/dilna/Uvod.astro";
+import Prohlidka from "../components/domek2/Prohlidka.astro";
 import Cast from "../components/dilna/Cast.astro";
 import Hodina from "../components/dilna/Hodina.astro";
 import Navsteva from "../components/dilna/Navsteva.astro";
@@ -48,6 +55,7 @@ import Zaver from "../components/dilna/Zaver.astro";
 
 import { kapitoly, kdy } from "../data/dilna";
 import { dilna } from "./kresby/_dilna";
+import { sezonaMesice } from "../data/uvod2";
 
 /** Kapitoly druhé části i se stavem kusu — do řady odkazů v předělu */
 const STAV: Record<string, "hrouda" | "mokry" | "suchy" | "prezah" | "syrova" | "hotovy"> = {
@@ -61,6 +69,8 @@ const STAV: Record<string, "hrouda" | "mokry" | "suchy" | "prezah" | "syrova" | 
 };
 const obsah = kapitoly.map((k) => ({ id: k.id, cislo: k.cislo, nazev: k.nazev, stav: STAV[k.id] }));
 const predem = dilna().predem;
+/** Roční období prohlídky podle data buildu — skript ho srovná podle dneška */
+const sezona = sezonaMesice(new Date().getMonth() + 1);
 
 
 ---
@@ -78,6 +88,7 @@ const predem = dilna().predem;
 
     <main>
       <Uvod />
+      <Prohlidka sezona={sezona} />
 
       <Cast
         id="jak-to-chodi"

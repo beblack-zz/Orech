@@ -8,31 +8,37 @@
  *
  *   svítání   — krajina z Party 2 se zeleným domem na stráni, text z Úvodu 2
  *   ráno      — ulice: brána odjede za zídku, rampou dolů k oknům dílny
- *   dopoledne — prohlídka dílny skrz okna, u každé zastávky fotka
+ *   dopoledne — fotky dílny na provázku (prohlídka skrz okna je od 15. 11. na /dilna)
+ *   podvečer  — výřez nočního krámku s Futatsu
+ *   soumrak   — KAMI parta na prkně a pozvánka do hry
  *   večer     — lampa svítí, parta jde s lucerničkami, kontakt
  *
  * Rok dílny (z garáže po havárii až do teď) se přestěhoval na O nás 2;
  * kresba a fotka přes sebe se sakurou během roku a Kudy k nám na Kontakt.
  * Kresby jsou generátory v components/domek2/kresba, styly
- * v styles/domek2.css nad parta2.css, dilna-rez.css, dilna-suteren.css
- * a uvod2.css.
+ * v styles/domek2.css nad parta2.css a uvod2.css, tři ochutnávky
+ * v styles/uvod-ochutnavky.css.
  */
 import Hlava from "../components/Hlava.astro";
 import { ClientRouter } from "astro:transitions";
 import "../styles/postavicky.css";
 import "../styles/parta2.css";
+/* Barvy korun stromů podle období (ořech, sakura, sníh) kreslí i ulici — ne jen prohlídku */
 import "../styles/dilna-rez.css";
 import "../styles/dilna-suteren.css";
 import "../styles/uvod2.css";
 import "../styles/domek2.css";
 import "../styles/uvod-zivot.css";
+import "../styles/uvod-ochutnavky.css";
 
 import Nebe from "../components/parta2/Nebe.astro";
 import Hlavicka from "../components/parta2/Hlavicka.astro";
 import Paticka from "../components/parta2/Paticka.astro";
 import Uvod from "../components/domek2/Uvod.astro";
 import Ulice from "../components/domek2/Ulice.astro";
-import Prohlidka from "../components/domek2/Prohlidka.astro";
+import Fotky from "../components/domek2/Fotky.astro";
+import VKramku from "../components/domek2/VKramku.astro";
+import Parta from "../components/domek2/Parta.astro";
 import Vecer from "../components/domek2/Vecer.astro";
 
 import { sezonaMesice } from "../data/uvod2";
@@ -52,14 +58,16 @@ const sezona = sezonaMesice(new Date().getMonth() + 1);
     <ClientRouter />
   </head>
   <body class="p2 u2 dm2" data-stranka="domek-2">
-    <a class="preskocit" href="#prohlidka">Přeskočit na prohlídku dílny</a>
+    <a class="preskocit" href="#fotky">Přeskočit na fotky dílny</a>
     <Nebe />
     <Hlavicka sber="zadny" />
 
     <main>
       <Uvod />
       <Ulice sezona={sezona} />
-      <Prohlidka sezona={sezona} />
+      <Fotky sezona={sezona} />
+      <VKramku sezona={sezona} />
+      <Parta sezona={sezona} />
       <Vecer sezona={sezona} />
     </main>
 

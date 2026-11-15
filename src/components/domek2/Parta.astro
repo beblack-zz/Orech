@@ -1,0 +1,73 @@
+---
+/**
+ * KAMI parta na úvodu (od 15. 11. místo prohlídky) — ochutnávka jako
+ * souboj kladné a záporné postavy. Vlevo Pecinka v podobě 01 Kami
+ * (plamenná svatozář na skále iwakura), vpravo Bublinka-strašidlo
+ * v podobě 01 Kami (studené bludné ohně, za ní duch, pod ní nepodařené
+ * hrnce). Obě kresby i jejich motory jsou z /marcel (characters/kami-buh)
+ * a fungují tu stejně: klik na Pecinku = fouhne a svatozář vzplane, klik
+ * na Bublinku = duch udělá baf a ona svou svatozář sfoukne.
+ *
+ * Mezi nimi stojí na plotně z pece syrová miska — to, o co se hraje.
+ * Je to keramika doopravdy: Pecinka misku pálí, Bublinka je vzduch
+ * v hlíně, a kde vzduch zůstane, tam to v peci praskne. Klik na Pecinku
+ * misku přiblíží k vypálení, klik na Bublinku v ní nafoukne bublinu
+ * a miska praskne; další oheň prasklinu zalije zlatem (kintsugi).
+ * Obsluha misky: scripts/domek2/souboj.ts. Kresba misky: kresba/miska.ts.
+ *
+ * Pod tím pozvánka na celou partu, za tlačítkem vykukuje dalších sedm.
+ * Id kreseb jsou pevná (Pecinka v1, Bublinka bs1-) — na úvodu jsou jen
+ * tady; tušový flek si podobu, která už na stránce je, nevybere.
+ */
+import PecinkaOhen from "../characters/kami-buh/PecinkaOhen.astro";
+import BublinkaStrasidlo from "../characters/kami-buh/BublinkaStrasidlo.astro";
+import Postavicka from "../characters/Postavicka.astro";
+import { miska, MISKA } from "./kresba/miska";
+import type { PostavaId } from "../../data/parta";
+import type { Sezona } from "../../data/uvod2";
+
+interface Props {
+  sezona: Sezona;
+}
+const { sezona } = Astro.props;
+
+/** Kdo vykukuje za tlačítkem — všichni kromě těch dvou */
+const ostatni: PostavaId[] = ["hlinka", "kapka", "vazicka", "kachlik", "cedulka", "samotka", "stripek"];
+---
+<section class="uo uo-parta" id="kami-parta" data-hodina="20.4" data-sezona={sezona} aria-labelledby="uo-parta-nadpis">
+  <div class="uo-souboj" data-souboj>
+    <figure class="uo-strana uo-strana-pecinka">
+      <PecinkaOhen varianta="v1" class="uo-kresba" />
+      <figcaption class="uo-jmenovka"><b>Pecinka</b><span lang="ja">窯の神</span> kami ohně</figcaption>
+    </figure>
+
+    <div class="uo-stred">
+      <p class="stitek"><span lang="ja">神</span> · KAMI parta</p>
+      <h2 id="uo-parta-nadpis" class="uo-nadpis">Pecinka hlídá oheň. <em>Bublinka číhá v hlíně.</em></h2>
+      <p class="uo-perex">
+        Kde v hlíně zůstane bublinka vzduchu, tam to v peci praskne. Proto se hlína hněte —
+        a proto se tihle dva nemají rádi. Klikni na ně a uvidíš, jak dopadne miska.
+      </p>
+
+      <div class="uo-miska" data-miska data-pal="0" data-praskla="0" data-zlato="0">
+        <svg viewBox={`0 0 ${MISKA.w} ${MISKA.h}`} aria-hidden="true" set:html={miska("uom")} />
+        <p class="uo-miska-stav" aria-live="polite">Syrová miska. Do pece, nebo do střepů?</p>
+      </div>
+    </div>
+
+    <figure class="uo-strana uo-strana-bublinka">
+      <BublinkaStrasidlo varianta="ohen" class="uo-kresba" />
+      <figcaption class="uo-jmenovka"><b>Bublinka</b><span lang="ja">泡の妖怪</span> yōkai vzduchu</figcaption>
+    </figure>
+  </div>
+
+  <div class="uo-pozvanka">
+    <ul class="uo-vykukuji" aria-hidden="true">
+      {ostatni.map((id, i) => (
+        <li style={`--i:${i}`}><Postavicka id={id} size={64} varianta="kami" /></li>
+      ))}
+    </ul>
+    <a class="tlacitko uo-pozvanka-tlacitko" href="/parta">Poznej je všechny</a>
+    <p class="uo-pozvanka-text">V dílně jich bydlí devět. Ti dva jsou jen ti nejhlasitější.</p>
+  </div>
+</section>

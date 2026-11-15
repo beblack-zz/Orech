@@ -21,7 +21,7 @@ export const CILE: Cil[] = [
   { href: "/parta", nazev: "Parta", slova: ["parta", "postavicky", "kami", "stripek", "hlinka", "kapka", "pecinka", "vazicka", "bublinka", "kachlik", "cedulka", "samotka"] },
   { href: "/o-nas", nazev: "O nás", slova: ["onas", "nas", "pribeh", "about", "jirik", "renca", "lektori", "kdo"] },
   { href: "/kontakt", nazev: "Kontakt", slova: ["kontakt", "kontakty", "telefon", "email", "mail", "adresa", "mapa", "kudy", "kde", "otevreno", "oteviraci", "contact"] },
-  { href: "/#prohlidka", nazev: "Prohlídka dílny", slova: ["domek", "dum", "prohlidka", "zahrada"] },
+  { href: "/dilna#prohlidka", nazev: "Prohlídka dílny", slova: ["domek", "dum", "prohlidka", "zahrada"] },
   { href: "/rezervace#rz-darky", nazev: "Dárkový poukaz", slova: ["poukaz", "poukazy", "darkovy", "darek", "voucher"] },
 ];
 
