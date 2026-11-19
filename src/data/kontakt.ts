@@ -104,7 +104,7 @@ export const kudy = {
   nadpis: "Zelený dům se štítem do ulice.",
   kroky: [
     "V Luční hledej zelený dům se dvěma balkony nad sebou a s lampou, na které visí amplion.",
-    `Posuvná pozinkovaná brána bývá v otevírací době otevřená — každé ${kdy.dny} ${kdy.hodiny}.`,
+    `Posuvná pozinkovaná brána bývá v otevírací době otevřená — ${kdy.otevreno}.`,
     "Sejdi po rampě dolů. Dveře do dílny jsou prosklené, vlevo od velkých oken.",
   ],
 };

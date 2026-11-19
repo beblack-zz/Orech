@@ -15,6 +15,10 @@
 /* Kdy a za kolik — pod tlačítky, aby bylo vidět bez kliknutí */
 .dm-uvod-kdy { margin: 12px 0 0; font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
 /* Tlačítka mají barvy a nebe hlavičky sama (parta2/TlacitkoNebe.astro) */
+/* Štítek nad nadpisem a „čas.“ v modré tlačítka Rezervovat hodinu (noc v TlacitkoNebe);
+   místo tmavé záře kolem bílého písma světlá, ať se modrá na obloze neutopí */
+.dm-uvod .uvod-text .stitek-svetly,
+.dm-uvod .uvod-nadpis em { color: #2A3160; text-shadow: 0 0 18px rgba(255, 240, 228, 0.55); }
 
 /*
  * Pořadí vrstev krajiny úvodu. Mezery jsou po Vázičce, která se mezi ně
@@ -125,9 +129,6 @@
   /* domek s pěšinou blíž ke středu výřezu a o kus menší (střed paty domku 800 × 434) */
   .dm-uvod .krajina-dum { transform-origin: 800px 434px; transform: translate(-62px, 6px) scale(0.84); }
 }
-/* Mraky přes vršek koruny ukazuje jen telefon na výšku (blok níž) */
-.dm-uvod .dmu-mraky-koruna { display: none; }
-@keyframes dmu-mraky-pas { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
 /* Telefon na výšku (od 8. 11. 2026): celý ořech přes šířku obrazovky, ne useknutý u pravého
    okraje, a pod jeho korunou menší domek vlevo od kmene. Zem stromu (93 % jeho výšky) sedí
    v louce. Na šířku platí blok níž. */
@@ -139,20 +140,8 @@
     top: auto;
     bottom: calc(var(--uvod-h) * 0.08 - var(--vyska) * 0.07);
   }
-  /* vršek koruny je v kresbě skoro rovný (na počítači je nad obrazovkou) — tady ho zakryje pás mraků */
+  /* celý strom i s vrškem koruny, který leží nad plátnem (kresba/orech.ts, VRSEK) */
   .dm-uvod .dmu-orech .orech-vrstva { overflow: visible; }
-  .dm-uvod .dmu-mraky-koruna {
-    display: block;
-    position: absolute;
-    z-index: 9;
-    left: 0;
-    top: calc(100% * -100 / 1400);
-    width: 100%;
-    height: calc(100% * 300 / 1400);
-    overflow: visible;
-    pointer-events: none;
-  }
-  .dm-uvod .dmu-mraky-pas { animation: dmu-mraky-pas 26s ease-in-out infinite alternate; }
   .dm-uvod .krajina-dum { transform: translate(-128px, 10px) scale(0.6); }
 }
 
@@ -173,7 +162,6 @@
   .dm-uvod .dmu-mlha,
   .dm-uvod .dmu-paprsky,
   .dm-uvod .dmu-orech .orech-koruna,
-  .dm-uvod .dmu-mraky-pas,
   .dm-uvod .ou-veverka { animation: none; }
   .dm-uvod .ou-veverka { transform: none; }
 }

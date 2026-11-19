@@ -123,6 +123,41 @@ const vObrysu = (x: number, y: number) =>
   !OKNA.some(([cx, cy, r]) => (x - cx) ** 2 + (y - cy) ** 2 < r * r) &&
   !(x < 820 && y > 432);
 
+/*
+ * Vršek koruny (od 19. 11. 2026). Na počítači je nad obrazovkou, ale telefon
+ * na výšku ukazuje celý strom — koruna tam dřív končila skoro rovnou čarou.
+ * Kopule je z laloků jako kupovitý mrak: nejvýš nad kmenem trochu vpravo,
+ * k levé dlouhé větvi spadá ramenem, vpravo odchází za okraj. Pár oken,
+ * kterými prosvítá nebe a větve.
+ */
+const VRSEK: [number, number, number, number][] = [
+  [1220, -40, 430, 300], [870, 10, 240, 170], [1590, -20, 270, 190],
+  [1030, -200, 210, 130], [1420, -190, 200, 140], [1250, -260, 150, 110],
+  [750, 100, 140, 100], [1770, 70, 150, 120],
+];
+const VRSEK_OKNA: [number, number, number][] = [[1090, -110, 42], [1400, -40, 46], [860, 50, 34], [1250, -200, 30], [1640, -60, 34]];
+const veVrsku = (x: number, y: number) =>
+  y < 60 &&
+  VRSEK.some(([cx, cy, rx, ry]) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1) &&
+  !VRSEK_OKNA.some(([cx, cy, r]) => (x - cx) ** 2 + (y - cy) ** 2 < r * r);
+/** Nosné větve kopule: první bod je místo na hlavní větvi, odkud raší (připojí se k nejbližšímu uzlu) */
+const VRSEK_VETVE: { P: Bod[]; w: [number, number] }[] = [
+  /* mezi šikmou levou a vůdčím výhonem rovně vzhůru */
+  { P: [[1214, 610], [1160, 470], [1128, 320], [1134, 170], [1150, 30], [1160, -110]], w: [46, 10] },
+  /* z šikmé levé ven k levému rameni */
+  { P: [[996, 306], [936, 190], [880, 80], [846, -20]], w: [32, 9] },
+  /* pokračování šikmé levé */
+  { P: [[988, 150], [1000, 30], [1026, -90], [1048, -190]], w: [18, 9] },
+  /* pokračování vůdčího výhonu až na temeno */
+  { P: [[1272, 84], [1282, -50], [1274, -170], [1256, -270]], w: [18, 9] },
+  /* z vůdčího výhonu doprava vzhůru */
+  { P: [[1230, 428], [1320, 300], [1390, 170], [1424, 30], [1436, -130]], w: [40, 10] },
+  /* z šikmé pravé k pravému rameni */
+  { P: [[1562, 404], [1584, 270], [1596, 130], [1606, 0], [1622, -100]], w: [34, 10] },
+  /* z dlouhé levé k levému laloku */
+  { P: [[702, 382], [692, 270], [708, 160], [744, 60]], w: [24, 8] },
+];
+
 interface Uzel { x: number; y: number; r: number; d: number[]; w: number; pevny: boolean; muze: boolean }
 
 function kostra() {
@@ -177,6 +212,8 @@ function kostra() {
     return { vse, i: best, d: bd };
   };
 
+  /** Kolonizace prostoru: uzly se natahují k bodům `cile`, dokud je nepohltí. `R` je náhoda pro rozptyl směru. */
+  const rust = (cile: Bod[], R: () => number, rozptyl = 0.24) => {
   let zbyva = cile;
   for (let kolo = 0; kolo < 320 && zbyva.length; kolo++) {
     const smery = new Map<number, [number, number, number]>();
@@ -202,8 +239,8 @@ function kostra() {
       const l0 = Math.hypot(dx, dy);
       if (l0 < 0.15) continue;
       /* ořešák má konce větví mírně zdvižené a koruna se rozkládá do stran */
-      dx = dx / l0 + (u.x - ORECH.osa) * 0.00016 + (R() - 0.5) * 0.24;
-      dy = dy / l0 - 0.14 + (R() - 0.5) * 0.24;
+      dx = dx / l0 + (u.x - ORECH.osa) * 0.00016 + (R() - 0.5) * rozptyl;
+      dy = dy / l0 - 0.14 + (R() - 0.5) * rozptyl;
       const l = Math.hypot(dx, dy);
       const x = u.x + (dx / l) * D, y = u.y + (dy / l) * D;
       if (x < 820 && y > 440) continue;
@@ -213,6 +250,42 @@ function kostra() {
       vloz(uzly.length - 1);
     }
   }
+  };
+  rust(cile, R);
+
+  /*
+   * Vršek koruny dorůstá až potom a s vlastní náhodou — spodek kostry
+   * zůstane, jak byl. Body jsou jen nad dosavadní korunou a větve k nim
+   * dorostou z konců hlavních větví.
+   */
+  const R2 = nahoda(9311);
+  /* nejdřív nosné větve kopule (pevné, s pupeny jako hlavní) — bez nich by k vršku vystřelily z okraje koruny rovné rovnoběžné pruty */
+  VRSEK_VETVE.forEach((k) => {
+    const P = k.P.map(([x, y], i): Bod => (i ? [x + (R2() - 0.5) * 20, y + (R2() - 0.5) * 20] : [x, y]));
+    let rodic = 0, bd = Infinity;
+    uzly.forEach((u, i) => {
+      const d = u.pevny ? Math.hypot(u.x - P[0][0], u.y - P[0][1]) : Infinity;
+      if (d < bd) { bd = d; rodic = i; }
+    });
+    const b = vzorkuj([[uzly[rodic].x, uzly[rodic].y], ...P.slice(1)], 18);
+    const posun = Math.floor(R2() * 4);
+    let pred = rodic;
+    b.forEach(([x, y], i) => {
+      if (!i) return;
+      const t = i / (b.length - 1);
+      const pupen = (i + posun) % 4 === 0 || i === b.length - 1;
+      uzly.push({ x, y, r: pred, d: [], w: lerp(k.w[0], k.w[1], Math.pow(t, 0.8)), pevny: true, muze: pupen });
+      uzly[pred].d.push(uzly.length - 1);
+      vloz(uzly.length - 1);
+      pred = uzly.length - 1;
+    });
+  });
+  const cileVrsku: Bod[] = [];
+  while (cileVrsku.length < 2100) {
+    const x = 200 + R2() * 1700, y = -520 + R2() * 600;
+    if (veVrsku(x, y) && !vObrysu(x, y)) cileVrsku.push([x, y]);
+  }
+  rust(cileVrsku, R2, 0.4);
 
   /* tloušťky od konců jako trubky */
   const KONEC_W = 2.6, EXP = 2.25;
@@ -397,6 +470,13 @@ export interface OrechKresba { defs: string; zadni: string; kmen: string; predni
 const hloubka = (x: number, y: number) =>
   Math.sin(x / 150 + 1.3) * Math.cos(y / 130 - 0.7) + 0.6 * Math.sin((x + 0.7 * y) / 240 + 2.1);
 
+/**
+ * Jak moc je konec větve vpředu podle výšky: dole víc vpředu, nahoru ubývá.
+ * Nad y 180 (na počítači nad obrazovkou) zase přibývá — temeno kopule
+ * má světlé přední listí jako vršek kupovitého mraku, ne tmavou čepici.
+ */
+const vyskaVKorune = (y: number) => (y >= 180 ? (y - 430) / 520 : -0.48 + (180 - y) * 0.0011);
+
 export function orech(): OrechKresba {
   const { uzly, retezy, konce } = kostra();
   const R = nahoda(5113);
@@ -557,7 +637,7 @@ export function orech(): OrechKresba {
   type Konec = { x: number; y: number; smer: number; vpredu: boolean; ven: Bod | null };
   const K: Konec[] = konce.map((i) => {
     const u = uzly[i], p = uzly[u.r];
-    const h = hloubka(u.x, u.y) + (u.y - 430) / 520 + (u.x < 900 ? 0.55 : 0) - (u.x > 1660 ? 0.3 : 0);
+    const h = hloubka(u.x, u.y) + vyskaVKorune(u.y) + (u.x < 900 ? 0.55 : 0) - (u.x > 1660 ? 0.3 : 0);
     return { x: u.x, y: u.y, smer: Math.atan2(u.y - p.y, u.x - p.x), vpredu: h > 0.05, ven: null };
   });
   /*

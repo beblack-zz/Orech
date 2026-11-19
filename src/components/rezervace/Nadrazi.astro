@@ -16,7 +16,7 @@
  * Kachlík ze hry na hledání kami se odsud přestěhoval na odjezdovou tabuli (Odjezdy.astro).
  */
 import TlacitkoNebe from "../parta2/TlacitkoNebe.astro";
-import { rezervace, permanentka, cenaZaCloveka, otevrenoSlovy } from "../../data/rezervace";
+import { rezervace, permanentka, cenaZaCloveka, veDnyPodleCasu } from "../../data/rezervace";
 
 const kc = (n: number) => n.toLocaleString("cs-CZ");
 /** Kdy jezdí zvláštní vlak — začátek věty o kurzech */
@@ -31,7 +31,7 @@ const V_DEN_KURZU = ["V neděli", "V pondělí", "V úterý", "Ve středu", "Ve 
 
     <p class="rz-perex">
       Čas v dílně se tu kupuje jako jízdenka na vlak: vybereš den a hodinu v dílně (90 min) — jsou na ni {rezervace.mist} místa.
-      Každé úterý a pátek {otevrenoSlovy}. Jízdné je skupinové a platí se
+      Otevřeno je {veDnyPodleCasu}. Jízdné je skupinové a platí se
       na místě: když jsi v dílně sám, {kc(cenaZaCloveka(1))}&nbsp;Kč, když je plno, {kc(cenaZaCloveka(rezervace.mist))}&nbsp;Kč za každého.
     </p>
 

@@ -4,13 +4,12 @@
  * Po ulici se sejde dolů a uvnitř už žádná kresba — jen fotky, jak to
  * v dílně doopravdy vypadá. Visí na provázku na kolíčcích jako polaroidy
  * z Prohlídky; provázek je SVG křivka, fotky se pomalu houpou.
- * Na telefonu provázek zmizí a fotky jsou ve dvou sloupcích.
+ * Na telefonu provázek zmizí a fotky jsou dvě a dvě.
  */
 import { Image } from "astro:assets";
 import foto6679 from "../../../images/Dilna/6679.jpg";
 import foto6677 from "../../../images/Dilna/6677.jpg";
 import foto6675 from "../../../images/Dilna/6675.jpg";
-import foto6669 from "../../../images/Dilna/6669.jpg";
 import fotoDilna from "../../../fotoorech/fotodilna.jpg";
 import type { Sezona } from "../../data/uvod2";
 
@@ -19,9 +18,8 @@ interface Props {
 }
 const { sezona } = Astro.props;
 
-/** Zleva doprava po provázku; `kde` je výřez fotky, `r` náklon */
+/** Čtyři fotky zevnitř dílny (od 19. 11. 2026, venkovní od sakury ubyla), zleva doprava po provázku; `kde` je výřez fotky, `r` náklon */
 const fotky = [
-  { src: foto6669, alt: "Mladá převislá sakura na tyčce, za ní okna dílny pod balkonem a truhlíky s vřesem", popis: "Okna dílny od sakury", kde: "40% 60%", r: -4 },
   { src: foto6679, alt: "Dílna zevnitř směrem k oknům: oválný stůl s modrými židlemi, za okny dlažba rampy", popis: "Od zadní stěny k oknům", kde: "50% 62%", r: 3 },
   { src: fotoDilna, alt: "Kopací kruh s dřevěným setrvačníkem, za ním nerezová pec", popis: "Kopací kruh a pec", kde: "30% 70%", r: -2 },
   { src: foto6677, alt: "Stěna s černými lištami a prkny z překližky, vpředu stůl s točnou a modré židle", popis: "Prkna, kde zrovna schne", kde: "45% 50%", r: 4 },
@@ -44,7 +42,7 @@ const fotky = [
         <li class="uo-foto" style={`--r:${f.r}deg;--i:${i}`}>
           <span class="uo-kolicek" aria-hidden="true"></span>
           <figure>
-            <Image src={f.src} alt={f.alt} width={520} widths={[260, 400, 520]} sizes="(min-width: 861px) 18vw, 44vw" format="webp" loading="lazy" style={`object-position:${f.kde}`} />
+            <Image src={f.src} alt={f.alt} width={520} widths={[260, 400, 520]} sizes="(min-width: 861px) 22vw, 44vw" format="webp" loading="lazy" style={`object-position:${f.kde}`} />
             <figcaption>{f.popis}</figcaption>
           </figure>
         </li>

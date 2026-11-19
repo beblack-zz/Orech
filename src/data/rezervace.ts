@@ -76,11 +76,30 @@ const VE_DNI = ["v neděli", "v pondělí", "v úterý", "ve středu", "ve čtvr
 export const dnySlovy = rezervace.dny.map((d) => DEN[d]).join(" a ");
 /** „v úterý a v pátek“ */
 export const veDnySlovy = rezervace.dny.map((d) => VE_DNI[d]).join(" a ");
-/** „9:00–19:30 (v pátek do 18:30)“ — od prvního odjezdu do konce toho nejpozdějšího, kratší dny zvlášť */
-export const otevrenoSlovy = `${hhmm(rezervace.od)}–${hhmm(rezervace.do)}${rezervace.dny
-  .filter((d) => konecDne(d) !== rezervace.do)
-  .map((d) => ` (${VE_DNI[d]} do ${hhmm(konecDne(d))})`)
-  .join("")}`;
+const ZKRATKY = ["ne", "po", "út", "st", "čt", "pá", "so"];
+/*
+ * Otevírací doba podle času (od 19. 11. 2026 všude místo „9:00–19:30
+ * (v pátek do 18:30)“): každý čas zvlášť, dny se stejným časem spolu.
+ * Od prvního odjezdu do konce posledního odjezdu toho dne.
+ */
+/** Dny seskupené podle času: [{ dny: [2], cas: "9:00–19:30" }, { dny: [5], cas: "9:00–18:30" }] */
+export const skupinyCasu = Object.entries(
+  rezervace.dny.reduce<Record<string, number[]>>((casy, d) => {
+    (casy[`${hhmm(rezervace.od)}–${hhmm(konecDne(d))}`] ??= []).push(d);
+    return casy;
+  }, {}),
+).map(([cas, dny]) => ({ dny, cas }));
+/** Dny slovy (`tvar`: úterý / v úterý / út) a za nimi čas; skupiny spojené `spojka` („ · “ nebo „a“, „nebo“ pro větu) */
+export const casyDnu = (tvar: "den" | "ve" | "zkratka" = "den", spojka = " · ") => {
+  const slova = tvar === "ve" ? VE_DNI : tvar === "zkratka" ? ZKRATKY : DEN;
+  const kusy = skupinyCasu.map((s) => `${s.dny.map((d) => slova[d]).join(" a ")} ${s.cas}`);
+  if (spojka.trim() === "·" || kusy.length < 2) return kusy.join(spojka);
+  return `${kusy.slice(0, -1).join(", ")} ${spojka} ${kusy[kusy.length - 1]}`;
+};
+/** „úterý 9:00–19:30 · pátek 9:00–18:30“ — do štítků, patičky a seznamů */
+export const dnyPodleCasu = casyDnu();
+/** „v úterý 9:00–19:30 a v pátek 9:00–18:30“ — do vět */
+export const veDnyPodleCasu = casyDnu("ve", "a");
 
 /* ——— Jízdné: skupinové ———
  *

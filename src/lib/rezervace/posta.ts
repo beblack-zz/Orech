@@ -6,7 +6,7 @@
  *
  * ZNĚNÍ MAILŮ JE NÁVRH a čeká na potvrzení.
  */
-import { rezervace as R, permanentka as P, kurzy, hhmm, tarifSlovy, detskaSlovy, pravidloPrichodu, cenaPermanentky, dnySlovy, otevrenoSlovy } from "../../data/rezervace";
+import { rezervace as R, permanentka as P, kurzy, hhmm, tarifSlovy, detskaSlovy, pravidloPrichodu, cenaPermanentky, dnyPodleCasu } from "../../data/rezervace";
 import { kontakt } from "../../data/uvod2";
 import { mailVitej, mailPrihlaseni, mailRegistrace } from "./vzhled-mailu";
 import { denVTydnu, konecPermanentky } from "./pravidla";
@@ -66,7 +66,7 @@ export function vitej(clen: { jmeno: string; email: string }, web: string): Mail
       `Přihlásíš se bez hesla na ${web}/rezervace: zadáš tuhle adresu a pošleme ti odkaz.`,
       "",
       "Jak to u nás jezdí:",
-      `1. Vyber odjezd — ${dnySlovy}, ${otevrenoSlovy}. Odjezd trvá hodinu a půl.`,
+      `1. Vyber odjezd — ${dnyPodleCasu}. Odjezd trvá hodinu a půl.`,
       "2. Označ jízdenku — zamluvená je hned a potvrzení ti přijde mailem.",
       `3. Přijď do dílny — ${kontakt.ulice}, ${kontakt.obec}. Jízdné se platí na místě.`,
       `4. Nemůžeš? Jízdenku zrušíš na webu nejpozději ${R.zrusitHodinPredem} hodin předem, potom nám zavolej.`,

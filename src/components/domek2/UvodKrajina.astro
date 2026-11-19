@@ -22,24 +22,11 @@
  */
 import { orech, orechStyly } from "./kresba/orech";
 import { svitani, svitaniStyly } from "./kresba/svitani";
-import { chomac } from "../parta2/tvary";
 
 const strom = orech();
 const kraj = svitani();
 const styly = `${orechStyly(".dm-uvod")}\n${svitaniStyly(".dm-uvod")}`;
 const kopce = "0 0 1600 600";
-/** Pás mraků přes vršek koruny (jen telefon na výšku): chomáče po celé šířce koruny, spodkem přes její horní hranu */
-const mrakyKoruna = {
-  telo: [
-    chomac(330, 105, 190, 70, 16, 61, 0.45, 0.7),
-    chomac(620, 75, 250, 96, 20, 62, 0.45, 0.7),
-    chomac(930, 95, 230, 84, 18, 63, 0.45, 0.7),
-    chomac(1240, 65, 270, 104, 20, 64, 0.45, 0.7),
-    chomac(1560, 101, 240, 88, 18, 65, 0.45, 0.7),
-    chomac(1790, 115, 170, 70, 14, 66, 0.45, 0.7),
-  ],
-  svetlo: [chomac(560, 25, 110, 50, 12, 67, 1, 0.7), chomac(1180, 7, 130, 56, 12, 68, 1, 0.7), chomac(1500, 45, 96, 44, 10, 69, 1, 0.7)],
-};
 ---
 <Fragment set:html={`<style>${styly}</style>`} />
 <div class="uvod-krajina dmu-krajina" aria-hidden="true">
@@ -55,20 +42,6 @@ const mrakyKoruna = {
     <svg class="orech-vrstva orech-koruna orech-koruna-zadni" viewBox="0 0 1800 1400" set:html={strom.zadni} />
     <svg class="orech-vrstva orech-kmen" viewBox="0 0 1800 1400" set:html={strom.kmen} />
     <svg class="orech-vrstva orech-koruna orech-koruna-predni" viewBox="0 0 1800 1400" set:html={strom.predni} />
-    {/* Mraky přes vršek koruny — jen telefon na výšku (domek2.css): tam je celý strom
-        vidět a koruna je nahoře v kresbě zakončená skoro rovně (na počítači je vršek
-        nad okrajem obrazovky). Souřadnice plátna stromu, barvy jako mraky na nebi. */}
-    <svg class="dmu-mraky-koruna" viewBox="0 -100 1800 300" aria-hidden="true">
-      <defs>
-        <linearGradient id="dmu-mrak-g" gradientUnits="userSpaceOnUse" x1="0" y1="-60" x2="0" y2="200">
-          <stop offset="0" style="stop-color:var(--mrak-svetlo)" />
-          <stop offset="0.55" style="stop-color:var(--mrak-svetlo)" />
-          <stop offset="1" style="stop-color:var(--mrak-stin)" />
-        </linearGradient>
-      </defs>
-      <g class="dmu-mraky-pas" fill="url(#dmu-mrak-g)">{mrakyKoruna.telo.map((d) => <path d={d} />)}</g>
-      <g class="dmu-mraky-pas" style="fill:var(--mrak-zare)" opacity="0.55">{mrakyKoruna.svetlo.map((d) => <path d={d} />)}</g>
-    </svg>
   </div>
 
   <div class="louka uvod-louka dmu-louka">

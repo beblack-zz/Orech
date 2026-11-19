@@ -1,5 +1,5 @@
 import type { PostavaId } from "./parta";
-import { veDnySlovy, otevrenoSlovy } from "./rezervace";
+import { veDnyPodleCasu } from "./rezervace";
 
 /**
  * Doplňky pro /o-nas. Lidé, milníky a texty o dílně jsou v uvod2.ts
@@ -18,7 +18,7 @@ export const oNasTexty = {
     "Kurzy vedou dva lektoři, každý s vlastním rukopisem. Pro děti, dospělé, začátečníky, i pro pokročilé, kteří si chtějí přijít jen sednout a rozjímat u hlíny.",
   adresa: "Luční 235, Ořech.",
   /* Otevírací doba se nepřepisuje ručně — bere se z Rezervace */
-  oteviraci: `Dílna je otevřená ${veDnySlovy} ${otevrenoSlovy}.`,
+  oteviraci: `Dílna je otevřená ${veDnyPodleCasu}.`,
 };
 
 /* ——— Svitek ———

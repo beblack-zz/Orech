@@ -32,13 +32,13 @@
 .uo-akce { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: clamp(22px, 4vh, 40px); }
 
 /* ——— Fotky na provázku ——— */
-.uo-provazek { position: relative; width: min(1320px, 100%); margin: clamp(26px, 5vh, 54px) auto 0; }
+.uo-provazek { position: relative; width: min(1180px, 100%); margin: clamp(26px, 5vh, 54px) auto 0; }
 .uo-provazek-car { position: absolute; left: 0; top: 0; width: 100%; height: 60px; overflow: visible; }
 .uo-provazek-car path { fill: none; stroke: #8A6A4A; stroke-width: 2.4; vector-effect: non-scaling-stroke; }
 .uo-fotky-rada {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: clamp(10px, 1.6vw, 26px);
   margin: 0;
   padding: 0 clamp(6px, 2vw, 30px);
@@ -46,7 +46,7 @@
 }
 /* Kolíček sedí na provázku — prostřední fotky visí níž, jak se provázek prověsí */
 .uo-foto {
-  --pokles: calc((2 - (var(--i) - 2) * (var(--i) - 2) / 2) * 13px);
+  --pokles: calc((2.25 - (var(--i) - 1.5) * (var(--i) - 1.5)) * 11.5px);
   position: relative;
   padding-top: calc(var(--pokles) + 14px);
   transform-origin: 50% 0;
@@ -306,7 +306,6 @@
   .uo-provazek-car { display: none; }
   .uo-fotky-rada { grid-template-columns: repeat(2, 1fr); gap: 18px 14px; padding: 0; }
   .uo-foto { padding-top: 14px; }
-  .uo-foto:nth-child(5) { grid-column: 1 / -1; width: 56%; justify-self: center; }
   .uo-kolicek { top: 0; }
   .uo-foto figure { animation: none; }
 

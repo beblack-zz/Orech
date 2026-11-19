@@ -23,7 +23,7 @@
  *   mailPripominka 24 hodin před odjezdem
  *   mailZruseni    zrušená jízdenka
  */
-import { rezervace as R, hhmm, rozpetiJizdneho, pravidloPrichodu, dnySlovy, otevrenoSlovy } from "../../data/rezervace";
+import { rezervace as R, hhmm, rozpetiJizdneho, pravidloPrichodu, dnyPodleCasu } from "../../data/rezervace";
 import { kontakt, mapa } from "../../data/uvod2";
 
 export interface MailNavrh {
@@ -269,7 +269,7 @@ export function mailVitej(z: Zdroje, d: { osloveni: string }): MailNavrh {
         linka("道"),
         `<p style="margin:0 0 14px;font-family:${F.display};font-size:12px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:${N.krem3}">Jak to u nás jezdí</p>`,
         `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 10px"><tr>
-${krok("1", "Vyber odjezd", `${dnySlovy[0].toUpperCase()}${dnySlovy.slice(1)}, <span style="white-space:nowrap">${otevrenoSlovy}</span>. Odjezd trvá hodinu a půl.`)}
+${krok("1", "Vyber odjezd", `${dnyPodleCasu.split(" · ").map((k, i) => `<span style="white-space:nowrap">${i ? k : k[0].toUpperCase() + k.slice(1)}</span>`).join(" · ")}. Odjezd trvá hodinu a půl.`)}
 ${krok("2", "Označ jízdenku", "Zamluvená je hned a potvrzení ti přijde mailem.")}
 </tr><tr>
 ${krok("3", "Přijď do dílny", `${esc(kontakt.ulice)}, ${esc(kontakt.obec)}. Jízdné se platí na místě.`)}

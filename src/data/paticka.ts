@@ -7,10 +7,11 @@
  * kousek vedle — v katastru Zbuzan a Dobříče vystupuje spodní a střední
  * devon Barrandienu (lokality.geology.cz).
  */
-import { dnySlovy, otevrenoSlovy } from "./rezervace";
+import { skupinyCasu } from "./rezervace";
 
-/** Otevírací doba z Rezervace (data/rezervace.ts) — „úterý a pátek“, „9:00–18:00“ */
-export const oteviraciDoba = { dny: dnySlovy, cas: otevrenoSlovy };
+/** Otevírací doba z Rezervace (data/rezervace.ts) — každý čas na vlastní řádek: „úterý 9:00–19:30“, „pátek 9:00–18:30“ */
+const DEN = ["neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota"];
+export const oteviraciDoba = skupinyCasu.map((s) => `${s.dny.map((d) => DEN[d]).join(" a ")} ${s.cas}`);
 
 export type VrstvaId = "orech" | "kachel" | "vlnice" | "tuha" | "linearni" | "trilobit";
 

@@ -42,7 +42,7 @@ import Parta from "../components/domek2/Parta.astro";
 import Vecer from "../components/domek2/Vecer.astro";
 
 import { sezonaMesice } from "../data/uvod2";
-import { rezervace, jizdne, dnySlovy, otevrenoSlovy } from "../data/rezervace";
+import { rezervace, jizdne, veDnyPodleCasu } from "../data/rezervace";
 
 const odKc = Math.min(...jizdne.skupina).toLocaleString("cs-CZ");
 
@@ -54,7 +54,7 @@ const sezona = sezonaMesice(new Date().getMonth() + 1);
 <!doctype html>
 <html lang="cs">
   <head>
-    <Hlava titulek="JIRO saku — keramická dílna v Ořechu u Prahy" popis={`Keramická dílna v zeleném domě v Ořechu u Prahy. Hodina v dílně s lektorem i bez něj od ${odKc} Kč, každé ${dnySlovy} ${otevrenoSlovy}. Sobotní kurzy, dárkové jízdenky a ručně dělaná keramika.`} barva="#6F8FC8" data />
+    <Hlava titulek="JIRO saku — keramická dílna v Ořechu u Prahy" popis={`Keramická dílna v zeleném domě v Ořechu u Prahy. Hodina v dílně s lektorem i bez něj od ${odKc} Kč, ${veDnyPodleCasu}. Sobotní kurzy, dárkové jízdenky a ručně dělaná keramika.`} barva="#6F8FC8" data />
     <ClientRouter />
   </head>
   <body class="p2 u2 dm2" data-stranka="domek-2">

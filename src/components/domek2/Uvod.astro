@@ -16,7 +16,7 @@ import UvodKrajina from "./UvodKrajina.astro";
 import TlacitkoNebe from "../parta2/TlacitkoNebe.astro";
 import { kontakt, sezonaMesice } from "../../data/uvod2";
 import { parta } from "../../data/parta";
-import { jizdne, dnySlovy as kdy, otevrenoSlovy } from "../../data/rezervace";
+import { jizdne, dnyPodleCasu } from "../../data/rezervace";
 
 /** Roční období podle data buildu — skript ho v prohlížeči srovná podle dneška (hlavni.ts) */
 const sezona = sezonaMesice(new Date().getMonth() + 1);
@@ -32,7 +32,7 @@ const stupne = pecinka?.bio.match(/(\d[\d\s]*\d)\s*stup/)?.[1]?.replace(/\s/g, "
   <UvodKrajina />
 
   <div class="uvod-text">
-    <p class="stitek stitek-svetly">Keramická dílna · {kontakt.obec} · od 2026</p>
+    <p class="stitek stitek-svetly">Keramická dílna · {kontakt.obec} · 2026</p>
     <h1 id="uvod-nadpis" class="uvod-nadpis">
       Tvoříme keramiku tam, kde má hlína
       <em>čas.</em>
@@ -45,11 +45,7 @@ const stupne = pecinka?.bio.match(/(\d[\d\s]*\d)\s*stup/)?.[1]?.replace(/\s/g, "
       <TlacitkoNebe href="/rezervace#rz-pokladna" nebe="noc">Rezervovat hodinu</TlacitkoNebe>
       <TlacitkoNebe href="/rezervace#rz-darky" nebe="den">Darovat jízdenku</TlacitkoNebe>
     </div>
-    <p class="dm-uvod-kdy">{kdy} {otevrenoSlovy} · od {odKc}&nbsp;Kč</p>
-    <a class="uvod-dolu" href="#ulice">
-      <span>Sejdi k zelenému domu</span>
-      <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M12 4 V32 M4 24 L12 34 L20 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-    </a>
+    <p class="dm-uvod-kdy">{dnyPodleCasu} · od {odKc}&nbsp;Kč</p>
   </div>
 
   <p class="uvod-tategaki" lang="ja" aria-hidden="true">土と時間</p>

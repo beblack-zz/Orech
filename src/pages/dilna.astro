@@ -77,7 +77,7 @@ const sezona = sezonaMesice(new Date().getMonth() + 1);
 <!doctype html>
 <html lang="cs">
   <head>
-    <Hlava titulek="Dílna — jak to chodí a jak se dělá keramika · JIRO saku" popis={`Jak to v keramické dílně v Ořechu chodí a jak se dělá keramika: hodina v dílně (${kdy.cena} ${kdy.zaCo}, každé ${kdy.dny} ${kdy.hodiny}), lektor, nebo open studio, a cesta hlíny od hroudy přes sušení, přežah a glazuru až po ostrý výpal na 1 280 °C.`} barva="#6F8FC8" />
+    <Hlava titulek="Dílna — jak to chodí a jak se dělá keramika · JIRO saku" popis={`Jak to v keramické dílně v Ořechu chodí a jak se dělá keramika: hodina v dílně (${kdy.cena} ${kdy.zaCo}, ${kdy.otevreno}), lektor, nebo open studio, a cesta hlíny od hroudy přes sušení, přežah a glazuru až po ostrý výpal na 1 280 °C.`} barva="#6F8FC8" />
     {predem.map((h) => <link rel="preload" href={h} as="image" fetchpriority="high" />)}
     <ClientRouter />
   </head>

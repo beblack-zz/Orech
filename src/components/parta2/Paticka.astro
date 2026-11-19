@@ -53,7 +53,7 @@ const K = await patickaKresby();
         </div>
         <div>
           <h2 class="pata-h">Kdy</h2>
-          <p>{oteviraciDoba.dny}<br />{oteviraciDoba.cas}</p>
+          <p>{oteviraciDoba.map((radek, i) => <>{i > 0 && <br />}{radek}</>)}</p>
         </div>
         <div>
           <h2 class="pata-h">Ozvi se</h2>
