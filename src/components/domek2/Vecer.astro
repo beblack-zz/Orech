@@ -11,6 +11,7 @@
  */
 import Kami from "../parta2/Kami.astro";
 import Lucernicka from "../parta2/Lucernicka.astro";
+import TlacitkoNebe from "../parta2/TlacitkoNebe.astro";
 import { ulice, ULICE } from "./kresba/ulice";
 import { kontakt, mapa, oDilne } from "../../data/uvod2";
 import type { PostavaId } from "../../data/parta";
@@ -47,8 +48,8 @@ const pruvod: PostavaId[] = ["vazicka", "kapka", "pecinka", "hlinka", "stripek",
     <h2 id="vecer-nadpis" class="nadpis-2">Dílna zhasíná, lampa svítí.</h2>
     <p class="noc-perex">Brána je na noc zavřená. Napiš nám nebo zavolej — domluvíme se.</p>
     <div class="noc-akce">
-      <a class="tlacitko" href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
-      <a class="tlacitko tlacitko-obrys" href={`tel:${kontakt.telefonOdkaz}`}>{kontakt.telefon}</a>
+      <TlacitkoNebe href={`mailto:${kontakt.email}`} nebe="noc">{kontakt.email}</TlacitkoNebe>
+      <TlacitkoNebe href={`tel:${kontakt.telefonOdkaz}`} nebe="den">{kontakt.telefon}</TlacitkoNebe>
     </div>
     <p class="noc-adresa">
       {kontakt.ulice} · {kontakt.psc} {kontakt.obec} ·

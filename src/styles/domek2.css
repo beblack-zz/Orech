@@ -294,7 +294,6 @@
  */
 .ulice-perex { width: fit-content; border-radius: 28px; background: rgba(255, 249, 238, 0.58); box-shadow: 0 0 26px 20px rgba(255, 249, 238, 0.58); }
 .ulice-akce { display: flex; flex-wrap: wrap; gap: 10px; text-shadow: none; }
-.ulice-akce .tlacitko-obrys { background: color-mix(in srgb, var(--papir) 70%, transparent); }
 .ulice-dolu {
   position: absolute;
   z-index: 5;

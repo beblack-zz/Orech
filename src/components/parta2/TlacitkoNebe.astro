@@ -3,18 +3,22 @@
  * Tlačítko v barvách bubliny hlavičky i s jejím nebem (HlavickaNebe.astro):
  * dole se kupí obláčky, „noc“ je modrá s hvězdičkami, „den“ papírová
  * s ptáčky. Nemění se s režimem stránky — noc a den stojí vedle sebe.
- * Na úvodu (domek2/Uvod.astro) a nahoře na Rezervaci (rezervace/Nadrazi.astro).
- * Pás 260 × 52, pevná náhoda — pokaždé stejné nebe.
+ * Na úvodu (od 19. 11. 2026 všechna tlačítka úvodu, domek2/…) a nahoře na Rezervaci
+ * (rezervace/Nadrazi.astro). Pás 260 × 52, náhoda ze semene podle odkazu —
+ * každé tlačítko má svoje hvězdy a mraky, ale pokaždé stejné.
  */
 interface Props {
   href: string;
   nebe: "den" | "noc";
+  class?: string;
+  target?: string;
+  rel?: string;
 }
-const { href, nebe } = Astro.props;
+const { href, nebe, class: trida, target, rel } = Astro.props;
 
 const SIRKA = 260;
 const VYSKA = 52;
-let semeno = nebe === "noc" ? 23 : 41;
+let semeno = (nebe === "noc" ? 23 : 41) + [...href].reduce((s, z) => (s * 31 + z.charCodeAt(0)) % 9973, 0);
 const nahoda = () => ((semeno = (semeno * 16807) % 2147483647) / 2147483647);
 const f = (n: number) => n.toFixed(1);
 
@@ -44,7 +48,7 @@ const ptaci: [number, number, number][] = [[30, 12, 0.9], [44, 16, 0.75], [205, 
 /* Barvy mraků z HlavickaNebe.astro */
 const barva = nebe === "noc" ? { z: "#3B4482", p: "#47508F" } : { z: "#E8DFCC", p: "#FFFCF4" };
 ---
-<a class:list={["tlacitko", "tn", `tn-${nebe}`]} href={href}>
+<a class:list={["tlacitko", "tn", `tn-${nebe}`, trida]} href={href} target={target} rel={rel}>
   <svg class="tn-nebe" viewBox={`0 0 ${SIRKA} ${VYSKA}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
     {nebe === "noc" ? (
       <g fill="#FFF8EA">

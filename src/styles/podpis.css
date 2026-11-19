@@ -312,7 +312,7 @@
 }
 .o2t-cely:hover { color: var(--rumelka); }
 .o2t-cely:focus-visible { outline: 2px solid var(--rumelka); outline-offset: 3px; border-radius: 2px; }
-.o2t-pozn { margin: calc(12 * var(--u)) 0 0; font-size: max(12px, calc(13.5 * var(--u))); line-height: 1.35; color: var(--inkoust-3); }
+.o2t-pozn { margin: calc(12 * var(--u)) 0 0; font-size: max(12px, calc(13.5 * var(--u))); line-height: 1.35; color: var(--inkoust-2); }
 .o2t-pozn [lang="ja"] { font-family: var(--f-kanji); }
 
 /* kus v šátku: indigové razítko přes roh lístku */
@@ -357,6 +357,8 @@
   .o2t-rada { font-size: max(16px, calc(24 * var(--u))); rotate: -2deg; }
   /* na telefonu není kam najet myší; při ovládání klávesnicí se poznámka ukáže vlevo od svitku */
   .o2t-svitek-pozn { left: auto; right: 100%; margin: 0 calc(10 * var(--u)) 0 0; }
+  /* poznámka o 折紙付き by lístek prodloužila přes geta na kameni — na telefonu není */
+  .o2t-pozn { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

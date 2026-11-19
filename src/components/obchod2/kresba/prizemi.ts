@@ -862,19 +862,44 @@ function noren() {
   // tyč (zůstává ve skupině — uklízí se s norenem)
   s += obdelnik(NOREN.x, NAHORE + 1, NOREN.w, 6, `rx="3" fill="${P.drevoSvetle}"`) + obdelnik(NOREN.x, NAHORE + 1.6, NOREN.w, 1.4, `fill="${P.drevoHrana}"`);
   s += obdelnik(NOREN.x - 3, NAHORE, 5, 8, `rx="1.5" fill="${P.drevoTma2}"`) + obdelnik(NOREN.x + NOREN.w - 2, NAHORE, 5, 8, `rx="1.5" fill="${P.drevoTma2}"`);
+  /*
+   * Od 19. 11. 2026 v barvách norenu ze dveří dílny (uvod2/Noren.astro):
+   * každý díl má modrý přechod (tmavá, světlá, tmavý pás, světlá), od tyče
+   * visí zlatá větvička sakury a u lemu se vlní růžová voda.
+   *
+   * Barvy jsou zapsané přes `pod` jako rgb(): noční přebarvení (noc.ts)
+   * bere jen #rrggbb a ztmavilo by je do šeda. Noren svítí pod lampiony,
+   * tak je jen o kus ztlumený.
+   */
+  const pod = (h: string) => `rgb(${[1, 3, 5].map((i) => Math.round(parseInt(h.slice(i, i + 2), 16) * 0.86)).join(",")})`;
+  const prechody = [
+    [[0, pod("#1A3A96")], [22, pod("#2558C0")], [44, pod("#58A6EC")], [62, pod("#4E9AE6")], [72, pod("#1F55BF")], [100, pod("#2A62C6")]],
+    [[0, pod("#2E6BCB")], [26, pod("#1B46AE")], [48, pod("#2557BE")], [64, pod("#5AA2EA")], [80, pod("#4E94E4")], [100, pod("#1D4DB6")]],
+    [[0, pod("#1A3A96")], [20, pod("#1E46AE")], [42, pod("#3F86DB")], [60, pod("#58A6EC")], [74, pod("#1F55BF")], [100, pod("#2558C0")]],
+  ];
+  s += `<defs>${prechody
+    .map((st, i) => `<linearGradient id="krm-noren-g${i}" x1="0" y1="0" x2="0" y2="1">${st.map(([o, c]) => `<stop offset="${o}%" stop-color="${c}"/>`).join("")}</linearGradient>`)
+    .join("")}</defs>`;
+  const ZLATO = pod("#E9CB84");
+  const kvet = (cx: number, cy: number, r: number) =>
+    [0, 72, 144, 216, 288].map((u) => `<ellipse cx="${f(cx)}" cy="${f(cy - r)}" rx="${f(r * 0.5)}" ry="${f(r * 0.75)}" transform="rotate(${u} ${f(cx)} ${f(cy)})"/>`).join("");
   NOREN.dily.forEach((d, i) => {
     const vlna = i % 2 ? 1.6 : -1.6;
     const dole = d.y + d.h;
-    let t = `<path d="M${f(d.x)} ${f(d.y)} H${f(d.x + d.w)} V${f(dole - 1)} Q${f(d.x + d.w * 0.75)} ${f(dole + vlna)} ${f(d.x + d.w / 2)} ${f(dole)} Q${f(d.x + d.w * 0.25)} ${f(dole - vlna)} ${f(d.x)} ${f(dole - 1)} Z" fill="${P.indigo}"/>`;
-    // záhyby: světlejší pruhy, kde látka chytá světlo zleva, tmavší vpravo; nahoře tunýlek přes tyč
-    t += obdelnik(d.x + 6, d.y + 12, 10, d.h - 14, `fill="#3B4E8E" opacity="0.8"`);
-    t += obdelnik(d.x + d.w * 0.52, d.y + 12, 6, d.h - 14, `fill="#35478A" opacity="0.7"`);
-    t += obdelnik(d.x + d.w - 9, d.y + 12, 9, d.h - 14, `fill="${P.indigoTma}"`);
-    t += obdelnik(d.x, d.y, d.w, 11, `fill="${P.indigoTma}"`);
-    t += `<path d="M${f(d.x + 3)} ${f(d.y + 9)} H${f(d.x + d.w - 3)}" stroke="#5A6BA6" stroke-width="0.8" stroke-dasharray="2 2"/>`;
-    // bílá linka u spodního lemu a znak
-    t += obdelnik(d.x, dole - 13, d.w, 2.4, `fill="#F4F1EA" opacity="0.92"`);
-    t += napis(d.x + d.w / 2, d.y + 70, znaky[i], 46, PISMO.kanji, `text-anchor="middle" fill="#F4F1EA"`);
+    let t = `<path d="M${f(d.x)} ${f(d.y)} H${f(d.x + d.w)} V${f(dole - 1)} Q${f(d.x + d.w * 0.75)} ${f(dole + vlna)} ${f(d.x + d.w / 2)} ${f(dole)} Q${f(d.x + d.w * 0.25)} ${f(dole - vlna)} ${f(d.x)} ${f(dole - 1)} Z" fill="url(#krm-noren-g${i})"/>`;
+    // stín vpravo, kde se látka odvrací od světla; nahoře tunýlek přes tyč
+    t += obdelnik(d.x + d.w - 9, d.y + 12, 9, d.h - 14, `fill="${pod("#0E2260")}" opacity="0.28"`);
+    t += obdelnik(d.x, d.y, d.w, 11, `fill="${pod("#14306F")}" opacity="0.8"`);
+    t += `<path d="M${f(d.x + 3)} ${f(d.y + 9)} H${f(d.x + d.w - 3)}" stroke="${ZLATO}" stroke-width="0.8" stroke-dasharray="2 2" opacity="0.7"/>`;
+    // zlatá větvička sakury od tyče (prostřední díl ji má z druhé strany)
+    const sx = d.x + (i === 1 ? d.w * 0.8 : d.w * 0.2), sm = i === 1 ? -1 : 1;
+    t += `<path d="M${f(sx)} ${f(d.y + 11)} q${4 * sm} 12 ${2 * sm} 26 q${-2 * sm} 10 ${3 * sm} 18" fill="none" stroke="${ZLATO}" stroke-width="1.1" stroke-linecap="round"/>`;
+    t += `<g fill="${ZLATO}">${kvet(sx + 6 * sm, d.y + 23, 2.6)}${kvet(sx - sm, d.y + 39, 2.2)}${kvet(sx + 7 * sm, d.y + 51, 1.9)}</g>`;
+    // růžová voda u spodního lemu
+    [0, 1].forEach((r) => {
+      t += `<path d="M${f(d.x + 4)} ${f(dole - 14 + r * 6)} q${f(d.w * 0.17)} -4 ${f(d.w * 0.33)} 0 t${f(d.w * 0.33)} 0 t${f(d.w * 0.26)} 0" fill="none" stroke="${pod("#EBA9B9")}" stroke-width="1" stroke-linecap="round" opacity="${0.85 - r * 0.25}"/>`;
+    });
+    t += napis(d.x + d.w / 2, d.y + 70, znaky[i], 46, PISMO.kanji, `text-anchor="middle" fill="${pod("#F6F1E6")}"`);
     s += `<g class="krm-pr-noren-dil" data-i="${i}">${t}</g>`;
   });
   return `<g class="krm-noren krm-vitr">${s}</g>`;

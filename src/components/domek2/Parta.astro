@@ -22,6 +22,7 @@
 import PecinkaOhen from "../characters/kami-buh/PecinkaOhen.astro";
 import BublinkaStrasidlo from "../characters/kami-buh/BublinkaStrasidlo.astro";
 import Postavicka from "../characters/Postavicka.astro";
+import TlacitkoNebe from "../parta2/TlacitkoNebe.astro";
 import { miska, MISKA } from "./kresba/miska";
 import type { PostavaId } from "../../data/parta";
 import type { Sezona } from "../../data/uvod2";
@@ -33,6 +34,8 @@ const { sezona } = Astro.props;
 
 /** Kdo vykukuje za tlačítkem — všichni kromě těch dvou */
 const ostatni: PostavaId[] = ["hlinka", "kapka", "vazicka", "kachlik", "cedulka", "samotka", "stripek"];
+/** Na telefonu (bez najetí myší) vykukují sami: každý má jinou délku cyklu a posun, takže pořadí vypadá náhodně */
+const vykuk = [[6.3, -1.2], [8.9, -5.4], [7.4, -3.1], [10.7, -7.8], [5.9, -0.4], [9.6, -6.6], [8.1, -2.7]];
 ---
 <section class="uo uo-parta" id="kami-parta" data-hodina="20.4" data-sezona={sezona} aria-labelledby="uo-parta-nadpis">
   <div class="uo-souboj" data-souboj>
@@ -64,10 +67,10 @@ const ostatni: PostavaId[] = ["hlinka", "kapka", "vazicka", "kachlik", "cedulka"
   <div class="uo-pozvanka">
     <ul class="uo-vykukuji" aria-hidden="true">
       {ostatni.map((id, i) => (
-        <li style={`--i:${i}`}><Postavicka id={id} size={64} varianta="kami" /></li>
+        <li style={`--i:${i};--doba:${vykuk[i % vykuk.length][0]}s;--zpozdeni:${vykuk[i % vykuk.length][1]}s`}><Postavicka id={id} size={64} varianta="kami" /></li>
       ))}
     </ul>
-    <a class="tlacitko uo-pozvanka-tlacitko" href="/parta">Poznej je všechny</a>
+    <TlacitkoNebe href="/parta" nebe="den" class="uo-pozvanka-tlacitko">Poznej je všechny</TlacitkoNebe>
     <p class="uo-pozvanka-text">V dílně jich bydlí devět. Ti dva jsou jen ti nejhlasitější.</p>
   </div>
 </section>

@@ -7,6 +7,7 @@
  * Na telefonu provázek zmizí a fotky jsou dvě a dvě.
  */
 import { Image } from "astro:assets";
+import TlacitkoNebe from "../parta2/TlacitkoNebe.astro";
 import foto6679 from "../../../images/Dilna/6679.jpg";
 import foto6677 from "../../../images/Dilna/6677.jpg";
 import foto6675 from "../../../images/Dilna/6675.jpg";
@@ -51,7 +52,7 @@ const fotky = [
   </div>
 
   <div class="uo-akce">
-    <a class="tlacitko" href="/dilna#prohlidka">Projít si dílnu</a>
-    <a class="tlacitko tlacitko-obrys" href="/rezervace">Vybrat hodinu</a>
+    <TlacitkoNebe href="/dilna#prohlidka" nebe="noc">Projít si dílnu</TlacitkoNebe>
+    <TlacitkoNebe href="/rezervace" nebe="den">Vybrat hodinu</TlacitkoNebe>
   </div>
 </section>

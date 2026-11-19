@@ -1,6 +1,6 @@
 /*
  * ——— Úvod: tři ochutnávky místo prohlídky (od 15. 11.) ———
- * Fotky dílny na provázku, výřez nočního krámku s Futatsu a KAMI parta
+ * Fotky dílny na provázku, přízemí nočního krámku a KAMI parta
  * na prkně (components/domek2/Fotky, VKramku, Parta). Každá je nejvýš
  * na jednu obrazovku, nadpis na papíru, ať je čitelný při každé hodině
  * oblohy. Předpona uo-.
@@ -83,102 +83,95 @@
   50% { transform: rotate(calc(var(--r) * -0.4)); }
 }
 
-/* ——— Krámek: rozbitý talíř ———
- * Plocha má poměr kresby (1400 × 800) a je kontejner, takže text na
- * střepu i cenovky rostou s ní (cqw). Na široké ploše leží text na
- * textovém střepu natočený jako on (--l/--t/--w/--h/--r/--o
- * z kresba/strepy.ts); na úzké je nad talířem a střep nese jen znak 器. */
-.uk-talir { position: relative; width: min(1400px, 100%); margin: 0 auto; container: talir / inline-size; }
-.uk-plocha { position: relative; aspect-ratio: 1400 / 800; }
-.uk-kresba { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-/* Střep může být odsunutý a pootočený (--dx/--dy/--r kolem těžiště; kusy obrázků mají 0, textový střep je natočený);
-   obrázky jsou rozbité maskou, viz .uk-prvek níž */
-.uk-kus {
-  transform-box: view-box;
-  transform: translate(var(--dx), var(--dy)) rotate(var(--r));
-  transition: transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1);
+/* ——— Krámek: přízemí nočního krámku (od 19. 11. 2026) ———
+ * Vlevo text na papíru, vpravo přízemí krámku jako jeden obrázek:
+ * výloha z dílny, dveře, výloha z Japonska. Výlohy
+ * a dveře jsou odkazy přes obrázek (místa v % z VKramku.astro); po
+ * najetí se výloha rozsvítí. */
+.uk-rozvrh {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  align-items: center;
+  gap: clamp(26px, 4vw, 60px);
+  width: min(1240px, 100%);
+  margin: 0 auto;
 }
-.uk-kresba a { outline: none; cursor: pointer; }
-/* Rozbitý obrázek je jedna skupina s maskou (praskliny vyříznuté); po najetí se nadzvedne celý */
-.uk-prvek { transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1); }
-.uk-kresba a:hover .uk-prvek, .uk-kresba a:focus-visible .uk-prvek { transform: translateY(-8px); }
-.uk-kresba a:focus-visible .uk-prvek { filter: drop-shadow(0 0 6px rgba(255, 226, 166, 0.9)); }
-.uk-drobek { animation: uk-drobek 7s ease-in-out infinite; animation-delay: calc(var(--i) * -1.7s); }
-@keyframes uk-drobek { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
-
-.uk-text { position: relative; z-index: 2; margin: 0 0 18px; color: #FFF6E6; }
-.uk-text .stitek { display: inline-block; padding: 5px 12px 4px; border-radius: 999px; background: rgba(255, 246, 230, 0.14); color: #FFD9B0; }
+.uk-text { padding: clamp(24px, 3vw, 44px) clamp(22px, 3vw, 42px); transform: rotate(-1.2deg); }
 .uk-nadpis {
-  margin: 12px 0 12px;
+  margin: 12px 0 14px;
   font-family: var(--f-display);
   font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
   font-weight: 400;
-  font-size: clamp(30px, 8vw, 44px);
+  font-size: clamp(30px, min(3.2vw, 6vh), 52px);
   line-height: 1;
-  text-shadow: 0 2px 16px rgba(30, 18, 50, 0.5);
+  color: var(--inkoust);
 }
-.uk-nadpis em { display: block; color: #FFB27A; font-weight: 300; }
-.uk-perex { margin: 0 0 18px; max-width: 42ch; font-size: 16px; line-height: 1.5; text-shadow: 0 1px 10px rgba(30, 18, 50, 0.6); }
-.uk-tlacitko { align-self: flex-start; }
+.uk-nadpis em { display: block; color: #A9321D; font-weight: 300; }
+.uk-perex { margin: 0 0 22px; max-width: 40ch; font-size: clamp(15.5px, 1.1vw, 18px); line-height: 1.55; color: var(--inkoust-2); }
 
-@container talir (min-width: 980px) {
-  .uk-text {
-    position: absolute;
-    left: var(--l);
-    top: var(--t);
-    width: var(--w);
-    height: var(--h);
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    color: var(--inkoust);
-    transform: rotate(var(--r));
-    transform-origin: var(--o);
-  }
-  .uk-text .stitek { align-self: flex-start; padding: 0; background: none; color: var(--rumelka); }
-  .uk-nadpis { font-size: clamp(30px, 3.4cqw, 52px); text-shadow: none; }
-  .uk-nadpis em { color: #A9321D; }
-  .uk-perex { font-size: clamp(14px, 1.22cqw, 18px); color: var(--inkoust-2); text-shadow: none; }
-  .uk-znak { display: none; }
+/* obrázek má poměr fotky (1800 × 917), měkce doztracena do soumraku po stranách */
+.uk-kramek {
+  position: relative;
+  aspect-ratio: 1800 / 917;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -30px rgba(20, 12, 40, 0.8);
 }
-
-/* Cenovky u produktů: papírek s provázkem, natočený se střepem */
-.uk-cenovka {
+.uk-foto { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.uk-zona { position: absolute; z-index: 1; border-radius: 4px; -webkit-tap-highlight-color: transparent; }
+/* výloha se po najetí rozsvítí teplým světlem zevnitř */
+.uk-zona::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(70% 60% at 50% 45%, rgba(255, 214, 150, 0.38), transparent 75%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.uk-zona:hover::after, .uk-zona:focus-visible::after { opacity: 1; }
+.uk-zona:focus-visible { outline: 3px solid #FFE2A6; outline-offset: 2px; }
+/* papírek přes cedulku v pravé výloze, stejně psaný rukou */
+.uk-cedulka {
   position: absolute;
   z-index: 2;
-  display: flex;
+  display: grid;
+  place-items: center;
+  border-radius: 2px;
+  background: #F6EBD6;
+  box-shadow: 0 1px 2px rgba(60, 40, 20, 0.25);
+  font-family: var(--f-ruka);
+  font-size: clamp(9px, 1.05cqw, 16px);
+  line-height: 1;
+  color: #6A4E3A;
+  white-space: nowrap;
+  transform: rotate(-1.5deg);
+  pointer-events: none;
+}
+.uk-prizemi { container-type: inline-size; }
+
+/* Popisky pod výlohami: vlevo z dílny, vpravo z Japonska */
+.uk-popisky { display: flex; justify-content: space-between; padding: 14px 6% 0; }
+.uk-popisek {
+  display: inline-flex;
   align-items: baseline;
-  gap: 0.4em;
-  padding: 0.35em 0.8em 0.4em;
+  gap: 0.45em;
+  padding: 0.4em 0.9em 0.45em;
   border-radius: 6px;
   background: #FFFDF8;
   font-family: var(--f-ruka);
-  font-size: clamp(14px, 1.45cqw, 21px);
+  font-size: clamp(16px, 1.5cqw, 21px);
   line-height: 1;
   color: var(--inkoust);
   text-decoration: none;
-  white-space: nowrap;
   box-shadow: 0 10px 20px -10px rgba(30, 18, 50, 0.6);
-  transform: translate(-50%, -50%) rotate(var(--r));
+  transform: rotate(-2deg);
   transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
-.uk-cenovka::before {
-  content: "";
-  position: absolute;
-  left: 0.55em;
-  top: 50%;
-  width: 0.36em;
-  height: 0.36em;
-  margin-top: -0.18em;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px #B08A4A;
-}
-.uk-cenovka { padding-left: 1.3em; }
-.uk-cenovka span { font-family: var(--f-kanji); font-size: 0.8em; color: var(--rumelka); }
-.uk-cenovka b { font-weight: 600; }
-.uk-cenovka i { font-style: normal; color: var(--inkoust-2); }
-.uk-cenovka:hover, .uk-cenovka:focus-visible { transform: translate(-50%, calc(-50% - 6px)) rotate(var(--r)); }
+.uk-popisek + .uk-popisek { transform: rotate(2deg); }
+.uk-popisek span { font-family: var(--f-kanji); font-size: 0.8em; color: var(--rumelka); }
+.uk-popisek:hover, .uk-popisek:focus-visible { transform: rotate(0deg) translateY(-3px); }
 
 /* ——— Parta: Pecinka proti Bublince, mezi nimi miska ———
  * Text leží rovnou na soumraku (světlý se stínem), za každou postavou
@@ -287,13 +280,25 @@
 }
 .uo-vykukuji svg { display: block; width: 100%; height: auto; }
 .uo-pozvanka:hover .uo-vykukuji li, .uo-pozvanka:focus-within .uo-vykukuji li { transform: translateY(14%); }
-.uo-pozvanka-tlacitko { position: relative; z-index: 1; background: #FFF6E6 !important; border-color: #FFF6E6 !important; color: var(--inkoust) !important; }
+/* Na telefonu není najetí myší: kami vykukují sami, každý ve svém rytmu (--doba, --zpozdeni z Parta.astro), mimo obrazovku stojí (.mimo-obr) */
+@media (hover: none) {
+  .uo-vykukuji li { transition: none; animation: uo-vykuk var(--doba, 8s) ease-in-out var(--zpozdeni, 0s) infinite; }
+}
+@keyframes uo-vykuk {
+  0%, 76%, 100% { transform: translateY(42%); }
+  81% { transform: translateY(4%); }
+  84% { transform: translateY(12%) rotate(-6deg); }
+  88% { transform: translateY(10%) rotate(5deg); }
+  91% { transform: translateY(12%); }
+  95% { transform: translateY(42%); }
+}
+.uo-pozvanka-tlacitko { z-index: 1; }
 .uo-pozvanka-text { margin: 12px 0 0; font-family: var(--f-ruka); font-size: 19px; color: rgba(255, 246, 230, 0.8); text-shadow: 0 1px 10px rgba(30, 18, 50, 0.6); }
 
 @media (prefers-reduced-motion: reduce) {
-  .uo-foto figure, .uk-drobek { animation: none; }
-  .uk-kus { transition: none; }
-  .uo-vykukuji li { transition: none; }
+  .uo-foto figure { animation: none; }
+  .uk-zona::after, .uk-popisek { transition: none; }
+  .uo-vykukuji li { transition: none; animation: none; }
 }
 
 /* ——— Telefon ——— */
@@ -309,6 +314,10 @@
   .uo-kolicek { top: 0; }
   .uo-foto figure { animation: none; }
 
+  .uk-rozvrh { grid-template-columns: 1fr; gap: 26px; }
+  .uk-text { transform: none; }
+  .uk-kramek { border-radius: 10px; }
+  .uk-popisky { padding: 12px 2% 0; }
 
   .uo-souboj { grid-template-columns: 1fr 1fr; gap: 0 6px; align-items: start; }
   .uo-stred { display: contents; }
