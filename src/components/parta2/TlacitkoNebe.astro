@@ -4,21 +4,29 @@
  * dole se kupí obláčky, „noc“ je modrá s hvězdičkami, „den“ papírová
  * s ptáčky. Nemění se s režimem stránky — noc a den stojí vedle sebe.
  * Na úvodu (od 19. 11. 2026 všechna tlačítka úvodu, domek2/…) a nahoře na Rezervaci
- * (rezervace/Nadrazi.astro). Pás 260 × 52, náhoda ze semene podle odkazu —
- * každé tlačítko má svoje hvězdy a mraky, ale pokaždé stejné.
+ * (rezervace/Nadrazi.astro), na lístku Futatsu v obchodě (obchod2/Podpis.astro).
+ * Pás 260 × 52, náhoda ze semene podle odkazu — každé tlačítko má svoje
+ * hvězdy a mraky, ale pokaždé stejné.
+ *
+ * Bez `href` je to <button> (type="button"); ostatní atributy (data-…,
+ * aria-…) jdou na tlačítko. Text je v .tn-text — kdo ho mění skriptem,
+ * mění jen ten (scripts/obchod2/satek.ts), jinak by smazal nebe.
  */
 interface Props {
-  href: string;
+  href?: string;
   nebe: "den" | "noc";
   class?: string;
-  target?: string;
-  rel?: string;
+  /* Semeno náhody, když není odkaz (jinak se bere z href) */
+  semeno?: string;
+  [atribut: string]: unknown;
 }
-const { href, nebe, class: trida, target, rel } = Astro.props;
+const { href, nebe, class: trida, semeno: klic, ...atributy } = Astro.props;
+const Prvek = href ? "a" : "button";
+const prvek = href ? { href } : { type: "button" };
 
 const SIRKA = 260;
 const VYSKA = 52;
-let semeno = (nebe === "noc" ? 23 : 41) + [...href].reduce((s, z) => (s * 31 + z.charCodeAt(0)) % 9973, 0);
+let semeno = (nebe === "noc" ? 23 : 41) + [...(href ?? klic ?? "")].reduce((s, z) => (s * 31 + z.charCodeAt(0)) % 9973, 0);
 const nahoda = () => ((semeno = (semeno * 16807) % 2147483647) / 2147483647);
 const f = (n: number) => n.toFixed(1);
 
@@ -48,7 +56,7 @@ const ptaci: [number, number, number][] = [[30, 12, 0.9], [44, 16, 0.75], [205, 
 /* Barvy mraků z HlavickaNebe.astro */
 const barva = nebe === "noc" ? { z: "#3B4482", p: "#47508F" } : { z: "#E8DFCC", p: "#FFFCF4" };
 ---
-<a class:list={["tlacitko", "tn", `tn-${nebe}`, trida]} href={href} target={target} rel={rel}>
+<Prvek class:list={["tlacitko", "tn", `tn-${nebe}`, trida]} {...prvek} {...atributy}>
   <svg class="tn-nebe" viewBox={`0 0 ${SIRKA} ${VYSKA}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
     {nebe === "noc" ? (
       <g fill="#FFF8EA">
@@ -76,32 +84,32 @@ const barva = nebe === "noc" ? { z: "#3B4482", p: "#47508F" } : { z: "#E8DFCC", 
     <g fill={barva.p} opacity="0.85">{predni.map((k) => <circle cx={f(k.cx)} cy={f(k.cy)} r={f(k.r)} />)}</g>
   </svg>
   <span class="tn-text"><slot /></span>
-</a>
+</Prvek>
 
 <style>
-  /* a.tlacitko.tn… přebije .tlacitko:hover i .tlacitko-obrys z parta2.css */
-  a.tlacitko.tn {
+  /* .tlacitko.tn… přebije .tlacitko:hover i .tlacitko-obrys z parta2.css */
+  .tlacitko.tn {
     position: relative;
     isolation: isolate;
     overflow: hidden;
     border-color: transparent;
   }
-  a.tlacitko.tn-noc,
-  a.tlacitko.tn-noc:hover {
+  .tlacitko.tn-noc,
+  .tlacitko.tn-noc:hover {
     background: #2A3160;
     color: #F1E8D6 !important;
     box-shadow: 0 12px 32px -14px rgba(5, 8, 25, 0.7), inset 0 0 0 1px rgba(241, 232, 214, 0.09);
   }
-  a.tlacitko.tn-noc:hover {
+  .tlacitko.tn-noc:hover {
     background: #222851;
   }
-  a.tlacitko.tn-den,
-  a.tlacitko.tn-den:hover {
+  .tlacitko.tn-den,
+  .tlacitko.tn-den:hover {
     background: color-mix(in srgb, var(--papir) 90%, transparent);
     color: var(--inkoust) !important;
     box-shadow: 0 10px 30px -14px rgba(28, 20, 44, 0.45), inset 0 0 0 1px rgba(43, 36, 32, 0.12);
   }
-  a.tlacitko.tn-den:hover {
+  .tlacitko.tn-den:hover {
     background: var(--papir);
   }
   .tn-text {

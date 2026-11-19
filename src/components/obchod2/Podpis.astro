@@ -19,6 +19,7 @@
  */
 import "@fontsource-variable/jetbrains-mono";
 import "../../styles/podpis.css";
+import TlacitkoNebe from "../parta2/TlacitkoNebe.astro";
 import { podpisove, cenovka } from "../../data/kramek";
 import { tokonoma } from "./kresba/tokonoma";
 import type { Obdelnik } from "./kresba/zaklad";
@@ -101,9 +102,9 @@ const natoceni = { uhel: 62, nadhled: 14 };
           </dl>
           <div class="o2t-koupit">
             <p class="o2t-cena"><span class="o2t-dai" lang="ja" aria-hidden="true" title="dai — hodnota">代</span><span class="sr-only">Cena</span> <b>{ceny.castka}</b> {ceny.mena}</p>
-            <button type="button" class="o2t-do-satku" data-satek-pridat data-satek-id={kus.id} data-pridat="Do šátku" data-vyndat="✓ V šátku" aria-describedby="podpis-nazev">Do šátku</button>
+            <TlacitkoNebe nebe="noc" semeno="futatsu-satek" class="o2t-do-satku" data-satek-pridat data-satek-id={kus.id} data-pridat="Do šátku" data-vyndat="✓ V šátku" aria-describedby="podpis-nazev">Do šátku</TlacitkoNebe>
           </div>
-          <a class="o2t-cely" href={kus.podpis}>Prohlédnout celý <span aria-hidden="true">→</span></a>
+          <TlacitkoNebe href={kus.podpis} nebe="den" class="o2t-cely">Prohlédnout celý <span aria-hidden="true">→</span></TlacitkoNebe>
           <p class="o2t-pozn">Origami <span lang="ja">折紙</span> je přeložený papír, kterým se v Japonsku stvrzovala hodnota mečů a čajového náčiní. Odtud <span lang="ja">折紙付き</span>: s osvědčením.</p>
         </div>
         <span class="o2t-v-satku" data-v-satku hidden>v šátku</span>

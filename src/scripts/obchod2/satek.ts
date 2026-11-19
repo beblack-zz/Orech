@@ -172,7 +172,8 @@ export function initSatek(): Satek {
     document.querySelectorAll<HTMLButtonElement>("[data-satek-pridat]").forEach((b) => {
       const je = vSatku.has(b.dataset.satekId ?? "");
       /* Malá tlačítka na balících v krámku mají kratší nápisy (data-pridat / data-vyndat) */
-      b.textContent = je ? (b.dataset.vyndat ?? "Vyndat ze šátku") : (b.dataset.pridat ?? "Do šátku");
+      /* tlačítko s nebem (TlacitkoNebe) má text v .tn-text — přepsat celé by smazalo hvězdy a mraky */
+      (b.querySelector<HTMLElement>(".tn-text") ?? b).textContent = je ? (b.dataset.vyndat ?? "Vyndat ze šátku") : (b.dataset.pridat ?? "Do šátku");
       b.classList.toggle("v-satku", je);
     });
     document.querySelectorAll<HTMLElement>("[data-satek-kus]").forEach((p) => {
