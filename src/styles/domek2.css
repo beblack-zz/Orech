@@ -721,3 +721,30 @@
   /* bez štítku s adresou a bez „Jít dovnitř“ — zůstane jen mapa (prohlídka je hned pod ulicí) */
   .ulice-text .stitek, .ulice-akce a[href="#fotky"] { display: none; }
 }
+
+/*
+ * ——— Tlačítka s nebem na telefonu (od 19. 11. 2026) ———
+ * Pod sebou přes celou šířku: noční (modré s hvězdami) zůstává, denní je
+ * průhledné — jen obrys, mlha za sklem a ptáčci, krajina prosvítá.
+ * Písmo světlé se stínem; na světlém pozadí (ulice, fotky dílny) tmavé
+ * se světlou září (--tn-den-barva, --tn-den-stin). body.dm2 přebije
+ * styly komponenty (parta2/TlacitkoNebe.astro).
+ */
+@media (max-width: 860px) {
+  .dm-uvod-akce, .ulice-akce, .uo-akce, .noc-akce { flex-direction: column; align-items: stretch; }
+  body.dm2 a.tlacitko.tn { display: flex; justify-content: center; width: 100%; min-height: 52px; }
+  .uo-pozvanka a.tlacitko.tn { width: min(100%, 340px); }
+  body.dm2 a.tlacitko.tn-den,
+  body.dm2 a.tlacitko.tn-den:hover {
+    background: rgba(255, 252, 244, 0.14);
+    -webkit-backdrop-filter: blur(8px) saturate(1.15);
+    backdrop-filter: blur(8px) saturate(1.15);
+    border: 1.5px solid rgba(255, 248, 234, 0.75);
+    color: var(--tn-den-barva, #FFF8EA) !important;
+    text-shadow: var(--tn-den-stin, 0 1px 8px rgba(30, 20, 50, 0.6));
+    box-shadow: 0 10px 26px -18px rgba(20, 12, 40, 0.6);
+  }
+  body.dm2 .tn-den .tn-nebe { opacity: 0.45; }
+  .ulice-akce, .uo-fotky .uo-akce { --tn-den-barva: var(--inkoust); --tn-den-stin: 0 0 10px rgba(255, 250, 240, 0.95); }
+  .ulice-akce a.tlacitko.tn-den, .uo-fotky .uo-akce a.tlacitko.tn-den { border-color: rgba(43, 36, 32, 0.35) !important; }
+}
